@@ -32,6 +32,8 @@
   .btn-primary:hover{opacity:0.85;transform:translateY(-1px);}
   .btn-danger{background:transparent;border:1px solid rgba(187,102,136,0.4);color:var(--accent2);}
   .btn-danger:hover{background:rgba(187,102,136,0.15);}
+  .btn-guide{background:linear-gradient(135deg,rgba(204,170,136,0.15),rgba(221,170,204,0.15));border:1px solid rgba(204,170,136,0.4);color:var(--accent4);font-weight:600;}
+  .btn-guide:hover{background:linear-gradient(135deg,rgba(204,170,136,0.25),rgba(221,170,204,0.25));border-color:var(--accent4);transform:translateY(-1px);box-shadow:0 4px 12px rgba(204,170,136,0.2);}
 
   /* 레이아웃 */
   .app-body{display:grid;grid-template-columns:200px 1fr 380px;height:calc(100vh - 50px);position:relative;z-index:1;}
@@ -204,6 +206,7 @@
     <button class="btn btn-danger" onclick="resetProject()">↺ 초기화</button>
     <button class="btn btn-ghost" onclick="importJSON()">📂 가져오기</button>
     <button class="btn btn-primary" onclick="exportJSON()">💾 내보내기</button>
+    <button class="btn btn-guide" onclick="openGuide()" title="프롬프트 가이드 보기">📖 가이드</button>
   </div>
   <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(event)">
 </header>
@@ -1276,6 +1279,11 @@ function showToast(msg){
   const t=document.createElement('div');t.textContent=msg;
   t.style.cssText='position:fixed;bottom:20px;right:20px;background:var(--surface2);border:1px solid var(--accent);color:var(--accent);padding:9px 16px;border-radius:8px;font-size:12px;z-index:9999;font-family:Noto Sans KR,sans-serif;';
   document.body.appendChild(t);setTimeout(()=>t.remove(),2500);
+}
+
+// ===== 가이드 =====
+function openGuide(){
+  window.open('guide.html', '_blank');
 }
 
 // ===== 초기화 =====

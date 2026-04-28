@@ -346,7 +346,7 @@
             <div>
               <div class="field-label">세계 고유 규칙 <span style="color:var(--muted)">(엔터)</span></div>
               <div class="tag-input-container" id="world-rule-tags" onclick="document.getElementById('world-rule-input').focus()">
-                <input type="text" class="tag-input" id="world-rule-input" placeholder="예: 마나 고갈 시 사망..." onkeydown="handleTagInput(event,'world-rule')">
+                <div style="display:flex;gap:6px;align-items:center;"><input type="text" class="tag-input" id="world-rule-input" placeholder="예: 마나 고갈 시 사망..." onkeydown="handleTagInput(event,'world-rule')" onkeyup="handleTagInput(event,'world-rule')"><button onclick="handleTagInput({key:' Enter',type:'keyup',preventDefault:()=>{},target:document.getElementById('world-rule-input')},'world-rule')" style="padding:5px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--accent);cursor:pointer;font-size:14px;flex-shrink:0;">＋</button></div>
               </div>
             </div>
             <div><div class="field-label">금기 / 터부</div><textarea id="world-taboo" placeholder="이 세계에서 절대 하면 안 되는 것..." oninput="updatePreview()"></textarea></div>
@@ -363,7 +363,7 @@
             <div>
               <div class="field-label">장소 태그 <span style="color:var(--muted)">(엔터)</span></div>
               <div class="tag-input-container" id="place-tags" onclick="document.getElementById('place-input').focus()">
-                <input type="text" class="tag-input" id="place-input" placeholder="예: 왕도, 마법학원, 뒷골목..." onkeydown="handleTagInput(event,'place')">
+                <div style="display:flex;gap:6px;align-items:center;"><input type="text" class="tag-input" id="place-input" placeholder="예: 왕도, 마법학원, 뒷골목..." onkeydown="handleTagInput(event,'place')" onkeyup="handleTagInput(event,'place')"><button onclick="handleTagInput({key:' Enter',type:'keyup',preventDefault:()=>{},target:document.getElementById('place-input')},'place')" style="padding:5px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--accent);cursor:pointer;font-size:14px;flex-shrink:0;">＋</button></div>
               </div>
             </div>
           </div>
@@ -387,7 +387,7 @@
             <div>
               <div class="field-label">분위기 키워드 <span style="color:var(--muted)">(엔터)</span></div>
               <div class="tag-input-container" id="atmo-tags" onclick="document.getElementById('atmo-input').focus()">
-                <input type="text" class="tag-input" id="atmo-input" placeholder="예: 음습한, 따뜻한, 낭만적인..." onkeydown="handleTagInput(event,'atmo')">
+                <div style="display:flex;gap:6px;align-items:center;"><input type="text" class="tag-input" id="atmo-input" placeholder="예: 음습한, 따뜻한, 낭만적인..." onkeydown="handleTagInput(event,'atmo')" onkeyup="handleTagInput(event,'atmo')"><button onclick="handleTagInput({key:' Enter',type:'keyup',preventDefault:()=>{},target:document.getElementById('atmo-input')},'atmo')" style="padding:5px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--accent);cursor:pointer;font-size:14px;flex-shrink:0;">＋</button></div>
               </div>
             </div>
           </div>
@@ -518,13 +518,13 @@
             <div>
               <div class="field-label">전체 반드시 할 것 <span style="color:var(--muted)">(엔터)</span></div>
               <div class="tag-input-container" id="must-tags" onclick="document.getElementById('must-input').focus()">
-                <input type="text" class="tag-input" id="must-input" placeholder="예: 항상 한국어로 답변, 존댓말 금지..." onkeydown="handleTagInput(event,'must')">
+                <div style="display:flex;gap:6px;align-items:center;"><input type="text" class="tag-input" id="must-input" placeholder="예: 항상 한국어로 답변, 존댓말 금지..." onkeydown="handleTagInput(event,'must')" onkeyup="handleTagInput(event,'must')"><button onclick="handleTagInput({key:' Enter',type:'keyup',preventDefault:()=>{},target:document.getElementById('must-input')},'must')" style="padding:5px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--accent);cursor:pointer;font-size:14px;flex-shrink:0;">＋</button></div>
               </div>
             </div>
             <div>
               <div class="field-label">전체 절대 하지 말 것 <span style="color:var(--muted)">(엔터)</span></div>
               <div class="tag-input-container" id="never-tags" onclick="document.getElementById('never-input').focus()">
-                <input type="text" class="tag-input" id="never-input" placeholder="예: AI임을 밝히기, 롤플레이 깨기, 설정 외 행동..." onkeydown="handleTagInput(event,'never')">
+                <div style="display:flex;gap:6px;align-items:center;"><input type="text" class="tag-input" id="never-input" placeholder="예: AI임을 밝히기, 롤플레이 깨기, 설정 외 행동..." onkeydown="handleTagInput(event,'never')" onkeyup="handleTagInput(event,'never')"><button onclick="handleTagInput({key:' Enter',type:'keyup',preventDefault:()=>{},target:document.getElementById('never-input')},'never')" style="padding:5px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--accent);cursor:pointer;font-size:14px;flex-shrink:0;">＋</button></div>
               </div>
             </div>
             <div><div class="field-label">전체 공통 추가 설정</div><textarea id="rules-extra-text" style="min-height:90px" placeholder="모든 캐릭터에 공통으로 적용할 규칙을 자유롭게..." oninput="updatePreview()"></textarea></div>
@@ -811,7 +811,7 @@ function renderCharEditor(){
         <div>
           <div class="field-label">성격 키워드 <span style="color:var(--muted)">(엔터)</span></div>
           <div class="tag-input-container" id="c-personality-tags" onclick="document.getElementById('c-personality-input').focus()">
-            <input type="text" class="tag-input" id="c-personality-input" placeholder="예: 냉소적, 따뜻한, 충동적..." onkeydown="handleCharTag(event,'personality')">
+            <div style="display:flex;gap:6px;align-items:center;"><input type="text" class="tag-input" id="c-personality-input" placeholder="예: 냉소적, 따뜻한, 충동적..." onkeydown="handleCharTag(event,'personality')" onkeyup="handleCharTag(event,'personality')"><button onclick="handleCharTag({key:' Enter',type:'keyup',preventDefault:()=>{},target:document.getElementById('c-personality-input')},'personality')" style="padding:5px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--accent);cursor:pointer;font-size:14px;flex-shrink:0;">＋</button></div>
           </div>
         </div>
         <div>
@@ -852,7 +852,7 @@ function renderCharEditor(){
         <div>
           <div class="field-label">버릇 / 습관 <span style="color:var(--muted)">(엔터)</span></div>
           <div class="tag-input-container" id="c-habit-tags" onclick="document.getElementById('c-habit-input').focus()">
-            <input type="text" class="tag-input" id="c-habit-input" placeholder="예: 머리 만지기, 혼잣말, 손가락 두드리기..." onkeydown="handleCharTag(event,'habit')">
+            <div style="display:flex;gap:6px;align-items:center;"><input type="text" class="tag-input" id="c-habit-input" placeholder="예: 머리 만지기, 혼잣말, 손가락 두드리기..." onkeydown="handleCharTag(event,'habit')" onkeyup="handleCharTag(event,'habit')"><button onclick="handleCharTag({key:' Enter',type:'keyup',preventDefault:()=>{},target:document.getElementById('c-habit-input')},'habit')" style="padding:5px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--accent);cursor:pointer;font-size:14px;flex-shrink:0;">＋</button></div>
           </div>
         </div>
       </div>
@@ -867,13 +867,13 @@ function renderCharEditor(){
         <div>
           <div class="field-label">좋아하는 것 <span style="color:var(--muted)">(엔터)</span></div>
           <div class="tag-input-container" id="c-like-tags" onclick="document.getElementById('c-like-input').focus()">
-            <input type="text" class="tag-input" id="c-like-input" placeholder="예: 고양이, 빗소리, 단 음식..." onkeydown="handleCharTag(event,'like')">
+            <div style="display:flex;gap:6px;align-items:center;"><input type="text" class="tag-input" id="c-like-input" placeholder="예: 고양이, 빗소리, 단 음식..." onkeydown="handleCharTag(event,'like')" onkeyup="handleCharTag(event,'like')"><button onclick="handleCharTag({key:' Enter',type:'keyup',preventDefault:()=>{},target:document.getElementById('c-like-input')},'like')" style="padding:5px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--accent);cursor:pointer;font-size:14px;flex-shrink:0;">＋</button></div>
           </div>
         </div>
         <div>
           <div class="field-label">싫어하는 것 <span style="color:var(--muted)">(엔터)</span></div>
           <div class="tag-input-container" id="c-dislike-tags" onclick="document.getElementById('c-dislike-input').focus()">
-            <input type="text" class="tag-input" id="c-dislike-input" placeholder="예: 시끄러운 곳, 거짓말, 배신..." onkeydown="handleCharTag(event,'dislike')">
+            <div style="display:flex;gap:6px;align-items:center;"><input type="text" class="tag-input" id="c-dislike-input" placeholder="예: 시끄러운 곳, 거짓말, 배신..." onkeydown="handleCharTag(event,'dislike')" onkeyup="handleCharTag(event,'dislike')"><button onclick="handleCharTag({key:' Enter',type:'keyup',preventDefault:()=>{},target:document.getElementById('c-dislike-input')},'dislike')" style="padding:5px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--accent);cursor:pointer;font-size:14px;flex-shrink:0;">＋</button></div>
           </div>
         </div>
         <div><div class="field-label">비밀 / 트라우마 / 숨겨진 면</div><textarea id="c-secret" placeholder="숨기고 있는 것, 약점, 트라우마, 결핍..." oninput="saveField('secret',this.value)">${esc(d.secret)}</textarea></div>
@@ -901,13 +901,13 @@ function renderCharEditor(){
         <div>
           <div class="field-label">반드시 할 것 <span style="color:var(--muted)">(엔터)</span></div>
           <div class="tag-input-container" id="c-must-tags" onclick="document.getElementById('c-must-input').focus()">
-            <input type="text" class="tag-input" id="c-must-input" placeholder="예: 항상 반말 사용, 먼저 인사하기..." onkeydown="handleCharTag(event,'must')">
+            <div style="display:flex;gap:6px;align-items:center;"><input type="text" class="tag-input" id="c-must-input" placeholder="예: 항상 반말 사용, 먼저 인사하기..." onkeydown="handleCharTag(event,'must')" onkeyup="handleCharTag(event,'must')"><button onclick="handleCharTag({key:' Enter',type:'keyup',preventDefault:()=>{},target:document.getElementById('c-must-input')},'must')" style="padding:5px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--accent);cursor:pointer;font-size:14px;flex-shrink:0;">＋</button></div>
           </div>
         </div>
         <div>
           <div class="field-label">절대 하지 말 것 <span style="color:var(--muted)">(엔터)</span></div>
           <div class="tag-input-container" id="c-never-tags" onclick="document.getElementById('c-never-input').focus()">
-            <input type="text" class="tag-input" id="c-never-input" placeholder="예: 먼저 사과하기, 감정 직접 표현..." onkeydown="handleCharTag(event,'never')">
+            <div style="display:flex;gap:6px;align-items:center;"><input type="text" class="tag-input" id="c-never-input" placeholder="예: 먼저 사과하기, 감정 직접 표현..." onkeydown="handleCharTag(event,'never')" onkeyup="handleCharTag(event,'never')"><button onclick="handleCharTag({key:' Enter',type:'keyup',preventDefault:()=>{},target:document.getElementById('c-never-input')},'never')" style="padding:5px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--accent);cursor:pointer;font-size:14px;flex-shrink:0;">＋</button></div>
           </div>
         </div>
         <div><div class="field-label">특수 상황 대응</div><textarea id="c-special" placeholder="화가 났을 때, 무서울 때, 부끄러울 때 이 캐릭터는 어떻게 행동하는지..." oninput="saveField('special',this.value)">${esc(d.special||'')}</textarea></div>
@@ -953,7 +953,8 @@ function saveField(field,value){
 
 // ===== 캐릭터 태그 =====
 function handleCharTag(e,key){
-  if(e.key!=='Enter'&&e.key!==',')return;e.preventDefault();
+  if(e.key!=='Enter'&&e.key!==',')return;
+  if(e.type==='keydown')return;e.preventDefault();
   const char=getCurrentChar();if(!char)return;
   const val=e.target.value.trim().replace(',','');if(!val)return;
   char.tagData[key]=char.tagData[key]||[];char.tagData[key].push(val);
@@ -978,7 +979,8 @@ function removeCharTag(key,i){const c=getCurrentChar();if(!c)return;c.tagData[ke
 const TAG_IDS={'world-rule':['world-rule-tags','world-rule-input'],'atmo':['atmo-tags','atmo-input'],'place':['place-tags','place-input'],'must':['must-tags','must-input'],'never':['never-tags','never-input']};
 
 function handleTagInput(e,key){
-  if(e.key!=='Enter'&&e.key!==',')return;e.preventDefault();
+  if(e.key!=='Enter'&&e.key!==',')return;
+  if(e.type==='keydown')return;e.preventDefault();
   const proj=getProject();if(!proj)return;
   const val=e.target.value.trim().replace(',','');if(!val)return;
   proj.globalTagData[key]=proj.globalTagData[key]||[];proj.globalTagData[key].push(val);

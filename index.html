@@ -920,7 +920,7 @@ function renderCharEditor(){
 
   renderCharTags('personality');renderCharTags('habit');renderCharTags('like');renderCharTags('dislike');renderCharTags('must');renderCharTags('never');
   renderRelations();updatePreviewBar();
-  setTimeout(()=>{injectCustomChips('c-speech-chips','speech');injectOutfitChips();},30);
+  setTimeout(()=>{injectCustomChips('c-speech-chips','speech');injectOutfitChips();setTimeout(initOutfitChipTouch,50);},30);
   updatePreview();
 }
 
@@ -931,6 +931,20 @@ function toggleOutfitChip(el,value){
   if(el.classList.contains('active')){el.classList.remove('active');char.outfitChips=char.outfitChips.filter(s=>s!==value);}
   else{el.classList.add('active');char.outfitChips.push(value);}
   saveAll();updatePreview();
+}
+
+// 모바일 터치용 - outfit 칩 전용
+function initOutfitChipTouch(){
+  const container=document.getElementById('c-outfit-chips');
+  if(!container)return;
+  container.querySelectorAll('.chip:not(.chip-add)').forEach(chip=>{
+    chip.addEventListener('touchend',function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      const value=this.textContent.replace('×','').trim();
+      toggleOutfitChip(this,value);
+    },{passive:false});
+  });
 }
 
 function injectOutfitChips(){

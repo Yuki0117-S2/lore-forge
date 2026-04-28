@@ -15,7 +15,14 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;}
 body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");}
-
+/* ──형광펜-검색용 ── */
+mark.search-highlight {
+  background-color: var(--accent2, #BB6688);
+  color: #ffffff;
+  border-radius: 3px;
+  padding: 0 4px;
+  font-weight: bold;
+}
 /* ── 헤더 ── */
 .header{position:sticky;top:0;z-index:100;background:rgba(26,21,32,0.97);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:10px 18px;display:flex;align-items:center;gap:12px;height:50px;}
 .back-btn{background:none;border:1px solid var(--border);color:var(--muted);padding:5px 10px;border-radius:6px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:11px;transition:all 0.2s;white-space:nowrap;}
@@ -170,6 +177,7 @@ const ARTICLE_HTML = "<div class=\"fr-view article-content\">\n<p><strong><span 
 let currentChapter = null;
 let searchQuery = '';
 let tocOpen = true; // desktop default
+let lastSearchTerm = ""; // 마지막으로 검색한 단어를 기억할 저장소야
 
 function goBack() {
   // Try to go back, or redirect to index.html
@@ -246,11 +254,13 @@ function handleSearch(q) {
 }
 
 function clearSearch() {
+  lastSearchTerm = ""
   document.getElementById('search-input').value = '';
   handleSearch('');
 }
 
 function renderSearchResults(q) {
+  lastSearchTerm = q;
   const content = document.getElementById('guide-content');
   const lq = q.toLowerCase();
   
@@ -263,11 +273,19 @@ function renderSearchResults(q) {
       }
     });
   });
-  
-  if(results.length === 0) {
+  if (q && content.innerHTML) {
+    const regex = new RegExp(`(?![^<]*>)(${q})`, 'gi');
+    content.innerHTML = content.innerHTML.replace(regex, '<mark class="search-highlight">$1</mark>');
+  }
+  if (content.innerHTML.trim() === '' || content.children.length === 0) {
+    content.innerHTML = `<div class="no-results"><div class="no-results-icon">🔍</div><div>"${q}" 검색 결과가 없어요</div></div>`;
+  }
+  /*if(results.length === 0) {
     content.innerHTML = `<div class="no-results"><div class="no-results-icon">🔍</div><div>"${q}" 검색 결과가 없어요</div></div>`;
     return;
+   
   }
+  */
   
   // Also do full text search in the actual DOM
   const tempDiv = document.createElement('div');
@@ -303,8 +321,42 @@ function renderSearchResults(q) {
 }
 
 function clearSearchAndJump(secId) {
-  clearSearch();
-  setTimeout(() => jumpToSection(secId), 100);
+  // 1. 검색 결과 목록이 들어있는 전체 화면 가져오기
+  const content = document.getElementById('guide-content');
+
+  // 2. 검색 목록 아래에 '미리보기 전용 구역' 찾기 (없으면 선배가 만들어 줌!)
+  let previewArea = document.getElementById('search-preview-area');
+  if (!previewArea) {
+    previewArea = document.createElement('div');
+    previewArea.id = 'search-preview-area';
+    previewArea.style.marginTop = '30px';
+    previewArea.style.borderTop = '2px dashed var(--accent)';
+    previewArea.style.paddingTop = '20px';
+    content.appendChild(previewArea);
+  }
+
+  // 3. 원본 데이터(ARTICLE_HTML)에서 네가 클릭한 부분(secId)의 진짜 내용만 훔쳐오기
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = ARTICLE_HTML;
+  const targetContent = tempDiv.querySelector('#' + secId);
+
+  if (targetContent) {
+    // 4. 훔쳐온 쌩얼 원본을 미리보기 구역에 꽂아넣기 (여기서 형광펜 중첩 버그 100% 차단!)
+    previewArea.innerHTML = targetContent.outerHTML;
+
+    // 5. 내용이 접혀있으면 안 보이니까 강제로 쫙 펴주기
+    const detailsTag = previewArea.querySelector('details');
+    if (detailsTag) detailsTag.setAttribute('open', '');
+
+    // 6. 방금 넣은 깨끗한 본문에다가 형광펜 딱 한 번만 우아하게 칠하기
+    if (lastSearchTerm && previewArea.innerHTML) {
+      const regex = new RegExp(`(?![^<]*>)(${lastSearchTerm})`, 'gi');
+      previewArea.innerHTML = previewArea.innerHTML.replace(regex, `<mark class="search-highlight">$1</mark>`);
+    }
+
+    // 7. 클릭하자마자 미리보기 구역으로 화면을 부드럽게 스윽~ 이동
+    previewArea.scrollIntoView({behavior: 'smooth', block: 'center'});
+  }
 }
 
 // ── 콘텐츠 렌더링 ──
@@ -315,7 +367,7 @@ function renderContent() {
   tempDiv.innerHTML = ARTICLE_HTML;
   const article = tempDiv.querySelector('.fr-view');
   if(!article) { content.innerHTML = tempDiv.innerHTML; return; }
-  
+
   const chapterDivs = article.querySelectorAll(':scope > div');
   content.innerHTML = '';
   
@@ -346,7 +398,9 @@ function renderContent() {
     details.forEach((d, j) => {
       const cloned = d.cloneNode(true);
       cloned.id = `sec-${i}-${j}`;
-      // Make sure it shows content  
+      // Make sure it shows content
+      cloned.removeAttribute('open');
+
       block.appendChild(cloned);
     });
     

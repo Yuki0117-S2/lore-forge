@@ -214,6 +214,7 @@
 <!-- 모바일 캐릭터 선택바 -->
 <div class="mob-char-bar" id="mob-char-bar">
   <select id="mob-char-select" onchange="mobSelectChar(this.value)"></select>
+  <button onclick="deleteCurrentMobileChar()" style="background: var(--accent2); color: white; border: none; padding: 6px 12px; border-radius: 4px; margin-left: 8px; font-weight: bold; cursor: pointer;">삭제 🗑️</button>
   <button class="btn btn-ghost" onclick="addCharacter()">＋</button>
 </div>
 
@@ -1308,7 +1309,17 @@ function mobSelectChar(id){
   if(!id) return;
   selectCharacter(id);
 }
+function deleteCurrentMobileChar() {
+  const proj = getProject();
+  if (!proj || !proj.currentCharId) {
+    alert('삭제할 캐릭터를 먼저 선택해주세요');
+    return;
+  }
+  const dummyEvent = { stopPropagation: function() {} };
+    // PC에서 쓰는 진짜 삭제 함수 호출!
+  deleteCharacter(proj.currentCharId, dummyEvent);
 
+}
 function renderMobCharBar(){
   const sel = document.getElementById('mob-char-select');
   if(!sel) return;

@@ -152,6 +152,37 @@
   ::-webkit-scrollbar-thumb:hover{background:#4a3a5a;}
   @keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
   .char-item{animation:fadeIn 0.2s ease both;}
+
+  /* 모바일 반응형 */
+  .mob-char-bar{display:none;}
+  .mob-bottom-tab{display:none;}
+
+  @media(max-width:768px){
+    body{overflow:auto;}
+    .header{padding:10px 14px;height:auto;flex-wrap:wrap;gap:8px;}
+    .logo{font-size:18px;}
+    .project-selector{margin-left:0;flex:1;}
+    .project-dropdown{min-width:110px;font-size:11px;}
+    .header-right{gap:4px;}
+    .header-right .btn{padding:5px 8px;font-size:10px;}
+    .app-body{display:flex;flex-direction:column;height:auto;min-height:calc(100vh - 100px);padding-bottom:60px;}
+    .char-sidebar{display:none;}
+    .mob-char-bar{display:flex;align-items:center;gap:6px;background:var(--surface);border-bottom:1px solid var(--border);padding:8px 12px;overflow-x:auto;flex-shrink:0;}
+    .mob-char-bar select{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;padding:6px 10px;outline:none;}
+    .mob-char-bar .btn{flex-shrink:0;padding:6px 10px;font-size:11px;}
+    .editor-col{flex:1;border-right:none;overflow:visible;}
+    .tab-bar{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+    .tab{padding:8px 11px;font-size:11px;}
+    .editor-area{padding:14px;overflow:visible;}
+    .preview-area{display:none;padding:14px;border-top:1px solid var(--border);}
+    .preview-area.mob-active{display:flex;}
+    .mob-bottom-tab{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);z-index:50;height:54px;}
+    .mob-tab-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:none;border:none;cursor:pointer;color:var(--muted);font-family:'Noto Sans KR',sans-serif;font-size:9px;transition:color 0.2s;padding:6px 2px;}
+    .mob-tab-btn.active{color:var(--accent);}
+    .mob-tab-icon{font-size:16px;}
+    .field-grid{grid-template-columns:1fr;}
+    .modal{width:calc(100vw - 32px);max-width:340px;}
+  }
 </style>
 </head>
 <body>
@@ -176,6 +207,12 @@
   </div>
   <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(event)">
 </header>
+
+<!-- 모바일 캐릭터 선택바 -->
+<div class="mob-char-bar" id="mob-char-bar">
+  <select id="mob-char-select" onchange="mobSelectChar(this.value)"></select>
+  <button class="btn btn-ghost" onclick="addCharacter()">＋</button>
+</div>
 
 <div class="app-body">
   <!-- 사이드바 -->
@@ -475,6 +512,25 @@
   </div>
 </div>
 
+<!-- 모바일 하단 탭바 -->
+<div class="mob-bottom-tab" id="mob-bottom-tab">
+  <button class="mob-tab-btn active" id="mobtab-character" onclick="mobSwitchTab('character',this)">
+    <span class="mob-tab-icon">🎭</span>캐릭터
+  </button>
+  <button class="mob-tab-btn" id="mobtab-world" onclick="mobSwitchTab('world',this)">
+    <span class="mob-tab-icon">🌍</span>세계관
+  </button>
+  <button class="mob-tab-btn" id="mobtab-output" onclick="mobSwitchTab('output',this)">
+    <span class="mob-tab-icon">📋</span>출력
+  </button>
+  <button class="mob-tab-btn" id="mobtab-rules" onclick="mobSwitchTab('rules',this)">
+    <span class="mob-tab-icon">📜</span>규칙
+  </button>
+  <button class="mob-tab-btn" id="mobtab-preview" onclick="mobSwitchTab('preview',this)">
+    <span class="mob-tab-icon">👁</span>프리뷰
+  </button>
+</div>
+
 <script>
 // ===== 데이터 =====
 let projects={}, currentProjectId=null, previewMode='all';
@@ -652,6 +708,7 @@ function renderSidebar(){
     list.appendChild(item);
   });
   document.getElementById('char-count').textContent=proj.characters.length+'명';
+  renderMobCharBar();
 }
 
 function renderCharEditor(){
@@ -1222,6 +1279,44 @@ function showToast(msg){
 }
 
 // ===== 초기화 =====
+// ===== 모바일 함수 =====
+function isMobile(){ return window.innerWidth <= 768; }
+
+function mobSwitchTab(name, btn){
+  if(name === 'preview'){
+    // 프리뷰 탭
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    document.querySelector('.preview-area').classList.add('mob-active');
+    updatePreview();
+  } else {
+    document.querySelector('.preview-area').classList.remove('mob-active');
+    switchTab(name);
+  }
+  document.querySelectorAll('.mob-tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function mobSelectChar(id){
+  if(!id) return;
+  selectCharacter(id);
+}
+
+function renderMobCharBar(){
+  const sel = document.getElementById('mob-char-select');
+  if(!sel) return;
+  const proj = getProject();
+  sel.innerHTML = '<option value="">캐릭터 선택...</option>';
+  if(proj){
+    proj.characters.forEach(char=>{
+      const opt = document.createElement('option');
+      opt.value = char.id;
+      opt.textContent = char.data.name || '이름 없음';
+      opt.selected = char.id === proj.currentCharId;
+      sel.appendChild(opt);
+    });
+  }
+}
+
 function init(){
   loadCustomChips();
   const loaded=loadAll();

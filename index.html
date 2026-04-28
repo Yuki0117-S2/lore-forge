@@ -196,6 +196,7 @@
     .project-dropdown{min-width:110px;font-size:11px;}
     .header-right{gap:4px;}
     .header-right .btn{padding:5px 8px;font-size:10px;}
+    .btn-sync-mob-hide{display:none!important;}
     .app-body{display:flex;flex-direction:column;height:auto;min-height:calc(100vh - 100px);padding-bottom:60px;}
     .char-sidebar{display:none;}
     .mob-char-bar{display:flex;align-items:center;gap:6px;background:var(--surface);border-bottom:1px solid var(--border);padding:8px 12px;overflow-x:auto;flex-shrink:0;}
@@ -235,7 +236,7 @@
     <button class="btn btn-danger" onclick="resetProject()">↺ 초기화</button>
     <button class="btn btn-ghost" onclick="importJSON()">📂 가져오기</button>
     <button class="btn btn-primary" onclick="exportJSON()">💾 내보내기</button>
-    <button class="btn btn-ghost" onclick="openGistModal()" title="GitHub Gist로 클라우드 동기화" style="border-color:rgba(106,200,176,0.5);color:#6AC8B0;">☁️ 동기화 <span class="sync-indicator" id="sync-indicator"></span></button>
+    <button class="btn btn-ghost btn-sync-mob-hide" onclick="openGistModal()" title="GitHub Gist로 클라우드 동기화" style="border-color:rgba(106,200,176,0.5);color:#6AC8B0;">☁️ 동기화 <span class="sync-indicator" id="sync-indicator"></span></button>
     <button class="btn btn-guide" onclick="openGuide()" title="프롬프트 가이드 보기">📖 가이드</button>
   </div>
   <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(event)">
@@ -590,6 +591,9 @@
   </button>
   <button class="mob-tab-btn" id="mobtab-preview" onclick="mobSwitchTab('preview',this)">
     <span class="mob-tab-icon">👁</span>프리뷰
+  </button>
+  <button class="mob-tab-btn" id="mobtab-sync" onclick="openGistModal()">
+    <span class="mob-tab-icon">☁️</span>동기화
   </button>
 </div>
 

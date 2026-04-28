@@ -23,6 +23,13 @@ mark.search-highlight {
   padding: 0 4px;
   font-weight: bold;
 }
+
+/* 큰 화면(PC)으로 넘어왔을 때는 무조건 모바일 버튼 숨기기 */
+@media (min-width: 769px) {
+  #mobile-nav {
+    display: none !important;
+  }
+}
 /* ── 헤더 ── */
 .header{position:sticky;top:0;z-index:100;background:rgba(26,21,32,0.97);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:10px 18px;display:flex;align-items:center;gap:12px;height:50px;}
 .back-btn{background:none;border:1px solid var(--border);color:var(--muted);padding:5px 10px;border-radius:6px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:11px;transition:all 0.2s;white-space:nowrap;}
@@ -128,6 +135,22 @@ mark.search-highlight {
 @media(min-width:769px){
   .toc-overlay{display:none!important;}
 }
+
+/* 목차 스타일링 */
+.toc-chapter-title { cursor: pointer; padding: 10px; font-weight: bold; color: var(--accent); border-bottom: 1px solid var(--border); }
+.toc-chapter-title:hover { background: var(--surface2); }
+.folder-icon { font-size: 0.8em; margin-right: 5px; }
+.toc-sections { padding-left: 15px; }
+
+/* 모바일 퀵 네비 스타일 */
+.mobile-only-nav { display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); gap: 10px; z-index: 1000; }
+.mobile-only-nav button { background: var(--accent2); color: white; border: none; padding: 10px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.3); cursor: pointer; }
+
+/* 장 이동 팝업 스타일 */
+.chapter-popup { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; }
+.chapter-popup-content { background: var(--surface); padding: 20px; border-radius: 15px; border: 2px solid var(--accent); width: 80%; max-width: 300px; text-align: center; }
+.jump-link { padding: 15px; border-bottom: 1px solid var(--border); color: var(--text); cursor: pointer; }
+.jump-link:active { background: var(--surface2); }
 </style>
 </head>
 <body>
@@ -178,6 +201,46 @@ let currentChapter = null;
 let searchQuery = '';
 let tocOpen = true; // desktop default
 let lastSearchTerm = ""; // 마지막으로 검색한 단어를 기억할 저장소야
+let openChapters = [0];
+
+function renderToc() {
+  const container = document.getElementById('toc-list');
+  if(!container) return;
+  
+  let html = '';
+  TOC.forEach((chapter, i) => {
+    const isExpanded = openChapters.includes(i);
+    const isActiveChapter = currentChapter === i;
+    
+    html += `
+      <div class="toc-chapter-group ${isActiveChapter ? 'active-group' : ''}">
+        <div class="toc-chapter-title" onclick="toggleChapterInToc(${i})">
+          <span class="folder-icon">${isExpanded ? '▼' : '▶'}</span>
+          ${chapter.title}
+        </div>
+        <div class="toc-sections" style="display: ${isExpanded ? 'block' : 'none'}">
+          ${chapter.sections.map((sec, j) => `
+            <div class="toc-item ${currentChapter === i && currentSection === j ? 'active' : ''}" 
+                 onclick="jumpToSection('sec-${i}-${j}')">
+              ${sec.title}
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+// 클릭하면 열림/닫힘 상태를 바꿔주는 마법!
+function toggleChapterInToc(index) {
+  if (openChapters.includes(index)) {
+    openChapters = openChapters.filter(i => i !== index);
+  } else {
+    openChapters.push(index);
+  }
+  renderToc(); // 상태 바꿨으니 다시 그려야지?
+}
 
 function goBack() {
   // Try to go back, or redirect to index.html
@@ -453,6 +516,72 @@ function closeTocMobile() {
 // ── 초기화 ──
 renderToc();
 renderContent();
+// ★수정 1: 스크롤 감지를 창(window)이 아니라 내용물 영역(content-area)으로 변경!
+const contentArea = document.getElementById('content-area');
+
+contentArea.onscroll = function() {
+  const nav = document.getElementById('mobile-nav');
+  // 화면 너비가 768px 이하(모바일)일 때만 작동
+  if (window.innerWidth <= 768) {
+    if (contentArea.scrollTop > 100) {
+      nav.style.display = "flex";
+    } else {
+      nav.style.display = "none";
+    }
+  }
+};
+
+// ★수정 2: 장 이동 메뉴 채워넣기 & 클릭 시 해당 챕터로 스크롤 이동
+function showChapterJumpMenu() {
+  const menu = document.getElementById('chapter-menu');
+  const linkContainer = document.getElementById('chapter-links');
+  
+  let linksHtml = '';
+  TOC.forEach((chapter, i) => {
+    // 클릭하면 점프하고 메뉴는 닫히게 처리
+    linksHtml += `<div class="jump-link" onclick="jumpToChapter(${i}); document.getElementById('chapter-menu').style.display='none'">${chapter.title}</div>`;
+  });
+  
+  linkContainer.innerHTML = linksHtml;
+  menu.style.display = 'flex';
+}
+
+// 챕터 점프 함수 (지정된 챕터 위치로 부드럽게 이동)
+function jumpToChapter(chapterIndex) {
+  const targetId = 'chapter-' + chapterIndex;
+  const targetElement = document.getElementById(targetId);
+  if (targetElement) {
+    // 윈도우가 아니라 contentArea 내부에서 스크롤을 굴려야 해!
+    targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+window.addEventListener('resize', function() {
+  const nav = document.getElementById('mobile-nav');
+  const contentArea = document.getElementById('content-area');
+  
+  if (window.innerWidth > 768) {
+    // 창이 커지면 무조건 숨김
+    nav.style.display = "none";
+  } else {
+    // 다시 모바일 크기로 줄어들었을 때, 스크롤이 내려가 있다면 다시 보여줌
+    if (contentArea && contentArea.scrollTop > 100) {
+      nav.style.display = "flex";
+    }
+  }
+});
 </script>
+<div id="mobile-nav" class="mobile-only-nav">
+  <button onclick="document.getElementById('content-area').scrollTo({top: 0, behavior: 'smooth'})">맨 위로 ▲</button>
+  <button onclick="showChapterJumpMenu()">장 이동 ⚡</button>
+  <button onclick="document.getElementById('content-area').scrollTo({top: document.getElementById('content-area').scrollHeight, behavior: 'smooth'})">맨 아래 ▼</button>
+</div>
+
+<div id="chapter-menu" class="chapter-popup" onclick="this.style.display='none'">
+  <div class="chapter-popup-content" onclick="event.stopPropagation()">
+    <h3 style="margin-bottom: 10px; color: var(--accent);">챕터 이동</h3>
+    <div id="chapter-links" style="display:flex; flex-direction:column;"></div>
+  </div>
+</div>
 </body>
 </html>
+

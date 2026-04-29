@@ -1046,7 +1046,6 @@ function removeGlobalTag(key,i){const p=getProject();if(!p)return;p.globalTagDat
 
 // ===== 칩 =====
 function toggleChip(el,group){
-  if(group==='action')el.parentElement.querySelectorAll('.chip').forEach(s=>s.classList.remove('active'));
   el.classList.toggle('active');saveAll();updatePreview();
 }
 

@@ -899,9 +899,9 @@ function renderCharEditor(){
         <span class="panel-badge">RULES</span><span class="panel-arrow">▾</span>
       </div>
       <div class="panel-body">
-        <div><div class="field-label">유저 호칭</div><input type="text" id="c-user-title" placeholder="예: 마스터, 선배, 이름으로 부르기..." value="${esc(d.userTitle||'')}" oninput="saveField('userTitle',this.value)"></div>
-        <div><div class="field-label">유저와의 관계 / 역할 인식</div><textarea id="c-user-role" placeholder="예: 유저를 오랜 친구로 인식. 의뢰인으로 대함. 라이벌로 인식..." oninput="saveField('userRole',this.value)">${esc(d.userRole||'')}</textarea></div>
-        <div><div class="field-label">대화 방식</div><textarea id="c-talk-style" placeholder="예: 질문을 많이 하는 편. 먼저 말을 건다. 유저 의견에 자주 반박한다..." oninput="saveField('talkStyle',this.value)">${esc(d.talkStyle||'')}</textarea></div>
+        <div><div class="field-label">{{user}} 호칭</div><input type="text" id="c-user-title" placeholder="예: 마스터, 선배, 이름으로 부르기..." value="${esc(d.userTitle||'')}" oninput="saveField('userTitle',this.value)"></div>
+        <div><div class="field-label">{{user}} 역할 인식</div><textarea id="c-user-role" placeholder="예: 유저를 오랜 친구로 인식. 의뢰인으로 대함. 라이벌로 인식..." oninput="saveField('userRole',this.value)">${esc(d.userRole||'')}</textarea></div>
+        <div><div class="field-label">{{user}}와의 대화 방식</div><textarea id="c-talk-style" placeholder="예: 질문을 많이 하는 편. 먼저 말을 건다. 유저 의견에 자주 반박한다..." oninput="saveField('talkStyle',this.value)">${esc(d.talkStyle||'')}</textarea></div>
         <div>
           <div class="field-label">반드시 할 것 <span style="color:var(--muted)">(엔터)</span></div>
           <div class="tag-input-container" id="c-must-tags" onclick="document.getElementById('c-must-input').focus()">
@@ -1249,9 +1249,9 @@ function buildCharPrompt(char){
   const cspecial=d.special||'';const cuserTitle=d.userTitle||'';const cuserRole=d.userRole||'';const ctalkStyle=d.talkStyle||'';
   if(cm.length||cn.length||cspecial||cuserTitle||cuserRole||ctalkStyle){
     p('## 행동 규칙');
-    if(cuserTitle)p(`유저 호칭: ${cuserTitle}`);
-    if(cuserRole)p(`유저 역할 인식: ${cuserRole}`);
-    if(ctalkStyle)p(`대화 방식: ${ctalkStyle}`);
+    if(cuserTitle)p(`{{user}} 호칭: ${cuserTitle}`);
+    if(cuserRole)p(`{{user}} 역할 인식: ${cuserRole}`);
+    if(ctalkStyle)p(`{{user}}와의 {{user}}와의 대화 방식: ${ctalkStyle}`);
     if(cm.length){p('반드시 할 것:');cm.forEach(t=>p(`- ${t}`));}
     if(cn.length){p('절대 하지 말 것:');cn.forEach(t=>p(`- ${t}`));}
     if(cspecial){p('');p('[특수 상황 대응]');p(cspecial);}

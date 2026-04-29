@@ -753,7 +753,7 @@ function addCharacter(){
   const id='c'+Date.now();
   proj.characters.push({id,colorIdx:proj.characters.length%COLORS.length,
     data:{name:'',age:'',gender:'',role:'',intro:'',personality:'',values:'',appearance:'',outfit:'',backstory:'',secret:'',emotionVal:50,userTitle:'',userRole:'',talkStyle:'',special:''},
-    tagData:{personality:[],habit:[],like:[],dislike:[],must:[],never:[]},speechChips:[],outfitChips:[],relations:[]
+    tagData:{personality:[],habit:[],like:[],dislike:[],must:[],never:[]},speechChips:[],outfitChips:[],bdsmChips:[],relations:[]
   });
   proj.currentCharId=id;saveAll();renderSidebar();renderCharEditor();switchTab('character');
 }
@@ -893,6 +893,50 @@ function renderCharEditor(){
         <button class="add-btn" onclick="addRelation()">＋ 관계 추가</button>
       </div>
     </div>
+    <div class="panel" id="cp-sexuality">
+      <div class="panel-header" onclick="togglePanel('cp-sexuality')">
+        <div class="panel-icon" style="background:rgba(187,102,136,0.15)">🔞</div><div class="panel-title">성적 성향</div>
+        <span class="panel-badge">SEXUALITY</span><span class="panel-arrow">▾</span>
+      </div>
+      <div class="panel-body">
+        <div class="hint" style="font-size:10px;color:var(--muted);margin-bottom:8px;">💡 선택 사항이야. 해당하는 성향만 골라봐. 복수 선택 가능하고, 선택 안 해도 돼.</div>
+        <div>
+          <div class="field-label" style="margin-bottom:6px;">성향 유형 <span style="color:var(--muted);font-size:10px;">(클릭으로 토글)</span></div>
+          <div class="chip-group" id="c-bdsm-chips" style="gap:5px;">
+            ${[
+              {label:'도미넌트',val:'도미넌트: 명령과 보상으로 관계를 주도함'},
+              {label:'서브미시브',val:'서브미시브: 순종과 굴복을 통해 만족을 느낌'},
+              {label:'사디스트',val:'사디스트: 타인에게 고통을 주며 쾌락을 느낌'},
+              {label:'마조히스트',val:'마조히스트: 타인에게 고통을 받으며 쾌락을 느낌'},
+              {label:'마스터/미스트레스',val:'마스터: 상대의 모든 것을 통제하고 책임짐'},
+              {label:'슬레이브',val:'슬레이브: 자신의 모든 의지를 상대에게 맡김'},
+              {label:'대디/마미',val:'대디/마미: 돌봄과 훈육을 동시에 수행하는 보호자 역할'},
+              {label:'리틀',val:'리틀: 어리광과 의존으로 보살핌을 원함'},
+              {label:'브랫테이머',val:'브랫테이머: 반항적인 상대를 길들이는 것을 즐김'},
+              {label:'브랫',val:'브랫: 관심을 얻기 위해 고의로 도발하는 말썽꾸러기'},
+              {label:'헌터',val:'헌터: 상대를 육체적/심리적으로 제압함'},
+              {label:'프레이',val:'프레이: 압도당하는 무력감에서 흥분을 느낌'},
+              {label:'오너',val:'오너: 상대에게 강한 소유욕과 애정을 보임'},
+              {label:'펫',val:'펫: 소유되어 보살핌 받기를 원함'},
+              {label:'리거',val:'리거: 도구로 상대를 묶는 행위를 즐김'},
+              {label:'로프버니',val:'로프버니: 묶여서 움직이지 못하는 상태를 즐김'},
+              {label:'스팽커',val:'스팽커: 신체 타격을 통해 고통과 자극을 줌'},
+              {label:'스팽키',val:'스팽키: 맞으면서 발생하는 소리와 고통을 즐김'},
+              {label:'디그레이더',val:'디그레이더: 언어와 상황으로 수치심을 부여함'},
+              {label:'디그레이디',val:'디그레이디: 수치심과 부끄러움에서 흥분을 느낌'},
+              {label:'보스',val:'보스: 명령 없이 상대가 자발적으로 기쁘게 해주길 원함'},
+              {label:'서번트',val:'서번트: 상대의 만족을 위해 스스로 찾아 봉사함'},
+              {label:'스위치',val:'스위치: 상황에 따라 주도/피지배 성향이 모두 가능함'},
+              {label:'바닐라',val:'바닐라: BDSM 성향 없는 일반 취향'},
+            ].map(({label,val})=>`<div class="chip${(char.bdsmChips||[]).some(c=>c===val)?' active':''}" onclick="toggleBdsmChip(this,'${val.replace(/'/g,"\\'")}')" ontouchend="event.preventDefault();toggleBdsmChip(this,'${val.replace(/'/g,"\\'")}')"><span style="font-size:10px;">${label}</span></div>`).join('')}
+          </div>
+        </div>
+        <div style="margin-top:10px;">
+          <div class="field-label">성향 상세 설명 (선택)</div>
+          <textarea id="c-sexuality-detail" style="min-height:70px;" placeholder="예: 평소엔 강인하지만 신뢰하는 상대 앞에선 순종적이 됨. 명령하는 것보다 상대가 자발적으로 따르길 선호함..." oninput="saveField('sexualityDetail',this.value)">${esc(d.sexualityDetail||'')}</textarea>
+        </div>
+      </div>
+    </div>
     <div class="panel" id="cp-rules">
       <div class="panel-header" onclick="togglePanel('cp-rules')">
         <div class="panel-icon" style="background:rgba(106,255,176,0.15)">⚙️</div><div class="panel-title">행동 규칙 (이 캐릭터 전용)</div>
@@ -1007,11 +1051,11 @@ function renderCharTags(key){
   const con=document.getElementById('c-'+key+'-tags');const inp=document.getElementById('c-'+key+'-input');
   if(!con||!inp)return;
   con.querySelectorAll('.tag').forEach(t=>t.remove());
-  const inpWrap=inp.parentElement||inp;
+  const anchor=con.querySelector('div')||null;
   (char.tagData[key]||[]).forEach((t,i)=>{
     const el=document.createElement('div');el.className='tag';
     el.innerHTML=`${t}<span class="tag-remove" onclick="removeCharTag('${key}',${i})">×</span>`;
-    con.insertBefore(el,inpWrap);
+    con.insertBefore(el,anchor);
   });
 }
 
@@ -1034,11 +1078,11 @@ function renderGlobalTags(key){
   const con=document.getElementById(cid);const inp=document.getElementById(iid);
   if(!con||!inp)return;
   con.querySelectorAll('.tag').forEach(t=>t.remove());
-  const inpWrap2=inp.parentElement||inp;
+  const anchor=con.querySelector('div')||null;
   ((proj?proj.globalTagData[key]:null)||[]).forEach((t,i)=>{
     const el=document.createElement('div');el.className='tag';
     el.innerHTML=`${t}<span class="tag-remove" onclick="removeGlobalTag('${key}',${i})">×</span>`;
-    con.insertBefore(el,inpWrap2);
+    con.insertBefore(el,anchor);
   });
 }
 
@@ -1054,6 +1098,13 @@ function toggleSpeechChip(el,value){
   char.speechChips=char.speechChips||[];
   if(el.classList.contains('active')){el.classList.remove('active');char.speechChips=char.speechChips.filter(s=>s!==value);}
   else{el.classList.add('active');char.speechChips.push(value);}
+  saveAll();updatePreview();
+}
+function toggleBdsmChip(el,value){
+  const char=getCurrentChar();if(!char)return;
+  char.bdsmChips=char.bdsmChips||[];
+  if(el.classList.contains('active')){el.classList.remove('active');char.bdsmChips=char.bdsmChips.filter(s=>s!==value);}
+  else{el.classList.add('active');char.bdsmChips.push(value);}
   saveAll();updatePreview();
 }
 
@@ -1245,6 +1296,13 @@ function buildCharPrompt(char){
     p('## 배경 & 동기');if(d.backstory)p(d.backstory);if(lk.length)p(`좋아하는 것: ${lk.join(', ')}`);if(dl.length)p(`싫어하는 것: ${dl.join(', ')}`);if(d.secret)p(`\n[숨겨진 면] ${d.secret}`);p('');
   }
   if(char.relations&&char.relations.length){p('## 인간관계');char.relations.forEach(r=>{if(r.name||r.rel)p(`- ${r.name}: ${r.rel}`);});p('');}
+  const bdsmC=char.bdsmChips||[];const sexDetail=d.sexualityDetail||'';
+  if(bdsmC.length||sexDetail){
+    p('## 성적 성향');
+    if(bdsmC.length){bdsmC.forEach(t=>p(`- ${t}`));}
+    if(sexDetail){p('');p(sexDetail);}
+    p('');
+  }
   const cm=char.tagData['must']||[];const cn=char.tagData['never']||[];
   const cspecial=d.special||'';const cuserTitle=d.userTitle||'';const cuserRole=d.userRole||'';const ctalkStyle=d.talkStyle||'';
   if(cm.length||cn.length||cspecial||cuserTitle||cuserRole||ctalkStyle){

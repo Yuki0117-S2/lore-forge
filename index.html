@@ -1007,7 +1007,7 @@ function renderCharTags(key){
   const con=document.getElementById('c-'+key+'-tags');const inp=document.getElementById('c-'+key+'-input');
   if(!con||!inp)return;
   con.querySelectorAll('.tag').forEach(t=>t.remove());
-  const inpWrap=inp.closest('div')||inp;
+  const inpWrap=inp.parentElement||inp;
   (char.tagData[key]||[]).forEach((t,i)=>{
     const el=document.createElement('div');el.className='tag';
     el.innerHTML=`${t}<span class="tag-remove" onclick="removeCharTag('${key}',${i})">×</span>`;
@@ -1034,7 +1034,7 @@ function renderGlobalTags(key){
   const con=document.getElementById(cid);const inp=document.getElementById(iid);
   if(!con||!inp)return;
   con.querySelectorAll('.tag').forEach(t=>t.remove());
-  const inpWrap2=inp.closest('div')||inp;
+  const inpWrap2=inp.parentElement||inp;
   ((proj?proj.globalTagData[key]:null)||[]).forEach((t,i)=>{
     const el=document.createElement('div');el.className='tag';
     el.innerHTML=`${t}<span class="tag-remove" onclick="removeGlobalTag('${key}',${i})">×</span>`;

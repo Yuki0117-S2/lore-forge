@@ -1457,19 +1457,37 @@ async function gistUpload(){
   if(!token){setGistStatus('토큰을 입력해줘!','err');return;}
   setGistStatus('업로드 중...','loading');
   saveAll();
-  const payload={version:3,projects,currentProjectId,savedAt:new Date().toISOString()};
-  const body={description:'LORE FORGE — 챗봇 빌더 데이터',public:false,files:{'loreforge_data.json':{content:JSON.stringify(payload,null,2)}}};
+  await pushSlot(token, gistId, '수동');
+}
+
+async function pushSlot(token, gistId, deviceLabel){
+  let slots=[];
+  if(gistId){
+    try{
+      const r=await fetch('https://api.github.com/gists/'+gistId,{headers:{'Authorization':'token '+token,'Accept':'application/vnd.github.v3+json'}});
+      if(r.ok){
+        const d=await r.json();
+        const fc=d.files&&d.files['loreforge_data.json']&&d.files['loreforge_data.json'].content;
+        if(fc){
+          const p=JSON.parse(fc);
+          slots=p.slots||[];
+          if(!slots.length&&p.projects) slots=[{savedAt:p.savedAt||new Date().toISOString(),device:'이전버전',projects:p.projects,currentProjectId:p.currentProjectId}];
+        }
+      }
+    }catch(e){}
+  }
+  slots.unshift({savedAt:new Date().toISOString(),device:deviceLabel,projects,currentProjectId});
+  if(slots.length>5) slots=slots.slice(0,5);
+  const body={description:'LORE FORGE — 챗봇 빌더 데이터',public:false,files:{'loreforge_data.json':{content:JSON.stringify({version:4,slots},null,2)}}};
   try{
-    let url='https://api.github.com/gists';
-    let method='POST';
+    let url='https://api.github.com/gists',method='POST';
     if(gistId){url='https://api.github.com/gists/'+gistId;method='PATCH';}
     const res=await fetch(url,{method,headers:{'Authorization':'token '+token,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},body:JSON.stringify(body)});
     if(!res.ok){const err=await res.json();setGistStatus('오류: '+(err.message||res.status),'err');setSyncIndicator('err');return;}
     const data=await res.json();
-    const newId=data.id;
     localStorage.setItem('loreforge_gist_token',token);
-    localStorage.setItem('loreforge_gist_id',newId);
-    document.getElementById('gist-id-input').value=newId;
+    localStorage.setItem('loreforge_gist_id',data.id);
+    document.getElementById('gist-id-input').value=data.id;
     setGistStatus('업로드 완료! Gist ID를 복사해서 다른 기기에서 써봐.','ok');
     setSyncIndicator('ok');
     showToast('☁️ Gist 업로드 완료!');
@@ -1480,7 +1498,7 @@ async function gistDownload(){
   const gistId=document.getElementById('gist-id-input').value.trim();
   if(!token){setGistStatus('토큰을 입력해줘!','err');return;}
   if(!gistId){setGistStatus('Gist ID를 입력해줘!','err');return;}
-  setGistStatus('다운로드 중...','loading');
+  setGistStatus('슬롯 목록 가져오는 중...','loading');
   try{
     const res=await fetch('https://api.github.com/gists/'+gistId,{headers:{'Authorization':'token '+token,'Accept':'application/vnd.github.v3+json'}});
     if(!res.ok){const err=await res.json();setGistStatus('오류: '+(err.message||res.status),'err');setSyncIndicator('err');return;}
@@ -1488,17 +1506,51 @@ async function gistDownload(){
     const fileContent=data.files&&data.files['loreforge_data.json']&&data.files['loreforge_data.json'].content;
     if(!fileContent){setGistStatus('loreforge_data.json 파일을 못 찾았어.','err');setSyncIndicator('err');return;}
     const parsed=JSON.parse(fileContent);
-    if(parsed.projects){
-      const rawTime=parsed.savedAt||'알 수 없음';
-      const displayTime=rawTime==='알 수 없음'?rawTime:new Date(rawTime).toLocaleString('ko-KR',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
-      if(!confirm('저장된 데이터를 불러올까? 저장 시각: '+displayTime+' 현재 데이터는 덮어씌워져!'))return;
-      projects=parsed.projects;currentProjectId=parsed.currentProjectId||Object.keys(parsed.projects)[0]||null;
+    // 슬롯 구조 or 구버전 호환
+    let slots=parsed.slots||[];
+    if(!slots.length&&parsed.projects) slots=[{savedAt:parsed.savedAt||'',device:'이전버전',projects:parsed.projects,currentProjectId:parsed.currentProjectId}];
+    if(!slots.length){setGistStatus('불러올 데이터가 없어.','err');return;}
+    setGistStatus('','');
+    showSlotPicker(slots, token, gistId);
+  }catch(e){setGistStatus('오류: '+e.message,'err');setSyncIndicator('err');}
+}
+
+function showSlotPicker(slots, token, gistId){
+  const existing=document.getElementById('slot-picker-overlay');
+  if(existing)existing.remove();
+  const overlay=document.createElement('div');
+  overlay.id='slot-picker-overlay';
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:2000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);';
+  const box=document.createElement('div');
+  box.style.cssText='background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;width:360px;max-width:calc(100vw - 32px);max-height:calc(100vh - 60px);overflow-y:auto;display:flex;flex-direction:column;gap:12px;';
+  box.innerHTML='<div style="font-family:Bebas Neue,sans-serif;font-size:18px;letter-spacing:3px;color:var(--accent);">버전 선택</div><div style="font-size:11px;color:var(--muted);">불러올 버전을 선택해봐. 현재 데이터는 덮어씌워져!</div>';
+  slots.forEach((slot,i)=>{
+    const t=slot.savedAt?new Date(slot.savedAt).toLocaleString('ko-KR',{timeZone:'Asia/Seoul',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}):'알 수 없음';
+    const projCount=slot.projects?Object.keys(slot.projects).length:0;
+    const btn=document.createElement('button');
+    btn.style.cssText='padding:11px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);cursor:pointer;text-align:left;font-family:Noto Sans KR,sans-serif;font-size:12px;transition:all 0.15s;display:flex;justify-content:space-between;align-items:center;';
+    btn.innerHTML=`<div><div style="font-weight:700;color:var(--accent);margin-bottom:3px;">${i===0?'🟢 최신':'📁 슬롯 '+(i+1)}</div><div style="color:var(--muted);font-size:10px;">${t} · ${slot.device||'알 수 없음'} · 프로젝트 ${projCount}개</div></div><span style="color:var(--muted);font-size:16px;">›</span>`;
+    btn.onmouseover=()=>btn.style.borderColor='var(--accent)';
+    btn.onmouseout=()=>btn.style.borderColor='var(--border)';
+    btn.onclick=()=>{
+      overlay.remove();
+      projects=slot.projects;
+      currentProjectId=slot.currentProjectId||Object.keys(slot.projects||{})[0]||null;
       renderProjectDropdown();loadProjectUI();saveAll();
       localStorage.setItem('loreforge_gist_token',token);
       localStorage.setItem('loreforge_gist_id',gistId);
       setGistStatus('불러오기 완료!','ok');setSyncIndicator('ok');showToast('☁️ Gist 불러오기 완료!');
-    }else{setGistStatus('데이터 형식이 맞지 않아.','err');setSyncIndicator('err');}
-  }catch(e){setGistStatus('오류: '+e.message,'err');setSyncIndicator('err');}
+    };
+    box.appendChild(btn);
+  });
+  const cancelBtn=document.createElement('button');
+  cancelBtn.textContent='취소';
+  cancelBtn.style.cssText='padding:8px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);cursor:pointer;font-family:Noto Sans KR,sans-serif;font-size:12px;';
+  cancelBtn.onclick=()=>overlay.remove();
+  box.appendChild(cancelBtn);
+  overlay.appendChild(box);
+  overlay.onclick=(e)=>{if(e.target===overlay)overlay.remove();};
+  document.body.appendChild(overlay);
 }
 document.addEventListener('click',(e)=>{
   const overlay=document.getElementById('gist-modal-overlay');
@@ -1602,25 +1654,10 @@ const GIST_AUTO_INTERVAL = 10 * 60 * 1000; // 10분
 async function gistAutoSave(){
   const token = localStorage.getItem('loreforge_gist_token');
   const gistId = localStorage.getItem('loreforge_gist_id');
-  if(!token || !gistId) return; // 토큰/ID 없으면 스킵
+  if(!token || !gistId) return;
   saveAll();
-  const payload = {version:3, projects, currentProjectId, savedAt: new Date().toISOString()};
-  const body = {description:'LORE FORGE — 챗봇 빌더 데이터', public:false, files:{'loreforge_data.json':{content:JSON.stringify(payload,null,2)}}};
-  try{
-    const res = await fetch('https://api.github.com/gists/'+gistId, {
-      method:'PATCH',
-      headers:{'Authorization':'token '+token,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},
-      body: JSON.stringify(body)
-    });
-    if(res.ok){
-      setSyncIndicator('ok');
-      showAutoSaveToast();
-    } else {
-      setSyncIndicator('err');
-    }
-  } catch(e){
-    setSyncIndicator('err');
-  }
+  await pushSlot(token, gistId, '자동');
+  showAutoSaveToast();
 }
 
 function showAutoSaveToast(){

@@ -12,7 +12,7 @@
     --text:#f0eaf5; --muted:#7a6e8a; --success:#CCAA88;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;overflow-x:auto;overflow-y:hidden;}
+  body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;overflow:hidden;}
   body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");}
 
   /* 헤더 */
@@ -36,7 +36,7 @@
   .btn-guide:hover{background:linear-gradient(135deg,rgba(204,170,136,0.25),rgba(221,170,204,0.25));border-color:var(--accent4);transform:translateY(-1px);box-shadow:0 4px 12px rgba(204,170,136,0.2);}
 
   /* 레이아웃 */
-  .app-body{display:grid;grid-template-columns:200px 1fr 380px;height:calc(100vh - 50px);position:relative;z-index:1;min-width:700px;}
+  .app-body{display:grid;grid-template-columns:200px 1fr 380px;height:calc(100vh - 50px);position:relative;z-index:1;}
 
   /* 사이드바 */
   .char-sidebar{border-right:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;overflow:hidden;}
@@ -70,9 +70,9 @@
   .empty-state-sub{font-size:11px;opacity:0.6;}
 
   /* 패널 */
-  .panel{background:var(--surface);border:1px solid var(--border);border-radius:9px;margin-bottom:11px;overflow:visible;transition:border-color 0.2s;}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:9px;margin-bottom:11px;overflow:hidden;transition:border-color 0.2s;}
   .panel:hover{border-color:#4a3a5a;}
-  .panel-header{padding:10px 13px;display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;background:var(--surface2);border-radius:9px 9px 0 0;}
+  .panel-header{padding:10px 13px;display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;background:var(--surface2);}
   .panel-icon{width:25px;height:25px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;}
   .panel-title{font-weight:700;font-size:12px;}
   .panel-badge{margin-left:auto;font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--muted);background:var(--bg);padding:2px 6px;border-radius:4px;border:1px solid var(--border);}
@@ -192,13 +192,6 @@
   .mob-char-bar{display:none;}
   .mob-bottom-tab{display:none;}
 
-  @media(max-width:1100px){
-    .app-body{grid-template-columns:170px 1fr 300px;}
-  }
-  @media(max-width:900px){
-    .app-body{grid-template-columns:150px 1fr 260px;}
-    .preview-area{padding:12px 10px;}
-  }
   @media(max-width:768px){
     body{overflow:auto;}
     .header{padding:10px 14px;height:auto;flex-wrap:wrap;gap:8px;}
@@ -337,7 +330,7 @@
             <div>
               <div class="field-label">장르</div>
               <div class="chip-group" id="genre-chips">
-                <div class="chip" onclick="toggleChip(this,'genre')">판타지</div><div class="chip" onclick="toggleChip(this,'genre')">SF</div><div class="chip" onclick="toggleChip(this,'genre')">현대</div><div class="chip" onclick="toggleChip(this,'genre')">역사</div><div class="chip" onclick="toggleChip(this,'genre')">사이버펑크</div><div class="chip" onclick="toggleChip(this,'genre')">포스트아포칼립스</div><div class="chip" onclick="toggleChip(this,'genre')">이세계</div><div class="chip" onclick="toggleChip(this,'genre')">학원물</div><div class="chip" onclick="toggleChip(this,'genre')">호러</div><div class="chip" onclick="toggleChip(this,'genre')">로맨스</div>
+                <div class="chip" onclick="toggleChip(this,'genre')" ontouchend="event.preventDefault();toggleChip(this,'genre')">판타지</div><div class="chip" onclick="toggleChip(this,'genre')" ontouchend="event.preventDefault();toggleChip(this,'genre')">SF</div><div class="chip" onclick="toggleChip(this,'genre')" ontouchend="event.preventDefault();toggleChip(this,'genre')">현대</div><div class="chip" onclick="toggleChip(this,'genre')" ontouchend="event.preventDefault();toggleChip(this,'genre')">역사</div><div class="chip" onclick="toggleChip(this,'genre')" ontouchend="event.preventDefault();toggleChip(this,'genre')">사이버펑크</div><div class="chip" onclick="toggleChip(this,'genre')" ontouchend="event.preventDefault();toggleChip(this,'genre')">포스트아포칼립스</div><div class="chip" onclick="toggleChip(this,'genre')" ontouchend="event.preventDefault();toggleChip(this,'genre')">이세계</div><div class="chip" onclick="toggleChip(this,'genre')" ontouchend="event.preventDefault();toggleChip(this,'genre')">학원물</div><div class="chip" onclick="toggleChip(this,'genre')" ontouchend="event.preventDefault();toggleChip(this,'genre')">호러</div><div class="chip" onclick="toggleChip(this,'genre')" ontouchend="event.preventDefault();toggleChip(this,'genre')">로맨스</div>
                 <div class="chip chip-add" onclick="addCustomChip('genre-chips','genre')">＋</div>
               </div>
             </div>
@@ -417,33 +410,33 @@
             <div>
               <div class="field-label">시점</div>
               <div class="chip-group" id="pov-chips">
-                <div class="chip" onclick="toggleChip(this,'pov')">1인칭 (나)</div>
-                <div class="chip" onclick="toggleChip(this,'pov')">2인칭 (당신)</div>
-                <div class="chip" onclick="toggleChip(this,'pov')">3인칭 관찰자</div>
-                <div class="chip" onclick="toggleChip(this,'pov')">3인칭 전지적</div>
+                <div class="chip" onclick="toggleChip(this,'pov')" ontouchend="event.preventDefault();toggleChip(this,'pov')">1인칭 (나)</div>
+                <div class="chip" onclick="toggleChip(this,'pov')" ontouchend="event.preventDefault();toggleChip(this,'pov')">2인칭 (당신)</div>
+                <div class="chip" onclick="toggleChip(this,'pov')" ontouchend="event.preventDefault();toggleChip(this,'pov')">3인칭 관찰자</div>
+                <div class="chip" onclick="toggleChip(this,'pov')" ontouchend="event.preventDefault();toggleChip(this,'pov')">3인칭 전지적</div>
                 <div class="chip chip-add" onclick="addCustomChip('pov-chips','pov')">＋</div>
               </div>
             </div>
             <div>
               <div class="field-label">문체 스타일</div>
               <div class="chip-group" id="style-chips">
-                <div class="chip" onclick="toggleChip(this,'style')">소설 서술체</div>
-                <div class="chip" onclick="toggleChip(this,'style')">블랙코미디</div>
-                <div class="chip" onclick="toggleChip(this,'style')">시적 묘사</div>
-                <div class="chip" onclick="toggleChip(this,'style')">하드보일드</div>
-                <div class="chip" onclick="toggleChip(this,'style')">감각적 묘사 중심</div>
-                <div class="chip" onclick="toggleChip(this,'style')">간결 단문체</div>
-                <div class="chip" onclick="toggleChip(this,'style')">만화/라이트노벨체</div>
+                <div class="chip" onclick="toggleChip(this,'style')" ontouchend="event.preventDefault();toggleChip(this,'style')">소설 서술체</div>
+                <div class="chip" onclick="toggleChip(this,'style')" ontouchend="event.preventDefault();toggleChip(this,'style')">블랙코미디</div>
+                <div class="chip" onclick="toggleChip(this,'style')" ontouchend="event.preventDefault();toggleChip(this,'style')">시적 묘사</div>
+                <div class="chip" onclick="toggleChip(this,'style')" ontouchend="event.preventDefault();toggleChip(this,'style')">하드보일드</div>
+                <div class="chip" onclick="toggleChip(this,'style')" ontouchend="event.preventDefault();toggleChip(this,'style')">감각적 묘사 중심</div>
+                <div class="chip" onclick="toggleChip(this,'style')" ontouchend="event.preventDefault();toggleChip(this,'style')">간결 단문체</div>
+                <div class="chip" onclick="toggleChip(this,'style')" ontouchend="event.preventDefault();toggleChip(this,'style')">만화/라이트노벨체</div>
                 <div class="chip chip-add" onclick="addCustomChip('style-chips','style')">＋</div>
               </div>
             </div>
             <div>
               <div class="field-label">묘사 밀도</div>
               <div class="chip-group" id="density-chips">
-                <div class="chip" onclick="toggleChip(this,'density')">간결 (핵심만)</div>
-                <div class="chip" onclick="toggleChip(this,'density')">보통</div>
-                <div class="chip" onclick="toggleChip(this,'density')">상세 (오감 묘사)</div>
-                <div class="chip" onclick="toggleChip(this,'density')">극도로 상세</div>
+                <div class="chip" onclick="toggleChip(this,'density')" ontouchend="event.preventDefault();toggleChip(this,'density')">간결 (핵심만)</div>
+                <div class="chip" onclick="toggleChip(this,'density')" ontouchend="event.preventDefault();toggleChip(this,'density')">보통</div>
+                <div class="chip" onclick="toggleChip(this,'density')" ontouchend="event.preventDefault();toggleChip(this,'density')">상세 (오감 묘사)</div>
+                <div class="chip" onclick="toggleChip(this,'density')" ontouchend="event.preventDefault();toggleChip(this,'density')">극도로 상세</div>
                 <div class="chip chip-add" onclick="addCustomChip('density-chips','density')">＋</div>
               </div>
             </div>
@@ -460,19 +453,19 @@
             <div>
               <div class="field-label">답변 길이</div>
               <div class="chip-group" id="length-chips">
-                <div class="chip" onclick="toggleChip(this,'length')">짧게 (1~2문장)</div>
-                <div class="chip" onclick="toggleChip(this,'length')">보통 (3~5문장)</div>
-                <div class="chip" onclick="toggleChip(this,'length')">길게 (상세 묘사)</div>
+                <div class="chip" onclick="toggleChip(this,'length')" ontouchend="event.preventDefault();toggleChip(this,'length')">짧게 (1~2문장)</div>
+                <div class="chip" onclick="toggleChip(this,'length')" ontouchend="event.preventDefault();toggleChip(this,'length')">보통 (3~5문장)</div>
+                <div class="chip" onclick="toggleChip(this,'length')" ontouchend="event.preventDefault();toggleChip(this,'length')">길게 (상세 묘사)</div>
                 <div class="chip chip-add" onclick="addCustomChip('length-chips','length')">＋</div>
               </div>
             </div>
             <div>
               <div class="field-label">행동 묘사 방식</div>
               <div class="chip-group" id="action-chips">
-                <div class="chip" onclick="toggleChip(this,'action')">*별표로 행동 묘사*</div>
-                <div class="chip" onclick="toggleChip(this,'action')">(괄호로 행동 묘사)</div>
-                <div class="chip" onclick="toggleChip(this,'action')">묘사 없이 대사만</div>
-                <div class="chip" onclick="toggleChip(this,'action')">소설 서술체</div>
+                <div class="chip" onclick="toggleChip(this,'action')" ontouchend="event.preventDefault();toggleChip(this,'action')">*별표로 행동 묘사*</div>
+                <div class="chip" onclick="toggleChip(this,'action')" ontouchend="event.preventDefault();toggleChip(this,'action')">(괄호로 행동 묘사)</div>
+                <div class="chip" onclick="toggleChip(this,'action')" ontouchend="event.preventDefault();toggleChip(this,'action')">묘사 없이 대사만</div>
+                <div class="chip" onclick="toggleChip(this,'action')" ontouchend="event.preventDefault();toggleChip(this,'action')">소설 서술체</div>
                 <div class="chip chip-add" onclick="addCustomChip('action-chips','action')">＋</div>
               </div>
             </div>
@@ -828,7 +821,7 @@ function renderCharEditor(){
         <div>
           <div class="field-label">말투 스타일</div>
           <div class="chip-group" id="c-speech-chips">
-            ${['반말체','존댓말','사투리','고어체','무뚝뚝','수다스러움','시적인 표현','짧고 단호함'].map(s=>`<div class="chip${(char.speechChips||[]).includes(s)?' active':''}" onclick="toggleSpeechChip(this,'${s}')">${s}</div>`).join('')}
+            ${['반말체','존댓말','사투리','고어체','무뚝뚝','수다스러움','시적인 표현','짧고 단호함'].map(s=>`<div class="chip${(char.speechChips||[]).includes(s)?' active':''}" onclick="toggleSpeechChip(this,'${s}')" ontouchend="event.preventDefault();toggleSpeechChip(this,'${s}')">${s}</div>`).join('')}
             <div class="chip chip-add" onclick="addCustomChip('c-speech-chips','speech')">＋</div>
           </div>
         </div>
@@ -989,11 +982,19 @@ function toggleOutfitChipByEl(el){
   const value=el.dataset.val||el.textContent.replace('×','').trim();
   toggleOutfitChip(el,value);
 }
+function toggleBdsmChip(el,value){
+  const char=getCurrentChar();if(!char)return;
+  char.bdsmChips=char.bdsmChips||[];
+  if(el.classList.contains('active')){el.classList.remove('active');char.bdsmChips=char.bdsmChips.filter(s=>s!==value);}
+  else{el.classList.add('active');char.bdsmChips.push(value);}
+  saveAll();updatePreview();
+}
 function toggleBdsmChipByEl(el){
   const value=el.dataset.val||el.textContent.replace('×','').trim();
   toggleBdsmChip(el,value);
 }
 
+// 모바일 터치용 - outfit 칩 전용
 
 function injectOutfitChips(){
   const char=getCurrentChar();if(!char)return;
@@ -1046,7 +1047,7 @@ function addTagBtn(key){
   const proj = getProject(); if(!proj) return;
   proj.globalTagData[key] = proj.globalTagData[key]||[];
   proj.globalTagData[key].push(val);
-  inp.value=''; renderTagChips(key); saveAll(); updatePreview();
+  inp.value=''; renderGlobalTags(key); saveAll(); updatePreview();
 }
 
 function renderCharTags(key){
@@ -1054,11 +1055,11 @@ function renderCharTags(key){
   const con=document.getElementById('c-'+key+'-tags');const inp=document.getElementById('c-'+key+'-input');
   if(!con||!inp)return;
   con.querySelectorAll('.tag').forEach(t=>t.remove());
-  const anchor=con.querySelector('div')||null;
+  const inpWrap=inp.parentElement||inp;
   (char.tagData[key]||[]).forEach((t,i)=>{
     const el=document.createElement('div');el.className='tag';
     el.innerHTML=`${t}<span class="tag-remove" onclick="removeCharTag('${key}',${i})">×</span>`;
-    con.insertBefore(el,anchor);
+    con.insertBefore(el,inpWrap);
   });
 }
 
@@ -1081,11 +1082,11 @@ function renderGlobalTags(key){
   const con=document.getElementById(cid);const inp=document.getElementById(iid);
   if(!con||!inp)return;
   con.querySelectorAll('.tag').forEach(t=>t.remove());
-  const anchor=con.querySelector('div')||null;
+  const inpWrap2=inp.parentElement||inp;
   ((proj?proj.globalTagData[key]:null)||[]).forEach((t,i)=>{
     const el=document.createElement('div');el.className='tag';
     el.innerHTML=`${t}<span class="tag-remove" onclick="removeGlobalTag('${key}',${i})">×</span>`;
-    con.insertBefore(el,anchor);
+    con.insertBefore(el,inpWrap2);
   });
 }
 
@@ -1101,13 +1102,6 @@ function toggleSpeechChip(el,value){
   char.speechChips=char.speechChips||[];
   if(el.classList.contains('active')){el.classList.remove('active');char.speechChips=char.speechChips.filter(s=>s!==value);}
   else{el.classList.add('active');char.speechChips.push(value);}
-  saveAll();updatePreview();
-}
-function toggleBdsmChip(el,value){
-  const char=getCurrentChar();if(!char)return;
-  char.bdsmChips=char.bdsmChips||[];
-  if(el.classList.contains('active')){el.classList.remove('active');char.bdsmChips=char.bdsmChips.filter(s=>s!==value);}
-  else{el.classList.add('active');char.bdsmChips.push(value);}
   saveAll();updatePreview();
 }
 

@@ -1236,6 +1236,7 @@ function renderLorebook(){
       <button class="btn btn-ghost" style="margin-top:8px;font-size:10px;" onclick="toggleLbPreview(${idx})">🔍 이 항목 프리뷰</button>
       <div id="lb-preview-${idx}" style="display:none;margin-top:8px;">
         <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px 8px 0 0;padding:12px;font-family:JetBrains Mono,monospace;font-size:11px;color:var(--text);white-space:pre-wrap;line-height:1.7;max-height:300px;overflow-y:auto;" id="lb-preview-text-${idx}"></div>
+        <div id="lb-preview-stats-${idx}" style="background:var(--bg);border:1px solid var(--border);border-top:none;padding:6px 12px;display:flex;gap:12px;font-size:10px;color:var(--muted);font-family:JetBrains Mono,monospace;"></div>
         <button class="copy-btn" style="margin-top:0;border-radius:0 0 8px 8px;border-top:none;" onclick="copyLbPreview(${idx})">📋 복사</button>
       </div>
       </div>
@@ -1278,6 +1279,12 @@ function toggleLbPreview(idx){
   const item=p.lorebook[idx];
   const text=`# 로어북: ${item.title}\n트리거 키워드: ${item.keywords.join(', ')||'(없음)'}\n\n${item.content||'(내용 없음)'}`;
   document.getElementById('lb-preview-text-'+idx).textContent=text;
+  const stats=document.getElementById('lb-preview-stats-'+idx);
+  if(stats){
+    const chars=item.content?item.content.length:0;
+    const tokens=Math.ceil(chars/2.5);
+    stats.textContent=`글자수: ${chars.toLocaleString()} · 토큰 추정: ${tokens.toLocaleString()}`;
+  }
   box.style.display='block';
 }
 async function copyLbPreview(idx){

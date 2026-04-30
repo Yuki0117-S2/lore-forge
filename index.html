@@ -1207,7 +1207,7 @@ function renderLorebook(){
     const div=document.createElement('div');div.className='lorebook-item';
     div.innerHTML=`
       <div class="lorebook-item-header" onclick="toggleLbItem(this)" style="cursor:pointer;user-select:none;">
-        <span class="panel-arrow" style="font-size:10px;color:var(--muted);transition:transform 0.2s;">▾</span>
+        <span class="panel-arrow" style="font-size:13px;color:var(--muted);transition:transform 0.2s;flex-shrink:0;width:20px;text-align:center;">▾</span>
         <input class="lorebook-title-input" type="text" placeholder="항목 이름 (예: 마법 체계, 왕도)" value="${esc(item.title)}" oninput="saveLbField(${idx},'title',this.value)" onclick="event.stopPropagation()">
         <button class="del-btn" onclick="event.stopPropagation();removeLorebook(${idx})">×</button>
       </div>
@@ -1224,7 +1224,10 @@ function renderLorebook(){
         <textarea style="min-height:90px;font-size:12px;" placeholder="이 키워드가 감지되면 삽입될 설정 내용..." oninput="saveLbField(${idx},'content',this.value)">${esc(item.content)}</textarea>
       </div>
       <button class="btn btn-ghost" style="margin-top:8px;font-size:10px;" onclick="toggleLbPreview(${idx})">🔍 이 항목 프리뷰</button>
-      <div id="lb-preview-${idx}" style="display:none;margin-top:8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;font-family:JetBrains Mono,monospace;font-size:11px;color:var(--text);white-space:pre-wrap;line-height:1.7;max-height:300px;overflow-y:auto;"></div>
+      <div id="lb-preview-${idx}" style="display:none;margin-top:8px;">
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px 8px 0 0;padding:12px;font-family:JetBrains Mono,monospace;font-size:11px;color:var(--text);white-space:pre-wrap;line-height:1.7;max-height:300px;overflow-y:auto;" id="lb-preview-text-${idx}"></div>
+        <button class="copy-btn" style="margin-top:0;border-radius:0 0 8px 8px;border-top:none;" onclick="copyLbPreview(${idx})">📋 복사</button>
+      </div>
       </div>
     `;
     list.appendChild(div);
@@ -1263,8 +1266,18 @@ function toggleLbPreview(idx){
   if(box.style.display!=='none'){box.style.display='none';return;}
   const p=getProject();if(!p||!p.lorebook[idx])return;
   const item=p.lorebook[idx];
-  box.textContent=`# 로어북: ${item.title}\n트리거 키워드: ${item.keywords.join(', ')||'(없음)'}\n\n${item.content||'(내용 없음)'}`;
+  const text=`# 로어북: ${item.title}\n트리거 키워드: ${item.keywords.join(', ')||'(없음)'}\n\n${item.content||'(내용 없음)'}`;
+  document.getElementById('lb-preview-text-'+idx).textContent=text;
   box.style.display='block';
+}
+async function copyLbPreview(idx){
+  const el=document.getElementById('lb-preview-text-'+idx);
+  if(!el)return;
+  try{
+    await navigator.clipboard.writeText(el.textContent);
+    const btn=event.target;btn.textContent='✅ 복사 완료!';btn.classList.add('copied');
+    setTimeout(()=>{btn.textContent='📋 복사';btn.classList.remove('copied');},2000);
+  }catch(e){}
 }
 
 // ===== 유틸 =====
@@ -1286,6 +1299,13 @@ function updatePreviewBar(){
     const btn=document.createElement('button');btn.className='preview-char-btn'+(previewMode===char.id?' active':'');
     btn.textContent=char.data.name||'이름 없음';btn.onclick=function(){setPreviewMode(char.id,this);};bar.appendChild(btn);
   });
+  // 로어북 버튼
+  const lbBtn=document.createElement('button');
+  lbBtn.className='preview-char-btn'+(previewMode==='lorebook'?' active':'');
+  lbBtn.style.cssText='border-color:rgba(106,200,176,0.4);color:#6AC8B0;';
+  lbBtn.textContent='📚 로어북';
+  lbBtn.onclick=function(){setPreviewMode('lorebook',this);};
+  bar.appendChild(lbBtn);
 }
 
 // ===== 프롬프트 빌드 =====
@@ -1394,6 +1414,11 @@ function buildRulesPrompt(){
 function buildFullPrompt(){
   const proj=getProject();if(!proj)return'';
   const world=buildWorldPrompt();const output=buildOutputPrompt();const rules=buildRulesPrompt();
+  if(previewMode==='lorebook'){
+    const lb=proj.lorebook||[];
+    if(!lb.length)return'// 로어북 항목이 없어.';
+    return lb.map(item=>`# 로어북: ${item.title}\n트리거 키워드: ${item.keywords.join(', ')||'(없음)'}\n\n${item.content||'(내용 없음)'}`).join('\n\n---\n\n');
+  }
   if(previewMode==='all'){
     const parts=proj.characters.map(c=>buildCharPrompt(c)).filter(Boolean);
     if(world)parts.push(world);if(output)parts.push(output);if(rules)parts.push(rules);

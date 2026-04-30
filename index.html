@@ -1190,7 +1190,13 @@ function removeRel(i){const c=getCurrentChar();if(!c)return;c.relations.splice(i
 function addLorebook(){
   const proj=getProject();if(!proj)return;
   proj.lorebook=proj.lorebook||[];
+  const newIdx=proj.lorebook.length;
   proj.lorebook.push({id:'lb_'+Date.now(),title:'새 항목',keywords:[],content:''});
+  // 기존 항목들은 collapsed로 표시하기 위해 현재 DOM 상태 기억
+  const list=document.getElementById('lorebook-list');
+  if(list){
+    list.querySelectorAll('.lorebook-item').forEach(el=>{el.classList.add('collapsed');});
+  }
   saveAll();renderLorebook();
 }
 
@@ -1199,12 +1205,16 @@ function renderLorebook(){
   const list=document.getElementById('lorebook-list');
   const empty=document.getElementById('lorebook-empty');
   if(!list)return;
+  // 렌더 전 collapsed 상태 저장
+  const collapsedSet=new Set();
+  list.querySelectorAll('.lorebook-item').forEach((el,i)=>{if(el.classList.contains('collapsed'))collapsedSet.add(i);});
   list.innerHTML='';
   const lb=proj?proj.lorebook||[]:[];
   if(lb.length===0){if(empty)empty.style.display='block';return;}
   if(empty)empty.style.display='none';
   lb.forEach((item,idx)=>{
-    const div=document.createElement('div');div.className='lorebook-item';
+    const div=document.createElement('div');
+    div.className='lorebook-item'+(collapsedSet.has(idx)?' collapsed':'');
     div.innerHTML=`
       <div class="lorebook-item-header" onclick="toggleLbItem(this)" style="cursor:pointer;user-select:none;">
         <span class="panel-arrow" style="font-size:13px;color:var(--muted);transition:transform 0.2s;flex-shrink:0;width:20px;text-align:center;">▾</span>

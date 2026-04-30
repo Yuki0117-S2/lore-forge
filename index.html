@@ -1211,7 +1211,7 @@ function renderLorebook(){
         <div class="field-label">트리거 키워드 <span style="color:var(--muted)">(엔터)</span></div>
         <div class="tag-input-container" id="lb-kw-${idx}" onclick="document.getElementById('lb-kw-input-${idx}').focus()">
           ${item.keywords.map((k,ki)=>`<div class="tag">${k}<span class="tag-remove" onclick="removeLbKeyword(${idx},${ki})">×</span></div>`).join('')}
-          <input type="text" class="tag-input" id="lb-kw-input-${idx}" placeholder="예: 마나, 오크, 왕도..." onkeydown="addLbKeyword(event,${idx})">
+          <div style="display:flex;gap:6px;align-items:center;"><input type="text" class="tag-input" id="lb-kw-input-${idx}" placeholder="예: 마나, 오크, 왕도..." onkeydown="addLbKeyword(event,${idx})" onkeyup="addLbKeyword(event,${idx})"><button onclick="addLbKeywordBtn(${idx})" class="tag-add-btn">＋</button></div>
         </div>
       </div>
       <div>
@@ -1227,10 +1227,19 @@ function renderLorebook(){
 function saveLbField(idx,field,value){const p=getProject();if(!p||!p.lorebook[idx])return;p.lorebook[idx][field]=value;saveAll();}
 
 function addLbKeyword(e,idx){
-  if(e.key!=='Enter'&&e.key!==',')return;e.preventDefault();
+  if(e.key!=='Enter'&&e.key!==',')return;
+  if(e.type==='keydown')return;
+  e.preventDefault();
   const proj=getProject();if(!proj||!proj.lorebook[idx])return;
   const val=e.target.value.trim().replace(',','');if(!val)return;
   proj.lorebook[idx].keywords.push(val);e.target.value='';
+  saveAll();renderLorebook();
+}
+function addLbKeywordBtn(idx){
+  const inp=document.getElementById('lb-kw-input-'+idx);if(!inp)return;
+  const val=inp.value.trim().replace(',','');if(!val)return;
+  const proj=getProject();if(!proj||!proj.lorebook[idx])return;
+  proj.lorebook[idx].keywords.push(val);inp.value='';
   saveAll();renderLorebook();
 }
 

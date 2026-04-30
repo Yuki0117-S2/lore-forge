@@ -1253,6 +1253,13 @@ function showLbPreview(idx){
   out.textContent=`# 로어북: ${item.title}\n트리거 키워드: ${item.keywords.join(', ')||'(없음)'}\n\n${item.content||'(내용 없음)'}`;
   document.getElementById('stat-chars').textContent=item.content.length.toLocaleString();
   document.getElementById('stat-tokens').textContent=Math.ceil(item.content.length/2.5).toLocaleString();
+  // 프리뷰 탭으로 전환 (폰/컴 모두)
+  const mobPreviewBtn=document.getElementById('mobtab-preview');
+  if(mobPreviewBtn&&getComputedStyle(mobPreviewBtn).display!=='none'){
+    mobSwitchTab('preview',mobPreviewBtn);
+  } else {
+    switchTab('preview');
+  }
 }
 
 // ===== 유틸 =====

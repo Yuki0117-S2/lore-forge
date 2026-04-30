@@ -119,6 +119,9 @@
   /* 로어북 */
   .lorebook-item{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:10px;}
   .lorebook-item-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+  .lorebook-item.collapsed .lorebook-item-body{display:none;}
+  .lorebook-item.collapsed .lorebook-item-header{margin-bottom:0;}
+  .lorebook-item.collapsed .panel-arrow{transform:rotate(-90deg);}
   .lorebook-title-input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;padding:5px 9px;outline:none;}
   .lorebook-title-input:focus{border-color:var(--accent);}
 
@@ -1203,10 +1206,12 @@ function renderLorebook(){
   lb.forEach((item,idx)=>{
     const div=document.createElement('div');div.className='lorebook-item';
     div.innerHTML=`
-      <div class="lorebook-item-header">
-        <input class="lorebook-title-input" type="text" placeholder="항목 이름 (예: 마법 체계, 왕도)" value="${esc(item.title)}" oninput="saveLbField(${idx},'title',this.value)">
-        <button class="del-btn" onclick="removeLorebook(${idx})">×</button>
+      <div class="lorebook-item-header" onclick="toggleLbItem(this)" style="cursor:pointer;user-select:none;">
+        <span class="panel-arrow" style="font-size:10px;color:var(--muted);transition:transform 0.2s;">▾</span>
+        <input class="lorebook-title-input" type="text" placeholder="항목 이름 (예: 마법 체계, 왕도)" value="${esc(item.title)}" oninput="saveLbField(${idx},'title',this.value)" onclick="event.stopPropagation()">
+        <button class="del-btn" onclick="event.stopPropagation();removeLorebook(${idx})">×</button>
       </div>
+      <div class="lorebook-item-body">
       <div style="margin-bottom:8px;">
         <div class="field-label">트리거 키워드 <span style="color:var(--muted)">(엔터)</span></div>
         <div class="tag-input-container" id="lb-kw-${idx}" onclick="document.getElementById('lb-kw-input-${idx}').focus()">
@@ -1218,7 +1223,9 @@ function renderLorebook(){
         <div class="field-label">내용</div>
         <textarea style="min-height:90px;font-size:12px;" placeholder="이 키워드가 감지되면 삽입될 설정 내용..." oninput="saveLbField(${idx},'content',this.value)">${esc(item.content)}</textarea>
       </div>
-      <button class="btn btn-ghost" style="margin-top:8px;font-size:10px;" onclick="showLbPreview(${idx})">🔍 이 항목 프리뷰</button>
+      <button class="btn btn-ghost" style="margin-top:8px;font-size:10px;" onclick="toggleLbPreview(${idx})">🔍 이 항목 프리뷰</button>
+      <div id="lb-preview-${idx}" style="display:none;margin-top:8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;font-family:JetBrains Mono,monospace;font-size:11px;color:var(--text);white-space:pre-wrap;line-height:1.7;max-height:300px;overflow-y:auto;"></div>
+      </div>
     `;
     list.appendChild(div);
   });
@@ -1246,20 +1253,18 @@ function addLbKeywordBtn(idx){
 function removeLbKeyword(idx,ki){const p=getProject();if(!p)return;p.lorebook[idx].keywords.splice(ki,1);saveAll();renderLorebook();}
 function removeLorebook(idx){const p=getProject();if(!p)return;if(!confirm('이 항목을 삭제할까?'))return;p.lorebook.splice(idx,1);saveAll();renderLorebook();}
 
-function showLbPreview(idx){
+function toggleLbItem(headerEl){
+  const item=headerEl.closest('.lorebook-item');
+  if(item)item.classList.toggle('collapsed');
+}
+function toggleLbPreview(idx){
+  const box=document.getElementById('lb-preview-'+idx);
+  if(!box)return;
+  if(box.style.display!=='none'){box.style.display='none';return;}
   const p=getProject();if(!p||!p.lorebook[idx])return;
   const item=p.lorebook[idx];
-  const out=document.getElementById('prompt-output');
-  out.textContent=`# 로어북: ${item.title}\n트리거 키워드: ${item.keywords.join(', ')||'(없음)'}\n\n${item.content||'(내용 없음)'}`;
-  document.getElementById('stat-chars').textContent=item.content.length.toLocaleString();
-  document.getElementById('stat-tokens').textContent=Math.ceil(item.content.length/2.5).toLocaleString();
-  // 프리뷰 탭으로 전환 (폰/컴 모두)
-  const mobPreviewBtn=document.getElementById('mobtab-preview');
-  if(mobPreviewBtn&&getComputedStyle(mobPreviewBtn).display!=='none'){
-    mobSwitchTab('preview',mobPreviewBtn);
-  } else {
-    switchTab('preview');
-  }
+  box.textContent=`# 로어북: ${item.title}\n트리거 키워드: ${item.keywords.join(', ')||'(없음)'}\n\n${item.content||'(내용 없음)'}`;
+  box.style.display='block';
 }
 
 // ===== 유틸 =====

@@ -1190,13 +1190,7 @@ function removeRel(i){const c=getCurrentChar();if(!c)return;c.relations.splice(i
 function addLorebook(){
   const proj=getProject();if(!proj)return;
   proj.lorebook=proj.lorebook||[];
-  const newIdx=proj.lorebook.length;
   proj.lorebook.push({id:'lb_'+Date.now(),title:'새 항목',keywords:[],content:''});
-  // 기존 항목들은 collapsed로 표시하기 위해 현재 DOM 상태 기억
-  const list=document.getElementById('lorebook-list');
-  if(list){
-    list.querySelectorAll('.lorebook-item').forEach(el=>{el.classList.add('collapsed');});
-  }
   saveAll();renderLorebook();
 }
 

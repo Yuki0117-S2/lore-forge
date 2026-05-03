@@ -119,6 +119,9 @@
   /* 로어북 */
   .lorebook-item{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:10px;}
   .lorebook-item-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+  .lorebook-item.collapsed .lorebook-item-body{display:none;}
+  .lorebook-item.collapsed .lorebook-item-header{margin-bottom:0;}
+  .lorebook-item.collapsed .panel-arrow{transform:rotate(-90deg);}
   .lorebook-title-input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;padding:5px 9px;outline:none;}
   .lorebook-title-input:focus{border-color:var(--accent);}
 
@@ -655,7 +658,7 @@ function newProject(){
     if(!name.trim())return;
     const proj=newProjectData(name.trim());
     projects[proj.id]=proj;currentProjectId=proj.id;
-    saveAll();renderProjectDropdown();loadProjectUI();showToast('✅ 프로젝트 생성!');
+    renderProjectDropdown();loadProjectUI();try{localStorage.setItem('loreforge_v3',JSON.stringify({projects,currentProjectId}));}catch(e){}showToast('✅ 프로젝트 생성!');
   });
 }
 
@@ -1216,29 +1219,41 @@ function renderLorebook(){
   const list=document.getElementById('lorebook-list');
   const empty=document.getElementById('lorebook-empty');
   if(!list)return;
+  // 렌더 전 collapsed 상태 저장
+  const collapsedSet=new Set();
+  list.querySelectorAll('.lorebook-item').forEach((el,i)=>{if(el.classList.contains('collapsed'))collapsedSet.add(i);});
   list.innerHTML='';
   const lb=proj?proj.lorebook||[]:[];
   if(lb.length===0){if(empty)empty.style.display='block';return;}
   if(empty)empty.style.display='none';
   lb.forEach((item,idx)=>{
-    const div=document.createElement('div');div.className='lorebook-item';
+    const div=document.createElement('div');
+    div.className='lorebook-item'+(collapsedSet.has(idx)?' collapsed':'');
     div.innerHTML=`
-      <div class="lorebook-item-header">
-        <input class="lorebook-title-input" type="text" placeholder="항목 이름 (예: 마법 체계, 왕도)" value="${esc(item.title)}" oninput="saveLbField(${idx},'title',this.value)">
-        <button class="del-btn" onclick="removeLorebook(${idx})">×</button>
+      <div class="lorebook-item-header" onclick="toggleLbItem(this)" style="cursor:pointer;user-select:none;">
+        <span class="panel-arrow" style="font-size:13px;color:var(--muted);transition:transform 0.2s;flex-shrink:0;width:20px;text-align:center;">▾</span>
+        <input class="lorebook-title-input" type="text" placeholder="항목 이름 (예: 마법 체계, 왕도)" value="${esc(item.title)}" oninput="saveLbField(${idx},'title',this.value)" onclick="event.stopPropagation()">
+        <button class="del-btn" onclick="event.stopPropagation();removeLorebook(${idx})">×</button>
       </div>
+      <div class="lorebook-item-body">
       <div style="margin-bottom:8px;">
         <div class="field-label">트리거 키워드 <span style="color:var(--muted)">(엔터)</span></div>
         <div class="tag-input-container" id="lb-kw-${idx}" onclick="document.getElementById('lb-kw-input-${idx}').focus()">
           ${item.keywords.map((k,ki)=>`<div class="tag">${k}<span class="tag-remove" onclick="removeLbKeyword(${idx},${ki})">×</span></div>`).join('')}
-          <input type="text" class="tag-input" id="lb-kw-input-${idx}" placeholder="예: 마나, 오크, 왕도..." onkeydown="addLbKeyword(event,${idx})">
+          <div style="display:flex;gap:6px;align-items:center;"><input type="text" class="tag-input" id="lb-kw-input-${idx}" placeholder="예: 마나, 오크, 왕도..." onkeydown="addLbKeyword(event,${idx})" onkeyup="addLbKeyword(event,${idx})"><button onclick="addLbKeywordBtn(${idx})" class="tag-add-btn">＋</button></div>
         </div>
       </div>
       <div>
         <div class="field-label">내용</div>
         <textarea style="min-height:90px;font-size:12px;" placeholder="이 키워드가 감지되면 삽입될 설정 내용..." oninput="saveLbField(${idx},'content',this.value)">${esc(item.content)}</textarea>
       </div>
-      <button class="btn btn-ghost" style="margin-top:8px;font-size:10px;" onclick="showLbPreview(${idx})">🔍 이 항목 프리뷰</button>
+      <button class="btn btn-ghost" style="margin-top:8px;font-size:10px;" onclick="toggleLbPreview(${idx})">🔍 이 항목 프리뷰</button>
+      <div id="lb-preview-${idx}" style="display:none;margin-top:8px;">
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px 8px 0 0;padding:12px;font-family:JetBrains Mono,monospace;font-size:11px;color:var(--text);white-space:pre-wrap;line-height:1.7;max-height:300px;overflow-y:auto;" id="lb-preview-text-${idx}"></div>
+        <div id="lb-preview-stats-${idx}" style="background:var(--bg);border:1px solid var(--border);border-top:none;padding:6px 12px;display:flex;gap:12px;font-size:10px;color:var(--muted);font-family:JetBrains Mono,monospace;"></div>
+        <button class="copy-btn" style="margin-top:0;border-radius:0 0 8px 8px;border-top:none;" onclick="copyLbPreview(${idx})">📋 복사</button>
+      </div>
+      </div>
     `;
     list.appendChild(div);
   });
@@ -1247,28 +1262,81 @@ function renderLorebook(){
 function saveLbField(idx,field,value){const p=getProject();if(!p||!p.lorebook[idx])return;p.lorebook[idx][field]=value;saveAll();}
 
 function addLbKeyword(e,idx){
-  if(e.key!=='Enter'&&e.key!==',')return;e.preventDefault();
+  if(e.key!=='Enter'&&e.key!==',')return;
+  if(e.type==='keydown')return;
+  e.preventDefault();
   const proj=getProject();if(!proj||!proj.lorebook[idx])return;
   const val=e.target.value.trim().replace(',','');if(!val)return;
   proj.lorebook[idx].keywords.push(val);e.target.value='';
+  saveAll();renderLorebook();
+}
+function addLbKeywordBtn(idx){
+  const inp=document.getElementById('lb-kw-input-'+idx);if(!inp)return;
+  const val=inp.value.trim().replace(',','');if(!val)return;
+  const proj=getProject();if(!proj||!proj.lorebook[idx])return;
+  proj.lorebook[idx].keywords.push(val);inp.value='';
   saveAll();renderLorebook();
 }
 
 function removeLbKeyword(idx,ki){const p=getProject();if(!p)return;p.lorebook[idx].keywords.splice(ki,1);saveAll();renderLorebook();}
 function removeLorebook(idx){const p=getProject();if(!p)return;if(!confirm('이 항목을 삭제할까?'))return;p.lorebook.splice(idx,1);saveAll();renderLorebook();}
 
-function showLbPreview(idx){
+function toggleLbItem(headerEl){
+  const item=headerEl.closest('.lorebook-item');
+  if(item)item.classList.toggle('collapsed');
+}
+function toggleLbPreview(idx){
+  const box=document.getElementById('lb-preview-'+idx);
+  if(!box)return;
+  if(box.style.display!=='none'){box.style.display='none';return;}
   const p=getProject();if(!p||!p.lorebook[idx])return;
   const item=p.lorebook[idx];
-  const out=document.getElementById('prompt-output');
-  out.textContent=`# 로어북: ${item.title}\n트리거 키워드: ${item.keywords.join(', ')||'(없음)'}\n\n${item.content||'(내용 없음)'}`;
-  document.getElementById('stat-chars').textContent=item.content.length.toLocaleString();
-  document.getElementById('stat-tokens').textContent=Math.ceil(item.content.length/2.5).toLocaleString();
+  const text=`# 로어북: ${item.title}\n트리거 키워드: ${item.keywords.join(', ')||'(없음)'}\n\n${item.content||'(내용 없음)'}`;
+  document.getElementById('lb-preview-text-'+idx).textContent=text;
+  const stats=document.getElementById('lb-preview-stats-'+idx);
+  if(stats){
+    const chars=item.content?item.content.length:0;
+    const tokens=Math.ceil(chars/2.5);
+    stats.textContent=`글자수: ${chars.toLocaleString()} · 토큰 추정: ${tokens.toLocaleString()}`;
+  }
+  box.style.display='block';
+}
+async function copyText(text){
+  try{
+    if(navigator.clipboard&&window.isSecureContext){
+      await navigator.clipboard.writeText(text);return true;
+    }
+    // 폴백: execCommand
+    const ta=document.createElement('textarea');
+    ta.value=text;ta.style.cssText='position:fixed;top:-9999px;left:-9999px;opacity:0;';
+    document.body.appendChild(ta);ta.focus();ta.select();
+    const ok=document.execCommand('copy');
+    document.body.removeChild(ta);return ok;
+  }catch(e){return false;}
+}
+async function copyLbPreview(idx){
+  const el=document.getElementById('lb-preview-text-'+idx);
+  if(!el)return;
+  const ok=await copyText(el.textContent);
+  const btn=event.target;
+  btn.textContent=ok?'✅ 복사 완료!':'❌ 복사 실패';
+  btn.classList.add('copied');
+  setTimeout(()=>{btn.textContent='📋 복사';btn.classList.remove('copied');},2000);
 }
 
 // ===== 유틸 =====
 function togglePanel(id){const el=document.getElementById(id);if(el)el.classList.toggle('collapsed');}
-// switchTab → 아래 탭 복사 섹션으로 이동
+function switchTab(name){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+  currentCopyTab=name;
+  const btn=document.getElementById('copy-tab-btn');
+  if(btn)btn.style.display=(name==='character')?'none':'inline-block';
+  const mobCopyBtn=document.getElementById('mob-more-copy-btn');
+  if(mobCopyBtn)mobCopyBtn.style.display=(name==='character')?'none':'flex';
+}
 function updateSliderLabel(el,labelId){const l=document.getElementById(labelId);if(l)l.textContent=sLabel(el.value);}
 function sLabel(v){v=parseInt(v);return v<25?'매우 낮음':v<45?'낮음':v<55?'중간':v<75?'높음':'매우 높음';}
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
@@ -1285,6 +1353,13 @@ function updatePreviewBar(){
     const btn=document.createElement('button');btn.className='preview-char-btn'+(previewMode===char.id?' active':'');
     btn.textContent=char.data.name||'이름 없음';btn.onclick=function(){setPreviewMode(char.id,this);};bar.appendChild(btn);
   });
+  // 로어북 버튼
+  const lbBtn=document.createElement('button');
+  lbBtn.className='preview-char-btn'+(previewMode==='lorebook'?' active':'');
+  lbBtn.style.cssText='border-color:rgba(106,200,176,0.4);color:#6AC8B0;';
+  lbBtn.textContent='📚 로어북';
+  lbBtn.onclick=function(){setPreviewMode('lorebook',this);};
+  bar.appendChild(lbBtn);
 }
 
 // ===== 프롬프트 빌드 =====
@@ -1393,6 +1468,11 @@ function buildRulesPrompt(){
 function buildFullPrompt(){
   const proj=getProject();if(!proj)return'';
   const world=buildWorldPrompt();const output=buildOutputPrompt();const rules=buildRulesPrompt();
+  if(previewMode==='lorebook'){
+    const lb=proj.lorebook||[];
+    if(!lb.length)return'// 로어북 항목이 없어.';
+    return lb.map(item=>`# 로어북: ${item.title}\n트리거 키워드: ${item.keywords.join(', ')||'(없음)'}\n\n${item.content||'(내용 없음)'}`).join('\n\n---\n\n');
+  }
   if(previewMode==='all'){
     const parts=proj.characters.map(c=>buildCharPrompt(c)).filter(Boolean);
     if(world)parts.push(world);if(output)parts.push(output);if(rules)parts.push(rules);
@@ -1418,16 +1498,18 @@ async function copyCompressRequest(){
   if(!prompt){showToast('⚠️ 프롬프트가 비어있어!');return;}
   const target=document.getElementById('compress-target').value||'2000';
   const request='아래 챗봇 프롬프트를 '+target+'자 이하로 압축해줘.\n의미와 뉘앙스는 최대한 유지하고, 불필요한 조사/중복 표현/설명 제거 후 핵심만 남겨.\n캐릭터 성격/말투/설정의 핵심은 절대 손대지 마.\n\n---\n'+prompt;
-  try{
-    await navigator.clipboard.writeText(request);
-    showToast('✅ 압축 요청 복사 완료! 나한테 붙여넣어봐~');
-  }catch(e){alert('복사 실패. 직접 선택해줘.');}
+  const ok=await copyText(request);
+  if(ok)showToast('✅ 압축 요청 복사 완료! 나한테 붙여넣어봐~');
+  else showToast('❌ 복사 실패. 직접 선택해줘.');
 }
 
 async function copyPrompt(){
   const prompt=buildFullPrompt();if(!prompt)return;
-  try{await navigator.clipboard.writeText(prompt);const btn=document.getElementById('copy-btn');btn.textContent='✅ 복사 완료!';btn.classList.add('copied');setTimeout(()=>{btn.textContent='📋 프롬프트 전체 복사';btn.classList.remove('copied');},2000);}
-  catch(e){alert('클립보드 복사 실패. 텍스트를 직접 선택해줘.');}
+  const ok=await copyText(prompt);
+  const btn=document.getElementById('copy-btn');
+  btn.textContent=ok?'✅ 복사 완료!':'❌ 복사 실패';
+  btn.classList.add('copied');
+  setTimeout(()=>{btn.textContent='📋 프롬프트 전체 복사';btn.classList.remove('copied');},2000);
 }
 
 // ===== 저장 =====
@@ -1469,7 +1551,10 @@ function setSyncIndicator(state){
 function copyGistId(){
   const id=document.getElementById('gist-id-input').value.trim();
   if(!id){setGistStatus('Gist ID가 없어. 먼저 업로드해봐!','err');return;}
-  navigator.clipboard.writeText(id).then(()=>{setGistStatus('Gist ID 복사됨! 다른 기기에서 붙여넣어봐.','ok');}).catch(()=>{setGistStatus('복사 실패. 직접 선택해서 복사해줘.','err');});
+  copyText(id).then(ok=>{
+    if(ok)setGistStatus('Gist ID 복사됨! 다른 기기에서 붙여넣어봐.','ok');
+    else setGistStatus('복사 실패. 직접 선택해서 복사해줘.','err');
+  });
 }
 async function gistUpload(){
   const token=document.getElementById('gist-token-input').value.trim();
@@ -1707,86 +1792,64 @@ function init(){
 }
 
 
-// ── 탭 복사 기능 ──────────────────────────────────────────
-let currentCopyTab = null;
+// ── 탭 복사 & 모바일 더보기 ──────────────────────────────
+let currentCopyTab=null;
 
-function switchTab(name){
-  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('panel-'+name).classList.add('active');
-  document.getElementById('tab-'+name).classList.add('active');
-  currentCopyTab = name;
-  // 데스크탑 복사 버튼
-  const btn = document.getElementById('copy-tab-btn');
-  if(btn) btn.style.display = (name==='character') ? 'none' : 'inline-block';
-  // 모바일 더보기 복사 버튼
-  const mobCopyBtn = document.getElementById('mob-more-copy-btn');
-  if(mobCopyBtn) mobCopyBtn.style.display = (name==='character') ? 'none' : 'flex';
+function toggleMobMore(){
+  const sheet=document.getElementById('mob-more-sheet');
+  const overlay=document.getElementById('mob-more-overlay');
+  if(sheet.style.display!=='none'){closeMobMore();}
+  else{sheet.style.display='block';overlay.style.display='block';}
 }
-
-function toggleMobMore(btn){
-  const sheet = document.getElementById('mob-more-sheet');
-  const overlay = document.getElementById('mob-more-overlay');
-  const isOpen = sheet.style.display !== 'none';
-  if(isOpen){ closeMobMore(); }
-  else {
-    sheet.style.display = 'block';
-    overlay.style.display = 'block';
-  }
-}
-
 function closeMobMore(){
-  document.getElementById('mob-more-sheet').style.display = 'none';
-  document.getElementById('mob-more-overlay').style.display = 'none';
+  document.getElementById('mob-more-sheet').style.display='none';
+  document.getElementById('mob-more-overlay').style.display='none';
 }
-
 function openCopyTabModal(){
   saveAll();
-  const proj = getProject(); if(!proj) return;
-  const tabNames = {world:'세계관',output:'출력지침',rules:'행동 규칙',lorebook:'로어북'};
-  const label = tabNames[currentCopyTab] || currentCopyTab;
-  document.getElementById('copy-tab-modal-title').textContent = label + '을(를) 다른 프로젝트로 복사';
-  const list = document.getElementById('copy-tab-project-list');
-  list.innerHTML = '';
-  const others = Object.values(projects).filter(p=>p.id!==currentProjectId);
+  const proj=getProject();if(!proj)return;
+  const tabNames={world:'세계관',output:'출력지침',rules:'행동 규칙',lorebook:'로어북'};
+  const label=tabNames[currentCopyTab]||currentCopyTab;
+  document.getElementById('copy-tab-modal-title').textContent=label+'을(를) 다른 프로젝트로 복사';
+  const list=document.getElementById('copy-tab-project-list');
+  list.innerHTML='';
+  const others=Object.values(projects).filter(p=>p.id!==currentProjectId);
   if(!others.length){
-    list.innerHTML = '<div style="color:var(--muted);font-size:12px;text-align:center;padding:16px;">다른 프로젝트가 없어!</div>';
-  } else {
+    list.innerHTML='<div style="color:var(--muted);font-size:12px;text-align:center;padding:16px;">다른 프로젝트가 없어!</div>';
+  }else{
     others.forEach(p=>{
-      const btn = document.createElement('button');
-      btn.className = 'btn btn-ghost';
-      btn.style.cssText = 'text-align:left;justify-content:flex-start;gap:8px;';
-      btn.textContent = '📁 ' + p.name;
-      btn.onclick = ()=>{ executeCopyTab(p.id); };
+      const btn=document.createElement('button');
+      btn.className='btn btn-ghost';
+      btn.style.cssText='text-align:left;justify-content:flex-start;gap:8px;width:100%;';
+      btn.textContent='📁 '+p.name;
+      btn.onclick=()=>executeCopyTab(p.id);
       list.appendChild(btn);
     });
   }
   document.getElementById('copy-tab-modal-overlay').style.display='flex';
 }
-
 function closeCopyTabModal(){
   document.getElementById('copy-tab-modal-overlay').style.display='none';
 }
-
 function executeCopyTab(targetId){
-  const src = getProject(); if(!src) return;
-  const tgt = projects[targetId]; if(!tgt) return;
+  const src=getProject();if(!src)return;
+  const tgt=projects[targetId];if(!tgt)return;
   if(currentCopyTab==='world'){
-    tgt.world = JSON.parse(JSON.stringify(src.world));
-    tgt.globalTagData = tgt.globalTagData||{};
-    ['world-rule','atmo','place'].forEach(k=>{ tgt.globalTagData[k] = JSON.parse(JSON.stringify(src.globalTagData[k]||[])); });
-  } else if(currentCopyTab==='output'){
-    tgt.output = JSON.parse(JSON.stringify(src.output));
-  } else if(currentCopyTab==='rules'){
-    tgt.rules = JSON.parse(JSON.stringify(src.rules));
-    tgt.globalTagData = tgt.globalTagData||{};
-    ['must','never'].forEach(k=>{ tgt.globalTagData[k] = JSON.parse(JSON.stringify(src.globalTagData[k]||[])); });
-  } else if(currentCopyTab==='lorebook'){
-    tgt.lorebook = JSON.parse(JSON.stringify(src.lorebook||[]));
+    tgt.world=JSON.parse(JSON.stringify(src.world));
+    tgt.globalTagData=tgt.globalTagData||{};
+    ['world-rule','atmo','place'].forEach(k=>{tgt.globalTagData[k]=JSON.parse(JSON.stringify(src.globalTagData[k]||[]));});
+  }else if(currentCopyTab==='output'){
+    tgt.output=JSON.parse(JSON.stringify(src.output));
+  }else if(currentCopyTab==='rules'){
+    tgt.rules=JSON.parse(JSON.stringify(src.rules));
+    tgt.globalTagData=tgt.globalTagData||{};
+    ['must','never'].forEach(k=>{tgt.globalTagData[k]=JSON.parse(JSON.stringify(src.globalTagData[k]||[]));});
+  }else if(currentCopyTab==='lorebook'){
+    tgt.lorebook=JSON.parse(JSON.stringify(src.lorebook||[]));
   }
   saveAll();
   closeCopyTabModal();
-  showToast('✅ ' + projects[targetId].name + '에 복사됐어!');
+  showToast('✅ '+projects[targetId].name+'에 복사됐어!');
 }
 
 init();
@@ -1795,8 +1858,8 @@ init();
 <!-- 탭 복사 모달 -->
 <div class="modal-overlay" id="copy-tab-modal-overlay" style="display:none;" onclick="closeCopyTabModal()">
   <div class="modal" style="max-width:380px;" onclick="event.stopPropagation()">
-    <div class="modal-title" id="copy-tab-modal-title">세계관을 다른 프로젝트로 복사</div>
-    <div class="modal-desc" style="margin-bottom:12px;font-size:12px;color:var(--muted);">복사할 프로젝트를 선택해. 기존 내용은 덮어써져.</div>
+    <div class="modal-title" id="copy-tab-modal-title">복사</div>
+    <div style="margin-bottom:12px;font-size:12px;color:var(--muted);">복사할 프로젝트를 선택해. 기존 내용은 덮어써져.</div>
     <div id="copy-tab-project-list" style="display:flex;flex-direction:column;gap:6px;max-height:260px;overflow-y:auto;margin-bottom:16px;"></div>
     <div style="display:flex;gap:8px;justify-content:flex-end;">
       <button class="btn btn-ghost" onclick="closeCopyTabModal()">취소</button>

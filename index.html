@@ -811,7 +811,7 @@ function renderCharEditor(){
   if(!char){container.innerHTML=`<div class="empty-state"><div class="empty-state-icon">🎭</div><div class="empty-state-text">캐릭터를 선택하거나 추가해봐</div><div class="empty-state-sub">왼쪽 사이드바 ＋ 버튼을 눌러</div></div>`;return;}
   const d=char.data;const[bg]=COLORS[char.colorIdx];
 
-  const outfitAll=[...new Set([...OUTFIT_CHIPS_F,...OUTFIT_CHIPS_M,...(customChips['c-outfit-chips']||[])])];
+  const outfitAll=[...new Set([...OUTFIT_CHIPS_F,...OUTFIT_CHIPS_M])];
 
   container.innerHTML=`
     <div class="panel" id="cp-basic">
@@ -991,6 +991,17 @@ function renderCharEditor(){
 
   renderCharTags('personality');renderCharTags('habit');renderCharTags('like');renderCharTags('dislike');renderCharTags('must');renderCharTags('never');
   renderRelations();updatePreviewBar();
+
+  // 유령 칩 자동 청소: UI에 존재하는 칩만 데이터에 유지
+  const validSpeech=['반말체','존댓말','사투리','고어체','무뚝뚝','수다스러움','시적인 표현','짧고 단호함',...(customChips['c-speech-chips']||[])];
+  char.speechChips=(char.speechChips||[]).filter(s=>validSpeech.includes(s));
+  const validOutfit=[...new Set([...OUTFIT_CHIPS_F,...OUTFIT_CHIPS_M,...(customChips['c-outfit-chips']||[])])];
+  char.outfitChips=(char.outfitChips||[]).filter(s=>validOutfit.includes(s));
+  const validBdsm=document.querySelectorAll('#c-bdsm-chips .chip[data-val]');
+  const validBdsmVals=[...validBdsm].map(el=>el.getAttribute('data-val'));
+  char.bdsmChips=(char.bdsmChips||[]).filter(s=>validBdsmVals.includes(s));
+  saveAll();
+
   setTimeout(()=>{injectCustomChips('c-speech-chips','speech');injectOutfitChips();},30);
   updatePreview();
 }

@@ -992,15 +992,42 @@ function renderCharEditor(){
   renderCharTags('personality');renderCharTags('habit');renderCharTags('like');renderCharTags('dislike');renderCharTags('must');renderCharTags('never');
   renderRelations();updatePreviewBar();
 
-  // 유령 칩 자동 청소: UI에 존재하는 칩만 데이터에 유지
+  // 유령 칩 자동 청소: UI에 존재하는 칩만 데이터에 유지 + 경고
   const validSpeech=['반말체','존댓말','사투리','고어체','무뚝뚝','수다스러움','시적인 표현','짧고 단호함',...(customChips['c-speech-chips']||[])];
-  char.speechChips=(char.speechChips||[]).filter(s=>validSpeech.includes(s));
   const validOutfit=[...new Set([...OUTFIT_CHIPS_F,...OUTFIT_CHIPS_M,...(customChips['c-outfit-chips']||[])])];
-  char.outfitChips=(char.outfitChips||[]).filter(s=>validOutfit.includes(s));
   const validBdsm=document.querySelectorAll('#c-bdsm-chips .chip[data-val]');
   const validBdsmVals=[...validBdsm].map(el=>el.getAttribute('data-val'));
-  char.bdsmChips=(char.bdsmChips||[]).filter(s=>validBdsmVals.includes(s));
-  saveAll();
+
+  const ghostList=[];
+  const ghostSpeech=(char.speechChips||[]).filter(s=>!validSpeech.includes(s));
+  const ghostOutfit=(char.outfitChips||[]).filter(s=>!validOutfit.includes(s));
+  const ghostBdsm=(char.bdsmChips||[]).filter(s=>!validBdsmVals.includes(s));
+  if(ghostSpeech.length) ghostList.push('말투 스타일: '+ghostSpeech.join(', '));
+  if(ghostOutfit.length) ghostList.push('의상 스타일: '+ghostOutfit.join(', '));
+  if(ghostBdsm.length) ghostList.push('BDSM 성향: '+ghostBdsm.join(', '));
+
+  if(ghostList.length){
+    const overlay=document.createElement('div');overlay.className='modal-overlay';
+    const items=ghostList.map(g=>`<div style="margin-bottom:6px;"><span style="color:var(--accent);font-weight:bold;">${g.split(':')[0]}:</span><br><span style="user-select:text;-webkit-user-select:text;color:var(--text);font-size:13px;">${g.split(':').slice(1).join(':').trim()}</span></div>`).join('');
+    overlay.innerHTML=`<div class="modal" style="width:380px;max-width:calc(100vw - 32px);">
+      <div class="modal-title">⚠️ 유령 칩 감지</div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.6;">현재 UI에 없는 칩이 감지되었습니다.<br>확인을 누르면 제거됩니다.<br>유지하려면 취소 후 ＋ 버튼으로 먼저 등록해주세요.</div>
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;user-select:text;-webkit-user-select:text;font-size:13px;line-height:1.8;">${items}</div>
+      <div class="modal-btns">
+        <button class="btn btn-ghost" id="ghost-cancel">취소</button>
+        <button class="btn btn-primary" id="ghost-ok">확인 (제거)</button>
+      </div>
+    </div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector('#ghost-ok').onclick=()=>{
+      char.speechChips=(char.speechChips||[]).filter(s=>validSpeech.includes(s));
+      char.outfitChips=(char.outfitChips||[]).filter(s=>validOutfit.includes(s));
+      char.bdsmChips=(char.bdsmChips||[]).filter(s=>validBdsmVals.includes(s));
+      saveAll();updatePreview();overlay.remove();
+    };
+    overlay.querySelector('#ghost-cancel').onclick=()=>{overlay.remove();};
+    overlay.onclick=(e)=>{if(e.target===overlay)overlay.remove();};
+  }
 
   setTimeout(()=>{injectCustomChips('c-speech-chips','speech');injectOutfitChips();},30);
   updatePreview();

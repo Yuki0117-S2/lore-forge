@@ -1045,10 +1045,10 @@ function saveField(field,value){
 
 // ===== 캐릭터 태그 =====
 function handleCharTag(e,key){
-  if(e.key!=='Enter'&&e.key!==',')return;
+  if(e.key!=='Enter')return;
   if(e.type==='keydown')return;e.preventDefault();
   const char=getCurrentChar();if(!char)return;
-  const val=e.target.value.trim().replace(',','');if(!val)return;
+  const val=e.target.value.trim();if(!val)return;
   char.tagData[key]=char.tagData[key]||[];char.tagData[key].push(val);
   e.target.value='';renderCharTags(key);saveAll();updatePreview();
 }
@@ -1056,7 +1056,7 @@ function handleCharTag(e,key){
 function addCharTagBtn(key){
   const inp = document.getElementById('c-'+key+'-input');
   if(!inp) return;
-  const val = inp.value.trim().replace(',','');
+  const val = inp.value.trim();
   if(!val) return;
   const char = getCurrentChar(); if(!char) return;
   char.tagData[key] = char.tagData[key]||[];
@@ -1067,7 +1067,7 @@ function addCharTagBtn(key){
 function addTagBtn(key){
   const inp = document.getElementById(key+'-input');
   if(!inp) return;
-  const val = inp.value.trim().replace(',','');
+  const val = inp.value.trim();
   if(!val) return;
   const proj = getProject(); if(!proj) return;
   proj.globalTagData[key] = proj.globalTagData[key]||[];
@@ -1094,10 +1094,10 @@ function removeCharTag(key,i){const c=getCurrentChar();if(!c)return;c.tagData[ke
 const TAG_IDS={'world-rule':['world-rule-tags','world-rule-input'],'atmo':['atmo-tags','atmo-input'],'place':['place-tags','place-input'],'must':['must-tags','must-input'],'never':['never-tags','never-input']};
 
 function handleTagInput(e,key){
-  if(e.key!=='Enter'&&e.key!==',')return;
+  if(e.key!=='Enter')return;
   if(e.type==='keydown')return;e.preventDefault();
   const proj=getProject();if(!proj)return;
-  const val=e.target.value.trim().replace(',','');if(!val)return;
+  const val=e.target.value.trim();if(!val)return;
   proj.globalTagData[key]=proj.globalTagData[key]||[];proj.globalTagData[key].push(val);
   e.target.value='';renderGlobalTags(key);saveAll();updatePreview();
 }
@@ -1264,17 +1264,17 @@ function renderLorebook(){
 function saveLbField(idx,field,value){const p=getProject();if(!p||!p.lorebook[idx])return;p.lorebook[idx][field]=value;saveAll();}
 
 function addLbKeyword(e,idx){
-  if(e.key!=='Enter'&&e.key!==',')return;
+  if(e.key!=='Enter')return;
   if(e.type==='keydown')return;
   e.preventDefault();
   const proj=getProject();if(!proj||!proj.lorebook[idx])return;
-  const val=e.target.value.trim().replace(',','');if(!val)return;
+  const val=e.target.value.trim();if(!val)return;
   proj.lorebook[idx].keywords.push(val);e.target.value='';
   saveAll();renderLorebook();
 }
 function addLbKeywordBtn(idx){
   const inp=document.getElementById('lb-kw-input-'+idx);if(!inp)return;
-  const val=inp.value.trim().replace(',','');if(!val)return;
+  const val=inp.value.trim();if(!val)return;
   const proj=getProject();if(!proj||!proj.lorebook[idx])return;
   proj.lorebook[idx].keywords.push(val);inp.value='';
   saveAll();renderLorebook();

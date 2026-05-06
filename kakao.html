@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KakaoTalk</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --col-indigo: #8889CD;
+    --col-pink:   #DDAACC;
+    --col-sand:   #CCAA88;
+    --col-rose:   #BB6688;
+  }
+
+  body {
+    background: #c8bdd4;
+    font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+  }
+
+  .chat-wrap {
+    width: 100%;
+    max-width: 480px;
+    min-height: 100vh;
+    background: #c8bdd4;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Header */
+  .chat-header {
+    background: rgba(0,0,0,0.08);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    backdrop-filter: blur(10px);
+  }
+
+  .back-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #1a1a1a;
+    font-size: 20px;
+    line-height: 1;
+    padding: 4px;
+  }
+
+  .chat-title {
+    flex: 1;
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a1a1a;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .member-count {
+    font-size: 14px;
+    font-weight: 400;
+    color: #555;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 16px;
+    color: #1a1a1a;
+  }
+
+  .header-actions svg {
+    width: 22px; height: 22px;
+    fill: none; stroke: #1a1a1a;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    cursor: pointer;
+  }
+
+  /* Date divider */
+  .date-divider {
+    text-align: center;
+    margin: 16px 0 8px;
+    font-size: 12px;
+    color: rgba(0,0,0,0.45);
+  }
+
+  /* Messages */
+  .messages {
+    flex: 1;
+    padding: 8px 12px 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    overflow-y: auto;
+  }
+
+  .msg-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    max-width: 100%;
+  }
+
+  /* 상대방 메시지 */
+  .msg-row.other { flex-direction: row; }
+
+  .msg-row.other .bubble {
+    background: #fff;
+    color: #1a1a1a;
+    border-radius: 0 12px 12px 12px;
+  }
+
+  /* 내 메시지 */
+  .msg-row.me {
+    flex-direction: row-reverse;
+  }
+
+  .msg-row.me .bubble {
+    background: var(--col-pink);
+    color: #2a1a22;
+    border-radius: 12px 0 12px 12px;
+  }
+
+  .msg-row.me .meta {
+    align-items: flex-end;
+  }
+
+  /* 아바타 */
+  .msg-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #888;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    align-self: flex-start;
+  }
+
+  /* 이름 + 말풍선 묶음 */
+  .msg-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-width: 72%;
+  }
+
+  .msg-name {
+    font-size: 12px;
+    color: rgba(0,0,0,0.55);
+    margin-bottom: 2px;
+    padding-left: 2px;
+  }
+
+  .bubble {
+    padding: 8px 12px;
+    font-size: 14px;
+    line-height: 1.5;
+    word-break: break-word;
+    max-width: 100%;
+    display: inline-block;
+  }
+
+  .meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-bottom: 2px;
+    min-width: 40px;
+  }
+
+  .read-count {
+    font-size: 11px;
+    color: var(--col-rose);
+    font-weight: 600;
+    text-align: right;
+  }
+
+  .msg-time {
+    font-size: 11px;
+    color: rgba(0,0,0,0.4);
+    white-space: nowrap;
+  }
+
+  /* 연속 메시지 */
+  .msg-row.cont .msg-avatar { opacity: 0; }
+  .msg-row.cont .msg-name { display: none; }
+
+  /* Input bar */
+  .input-bar {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 480px;
+    background: #fff;
+    border-top: 1px solid rgba(0,0,0,0.1);
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .input-btn {
+    background: none; border: none;
+    cursor: pointer; color: #666;
+    font-size: 22px; padding: 4px;
+  }
+
+  .input-field {
+    flex: 1;
+    background: #f0f0f0;
+    border: none; outline: none;
+    border-radius: 20px;
+    padding: 8px 14px;
+    font-size: 14px;
+    color: #1a1a1a;
+    font-family: inherit;
+  }
+
+  .send-btn {
+    background: none; border: none;
+    cursor: pointer;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--col-indigo);
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .send-btn svg {
+    width: 18px; height: 18px;
+    fill: none; stroke: #fff;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+</style>
+</head>
+<body>
+<div class="chat-wrap">
+  <div class="chat-header">
+    <button class="back-btn">‹</button>
+    <div class="chat-title">
+      <span id="room-name">채팅방</span>
+      <span class="member-count" id="member-count"></span>
+    </div>
+    <div class="header-actions">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </div>
+  </div>
+
+  <div class="messages" id="messages">
+    <div class="date-divider" id="date-divider">2025년 1월 1일 수요일</div>
+  </div>
+
+  <div class="input-bar">
+    <button class="input-btn">+</button>
+    <input class="input-field" placeholder="메시지 보내기" readonly>
+    <button class="send-btn">
+      <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+// ── 파라미터 형식 ──────────────────────────────────────────────
+// ?r=방이름,날짜,[인원수]
+// &m=발신자,내용,시간,[읽음수],[me]|발신자,내용,시간,[읽음수],[me]|...
+//
+// 발신자: 이름 (me 면 내 메시지)
+// 읽음수: 안 읽은 사람 수 (0이면 표시 안 함)
+// me: 내 메시지로 표시하려면 마지막에 'me' 추가
+//
+// 예시:
+// ?r=코랄뷰 동창,1월 15일,5
+// &m=블레어,야 너 파티 가?,오후 2:14,1|나,응 갈듯,오후 2:15,0,me|블레어,ㄹㅇ? 완전 기대돼,오후 2:15,2
+
+function avatarColor(name) {
+  const colors = ['#e8736c','#f0a05a','#7eb8d4','#82c4a0','#a78fd4','#d47eb8','#7ab8c4'];
+  let hash = 0;
+  for (let c of name) hash = (hash * 31 + c.charCodeAt(0)) % colors.length;
+  return colors[Math.abs(hash)];
+}
+
+function parseParams() {
+  const params = new URLSearchParams(window.location.search);
+  const r = params.get('r');
+  const m = params.get('m');
+
+  if (r) {
+    const rp = r.split(',');
+    document.getElementById('room-name').textContent = rp[0] || '채팅방';
+    if (rp[1]) document.getElementById('date-divider').textContent = rp[1];
+    if (rp[2]) document.getElementById('member-count').textContent = rp[2];
+  }
+
+  if (!m) return;
+
+  const container = document.getElementById('messages');
+  const msgList = m.split('|');
+  const prevSenders = {};
+
+  msgList.forEach((raw, i) => {
+    const seg = raw.split(',');
+    const sender  = seg[0] || '';
+    const content = seg[1] || '';
+    const time    = seg[2] || '';
+    const readCnt = seg[3] || '0';
+    const isMe    = seg[seg.length - 1] === 'me';
+
+    const prevSender = i > 0 ? msgList[i-1].split(',')[0] : null;
+    const nextSender = i < msgList.length-1 ? msgList[i+1].split(',')[0] : null;
+    const isCont = sender === prevSender;
+    const isLast = sender !== nextSender;
+
+    const row = document.createElement('div');
+    row.className = `msg-row ${isMe ? 'me' : 'other'}${isCont ? ' cont' : ''}`;
+
+    const avatarEl = document.createElement('div');
+    avatarEl.className = 'msg-avatar';
+    avatarEl.style.background = avatarColor(sender);
+    avatarEl.textContent = sender.charAt(0);
+
+    const contentEl = document.createElement('div');
+    contentEl.className = 'msg-content';
+
+    if (!isCont && !isMe) {
+      const nameEl = document.createElement('div');
+      nameEl.className = 'msg-name';
+      nameEl.textContent = sender;
+      contentEl.appendChild(nameEl);
+    }
+
+    const bubbleEl = document.createElement('div');
+    bubbleEl.className = 'bubble';
+    bubbleEl.textContent = content;
+
+    const metaEl = document.createElement('div');
+    metaEl.className = 'meta';
+
+    if (isMe && readCnt !== '0') {
+      const readEl = document.createElement('div');
+      readEl.className = 'read-count';
+      readEl.textContent = readCnt;
+      metaEl.appendChild(readEl);
+    }
+
+    if (isLast) {
+      const timeEl = document.createElement('div');
+      timeEl.className = 'msg-time';
+      timeEl.textContent = time;
+      metaEl.appendChild(timeEl);
+    }
+
+    contentEl.appendChild(bubbleEl);
+
+    if (isMe) {
+      row.appendChild(metaEl);
+      row.appendChild(contentEl);
+    } else {
+      row.appendChild(avatarEl);
+      row.appendChild(contentEl);
+      row.appendChild(metaEl);
+    }
+
+    container.appendChild(row);
+  });
+
+  // 스크롤 아래로
+  container.scrollTop = container.scrollHeight;
+}
+
+parseParams();
+</script>
+</body>
+</html>

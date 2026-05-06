@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TIP — 마크다운 & UI 레퍼런스</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#1a1520; --surface:#221b2a; --surface2:#2a2235; --border:#3a2e48;
+  --accent:#8889CD; --accent2:#BB6688; --accent3:#DDAACC; --accent4:#CCAA88;
+  --text:#f0eaf5; --muted:#7a6e8a; --success:#CCAA88;
+  --toc-w: 260px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");}
+
+/* ── 헤더 ── */
+.header{position:sticky;top:0;z-index:100;background:rgba(26,21,32,0.97);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:10px 18px;display:flex;align-items:center;gap:12px;height:50px;}
+.back-btn{background:none;border:1px solid var(--border);color:var(--muted);padding:5px 10px;border-radius:6px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:11px;transition:all 0.2s;white-space:nowrap;}
+.back-btn:hover{border-color:var(--accent);color:var(--accent);}
+.header-logo{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.header-title{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.toc-toggle-btn{margin-left:auto;background:none;border:1px solid var(--border);color:var(--muted);padding:5px 10px;border-radius:6px;cursor:pointer;font-size:13px;transition:all 0.2s;}
+.toc-toggle-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+/* ── 레이아웃 ── */
+.app-body{display:flex;position:relative;z-index:1;height:calc(100vh - 50px);}
+
+/* ── TOC ── */
+.toc-sidebar{width:var(--toc-w);flex-shrink:0;border-right:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;overflow:hidden;transition:transform 0.3s;}
+.toc-sidebar.hidden{transform:translateX(-100%);position:absolute;left:0;top:0;bottom:0;z-index:50;box-shadow:4px 0 20px rgba(0,0,0,0.4);}
+.toc-inner{overflow-y:auto;flex:1;padding:8px 0;}
+.toc-header{padding:10px 14px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);}
+.toc-ch-btn{width:100%;text-align:left;background:none;border:none;cursor:pointer;padding:10px 14px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;font-weight:700;display:flex;align-items:center;gap:8px;transition:background 0.15s;border-left:3px solid transparent;}
+.toc-ch-btn:hover{background:rgba(136,137,205,0.08);}
+.toc-ch-btn.active{color:var(--accent);border-left-color:var(--accent);background:rgba(136,137,205,0.1);}
+.toc-sec-btn{width:100%;text-align:left;background:none;border:none;cursor:pointer;padding:6px 14px 6px 28px;color:var(--muted);font-family:'Noto Sans KR',sans-serif;font-size:11px;transition:all 0.15s;border-left:3px solid transparent;line-height:1.4;}
+.toc-sec-btn:hover{color:var(--text);background:rgba(136,137,205,0.05);}
+.toc-sec-btn.active{color:var(--accent3);border-left-color:var(--accent3);background:rgba(221,170,204,0.07);}
+.toc-sections{overflow:hidden;max-height:0;transition:max-height 0.3s ease;}
+.toc-sections.open{max-height:2000px;}
+.toc-ch-arrow{font-size:9px;color:var(--muted);transition:transform 0.2s;margin-left:auto;}
+.toc-ch-btn.open .toc-ch-arrow{transform:rotate(90deg);}
+
+/* ── 콘텐츠 ── */
+.content-area{flex:1;overflow-y:auto;padding:30px 40px;max-width:900px;margin:0 auto;}
+.content-header{margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid var(--border);}
+.content-header-title{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:4px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px;}
+.content-header-sub{font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:1px;}
+
+/* ── 카테고리 블록 ── */
+.cat-block{margin-bottom:32px;}
+.cat-header{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:18px 22px;margin-bottom:14px;position:relative;overflow:hidden;}
+.cat-header::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(136,137,205,0.05),rgba(187,102,136,0.05));pointer-events:none;}
+.cat-icon{font-size:22px;margin-right:8px;}
+.cat-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:3px;margin-bottom:4px;}
+.cat-title{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:3px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.cat-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+.item-count{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--accent4);background:rgba(204,170,136,0.1);padding:2px 8px;border-radius:10px;border:1px solid rgba(204,170,136,0.2);margin-top:6px;}
+
+/* ── 아이템 (접이식) ── */
+.tip-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden;transition:border-color 0.2s;}
+.tip-item:hover{border-color:#4a3a5a;}
+.tip-item[open]{border-color:rgba(136,137,205,0.4);}
+.tip-item summary{padding:12px 16px;cursor:pointer;user-select:none;list-style:none;font-size:13px;font-weight:700;color:var(--accent3);display:flex;align-items:center;gap:8px;background:var(--surface2);}
+.tip-item summary::-webkit-details-marker{display:none;}
+.tip-item summary::before{content:'▶';font-size:9px;color:var(--muted);transition:transform 0.2s;flex-shrink:0;}
+.tip-item[open] summary::before{transform:rotate(90deg);}
+.tip-item summary:hover{color:var(--accent);}
+.tip-item .tip-body{padding:14px 16px;font-size:12px;line-height:1.8;color:#c0b8d0;}
+.tip-body pre{background:rgba(0,0,0,0.3);border:1px solid #3a3a5a;border-radius:6px;padding:10px 12px;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.7;overflow-x:auto;white-space:pre-wrap;word-break:break-word;color:#b0e8c8;margin:6px 0;}
+.tip-body .label{display:inline-block;font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 7px;border-radius:4px;margin-bottom:6px;font-weight:600;}
+.tip-body .label-use{background:rgba(160,232,200,0.12);color:#a0e8c8;border:1px solid rgba(160,232,200,0.25);}
+.tip-body .label-example{background:rgba(136,137,205,0.12);color:var(--accent);border:1px solid rgba(136,137,205,0.25);}
+.tip-body .desc{margin-bottom:10px;color:var(--muted);font-size:11px;line-height:1.6;}
+.tip-body strong{color:var(--text);}
+.tip-body .divider{border:none;border-top:1px dashed var(--border);margin:12px 0;}
+.tip-body .demo-btn{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:8px 16px;background:linear-gradient(135deg,rgba(136,137,205,0.15),rgba(187,102,136,0.15));border:1px solid rgba(136,137,205,0.35);border-radius:8px;color:var(--accent);font-size:12px;font-weight:600;font-family:'Noto Sans KR',sans-serif;cursor:pointer;text-decoration:none;transition:all 0.2s;}
+.tip-body .demo-btn:hover{background:linear-gradient(135deg,rgba(136,137,205,0.25),rgba(187,102,136,0.25));transform:translateY(-1px);box-shadow:0 4px 12px rgba(136,137,205,0.2);}
+
+/* ── 모바일 TOC 오버레이 ── */
+.toc-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:49;backdrop-filter:blur(3px);}
+.toc-overlay.show{display:block;}
+
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+
+/* ── 모바일 ── */
+@media(max-width:768px){
+  .header{padding:8px 12px;height:auto;flex-wrap:wrap;gap:6px;}
+  .header-title{display:none;}
+  .toc-sidebar{position:fixed;left:0;top:50px;bottom:0;z-index:50;transform:translateX(-100%);transition:transform 0.3s;box-shadow:4px 0 20px rgba(0,0,0,0.5);}
+  .toc-sidebar.mobile-open{transform:translateX(0);}
+  .content-area{padding:16px;}
+  .cat-title{font-size:20px;}
+  .app-body{height:calc(100vh - 50px);}
+}
+@media(min-width:769px){
+  .toc-overlay{display:none!important;}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <button class="back-btn" onclick="goBack()">← LORE FORGE</button>
+  <div>
+    <div class="header-logo">TIP</div>
+  </div>
+  <div class="header-title">MARKDOWN & UI REFERENCE</div>
+  <button class="toc-toggle-btn" onclick="toggleToc()">☰</button>
+</div>
+
+<div class="toc-overlay" id="toc-overlay" onclick="closeTocMobile()"></div>
+
+<div class="app-body">
+  <div class="toc-sidebar" id="toc-sidebar">
+    <div class="toc-header">CONTENTS</div>
+    <div class="toc-inner" id="toc-inner"></div>
+  </div>
+
+  <div class="content-area" id="content-area">
+    <div class="content-header">
+      <div class="content-header-title">MARKDOWN & UI REFERENCE</div>
+      <div class="content-header-sub">프롬프트 작성 시 활용 가능한 서식 & UI 레퍼런스</div>
+    </div>
+    <div id="tip-content"></div>
+  </div>
+</div>
+
+<script>
+function goBack(){ window.close(); if(!window.closed) window.location.href='index.html'; }
+
+const CATEGORIES = [
+  {
+    id:'cat-0', icon:'📋', title:'마크다운 기초', sub:'텍스트 서식 & 구조의 기본',
+    items:[
+      {
+        id:'t-0-0', title:'표 / 테이블',
+        body:`<div class="label label-use">용도</div>
+<div class="desc">캐릭터 스탯, 스킬 비교, 정보 정리에 사용. AI가 가장 안정적으로 유지하는 구조 중 하나.</div>
+<pre>| 항목   | 설명           |
+|--------|----------------|
+| 이름   | 남궁괄         |
+| 직위   | 가주           |
+| 경지   | 화경           |</pre>
+<div class="label label-example">활용 예시</div>
+<div class="desc">캐릭터 테이블, 금지/허용 어휘 대조표, 호감도 구간별 행동 변화 등</div>`
+      },
+      {
+        id:'t-0-1', title:'목록 (리스트)',
+        body:`<div class="label label-use">용도</div>
+<div class="desc">규칙 나열, 인벤토리, 체크리스트 등. 중첩 없는 심플 목록이 AI 준수율이 높음.</div>
+<pre># 기본 목록
+- 항목 A
+- 항목 B
+- 항목 C
+
+# 번호 목록
+1. 첫 번째 단계
+2. 두 번째 단계
+3. 세 번째 단계
+
+# 체크리스트
+- [ ] 미완료 항목
+- [x] 완료된 항목</pre>`
+      },
+      {
+        id:'t-0-2', title:'인용 블록',
+        body:`<div class="label label-use">용도</div>
+<div class="desc">편지, 회상, 독백, 시스템 메시지 연출. 중첩 인용(>>)으로 답장 느낌도 가능.</div>
+<pre># 기본 인용 — 편지, 회상, 독백
+> 이 편지를 읽고 있다면, 나는 이미...
+
+# 중첩 인용 — 답장 느낌
+> 내일 만날 수 있어?
+>> 응, 3시에 카페에서.</pre>`
+      },
+      {
+        id:'t-0-3', title:'코드 블록',
+        body:`<div class="label label-use">용도</div>
+<div class="desc">시스템 로그, 해킹 터미널, 상태창, AI 전용 Hidden State 등. AI에게 "데이터"임을 명확히 전달.</div>
+<pre>\`\`\`
+[SYSTEM] 접속을 감지했습니다.
+[WARNING] 권한 없는 접근 시도...
+[ERROR] 인증 실패 — 3회 남음
+\`\`\`
+
+# 인라인 코드 — 태그, 코드명
+\`STATUS: LOCKED\` / \`MODE: COMBAT\`</pre>`
+      },
+      {
+        id:'t-0-4', title:'텍스트 강조',
+        body:`<pre><strong style="color:var(--accent3)">**볼드**</strong>      → 강조, 이름, 중요 키워드
+<strong style="color:var(--accent3)">*이탤릭*</strong>     → 속삭임, 생각, 감정, 행동묘사
+<strong style="color:var(--accent3)">~~취소선~~</strong>    → 지운 글, 수정된 메모, 검열
+<strong style="color:var(--accent3)">\`인라인 코드\`</strong> → 시스템 알림, 태그, 코드명
+<strong style="color:var(--accent3)">***볼드+이탤릭***</strong> → 극적 강조, 비명</pre>
+<div class="label label-example">대사 내 서식 연출</div>
+<pre>"하아... **안돼!!** 그만... *미쳐...*"
+"~~사랑해~~... 아니, 그런 거 아니야."</pre>`
+      },
+      {
+        id:'t-0-5', title:'레이아웃 (수평선 / 헤딩)',
+        body:`<div class="label label-use">용도</div>
+<div class="desc">장면 전환, 시간 경과, 챕터/섹션 구분.</div>
+<pre># 수평선 — 장면 전환, 시간 경과
+---
+
+# 헤딩 — 문서 구조 / 프롬프트 섹션 분리
+# 대제목 (H1) — 프롬프트 최상위
+## 중제목 (H2) — 섹션 구분
+### 소제목 (H3) — 하위 항목</pre>
+<div class="label label-example">프롬프트 내 실전 사용</div>
+<pre>## 캐릭터 설정
+### 기본 정보
+### 성격 & 행동 원칙
+---
+## 세계관 규칙</pre>`
+      }
+    ]
+  },
+  {
+    id:'cat-1', icon:'📋', title:'데이터 / 정보 표현', sub:'구조화된 정보 전달용 서식',
+    items:[
+      {
+        id:'t-1-0', title:'카드형 UI (HTML)',
+        body:`<div class="label label-use">용도</div>
+<div class="desc">인물 프로필, 아이템 정보창, 몬스터 도감 등. AI가 HTML 구조를 유지하며 내용만 갱신하도록 설계.</div>
+<pre>┌─────────────────────┐
+│  👤 인물 프로필      │
+├─────────────────────┤
+│ 이름: 남궁괄        │
+│ 나이: 45세          │
+│ 직위: 천검문 가주   │
+│ 경지: 화경          │
+│ 성격: 고지식, 의협심 │
+└─────────────────────┘</pre>
+<div class="desc">또는 마크다운 코드블록 안에 넣으면 AI가 형식을 잘 유지함:</div>
+<pre>\`\`\`PROFILE
+👤 남궁괄 | 천검문 가주
+━━━━━━━━━━━━━━━━━━━
+나이: 45세 | 경지: 화경
+무공: 검술 | 성격: 고지식
+\`\`\`</pre>`
+      },
+      {
+        id:'t-1-1', title:'리스트 / 인벤토리 박스',
+        body:`<div class="label label-use">용도</div>
+<div class="desc">RPG 아이템 목록, 장비 슬롯, 소지품 관리. 코드블록 안에 이모지와 조합하면 게임 UI 느낌.</div>
+<pre>\`\`\`INVENTORY
+🎒 소지품 ─────────────────
+⚔️ 콜트.45(7,1)     | 탄약 10발
+🛡️ 방탄복(8)        | 내구도 ██████░░ 75%
+💊 붕대 ×3          | 회복 +20
+💣 수류탄(40) ×1    | 범위 공격
+💰 골드: 2,350      |
+───────────────────────
+📦 빈 슬롯: 3/8
+\`\`\`</pre>`
+      }
+    ]
+  },
+  {
+    id:'cat-2', icon:'💬', title:'커뮤니케이션 UI', sub:'메신저, SNS, 이메일 등 소통 UI (HTML 템플릿 포함)',
+    items:[
+      {
+        id:'t-2-0', title:'📸 인스타그램 (instagram.html)',
+        body:`<div class="label label-use">HTML 템플릿</div>
+<div class="desc">instagram.html 파일을 URL 파라미터로 호출하면 인스타 게시물 UI가 렌더링됨. 좋아요 토글도 동작.</div>
+<hr class="divider">
+<div class="label label-example">파라미터 형식</div>
+<pre>?p=@유저명,좋아요수,댓글수,시간,이미지설명,캡션,[번역],해시태그
+&c=닉,댓글,[번역],좋아요수|닉,댓글,좋아요수</pre>
+<div class="label label-example">예시 URL</div>
+<pre>instagram.html?p=@jaymccoy,2847,312,3시간 전,석양 배경 역광 풋볼,Last one before the grind 🏈,[시즌 시작 전 마지막],#football #coralview&c=blairkingsley,obsessed 😍,[집착 😍],89|marcusc_04,dawg u look crazy,[야 미쳤다],67</pre>
+<hr class="divider">
+<div class="label label-example">필드 설명</div>
+<pre>@유저명     — @포함 계정명
+좋아요수    — 숫자 (자동 콤마 포맷)
+댓글수      — "댓글 N개 모두 보기"에 표시
+시간        — "2일 전", "방금" 등 자유 형식
+이미지설명  — 이미지 자리에 표시될 텍스트
+캡션        — 게시물 본문
+[번역]      — 대괄호로 감싸면 번역 표시 (선택)
+해시태그    — #태그1 #태그2 형태</pre>
+<hr class="divider">
+<div class="label label-use">텍스트 대체 (마크다운용)</div>
+<div class="desc">HTML 파일 없이 텍스트로 인스타 느낌을 낼 때:</div>
+<pre>\`\`\`INSTAGRAM
+┌─────────────────────────┐
+│ 📷 @jaymccoy             │
+│ ───────────────────────  │
+│  [석양 배경 역광 풋볼]    │
+│ ───────────────────────  │
+│ ♡ 2,847  💬 312  ✈️      │
+│ jaymccoy Last one before │
+│ the grind 🏈             │
+│ #football #coralview     │
+│ ── 3시간 전 ──           │
+└─────────────────────────┘
+\`\`\`</pre>
+<a class="demo-btn" href="instagram.html?p=@jaymccoy,2847,312,3시간 전,석양 배경 역광 풋볼,Last one before the grind 🏈,[시즌 시작 전 마지막],#football #coralview&c=blairkingsley,obsessed 😍,[집착 😍],89|marcusc_04,dawg u look crazy,[야 미쳤다],67" target="_blank">▶ 예시 열어보기</a>`
+      },
+      {
+        id:'t-2-1', title:'🐦 트위터/X (twitter.html)',
+        body:`<div class="label label-use">HTML 템플릿</div>
+<div class="desc">twitter.html 파일을 URL 파라미터로 호출. 다크 테마 X(트위터) UI. 인증 배지 옵션 포함.</div>
+<hr class="divider">
+<div class="label label-example">파라미터 형식</div>
+<pre>?p=@핸들,표시이름,시간,본문,[번역],[이미지설명],답글수,RT수,인용수,좋아요수,북마크수,[verified]</pre>
+<div class="label label-example">예시 URL</div>
+<pre>twitter.html?p=@jaymccoy,Jay McCoy,오후 3:14,시즌 시작 전 마지막 해변 🏈,[Last beach day before season],해변 풋볼 역광,24,187,12,2847,341,verified</pre>
+<hr class="divider">
+<div class="label label-example">필드 설명</div>
+<pre>@핸들       — @포함 아이디
+표시이름    — 프로필에 보이는 이름
+시간        — 트윗 시각 ("오후 3:14" 등)
+본문        — 트윗 내용
+[번역]      — 대괄호 감싸면 번역 표시 (선택)
+[이미지설명] — 있으면 이미지 영역 표시 (선택)
+답글/RT/인용/좋아요/북마크 — 각각 숫자
+verified    — 마지막에 쓰면 인증배지 표시 (선택)</pre>
+<hr class="divider">
+<div class="label label-use">텍스트 대체 (마크다운용)</div>
+<pre>\`\`\`TWEET
+🐦 Jay McCoy ✓ @jaymccoy · 3h
+─────────────────────────
+시즌 시작 전 마지막 해변 🏈
+
+💬 24  🔁 187  ♡ 2,847  📊 341
+─────────────────────────
+\`\`\`</pre>
+<a class="demo-btn" href="twitter.html?p=@jaymccoy,Jay McCoy,오후 3:14,시즌 시작 전 마지막 해변 🏈,[Last beach day before season],해변 풋볼 역광,24,187,12,2847,341,verified" target="_blank">▶ 예시 열어보기</a>`
+      },
+      {
+        id:'t-2-2', title:'💛 카카오톡 (kakao.html)',
+        body:`<div class="label label-use">HTML 템플릿</div>
+<div class="desc">kakao.html 파일을 URL 파라미터로 호출. 카톡 채팅방 UI. 아바타 색상 자동 생성, 연속 메시지 그룹핑.</div>
+<hr class="divider">
+<div class="label label-example">파라미터 형식</div>
+<pre>?r=방이름,날짜,[인원수]
+&m=발신자,내용,시간,읽음수|발신자,내용,시간,읽음수,me</pre>
+<div class="label label-example">예시 URL</div>
+<pre>kakao.html?r=코랄뷰 동창,1월 15일 수요일,5&m=블레어,야 파티 가?,오후 2:14,1|나,응 갈듯,오후 2:15,0,me|블레어,ㄹㅇ? 기대돼,오후 2:15,2</pre>
+<hr class="divider">
+<div class="label label-example">필드 설명</div>
+<pre>r 파라미터:
+  방이름    — 채팅방 제목
+  날짜      — 날짜 구분선에 표시
+  인원수    — 방 제목 옆 표시 (선택)
+
+m 파라미터 (|로 구분):
+  발신자    — 이름 (아바타 자동 생성)
+  내용      — 메시지 텍스트
+  시간      — 시각 표시
+  읽음수    — 안 읽은 사람 수 (0이면 미표시)
+  me        — 마지막에 쓰면 내 메시지 (분홍 말풍선)</pre>
+<hr class="divider">
+<div class="label label-use">텍스트 대체 (마크다운용)</div>
+<pre>\`\`\`CHAT
+── 코랄뷰 동창 (5) ──────
+── 1월 15일 수요일 ──
+
+블레어  야 파티 가?          오후 2:14
+                응 갈듯  오후 2:15  나
+블레어  ㄹㅇ? 기대돼        오후 2:15
+\`\`\`</pre>
+<a class="demo-btn" href="kakao.html?r=코랄뷰 동창,1월 15일 수요일,5&m=블레어,야 파티 가?,오후 2:14,1|나,응 갈듯,오후 2:15,0,me|블레어,ㄹㅇ? 기대돼,오후 2:15,2" target="_blank">▶ 예시 열어보기</a>`
+      },
+      {
+        id:'t-2-3', title:'📧 이메일 클라이언트 (텍스트)',
+        body:`<div class="label label-use">용도</div>
+<div class="desc">학교 공지, 공식 메일, 업무 메일 느낌. 공문서적 분위기 연출에 효과적.</div>
+<pre>\`\`\`EMAIL
+━━━━━━━━━━━━━━━━━━━━━━━━━
+📧 받은편지함 (3)
+━━━━━━━━━━━━━━━━━━━━━━━━━
+From: 학생처 &lt;admin@academy.kr&gt;
+To: {{user}}
+Date: 2025.03.15 09:00
+Subject: [긴급] 3월 전체 소집 안내
+─────────────────────────
+학생 여러분께,
+
+3월 18일(화) 오전 10시, 대강당에서
+전체 소집이 진행됩니다.
+참석 필수. 불참 시 벌점 부여.
+
+학생처 드림
+━━━━━━━━━━━━━━━━━━━━━━━━━
+\`\`\`</pre>`
+      },
+      {
+        id:'t-2-4', title:'📰 뉴스 / 기사 레이아웃 (텍스트)',
+        body:`<div class="label label-use">용도</div>
+<div class="desc">세계관 내 사건 보도, 신문 기사, 온라인 뉴스 형태. 세계관의 객관적 시각을 전달할 때 유용.</div>
+<pre>\`\`\`NEWS
+═══════════════════════════════
+📰 더 아르카나 데일리
+    2025.03.15 | 사회면
+═══════════════════════════════
+■ 왕도 외곽에서 정체불명 마수 출현
+
+  지난 14일 새벽, 왕도 남문 외곽 3km
+  지점에서 C급 이상으로 추정되는 마수가
+  목격되었다. 인근 마을 주민 3명이 부상.
+
+  길드 측은 "현재 B급 이상 모험가 2팀이
+  토벌에 투입된 상태"라고 밝혔다.
+
+  ▶ 관련기사: 길드, 왕도 경계 등급 상향
+═══════════════════════════════
+\`\`\`</pre>`
+      }
+    ]
+  },
+  {
+    id:'cat-3', icon:'📱', title:'디바이스 / 화면 연출', sub:'스마트폰, 알림, 검색 등 디지털 UI',
+    items:[
+      {
+        id:'t-3-0', title:'스마트폰 화면 프레임',
+        body:`<div class="label label-use">용도</div>
+<div class="desc">폰 안에 다른 UI(메신저, SNS 등)를 넣는 느낌. 현대물/학원물에서 몰입감 증가.</div>
+<pre>\`\`\`PHONE
+╔══════════════════════╗
+║  ■■■ 📶 WiFi 🔋 87% ║
+║  ─────── 14:32 ───── ║
+║                      ║
+║  💬 카톡 (2)         ║
+║  ┌──────────────┐    ║
+║  │소라: ㅇㅇ 어디?│   ║
+║  └──────────────┘    ║
+║                      ║
+║  📷  📞  💬  ⚙️     ║
+╚══════════════════════╝
+\`\`\`</pre>`
+      },
+      {
+        id:'t-3-1', title:'잠금화면 / 알림창',
+        body:`<div class="label label-use">용도</div>
+<div class="desc">푸시 알림, 부재중 전화, 긴급 알림. 긴장감 조성이나 일상 연출에 활용.</div>
+<pre>\`\`\`LOCKSCREEN
+╔══════════════════════╗
+║                      ║
+║       14 : 32        ║
+║    3월 15일 토요일    ║
+║                      ║
+║ ┌──────────────────┐ ║
+║ │📞 부재중 전화 (3) │ ║
+║ │   소라 — 14:28    │ ║
+║ └──────────────────┘ ║
+║ ┌──────────────────┐ ║
+║ │💬 카카오톡        │ ║
+║ │ 소라: 전화 좀 받아│ ║
+║ └──────────────────┘ ║
+║ ┌──────────────────┐ ║
+║ │⚠️ 긴급재난문자    │ ║
+║ │ 남부 지역 호우경보│ ║
+║ └──────────────────┘ ║
+╚══════════════════════╝
+\`\`\`</pre>`
+      },
+      {
+        id:'t-3-2', title:'검색 결과 페이지',
+        body:`<div class="label label-use">용도</div>
+<div class="desc">캐릭터가 무언가를 검색하는 장면. 세계관 정보를 간접적으로 전달하는 장치로도 활용.</div>
+<pre>\`\`\`SEARCH
+🔍 ┃ 아르카나 길드 가입 방법      [검색]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📌 아르카나 모험가 길드 — 공식 사이트
+   guild.arcana.kr
+   "E등급부터 시작, 신분증과 마나 측정
+    결과 지참. 가입비 5골드."
+
+📌 [후기] 길드 가입 첫날 후기 ㅋㅋ
+   community.arcana.kr/review/3821
+   "슬라임 토벌이 첫 의뢰인데 생각보다
+    힘듦... 파티원 구하는 게 중요"
+
+📌 길드 등급별 혜택 정리 — 나무위키
+   namu.wiki/길드등급
+   "E~S등급, 등급별 의뢰 제한, 보상..."
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+\`\`\`</pre>`
+      }
+    ]
+  },
+  {
+    id:'cat-4', icon:'🎭', title:'분위기 / 연출용', sub:'문서, 스크랩, 로그 등 분위기 연출 서식',
+    items:[
+      {
+        id:'t-4-0', title:'신문 스크랩',
+        body:`<div class="label label-use">용도</div>
+<div class="desc">오래된 기사 스크랩, 과거 사건 단서, 수사물/미스터리 분위기. 낡은 종이 질감 연출.</div>
+<pre>\`\`\`CLIPPING
+┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+  ░░ 조선일보 ░░  1987.11.23
+┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+
+  「실종 소녀 수색 3일째...
+    경찰, 단서 확보 실패」
+
+  ... 지난 20일 ██구 ██동에서
+  실종된 박 ██(14) 양의 수색이
+  3일째 계속되고 있으나 ...
+
+  ▒▒▒ (이하 훼손) ▒▒▒
+
+┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+\`\`\`</pre>`
+      },
+      {
+        id:'t-4-1', title:'파일 / 문서 UI',
+        body:`<div class="label label-use">용도</div>
+<div class="desc">학교 성적표, 공문서, 계약서, 진료 기록 등. 공식적/관료적 분위기 연출.</div>
+<pre>\`\`\`DOCUMENT
+╔═══════════════════════════╗
+║  📄 학업 성적 통지서       ║
+║  ─────────────────────── ║
+║  학번: 2025-0342          ║
+║  성명: {{user}}           ║
+║  학년: 2학년 3반          ║
+║  ─────────────────────── ║
+║  국어  88 | 수학  72      ║
+║  영어  91 | 과학  65      ║
+║  체육  95 | 음악  80      ║
+║  ─────────────────────── ║
+║  평균: 81.8 | 석차: 12/35 ║
+║  ─────────────────────── ║
+║  담임: 김수현 (인)        ║
+╚═══════════════════════════╝
+\`\`\`</pre>`
+      },
+      {
+        id:'t-4-2', title:'채팅 로그 덤프',
+        body:`<div class="label label-use">용도</div>
+<div class="desc">삭제된 대화 복원, 해킹으로 입수한 로그, 수사 증거물. 미스터리/스릴러 장르에 효과적.</div>
+<pre>\`\`\`LOG_DUMP
+═══ RECOVERED CHAT LOG ═══
+Source: device_backup_1123.db
+Status: PARTIALLY CORRUPTED
+═══════════════════════════
+
+[23:41:02] UserA > 내일 그거 가져와
+[23:41:15] UserB > ㅇㅇ 알겠어
+[23:41:33] UserA > ██████████████
+         ⚠ [CORRUPTED BLOCK]
+[23:42:01] UserB > 진짜? 거기서?
+[23:42:18] UserA > 아무한테도 말하지 마
+[23:42:20] *** UserA 님이 대화를 삭제 ***
+
+═══ END OF RECOVERED LOG ═══
+\`\`\`</pre>`
+      },
+      {
+        id:'t-4-3', title:'지도 / 위치 핀',
+        body:`<div class="label label-use">용도</div>
+<div class="desc">장소 묘사 보조, 이동 경로, 던전 맵 등. 텍스트 기반 지도.</div>
+<pre>\`\`\`MAP
+    N
+    ↑
+────┼────────────────
+    │  🏰 왕성
+    │    ↕ 2km
+W ──┼── 🏪 시장 ── E
+    │    ↕ 1km
+    │  ⛪ 신전  🌳 숲
+    │           ↕ 3km
+    │         💀 던전 입구
+────┼────────────────
+    ↓
+    S
+
+📍 현재 위치: 시장
+🎯 목적지: 던전 입구 (남동쪽 4km)
+\`\`\`</pre>`
+      }
+    ]
+  },
+  {
+    id:'cat-5', icon:'🖼️', title:'시각 요소', sub:'SVG, 컴포넌트, 플레이스홀더 등',
+    items:[
+      {
+        id:'t-5-0', title:'이모지 그리드 (맵/전장)',
+        body:`<div class="label label-use">용도</div>
+<div class="desc">전투 맵, 던전 레이아웃, 공간 배치. AI가 이모지를 격자에 배치하여 시각적 지도 생성.</div>
+<pre># 숲 전장 (8×6)
+🌲🌲🌿🌿🌿🪨🌲🌲
+🌲🌿🌿😈🌿🌿🌿🌲
+🌿🌿🪨🌿🌿🌿😈🌿
+🌿🌿🌿🌿🌲🌿🌿🌿
+🌿🌿🌿🌿🌿🪨🌿🌿
+🌿🌲🌿🌿🦸🌿🌿🌲
+↑(N)↓(S)←(W)→(E)
+
+범례: 🦸=유저 😈=적 🪨=엄폐물
+      🌲=나무 🌿=풀밭</pre>`
+      },
+      {
+        id:'t-5-1', title:'이미지 플레이스홀더',
+        body:`<div class="label label-use">용도</div>
+<div class="desc">AI가 이미지를 직접 생성할 수 없을 때, 시각적 묘사를 텍스트로 대체하는 방법.</div>
+<pre># 마크다운 이미지 코드 (외부 URL 연동)
+![캐릭터 일상복 미소](https://example.com/A/2.webp)
+
+# 텍스트 플레이스홀더
+┌─────────────────────┐
+│                     │
+│   [📷 CG: 석양을    │
+│    배경으로 서 있는  │
+│    소라의 뒷모습]    │
+│                     │
+└─────────────────────┘</pre>`
+      },
+      {
+        id:'t-5-2', title:'게이지 / 프로그레스 바',
+        body:`<div class="label label-use">용도</div>
+<div class="desc">HP, 마나, 진행도, 호감도 등을 시각적으로 표현. 상태창에 삽입.</div>
+<pre># 블록 게이지
+HP  ██████████░░░░ 70%
+MP  ████░░░░░░░░░░ 30%
+EXP ████████████░░ 85%
+
+# 이모지 게이지
+❤️❤️❤️❤️❤️🖤🖤🖤🖤🖤  5/10
+⭐⭐⭐☆☆ 호감도 Lv.3
+
+# 숫자+바 조합
+💖 호감도: [████████░░] 78/100
+⚡ 스태미나: [██░░░░░░░░] 20/100</pre>`
+      }
+    ]
+  }
+];
+
+// ── TOC 렌더링 ──
+function renderToc(){
+  const inner = document.getElementById('toc-inner');
+  inner.innerHTML = '';
+  CATEGORIES.forEach((cat, ci) => {
+    const div = document.createElement('div');
+    const btn = document.createElement('button');
+    btn.className = 'toc-ch-btn' + (ci===0?' open':'');
+    btn.innerHTML = `<span>${cat.icon}</span> ${cat.title} <span class="toc-ch-arrow">▶</span>`;
+    btn.onclick = () => {
+      btn.classList.toggle('open');
+      secDiv.classList.toggle('open');
+      scrollToCategory(ci);
+    };
+    div.appendChild(btn);
+
+    const secDiv = document.createElement('div');
+    secDiv.className = 'toc-sections' + (ci===0?' open':'');
+    cat.items.forEach((item, si) => {
+      const sbtn = document.createElement('button');
+      sbtn.className = 'toc-sec-btn';
+      sbtn.textContent = item.title;
+      sbtn.onclick = () => {
+        scrollToItem(ci, si);
+        closeTocMobile();
+      };
+      secDiv.appendChild(sbtn);
+    });
+    div.appendChild(secDiv);
+    inner.appendChild(div);
+  });
+}
+
+// ── 콘텐츠 렌더링 ──
+function renderContent(){
+  const content = document.getElementById('tip-content');
+  content.innerHTML = '';
+  CATEGORIES.forEach((cat, ci) => {
+    const block = document.createElement('div');
+    block.className = 'cat-block';
+    block.id = 'cat-' + ci;
+
+    // 카테고리 헤더
+    const header = document.createElement('div');
+    header.className = 'cat-header';
+    header.innerHTML = `
+      <div class="cat-num">CATEGORY ${String(ci+1).padStart(2,'0')}</div>
+      <div class="cat-title"><span class="cat-icon">${cat.icon}</span>${cat.title}</div>
+      <div class="cat-sub">${cat.sub}</div>
+      <div class="item-count">${cat.items.length}개 항목</div>
+    `;
+    block.appendChild(header);
+
+    // 아이템들
+    cat.items.forEach((item, si) => {
+      const details = document.createElement('details');
+      details.className = 'tip-item';
+      details.id = `item-${ci}-${si}`;
+      details.innerHTML = `
+        <summary>${item.title}</summary>
+        <div class="tip-body">${item.body}</div>
+      `;
+      block.appendChild(details);
+    });
+
+    content.appendChild(block);
+  });
+}
+
+function scrollToCategory(ci){
+  const el = document.getElementById('cat-' + ci);
+  if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
+}
+function scrollToItem(ci, si){
+  const el = document.getElementById(`item-${ci}-${si}`);
+  if(el){
+    el.setAttribute('open','');
+    el.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+}
+
+// ── TOC 토글 ──
+function toggleToc(){
+  if(window.innerWidth <= 768){
+    document.getElementById('toc-sidebar').classList.toggle('mobile-open');
+    document.getElementById('toc-overlay').classList.toggle('show');
+  } else {
+    document.getElementById('toc-sidebar').classList.toggle('hidden');
+  }
+}
+function closeTocMobile(){
+  if(window.innerWidth <= 768){
+    document.getElementById('toc-sidebar').classList.remove('mobile-open');
+    document.getElementById('toc-overlay').classList.remove('show');
+  }
+}
+
+// ── 초기화 ──
+renderToc();
+renderContent();
+</script>
+</body>
+</html>

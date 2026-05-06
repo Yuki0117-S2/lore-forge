@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Instagram Post</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --col-indigo: #8889CD;
+    --col-pink:   #DDAACC;
+    --col-sand:   #CCAA88;
+    --col-rose:   #BB6688;
+  }
+
+  body {
+    background: #f5f0f4;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 20px 0;
+  }
+
+  .post {
+    background: #fff;
+    width: 100%;
+    max-width: 470px;
+    border: 1px solid #e0d4dc;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  /* Header */
+  .post-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+  }
+
+  .post-header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, var(--col-sand), var(--col-rose), var(--col-indigo));
+    padding: 2px;
+    flex-shrink: 0;
+  }
+
+  .avatar-inner {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: var(--col-sand);
+    border: 2px solid #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .avatar-inner svg {
+    width: 60%;
+    height: 60%;
+    fill: #fff;
+    opacity: 0.8;
+  }
+
+  .username {
+    font-size: 14px;
+    font-weight: 600;
+    color: #262626;
+    line-height: 1.2;
+  }
+
+  .location {
+    font-size: 12px;
+    color: #8e8e8e;
+    margin-top: 1px;
+  }
+
+  .more-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #262626;
+    font-size: 20px;
+    line-height: 1;
+    padding: 4px;
+  }
+
+  /* Image area */
+  .post-image {
+    width: 100%;
+    aspect-ratio: 1;
+    background: #ede6ef;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: #c7c7c7;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .post-image svg {
+    width: 48px;
+    height: 48px;
+    fill: var(--col-pink);
+    opacity: 0.5;
+  }
+
+  .post-image .image-desc {
+    font-size: 13px;
+    color: var(--col-rose);
+    opacity: 0.6;
+    text-align: center;
+    padding: 0 24px;
+    line-height: 1.5;
+  }
+
+  /* Actions */
+  .post-actions {
+    padding: 8px 16px 4px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 0;
+    display: flex;
+    align-items: center;
+  }
+
+  .action-btn svg {
+    width: 24px;
+    height: 24px;
+    fill: none;
+    stroke: #262626;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .action-btn.liked svg {
+    fill: var(--col-rose);
+    stroke: var(--col-rose);
+  }
+
+  .bookmark-btn {
+    margin-left: auto;
+  }
+
+  /* Likes */
+  .post-likes {
+    padding: 4px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #262626;
+  }
+
+  /* Caption */
+  .post-caption {
+    padding: 4px 16px;
+    font-size: 14px;
+    color: #262626;
+    line-height: 1.5;
+  }
+
+  .post-caption .cap-user {
+    font-weight: 600;
+    margin-right: 4px;
+  }
+
+  .post-caption .cap-translation {
+    color: #8e8e8e;
+    display: block;
+    margin-top: 2px;
+  }
+
+  .post-hashtags {
+    padding: 2px 16px 4px;
+    font-size: 14px;
+    color: var(--col-indigo);
+    line-height: 1.6;
+  }
+
+  /* Comments link */
+  .post-comments-link {
+    padding: 2px 16px;
+    font-size: 14px;
+    color: #8e8e8e;
+    cursor: pointer;
+  }
+
+  /* Comments */
+  .post-comments {
+    padding: 4px 16px 2px;
+  }
+
+  .comment {
+    font-size: 14px;
+    color: #262626;
+    margin-bottom: 6px;
+    line-height: 1.4;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .comment-left { flex: 1; }
+
+  .comment .com-user {
+    font-weight: 600;
+    margin-right: 4px;
+  }
+
+  .comment .com-translation {
+    color: #8e8e8e;
+    font-size: 12px;
+    display: block;
+    margin-top: 1px;
+    margin-left: 0;
+  }
+
+  .comment-likes {
+    font-size: 12px;
+    color: #8e8e8e;
+    white-space: nowrap;
+    padding-top: 2px;
+  }
+
+  /* Timestamp */
+  .post-time {
+    padding: 6px 16px 16px;
+    font-size: 10px;
+    color: #8e8e8e;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+</style>
+</head>
+<body>
+<div class="post" id="post">
+  <!-- Header -->
+  <div class="post-header">
+    <div class="post-header-left">
+      <div class="avatar">
+        <div class="avatar-inner">
+          <svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+        </div>
+      </div>
+      <div>
+        <div class="username" id="username">@lorem_ipsum</div>
+        <div class="location" id="location" style="display:none"></div>
+      </div>
+    </div>
+    <button class="more-btn">···</button>
+  </div>
+
+  <!-- Image -->
+  <div class="post-image">
+    <svg viewBox="0 0 24 24"><path d="M12 15.2a3.2 3.2 0 100-6.4 3.2 3.2 0 000 6.4z"/><path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>
+    <div class="image-desc" id="image-desc">사진 설명</div>
+  </div>
+
+  <!-- Actions -->
+  <div class="post-actions">
+    <button class="action-btn" id="like-btn" onclick="toggleLike()">
+      <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+    </button>
+    <button class="action-btn">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    </button>
+    <button class="action-btn">
+      <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+    <button class="action-btn bookmark-btn">
+      <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+    </button>
+  </div>
+
+  <!-- Likes -->
+  <div class="post-likes" id="likes">좋아요 1,204개</div>
+
+  <!-- Caption -->
+  <div class="post-caption">
+    <span class="cap-user" id="cap-user">lorem_ipsum</span>
+    <span id="caption">오늘 수고했어요</span>
+    <span class="cap-translation" id="cap-translation">[Good job today]</span>
+  </div>
+
+  <!-- Hashtags -->
+  <div class="post-hashtags" id="hashtags">#일상 #감성</div>
+
+  <!-- Comments link -->
+  <div class="post-comments-link" id="comments-link">댓글 48개 모두 보기</div>
+
+  <!-- Comments -->
+  <div class="post-comments" id="comments-container"></div>
+
+  <!-- Timestamp -->
+  <div class="post-time" id="timestamp">2일 전</div>
+</div>
+
+<script>
+// ── URL 파라미터 파싱 ──────────────────────────────────────────
+// 형식: ?p=@유저,팔로워수,댓글수,시간,이미지설명,캡션,[번역],해시태그&c=닉,댓글,[번역],좋아요|닉,댓글,[번역],좋아요
+// 번역은 선택사항 (없으면 빈칸)
+
+function parseParams() {
+  const params = new URLSearchParams(window.location.search);
+  const p = params.get('p');
+  const c = params.get('c');
+
+  if (!p) return;
+
+  const parts = p.split(',');
+  const user    = parts[0] || '@lorem_ipsum';
+  // parts[1] = 팔로워 (표시 안 함)
+  const commentCount = parts[2] || '48';
+  const time    = parts[3] || '방금';
+  const imgDesc = parts[4] || '';
+  const caption = parts[5] || '';
+  const hasTranslation = parts[6] && parts[6].startsWith('[');
+  const capTranslation = hasTranslation ? parts[6] : '';
+  const hashtagsRaw = hasTranslation ? parts[7] : parts[6];
+  const likes   = parts[1] ? Number(parts[1]).toLocaleString() : '0';
+
+  // 유저명
+  const uname = user.startsWith('@') ? user : '@' + user;
+  document.getElementById('username').textContent = uname;
+  document.getElementById('cap-user').textContent = uname.replace('@','');
+
+  // 이미지 설명
+  if (imgDesc) document.getElementById('image-desc').textContent = imgDesc;
+
+  // 좋아요
+  document.getElementById('likes').textContent = `좋아요 ${likes}개`;
+
+  // 캡션
+  document.getElementById('caption').textContent = caption;
+
+  // 번역
+  if (capTranslation) {
+    document.getElementById('cap-translation').textContent = capTranslation;
+  } else {
+    document.getElementById('cap-translation').style.display = 'none';
+  }
+
+  // 해시태그
+  if (hashtagsRaw) {
+    document.getElementById('hashtags').textContent = hashtagsRaw.replace(/%23/g,'#');
+  } else {
+    document.getElementById('hashtags').style.display = 'none';
+  }
+
+  // 댓글 수 링크
+  document.getElementById('comments-link').textContent = `댓글 ${commentCount}개 모두 보기`;
+
+  // 시간
+  document.getElementById('timestamp').textContent = time;
+
+  // 댓글 파싱
+  if (c) {
+    const container = document.getElementById('comments-container');
+    container.innerHTML = '';
+    const commentList = c.split('|');
+    commentList.forEach(raw => {
+      const seg = raw.split(',');
+      const cUser  = seg[0] || '';
+      const cText  = seg[1] || '';
+      const hasCtrans = seg[2] && !isNaN(Number(seg[seg.length-1])) && seg.length >= 4;
+      const cTrans = hasCtrans ? seg[2] : '';
+      const cLikes = seg[seg.length-1] || '';
+
+      const div = document.createElement('div');
+      div.className = 'comment';
+      div.innerHTML = `
+        <div class="comment-left">
+          <span class="com-user">${cUser}</span>${cText}
+          ${cTrans ? `<span class="com-translation">${cTrans}</span>` : ''}
+        </div>
+        <div class="comment-likes">♡ ${Number(cLikes).toLocaleString()}</div>
+      `;
+      container.appendChild(div);
+    });
+  }
+}
+
+// ── 좋아요 토글 ───────────────────────────────────────────────
+let liked = false;
+function toggleLike() {
+  liked = !liked;
+  const btn = document.getElementById('like-btn');
+  btn.classList.toggle('liked', liked);
+
+  const likesEl = document.getElementById('likes');
+  const match = likesEl.textContent.match(/[\d,]+/);
+  if (match) {
+    let n = parseInt(match[0].replace(/,/g, ''));
+    n = liked ? n + 1 : n - 1;
+    likesEl.textContent = `좋아요 ${n.toLocaleString()}개`;
+  }
+}
+
+// ── 실행 ──────────────────────────────────────────────────────
+parseParams();
+</script>
+</body>
+</html>

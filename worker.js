@@ -435,307 +435,146 @@ parseParams();
 <title>Twitter Post</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-
   :root {
     --col-indigo: #8889CD;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
   }
-
   body {
     background: #0d0d14;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    min-height: 100vh;
-    padding: 20px 0;
+    display: flex; justify-content: center; align-items: flex-start;
+    min-height: 100vh; padding: 20px 0;
   }
-
+  .tweet-wrap { width: 100%; max-width: 598px; color: #e7e9ea; }
   .tweet {
-    background: #0d0d14;
-    width: 100%;
-    max-width: 598px;
-    border: 1px solid #2a2535;
-    border-radius: 16px;
-    padding: 12px;
-    color: #e7e9ea;
+    background: #0d0d14; border: 1px solid #2a2535;
+    border-radius: 16px 16px 0 0; padding: 12px; border-bottom: none;
   }
-
-  .tweet-header {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 4px;
-  }
-
+  .tweet.no-replies { border-radius: 16px; border-bottom: 1px solid #2a2535; }
+  .tweet-header { display: flex; gap: 8px; margin-bottom: 4px; }
   .avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
+    width: 40px; height: 40px; border-radius: 50%;
     background: linear-gradient(135deg, var(--col-indigo), var(--col-rose));
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
+    flex-shrink: 0; display: flex; align-items: center; justify-content: center;
   }
-
   .avatar svg { width: 60%; height: 60%; fill: #fff; opacity: 0.85; }
-
   .header-right { flex: 1; min-width: 0; }
-
-  .name-row {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    flex-wrap: wrap;
-  }
-
-  .display-name {
-    font-size: 15px;
-    font-weight: 700;
-    color: #e7e9ea;
-  }
-
-  .verified {
-    width: 18px;
-    height: 18px;
-    fill: var(--col-indigo);
-    flex-shrink: 0;
-  }
-
-  .handle-time {
-    font-size: 15px;
-    color: #71767b;
-  }
-
+  .name-row { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .display-name { font-size: 15px; font-weight: 700; color: #e7e9ea; }
+  .verified { width: 18px; height: 18px; fill: var(--col-indigo); flex-shrink: 0; }
+  .handle-time { font-size: 14px; color: #71767b; }
   .more-btn {
-    margin-left: auto;
-    background: none;
-    border: none;
-    color: #71767b;
-    cursor: pointer;
-    font-size: 18px;
-    padding: 0 4px;
-    align-self: flex-start;
+    margin-left: auto; background: none; border: none;
+    color: #71767b; cursor: pointer; font-size: 18px; padding: 0 4px; align-self: flex-start;
   }
-
   .tweet-body {
-    font-size: 14px;
-    line-height: 1.3;
-    color: #e7e9ea;
-    margin: 6px 0 8px;
-    white-space: pre-wrap;
-    word-break: break-word;
+    font-size: 14px; line-height: 1.35; color: #e7e9ea;
+    margin: 6px 0 8px; white-space: pre-wrap; word-break: break-word;
   }
-
-  .tweet-body .translation {
-    color: #71767b;
-    font-size: 13px;
-    display: block;
-    margin-top: 4px;
-  }
-
+  .tweet-body .translation { color: #71767b; font-size: 13px; display: block; margin-top: 4px; }
   .tweet-image {
-    width: 100%;
-    aspect-ratio: 16/9;
-    background: #18141e;
-    border-radius: 16px;
-    border: 1px solid #2a2535;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    margin-bottom: 5px;
+    width: 100%; aspect-ratio: 16/5; background: #18141e;
+    border-radius: 16px; border: 1px solid #2a2535;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 8px; margin-bottom: 8px;
   }
-
   .tweet-image svg { width: 40px; height: 40px; fill: var(--col-indigo); opacity: 0.4; }
   .tweet-image .img-desc { font-size: 13px; color: var(--col-pink); opacity: 0.5; text-align: center; padding: 0 20px; }
-
   .tweet-stats {
-    display: flex;
-    gap: 4px;
-    padding: 8px 0;
+    display: flex; gap: 4px; flex-wrap: wrap;
+    padding: 8px 0; font-size: 14px; color: #e7e9ea;
     border-top: 1px solid #2f3336;
-    border-bottom: 1px solid #2f3336;
-    margin-bottom: 5px;
-    font-size: 14px;
-    color: #e7e9ea;
-    flex-wrap: wrap;
   }
-
   .stat-item { display: flex; gap: 4px; }
   .stat-item span { color: #71767b; }
   .stat-divider { color: #71767b; margin: 0 4px; }
-
   .tweet-actions {
-    display: flex;
-    justify-content: space-between;
-    padding-top: 4px;
+    display: flex; justify-content: space-between;
+    padding: 4px 0; border-top: 1px solid #2f3336;
   }
-
   .action {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    color: #71767b;
-    font-size: 13px;
-    cursor: pointer;
-    padding: 8px;
-    border-radius: 999px;
-    transition: background 0.15s;
+    display: flex; align-items: center; gap: 6px;
+    color: #71767b; font-size: 13px; cursor: pointer;
+    padding: 6px 8px; border-radius: 999px;
   }
-
-  .action:hover { background: rgba(136,137,205,0.12); color: var(--col-indigo); }
-  .action:hover svg { stroke: var(--col-indigo); }
-  .action.like:hover { background: rgba(187,102,136,0.12); color: var(--col-rose); }
-  .action.like:hover svg { stroke: var(--col-rose); }
-
   .action svg {
-    width: 18px; height: 18px;
-    fill: none; stroke: #71767b;
-    stroke-width: 1.8;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    transition: stroke 0.15s;
+    width: 18px; height: 18px; fill: none; stroke: #71767b;
+    stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
   }
-
-  .tweet-time-full {
-    font-size: 14px;
-    color: #71767b;
-    margin-top: 4px;
-    padding-top: 8px;
+  .replies-section {
+    border: 1px solid #2a2535; border-top: 1px solid #2f3336;
+    border-radius: 0 0 16px 16px; overflow: hidden;
+  }
+  .reply-item {
+    padding: 10px 12px; display: flex; gap: 8px;
+    border-bottom: 1px solid #1a1724; background: #0d0d14;
+  }
+  .reply-item:last-child { border-bottom: none; }
+  .reply-avatar-col { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+  .reply-avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; color: #fff;
+  }
+  .thread-line { width: 2px; flex: 1; min-height: 6px; background: #2f3336; margin-top: 4px; }
+  .reply-content { flex: 1; min-width: 0; }
+  .reply-header { display: flex; align-items: baseline; gap: 5px; margin-bottom: 2px; flex-wrap: wrap; }
+  .reply-name { font-size: 14px; font-weight: 700; color: #e7e9ea; }
+  .reply-handle { font-size: 13px; color: #71767b; }
+  .reply-body { font-size: 14px; line-height: 1.4; color: #e7e9ea; word-break: break-word; margin-bottom: 4px; }
+  .reply-likes { font-size: 12px; color: #71767b; display: flex; align-items: center; gap: 4px; }
+  .reply-likes svg {
+    width: 14px; height: 14px; fill: none; stroke: #71767b;
+    stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
   }
 </style>
 </head>
 <body>
-<div class="tweet">
-  <div class="tweet-header">
-    <div class="avatar">
-      <svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
-    </div>
-    <div class="header-right">
-      <div class="name-row">
-        <span class="display-name" id="display-name">Display Name</span>
-        <svg class="verified" id="verified-badge" viewBox="0 0 24 24" style="display:none"><path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.9-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.46-2.91-.2-3.92.81s-1.26 2.52-.8 3.91C2.88 9.33 2 10.57 2 12s.88 2.67 2.19 3.34c-.46 1.39-.2 2.9.81 3.91s2.52 1.27 3.91.81c.66 1.31 1.9 2.19 3.34 2.19s2.67-.88 3.33-2.19c1.4.46 2.91.2 3.92-.81s1.26-2.52.8-3.91C21.37 14.67 22.25 13.43 22.25 12zm-6.12-1.26l-4.5 4.5a.75.75 0 01-1.06 0l-2.25-2.25a.75.75 0 011.06-1.06l1.72 1.72 3.97-3.97a.75.75 0 011.06 1.06z"/></svg>
-        <span class="handle-time" id="handle-time">@handle · 시간</span>
+<div class="tweet-wrap">
+  <div class="tweet no-replies" id="tweet-main">
+    <div class="tweet-header">
+      <div class="avatar">
+        <svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
       </div>
+      <div class="header-right">
+        <div class="name-row">
+          <span class="display-name" id="display-name">Display Name</span>
+          <svg class="verified" id="verified-badge" viewBox="0 0 24 24" style="display:none"><path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.9-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.46-2.91-.2-3.92.81s-1.26 2.52-.8 3.91C2.88 9.33 2 10.57 2 12s.88 2.67 2.19 3.34c-.46 1.39-.2 2.9.81 3.91s2.52 1.27 3.91.81c.66 1.31 1.9 2.19 3.34 2.19s2.67-.88 3.33-2.19c1.4.46 2.91.2 3.92-.81s1.26-2.52.8-3.91C21.37 14.67 22.25 13.43 22.25 12zm-6.12-1.26l-4.5 4.5a.75.75 0 01-1.06 0l-2.25-2.25a.75.75 0 011.06-1.06l1.72 1.72 3.97-3.97a.75.75 0 011.06 1.06z"/></svg>
+          <span class="handle-time" id="handle-time">@handle · 시간</span>
+        </div>
+      </div>
+      <button class="more-btn">···</button>
     </div>
-    <button class="more-btn">···</button>
-  </div>
-
-  <div class="tweet-body" id="tweet-body">트윗 내용</div>
-
-  <div class="tweet-image" id="tweet-image" style="display:none">
-    <svg viewBox="0 0 24 24"><path d="M12 15.2a3.2 3.2 0 100-6.4 3.2 3.2 0 000 6.4z"/><path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>
-    <div class="img-desc" id="img-desc"></div>
-  </div>
-
-  <div class="tweet-stats" id="tweet-stats">
-    <div class="stat-item"><strong id="retweets">0</strong><span>리트윗</span></div>
-    <span class="stat-divider">·</span>
-    <div class="stat-item"><strong id="quotes">0</strong><span>인용</span></div>
-    <span class="stat-divider">·</span>
-    <div class="stat-item"><strong id="likes">0</strong><span>마음에 들어요</span></div>
-    <span class="stat-divider">·</span>
-    <div class="stat-item"><strong id="bookmarks">0</strong><span>북마크</span></div>
-  </div>
-
-  <div class="tweet-actions">
-    <div class="action">
-      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-      <span id="replies-count">0</span>
+    <div class="tweet-body" id="tweet-body">트윗 내용</div>
+    <div class="tweet-image" id="tweet-image" style="display:none">
+      <svg viewBox="0 0 24 24"><path d="M12 15.2a3.2 3.2 0 100-6.4 3.2 3.2 0 000 6.4z"/><path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>
+      <div class="img-desc" id="img-desc"></div>
     </div>
-    <div class="action">
-      <svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
-      <span id="rt-count">0</span>
+    <div class="tweet-stats" id="tweet-stats">
+      <div class="stat-item"><strong id="retweets">0</strong><span>리트윗</span></div>
+      <span class="stat-divider">·</span>
+      <div class="stat-item"><strong id="quotes">0</strong><span>인용</span></div>
+      <span class="stat-divider">·</span>
+      <div class="stat-item"><strong id="likes">0</strong><span>마음에 들어요</span></div>
+      <span class="stat-divider">·</span>
+      <div class="stat-item"><strong id="bookmarks">0</strong><span>북마크</span></div>
     </div>
-    <div class="action like">
-      <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
-      <span id="likes-count">0</span>
-    </div>
-    <div class="action">
-      <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-    </div>
-    <div class="action">
-      <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+    <div class="tweet-actions">
+      <div class="action"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
+      <div class="action"><svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg></div>
+      <div class="action like"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></div>
+      <div class="action"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+      <div class="action"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></div>
     </div>
   </div>
-
-  <div class="tweet-time-full" id="tweet-time-full"></div>
+  <div class="replies-section" id="replies-section" style="display:none">
+    <div id="replies-container"></div>
+  </div>
 </div>
-
-<script>
-// 형식: ?p=@handle,표시이름,시간,본문,[번역],[이미지설명],답글수,리트윗수,인용수,좋아요수,북마크수,[verified]
-function parseParams() {
-  const params = new URLSearchParams(window.location.search);
-  const p = params.get('p');
-  if (!p) return;
-
-  const parts = p.split(',');
-  const handle      = parts[0] || '@handle';
-  const displayName = parts[1] || 'Name';
-  const time        = parts[2] || '방금';
-  const body        = parts[3] || '';
-  let idx = 4;
-
-  // 번역 ([ 로 시작하면)
-  let translation = '';
-  if (parts[idx] && parts[idx].startsWith('[')) {
-    translation = parts[idx]; idx++;
-  }
-
-  // 이미지 설명 (다음이 숫자가 아니고 [ 아니면 이미지)
-  let imgDesc = '';
-  if (parts[idx] && isNaN(Number(parts[idx])) && !parts[idx].startsWith('[')) {
-    imgDesc = parts[idx]; idx++;
-  }
-
-  const replies   = parts[idx]   || '0';
-  const retweets  = parts[idx+1] || '0';
-  const quotes    = parts[idx+2] || '0';
-  const likes     = parts[idx+3] || '0';
-  const bookmarks = parts[idx+4] || '0';
-  const verified  = parts[idx+5] === 'verified';
-
-  // 적용
-  document.getElementById('display-name').textContent = displayName;
-  document.getElementById('handle-time').textContent = \`\${handle} · \${time}\`;
-
-  if (verified) document.getElementById('verified-badge').style.display = 'inline';
-
-  const bodyEl = document.getElementById('tweet-body');
-  bodyEl.textContent = body;
-  if (translation) {
-    const span = document.createElement('span');
-    span.className = 'translation';
-    span.textContent = translation;
-    bodyEl.appendChild(span);
-  }
-
-  if (imgDesc) {
-    document.getElementById('tweet-image').style.display = 'flex';
-    document.getElementById('img-desc').textContent = imgDesc;
-  }
-
-  const fmt = n => Number(n).toLocaleString();
-  document.getElementById('retweets').textContent    = fmt(retweets);
-  document.getElementById('quotes').textContent      = fmt(quotes);
-  document.getElementById('likes').textContent       = fmt(likes);
-  document.getElementById('bookmarks').textContent   = fmt(bookmarks);
-  document.getElementById('replies-count').textContent = fmt(replies);
-  document.getElementById('rt-count').textContent    = fmt(retweets);
-  document.getElementById('likes-count').textContent = fmt(likes);
-  document.getElementById('tweet-time-full').textContent = time;
-}
-
-parseParams();
-</script>
 </body>
-</html>
-`,
+</html>`,
   'kakao': `<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -758,13 +597,13 @@ parseParams();
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    min-height: 100vh;
+    min-height: 800px;
   }
 
   .chat-wrap {
     width: 100%;
     max-width: 480px;
-    min-height: 100vh;
+    min-height: 800px;
     background: #c8bdd4;
     display: flex;
     flex-direction: column;
@@ -1351,12 +1190,12 @@ parseParams();
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    min-height: 100vh;
+    min-height: 844px;
   }
   .phone {
     width: 100%;
     max-width: 390px;
-    min-height: 100vh;
+    min-height: 844px;
     background: linear-gradient(180deg, #12101a 0%, #1a1528 40%, #0e0a14 100%);
     position: relative;
     display: flex;
@@ -1468,8 +1307,9 @@ parseParams();
 
   /* Bottom */
   .bottom-bar {
-    margin-top: auto;
-    padding: 20px 0 30px;
+    position: absolute;
+    bottom: 30px;
+    left: 0; right: 0;
     display: flex;
     justify-content: center;
     gap: 60px;
@@ -1486,11 +1326,14 @@ parseParams();
     font-size: 22px;
   }
   .home-indicator {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
     width: 134px;
     height: 5px;
     background: rgba(255,255,255,0.3);
     border-radius: 3px;
-    margin: 0 auto 8px;
   }
 </style>
 </head>
@@ -1790,12 +1633,12 @@ parseParams();
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    min-height: 100vh;
+    min-height: 750px;
   }
   .story {
     width: 100%;
     max-width: 420px;
-    min-height: 100vh;
+    min-height: 750px;
     background: #1a1422;
     position: relative;
     display: flex;
@@ -2294,7 +2137,7 @@ parseParams();
   /* Image */
   .article-image {
     width: 100%;
-    aspect-ratio: 16/9;
+    aspect-ratio: 16/6;
     background: #ede6ef;
     display: flex;
     flex-direction: column;
@@ -2958,7 +2801,7 @@ parseParams();
     font-family: 'gg sans', 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif;
     display: flex;
     justify-content: center;
-    min-height: 100vh;
+    min-height: 700px;
   }
   .discord {
     width: 100%;
@@ -2966,7 +2809,7 @@ parseParams();
     background: #313338;
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    min-height: 700px;
   }
 
   /* Channel header */
@@ -3271,7 +3114,7 @@ parseParams();
     font-family: 'gg sans', 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif;
     display: flex;
     justify-content: center;
-    min-height: 100vh;
+    min-height: 700px;
   }
   .discord-vc {
     width: 100%;
@@ -3279,7 +3122,7 @@ parseParams();
     background: #2b2d31;
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    min-height: 700px;
   }
 
   /* Server name */
@@ -3299,7 +3142,7 @@ parseParams();
     text-overflow: ellipsis;
   }
   .server-chevron {
-    font-size: 11px;
+    font-size: 9px;
     color: #80848e;
   }
 
@@ -3312,8 +3155,8 @@ parseParams();
 
   /* Category */
   .category {
-    padding: 18px 8px 4px 16px;
-    font-size: 11px;
+    padding: 12px 6px 3px 14px;
+    font-size: 9px;
     font-weight: 700;
     color: #80848e;
     letter-spacing: 0.5px;
@@ -3393,27 +3236,27 @@ parseParams();
 
   /* Voice members */
   .vc-members {
-    padding: 0 0 4px 44px;
+    padding: 0 0 2px 36px;
   }
   .vc-member {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 4px 8px;
-    margin: 1px 0;
+    padding: 2px 6px;
+    margin: 0;
     border-radius: 4px;
     cursor: pointer;
     transition: background 0.15s;
   }
   .vc-member:hover { background: rgba(255,255,255,0.04); }
   .vc-member-avatar {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
+    font-size: 9px;
     font-weight: 700;
     color: #fff;
     flex-shrink: 0;
@@ -3433,7 +3276,7 @@ parseParams();
   .status-dnd { background: #f23f43; }
   .status-streaming { background: #593695; }
   .vc-member-name {
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 500;
     white-space: nowrap;
     overflow: hidden;
@@ -3755,283 +3598,310 @@ parseParams();
   body {
     background: #313338;
     font-family: 'gg sans', 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-    display: flex;
-    justify-content: center;
     min-height: 100vh;
   }
   .app {
     width: 100%;
     max-width: 800px;
-    display: flex;
+    margin: 0 auto;
     min-height: 100vh;
+    background: #313338;
   }
 
-  /* Server bar */
-  .server-bar {
-    width: 52px;
+  /* ── 상단 네비 바 ── */
+  .top-bar {
     background: #1e1f22;
-    padding: 8px 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    flex-shrink: 0;
+    padding: 6px 10px;
+    display: block;
+    border-bottom: 1px solid #0e0e10;
   }
-  .server-icon {
-    width: 40px;
-    height: 40px;
+  .top-servers {
+    display: inline;
+  }
+  .sv-pill {
+    display: inline-block;
+    width: 32px; height: 32px;
     border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
+    text-align: center;
+    line-height: 32px;
+    font-size: 12px;
     font-weight: 700;
     color: #fff;
-    cursor: pointer;
-    transition: border-radius 0.2s;
-    position: relative;
+    margin-right: 4px;
+    vertical-align: middle;
   }
-  .server-icon:hover { border-radius: 12px; }
-  .server-icon.active { border-radius: 12px; }
-  .server-icon .indicator {
-    position: absolute;
-    left: -8px;
-    width: 4px;
-    height: 8px;
-    background: #fff;
-    border-radius: 0 4px 4px 0;
+  .sv-pill.active {
+    border-radius: 8px;
   }
-  .server-icon.active .indicator { height: 32px; }
-  .server-divider {
-    width: 28px;
-    height: 2px;
-    background: #35363c;
-    border-radius: 1px;
-    margin: 2px 0;
-  }
-  .home-icon {
+  .sv-home {
     background: #313338;
-    border-radius: 50%;
+    font-size: 14px;
+    margin-right: 6px;
   }
-  .home-icon:hover { background: #5865f2; border-radius: 12px; }
-
-  /* Channel sidebar */
-  .channel-side {
-    width: 180px;
-    background: #2b2d31;
-    display: flex;
-    flex-direction: column;
-    flex-shrink: 0;
+  .sv-divider {
+    display: inline-block;
+    width: 24px; height: 2px;
+    background: #35363c;
+    vertical-align: middle;
+    margin: 0 4px 0 2px;
   }
-  .server-header {
-    padding: 12px 12px;
-    border-bottom: 1px solid #1e1f22;
+  .sv-name {
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 6px;
     font-size: 14px;
     font-weight: 700;
     color: #f2f3f5;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .channels { flex: 1; padding: 8px 0; overflow-y: auto; }
-  .category {
-    padding: 16px 8px 4px 12px;
-    font-size: 10px;
-    font-weight: 700;
-    color: #80848e;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    cursor: pointer;
-  }
-  .ch-item {
-    padding: 5px 8px 5px 12px;
-    margin: 1px 6px;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    font-size: 14px;
-    color: #80848e;
-    font-weight: 500;
-    transition: background 0.1s;
-  }
-  .ch-item:hover { background: rgba(255,255,255,0.04); color: #dbdee1; }
-  .ch-item.active { background: rgba(255,255,255,0.06); color: #f2f3f5; }
-  .ch-icon { width: 18px; text-align: center; font-size: 16px; flex-shrink: 0; }
-
-  /* Voice members in sidebar */
-  .vc-members-side { padding-left: 36px; }
-  .vc-member-side {
-    padding: 3px 6px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    color: #80848e;
-  }
-  .vc-av-sm {
-    width: 20px; height: 20px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 9px; font-weight: 700; color: #fff; flex-shrink: 0;
   }
 
-  /* User panel */
-  .user-panel {
-    background: #232428;
-    padding: 6px 8px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    border-top: 1px solid #1e1f22;
-  }
-  .user-av {
-    width: 28px; height: 28px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0;
-  }
-  .user-name { font-size: 12px; font-weight: 600; color: #f2f3f5; flex: 1; }
-  .user-btns { display: flex; gap: 2px; }
-  .user-btn {
-    width: 24px; height: 24px; background: none; border: none;
-    cursor: pointer; font-size: 13px; color: #b5bac1; border-radius: 4px;
-  }
-
-  /* Chat area */
-  .chat-area {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    background: #313338;
-    min-width: 0;
-  }
-  .chat-header {
-    padding: 10px 14px;
+  /* ── 채널 바 ── */
+  .channel-bar {
+    background: #2b2d31;
+    padding: 5px 10px;
     border-bottom: 1px solid #1e1f22;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    white-space: nowrap;
+    overflow-x: auto;
+  }
+  .ch-pill {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #80848e;
+    margin-right: 3px;
+    vertical-align: middle;
+  }
+  .ch-pill.active {
+    background: rgba(255,255,255,0.06);
+    color: #f2f3f5;
+  }
+  .ch-hash { color: #80848e; margin-right: 2px; }
+  .ch-vc { margin-right: 2px; }
+  .vc-inline-members {
+    display: inline;
+    font-size: 11px;
+    color: #5d5f65;
+    margin-left: 2px;
+  }
+  .vc-inline-av {
+    display: inline-block;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 16px;
+    font-size: 8px;
+    font-weight: 700;
+    color: #fff;
+    margin-left: 1px;
+    vertical-align: middle;
+  }
+
+  /* ── 채팅 헤더 ── */
+  .chat-header {
+    padding: 8px 12px;
+    border-bottom: 1px solid #1e1f22;
+    background: #313338;
+  }
+  .chat-header-ch {
     font-size: 15px;
     font-weight: 600;
     color: #f2f3f5;
-    flex-shrink: 0;
   }
   .chat-header-hash { color: #80848e; font-weight: 500; }
   .chat-header-topic {
-    font-size: 12px; color: #80848e; font-weight: 400;
-    margin-left: 8px; padding-left: 8px;
+    font-size: 12px;
+    color: #80848e;
+    margin-left: 8px;
+    padding-left: 8px;
     border-left: 1px solid #3f4147;
   }
 
-  /* Messages */
+  /* ── 메시지 ── */
   .messages {
-    flex: 1;
-    padding: 8px 0;
-    overflow-y: auto;
+    padding: 6px 0;
   }
   .date-divider {
-    display: flex; align-items: center; gap: 8px;
-    padding: 8px 16px; margin: 8px 0;
+    text-align: center;
+    padding: 6px 14px;
+    margin: 4px 0;
+    position: relative;
   }
-  .date-divider::before, .date-divider::after {
-    content: ''; flex: 1; height: 1px; background: #3f4147;
+  .date-divider::before {
+    content: '';
+    position: absolute;
+    left: 14px; right: 14px;
+    top: 50%;
+    height: 1px;
+    background: #3f4147;
   }
   .date-divider span {
-    font-size: 11px; font-weight: 700; color: #80848e;
-    white-space: nowrap;
+    position: relative;
+    background: #313338;
+    padding: 0 8px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #80848e;
   }
 
   .msg-group {
-    padding: 1px 14px;
-    display: flex;
-    gap: 7px;
-    margin-top: 8px;
+    padding: 2px 14px;
+    margin-top: 6px;
   }
   .msg-group:hover { background: rgba(0,0,0,0.06); }
   .msg-avatar {
-    width: 36px; height: 36px; border-radius: 50%;
-    flex-shrink: 0; display: flex; align-items: center;
-    justify-content: center; font-size: 13px; font-weight: 700; color: #fff;
+    display: inline-block;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 36px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    vertical-align: top;
+    margin-right: 8px;
   }
-  .msg-content { flex: 1; min-width: 0; }
-  .msg-header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 2px; }
-  .msg-author { font-size: 14px; font-weight: 600; cursor: pointer; }
+  .msg-body {
+    display: inline-block;
+    vertical-align: top;
+    max-width: calc(100% - 52px);
+  }
+  .msg-header-line {
+    margin-bottom: 1px;
+  }
+  .msg-author {
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
   .msg-author:hover { text-decoration: underline; }
-  .msg-time { font-size: 11px; color: #80848e; }
-  .msg-text { font-size: 14px; color: #dbdee1; line-height: 1.3; word-break: break-word; }
-
+  .msg-time {
+    font-size: 11px;
+    color: #80848e;
+    margin-left: 6px;
+  }
+  .msg-text {
+    font-size: 14px;
+    color: #dbdee1;
+    line-height: 1.3;
+    word-break: break-word;
+  }
   .msg-cont {
-    padding: 0 14px 0 68px;
+    padding: 0 14px 0 58px;
   }
   .msg-cont:hover { background: rgba(0,0,0,0.06); }
 
-  /* Chat input */
+  /* ── 하단 유저 패널 + 입력 ── */
   .chat-input {
-    padding: 0 12px 14px;
-    flex-shrink: 0;
+    padding: 0 10px 10px;
   }
   .input-box {
     background: #383a40;
     border-radius: 8px;
-    padding: 9px 14px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    padding: 8px 12px;
   }
-  .input-plus { font-size: 18px; color: #b5bac1; cursor: pointer; }
-  .input-text { flex: 1; font-size: 15px; color: #6d6f78; }
-  .input-icons { display: flex; gap: 6px; font-size: 16px; color: #b5bac1; }
+  .input-plus {
+    display: inline-block;
+    font-size: 18px;
+    color: #b5bac1;
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+  .input-text {
+    display: inline-block;
+    font-size: 14px;
+    color: #6d6f78;
+    vertical-align: middle;
+  }
+  .input-icons {
+    float: right;
+    font-size: 15px;
+    color: #b5bac1;
+  }
+  .input-icons span { margin-left: 5px; }
+
+  .user-strip {
+    background: #232428;
+    padding: 5px 10px;
+    border-top: 1px solid #1e1f22;
+  }
+  .user-av {
+    display: inline-block;
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 24px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #fff;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+  .user-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: #f2f3f5;
+    vertical-align: middle;
+  }
+  .user-btns {
+    float: right;
+    font-size: 13px;
+    color: #b5bac1;
+  }
+  .user-btns span { margin-left: 4px; cursor: pointer; }
 </style>
 </head>
 <body>
 <div class="app">
-  <!-- Server bar -->
-  <div class="server-bar" id="server-bar">
-    <div class="server-icon home-icon">🏠</div>
-    <div class="server-divider"></div>
+  <!-- 상단: 서버 아이콘 바 -->
+  <div class="top-bar">
+    <span class="top-servers">
+      <span class="sv-pill sv-home">🏠</span>
+      <span class="sv-divider"></span>
+      <span id="server-icons"></span>
+    </span>
+    <span class="sv-name" id="server-name">서버</span>
   </div>
 
-  <!-- Channel sidebar -->
-  <div class="channel-side">
-    <div class="server-header" id="server-name">서버</div>
-    <div class="channels" id="channels"></div>
-    <div class="user-panel">
-      <div class="user-av" id="user-av" style="background:#5865f2">나</div>
-      <span class="user-name" id="user-name">나</span>
-      <div class="user-btns">
-        <button class="user-btn">🎤</button>
-        <button class="user-btn">🎧</button>
-        <button class="user-btn">⚙</button>
-      </div>
-    </div>
-  </div>
+  <!-- 채널 가로 바 -->
+  <div class="channel-bar" id="channel-bar"></div>
 
-  <!-- Chat -->
-  <div class="chat-area">
-    <div class="chat-header">
+  <!-- 채팅 헤더 -->
+  <div class="chat-header">
+    <span class="chat-header-ch">
       <span class="chat-header-hash">#</span>
       <span id="chat-ch-name">일반</span>
-      <span class="chat-header-topic" id="chat-topic"></span>
+    </span>
+    <span class="chat-header-topic" id="chat-topic"></span>
+  </div>
+
+  <!-- 메시지 -->
+  <div class="messages" id="messages"></div>
+
+  <!-- 입력 -->
+  <div class="chat-input">
+    <div class="input-box">
+      <span class="input-plus">＋</span>
+      <span class="input-text" id="input-ph">#일반에 메시지 보내기</span>
+      <span class="input-icons"><span>😀</span><span>🎁</span></span>
     </div>
-    <div class="messages" id="messages"></div>
-    <div class="chat-input">
-      <div class="input-box">
-        <span class="input-plus">＋</span>
-        <span class="input-text" id="input-ph">#일반에 메시지 보내기</span>
-        <div class="input-icons"><span>😀</span><span>🎁</span></div>
-      </div>
-    </div>
+  </div>
+
+  <!-- 유저 패널 -->
+  <div class="user-strip">
+    <span class="user-av" id="user-av" style="background:#5865f2">나</span>
+    <span class="user-name" id="user-name">나</span>
+    <span class="user-btns"><span>🎤</span><span>🎧</span><span>⚙</span></span>
   </div>
 </div>
 
 <script>
+// 파라미터 형식은 기존과 동일:
 // ?s=서버이름,내닉네임
-// &sv=서버약자1:색|서버약자2:색  (왼쪽 서버 아이콘들, 첫번째가 active)
-// &tc=텍채1|텍채2|텍채3  (active는 첫번째)
-// &vc=음챗이름,멤버1|멤버2|멤버3;음챗2,멤버...
+// &sv=서버약자1:색|서버약자2:색
+// &tc=텍채1|텍채2|텍채3
+// &vc=음챗이름,멤버1|멤버2;음챗2,멤버...
 // &ch=현재채널이름,[토픽]
-// &d=날짜구분텍스트  (선택)
+// &d=날짜구분텍스트
 // &m=닉네임,역할색,시간,내용|닉네임,...
 
 function avatarBg(name) {
@@ -4073,62 +3943,48 @@ function parseParams() {
 
   // Server icons
   if (sv) {
-    const bar = document.getElementById('server-bar');
+    const container = document.getElementById('server-icons');
     sv.split('|').forEach((raw, i) => {
       const [abbr, color] = raw.split(':');
-      const div = document.createElement('div');
-      div.className = 'server-icon' + (i === 0 ? ' active' : '');
-      div.style.background = color || avatarBg(abbr);
-      div.textContent = abbr;
-      if (i === 0) div.innerHTML = '<div class="indicator"></div>' + abbr;
-      bar.appendChild(div);
+      const span = document.createElement('span');
+      span.className = 'sv-pill' + (i === 0 ? ' active' : '');
+      span.style.background = color || avatarBg(abbr);
+      span.textContent = abbr;
+      container.appendChild(span);
     });
   }
 
-  // Channels
-  const chList = document.getElementById('channels');
-  if (tc) {
-    const cat = document.createElement('div');
-    cat.className = 'category';
-    cat.textContent = '▾ 채팅 채널';
-    chList.appendChild(cat);
+  // Channel bar
+  const chBar = document.getElementById('channel-bar');
+  const activeChName = ch ? ch.split(',')[0] : '';
 
-    const activeChName = ch ? ch.split(',')[0] : '';
+  if (tc) {
     tc.split('|').forEach(name => {
-      const div = document.createElement('div');
-      div.className = 'ch-item' + (name === activeChName ? ' active' : '');
-      div.innerHTML = \`<span class="ch-icon">#</span>\${name}\`;
-      chList.appendChild(div);
+      const span = document.createElement('span');
+      span.className = 'ch-pill' + (name === activeChName ? ' active' : '');
+      span.innerHTML = '<span class="ch-hash">#</span>' + name;
+      chBar.appendChild(span);
     });
   }
 
   if (vc) {
-    const cat = document.createElement('div');
-    cat.className = 'category';
-    cat.textContent = '▾ 음성 채널';
-    chList.appendChild(cat);
-
     vc.split(';').forEach(vcRaw => {
       const parts = vcRaw.split(',');
       const vcName = parts[0];
       const members = parts.slice(1);
 
-      const div = document.createElement('div');
-      div.className = 'ch-item';
-      div.innerHTML = \`<span class="ch-icon">🔊</span>\${vcName}\`;
-      chList.appendChild(div);
-
+      const span = document.createElement('span');
+      span.className = 'ch-pill';
+      let inner = '<span class="ch-vc">🔊</span>' + vcName;
       if (members.length > 0 && members[0]) {
-        const mDiv = document.createElement('div');
-        mDiv.className = 'vc-members-side';
+        inner += '<span class="vc-inline-members">';
         members.forEach(name => {
-          const md = document.createElement('div');
-          md.className = 'vc-member-side';
-          md.innerHTML = \`<div class="vc-av-sm" style="background:\${avatarBg(name)}">\${name.charAt(0)}</div>\${name}\`;
-          mDiv.appendChild(md);
+          inner += ' <span class="vc-inline-av" style="background:' + avatarBg(name) + '">' + name.charAt(0) + '</span>';
         });
-        chList.appendChild(mDiv);
+        inner += '</span>';
       }
+      span.innerHTML = inner;
+      chBar.appendChild(span);
     });
   }
 
@@ -4136,7 +3992,7 @@ function parseParams() {
   if (ch) {
     const cp = ch.split(',');
     document.getElementById('chat-ch-name').textContent = cp[0] || '일반';
-    document.getElementById('input-ph').textContent = \`#\${cp[0] || '일반'}에 메시지 보내기\`;
+    document.getElementById('input-ph').textContent = '#' + (cp[0] || '일반') + '에 메시지 보내기';
     if (cp[1]) document.getElementById('chat-topic').textContent = cp[1];
   }
 
@@ -4146,7 +4002,7 @@ function parseParams() {
   if (d) {
     const dd = document.createElement('div');
     dd.className = 'date-divider';
-    dd.innerHTML = \`<span>\${d}</span>\`;
+    dd.innerHTML = '<span>' + d + '</span>';
     msgContainer.appendChild(dd);
   }
 
@@ -4165,28 +4021,24 @@ function parseParams() {
       if (isCont) {
         const div = document.createElement('div');
         div.className = 'msg-cont';
-        div.innerHTML = \`<div class="msg-text">\${text}</div>\`;
+        div.innerHTML = '<div class="msg-text">' + text + '</div>';
         msgContainer.appendChild(div);
       } else {
         const div = document.createElement('div');
         div.className = 'msg-group';
-        div.innerHTML = \`
-          <div class="msg-avatar" style="background:\${avatarBg(nick)}">\${nick.charAt(0)}</div>
-          <div class="msg-content">
-            <div class="msg-header">
-              <span class="msg-author" style="color:\${roleColor(rColor)}">\${nick}</span>
-              <span class="msg-time">\${time}</span>
-            </div>
-            <div class="msg-text">\${text}</div>
-          </div>
-        \`;
+        div.innerHTML =
+          '<span class="msg-avatar" style="background:' + avatarBg(nick) + '">' + nick.charAt(0) + '</span>' +
+          '<span class="msg-body">' +
+            '<div class="msg-header-line">' +
+              '<span class="msg-author" style="color:' + roleColor(rColor) + '">' + nick + '</span>' +
+              '<span class="msg-time">' + time + '</span>' +
+            '</div>' +
+            '<div class="msg-text">' + text + '</div>' +
+          '</span>';
         msgContainer.appendChild(div);
       }
     });
   }
-
-  // Scroll to bottom
-  msgContainer.scrollTop = msgContainer.scrollHeight;
 }
 parseParams();
 </script>
@@ -4212,14 +4064,14 @@ parseParams();
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     display: flex;
     justify-content: center;
-    min-height: 100vh;
+    min-height: 750px;
   }
   .stream-app {
     width: 100%;
     max-width: 820px;
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    min-height: 750px;
   }
 
   /* Top bar */
@@ -4896,11 +4748,12 @@ parseParams();
 };
 
 const SIZES = {
-  'insta': [470, 900], 'twitter': [598, 600], 'kakao': [480, 700],
+  // 🔒 고정: lock(844), story(750), kakao(800), insta(800), stream(750)
+  'insta': [470, 800], 'twitter': [598, 600], 'kakao': [480, 800],
   'reddit': [600, 700], 'lock': [390, 844], 'email': [560, 600],
   'story': [420, 750], 'search': [600, 700], 'news': [560, 800],
   'doc': [540, 700], 'board': [600, 600], 'discord': [520, 700],
-  'voice': [280, 700], 'discord-full': [800, 700], 'stream': [820, 700],
+  'voice': [280, 700], 'discord-full': [620, 700], 'stream': [820, 750],
   'post': [600, 1200],
 };
 
@@ -4981,6 +4834,7 @@ function renderInsta(html, url) {
 // ── TWITTER ──
 function renderTwitter(html, url) {
   const p = url.searchParams.get('p');
+  const r = url.searchParams.get('r');
   if (!p) return html;
   const parts = p.split(',');
   const handle=parts[0]||'@handle', displayName=parts[1]||'Name', time=parts[2]||'방금', body=parts[3]||'';
@@ -4998,10 +4852,22 @@ function renderTwitter(html, url) {
   html=html.replace('id="quotes">0<','id="quotes">'+Number(quotes).toLocaleString()+'<');
   html=html.replace('id="likes">0<','id="likes">'+Number(likes).toLocaleString()+'<');
   html=html.replace('id="bookmarks">0<','id="bookmarks">'+Number(bookmarks).toLocaleString()+'<');
-  html=html.replace('id="replies-count">0<','id="replies-count">'+Number(replies).toLocaleString()+'<');
-  html=html.replace('id="rt-count">0<','id="rt-count">'+Number(retweets).toLocaleString()+'<');
-  html=html.replace('id="likes-count">0<','id="likes-count">'+Number(likes).toLocaleString()+'<');
-  html=html.replace('id="tweet-time-full"></div>','id="tweet-time-full">'+time+'</div>');
+  // 답글 트윗 렌더링
+  if (r) {
+    html=html.replace('class="tweet no-replies"','class="tweet"');
+    html=html.replace('id="replies-section" style="display:none"','id="replies-section"');
+    const colors=['#5865f2','#eb459e','#57f287','#fee75c','#ed4245','#8889CD','#BB6688','#CCAA88'];
+    const abg=name=>{let h=0;for(let c of name)h=(h*31+c.charCodeAt(0))%colors.length;return colors[Math.abs(h)];};
+    const replyList=r.split('|');
+    let rh='';
+    replyList.forEach((raw,i)=>{
+      const seg=raw.split(',');
+      const rName=seg[0]||'',rHandle=seg[1]||'',rTime=seg[2]||'',rBody=seg[3]||'',rLikes=Number(seg[4]||'0').toLocaleString();
+      const isLast=i===replyList.length-1;
+      rh+='<div class="reply-item"><div class="reply-avatar-col"><div class="reply-avatar" style="background:'+abg(rName)+'">'+rName.charAt(0)+'</div>'+(isLast?'':'<div class="thread-line"></div>')+'</div><div class="reply-content"><div class="reply-header"><span class="reply-name">'+rName+'</span><span class="reply-handle">'+rHandle+' · '+rTime+'</span></div><div class="reply-body">'+rBody+'</div><div class="reply-likes"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>'+rLikes+'</div></div></div>';
+    });
+    html=html.replace('id="replies-container"></div>','id="replies-container">'+rh+'</div>');
+  }
   return html;
 }
 
@@ -5268,7 +5134,7 @@ function renderVoice(html, url) {
   if(s){const sp=s.split(',');html=html.replace('>서버 이름<','>'+(sp[0]||'서버')+'<');if(sp[1]){html=html.replace('id="user-display">나<','id="user-display">'+sp[1]+'<');html=html.replace('id="user-avatar" style="background:#5865f2">나<','id="user-avatar" style="background:'+avatarBg(sp[1])+'">'+sp[1].charAt(0)+'<');}}
   let chHtml='';
   if(tc){chHtml+='<div class="category"><span class="category-arrow">▼</span> 채팅 채널</div>';tc.split('|').forEach((ch,i)=>{chHtml+='<div class="text-channel'+(i===0?' active':'')+'"><span class="ch-hash">#</span><span class="ch-name">'+ch+'</span></div>';});}
-  if(v){chHtml+='<div class="category"><span class="category-arrow">▼</span> 음성 채널</div>';v.split(';').forEach(vcRaw=>{const parts=vcRaw.split(',');const vcName=parts[0]||'음성';const members=parts.slice(1);const isActive=active&&vcName===active;chHtml+='<div class="voice-channel'+(isActive?' active-vc':'')+'"><span class="vc-icon">🔊</span><span class="vc-name">'+vcName+'</span>'+(members.length>0?'<span class="vc-count">'+members.length+'</span>':'')+'</div>';if(members.length>0&&members[0]){chHtml+='<div class="vc-members">';members.forEach(mRaw=>{const mp=mRaw.split(':');const name=mp[0]||'';const color=roleColor(mp[1]||'');const status=mp[2]||'online';chHtml+='<div class="vc-member"><div class="vc-member-avatar" style="background:'+avatarBg(name)+'">'+name.charAt(0)+'<div class="vc-member-status status-'+status+'"></div></div><span class="vc-member-name" style="color:'+color+'">'+name+'</span></div>';});chHtml+='</div>';}});}
+  if(v){chHtml+='<div class="category"><span class="category-arrow">▼</span> 음성 채널</div>';v.split(';').forEach(vcRaw=>{const [vcInfo,...rest]=vcRaw.split(',');const vcName=vcInfo||'음성';const membersRaw=rest.join(',');const members=[];if(membersRaw){membersRaw.split('|').forEach(mRaw=>{const mp=mRaw.split(':');members.push({name:mp[0]||'',color:mp[1]||'',status:mp[2]||'online',icons:mp[3]||''});});}const isActive=active&&vcName===active;chHtml+='<div class="voice-channel'+(isActive?' active-vc':'')+'"><span class="vc-icon">🔊</span><span class="vc-name">'+vcName+'</span>'+(members.length>0?'<span class="vc-count">'+members.length+'</span>':'')+'</div>';if(members.length>0){chHtml+='<div class="vc-members">';members.forEach(m=>{const color=roleColor(m.color);const statusClass='status-'+m.status;let iconsHtml='';if(m.icons){const iconMap={mute:'🔇',deaf:'🔇',stream:'🖥',video:'📷'};m.icons.split(' ').forEach(ic=>{const cls=(ic==='mute'||ic==='deaf')?' icon-muted':(ic==='stream'?' icon-streaming':' icon-video');iconsHtml+='<span class="'+cls+'">'+(iconMap[ic]||'')+'</span>';});}chHtml+='<div class="vc-member"><div class="vc-member-avatar" style="background:'+avatarBg(m.name)+'">'+m.name.charAt(0)+'<div class="vc-member-status '+statusClass+'"></div></div><span class="vc-member-name" style="color:'+color+'">'+m.name+'</span><div class="vc-member-icons">'+iconsHtml+'</div></div>';});chHtml+='</div>';}});}
   html=html.replace('id="channel-list"></div>','id="channel-list">'+chHtml+'</div>');
   if(active){html=html.replace('id="connected-bar" style="display:none"','id="connected-bar"');html=html.replace('id="connected-ch"></div>','id="connected-ch">🔊 '+active+'</div>');}
   return html;
@@ -5278,10 +5144,10 @@ function renderVoice(html, url) {
 function renderDiscordFull(html, url) {
   const s=url.searchParams.get('s'),sv=url.searchParams.get('sv'),tc=url.searchParams.get('tc'),vc=url.searchParams.get('vc'),ch=url.searchParams.get('ch'),d=url.searchParams.get('d'),m=url.searchParams.get('m');
   if(s){const sp=s.split(',');html=html.replace('id="server-name">서버<','id="server-name">'+(sp[0]||'서버')+'<');if(sp[1]){html=html.replace('id="user-name">나<','id="user-name">'+sp[1]+'<');html=html.replace('id="user-av" style="background:#5865f2">나<','id="user-av" style="background:'+avatarBg(sp[1])+'">'+sp[1].charAt(0)+'<');}}
-  if(sv){let svh='';sv.split('|').forEach((raw,i)=>{const[abbr,color]=raw.split(':');svh+='<div class="server-icon'+(i===0?' active':'')+'" style="background:'+(color||avatarBg(abbr))+'">'+(i===0?'<div class="indicator"></div>':'')+abbr+'</div>';});html=html.replace('class="server-divider"></div>\n</div>','class="server-divider"></div>'+svh+'</div>');}
-  if(tc||vc){const activeChName=ch?ch.split(',')[0]:'';let allCh='';if(tc){allCh+='<div class="category">▾ 채팅 채널</div>';tc.split('|').forEach(name=>{allCh+='<div class="ch-item'+(name===activeChName?' active':'')+'"><span class="ch-icon">#</span>'+name+'</div>';});}if(vc){allCh+='<div class="category">▾ 음성 채널</div>';vc.split(';').forEach(vcRaw=>{const parts=vcRaw.split(',');const vcName=parts[0]||'음성';const members=parts.slice(1);allCh+='<div class="ch-item"><span class="ch-icon">🔊</span>'+vcName+'</div>';if(members.length>0&&members[0]){allCh+='<div class="vc-members-side">';members.forEach(name=>{allCh+='<div class="vc-member-side"><div class="vc-av-sm" style="background:'+avatarBg(name)+'">'+name.charAt(0)+'</div>'+name+'</div>';});allCh+='</div>';}});}html=html.replace('id="channels"></div>','id="channels">'+allCh+'</div>');}
+  if(sv){let svh='';sv.split('|').forEach((raw,i)=>{const[abbr,color]=raw.split(':');svh+='<span class="sv-pill'+(i===0?' active':'')+'" style="background:'+(color||avatarBg(abbr))+'">'+abbr+'</span>';});html=html.replace('id="server-icons"></span>','id="server-icons">'+svh+'</span>');}
+  if(tc||vc){const activeChName=ch?ch.split(',')[0]:'';let allCh='';if(tc){tc.split('|').forEach(name=>{allCh+='<span class="ch-pill'+(name===activeChName?' active':'')+'"><span class="ch-hash">#</span>'+name+'</span>';});}if(vc){vc.split(';').forEach(vcRaw=>{const parts=vcRaw.split(',');const vcName=parts[0]||'음성';const members=parts.slice(1);let inner='<span class="ch-vc">🔊</span>'+vcName;if(members.length>0&&members[0]){inner+='<span class="vc-inline-members">';members.forEach(name=>{inner+=' <span class="vc-inline-av" style="background:'+avatarBg(name)+'">'+name.charAt(0)+'</span>';});inner+='</span>';}allCh+='<span class="ch-pill">'+inner+'</span>';});}html=html.replace('id="channel-bar"></div>','id="channel-bar">'+allCh+'</div>');}
   if(ch){const cp=ch.split(',');html=html.replace('id="chat-ch-name">일반<','id="chat-ch-name">'+(cp[0]||'일반')+'<');html=html.replace('id="input-ph">#일반에 메시지 보내기<','id="input-ph">#'+(cp[0]||'일반')+'에 메시지 보내기<');if(cp[1])html=html.replace('id="chat-topic"></span>','id="chat-topic">'+cp[1]+'</span>');}
-  if(m){let mh='',lastAuthor='';if(d)mh+='<div class="date-divider"><span>'+d+'</span></div>';m.split('|').forEach(raw=>{const seg=raw.split(',');const nick=seg[0]||'',rColor=seg[1]||'',time=seg[2]||'',text=seg.slice(3).join(',')||'';const isCont=nick===lastAuthor;lastAuthor=nick;if(isCont){mh+='<div class="msg-cont"><div class="msg-text">'+text+'</div></div>';}else{mh+='<div class="msg-group"><div class="msg-avatar" style="background:'+avatarBg(nick)+'">'+nick.charAt(0)+'</div><div class="msg-content"><div class="msg-header"><span class="msg-author" style="color:'+roleColor(rColor)+'">'+nick+'</span><span class="msg-time">'+time+'</span></div><div class="msg-text">'+text+'</div></div></div>';}});html=html.replace('id="messages"></div>','id="messages">'+mh+'</div>');}
+  if(m){let mh='',lastAuthor='';if(d)mh+='<div class="date-divider"><span>'+d+'</span></div>';m.split('|').forEach(raw=>{const seg=raw.split(',');const nick=seg[0]||'',rColor=seg[1]||'',time=seg[2]||'',text=seg.slice(3).join(',')||'';const isCont=nick===lastAuthor;lastAuthor=nick;if(isCont){mh+='<div class="msg-cont"><div class="msg-text">'+text+'</div></div>';}else{mh+='<div class="msg-group"><span class="msg-avatar" style="background:'+avatarBg(nick)+'">'+nick.charAt(0)+'</span><span class="msg-body"><div class="msg-header-line"><span class="msg-author" style="color:'+roleColor(rColor)+'">'+nick+'</span><span class="msg-time">'+time+'</span></div><div class="msg-text">'+text+'</div></span></div>';}});html=html.replace('id="messages"></div>','id="messages">'+mh+'</div>');}
   return html;
 }
 
@@ -5387,81 +5253,87 @@ export default {
       html = renderer(html, url);
       let [w, h] = SIZES[t] || [600, 700];
 
-      // 동적 높이 계산 (최대 900px — 바베챗 이미지 표시 제한)
-      const MAX_H = 750;
+      // 동적 높이 계산 (최대 850px)
+      const MAX_H = 850;
+
+      // ── 🔒 고정 높이 (디바이스 화면 시뮬레이션) ──
+      // story: 인스타 스토리 — SIZES 기본값 420×750 그대로
+
+      // ── 📱 폰 앱 UI (고정 높이) ──
+      if (t === 'kakao') {
+        h = 800; // 폰 채팅 화면 고정
+      }
+      if (t === 'insta') {
+        h = 800; // 인스타 피드 고정
+      }
+
+      // ── 📺 방송 UI ──
+      if (t === 'stream') {
+        h = 750; // 플레이어+채팅 레이아웃 고정
+      }
+
+      // ── 📏 동적 높이 (내용 양에 따라) ──
       if (t === 'post') {
         const p = url.searchParams.get('p') || '';
         const c = url.searchParams.get('c') || '';
         const bodyText = p.split(',').slice(7).join(',') || '';
-        const bodyLines = Math.ceil(bodyText.length / 38);
+        const bodyLines = Math.ceil(bodyText.length / 35);
         const commentCount = c ? c.split('|').length : 0;
-        h = 260 + bodyLines * 19 + commentCount * 68;
-        h = Math.max(h, 360); h = Math.min(h, MAX_H);
+        h = 280 + bodyLines * 22 + commentCount * 80;
+        h = Math.max(h, 380); h = Math.min(h, MAX_H);
       }
-      if (t === 'kakao') {
-        const m = url.searchParams.get('m') || '';
-        const msgCount = m ? m.split('|').length : 0;
-        h = 180 + msgCount * 50;
-        h = Math.max(h, 280); h = Math.min(h, MAX_H);
+      if (t === 'twitter') {
+        const p = url.searchParams.get('p') || '';
+        const r = url.searchParams.get('r') || '';
+        const hasImg = p.split(',').length > 6 && isNaN(Number(p.split(',')[4] || ''));
+        const imgH = hasImg ? 200 : 0;
+        const replyCount = r ? r.split('|').length : 0;
+        h = 350 + imgH + replyCount * 90;
+        h = Math.max(h, 340); h = Math.min(h, MAX_H);
       }
       if (t === 'discord') {
         const m = url.searchParams.get('m') || '';
         const msgCount = m ? m.split('|').length : 0;
-        h = 170 + msgCount * 46;
-        h = Math.max(h, 260); h = Math.min(h, MAX_H);
+        h = 200 + msgCount * 58;
+        h = Math.max(h, 300); h = Math.min(h, MAX_H);
       }
       if (t === 'discord-full') {
         const m = url.searchParams.get('m') || '';
         const msgCount = m ? m.split('|').length : 0;
-        h = 220 + msgCount * 42;
-        h = Math.max(h, 360); h = Math.min(h, MAX_H);
+        h = 230 + msgCount * 50;
+        h = Math.max(h, 350); h = Math.min(h, MAX_H);
       }
       if (t === 'reddit') {
         const p = url.searchParams.get('p') || '';
         const c = url.searchParams.get('c') || '';
         const bodyText = p.split(',')[4] || '';
-        const bodyLines = Math.ceil(bodyText.length / 42);
+        const bodyLines = Math.ceil(bodyText.length / 38);
         const commentCount = c ? c.split('|').length : 0;
-        h = 210 + bodyLines * 18 + commentCount * 65;
-        h = Math.max(h, 300); h = Math.min(h, MAX_H);
+        h = 240 + bodyLines * 22 + commentCount * 78;
+        h = Math.max(h, 340); h = Math.min(h, MAX_H);
       }
       if (t === 'board') {
         const p = url.searchParams.get('p') || '';
         const itemCount = p ? p.split('|').length : 0;
-        h = 110 + itemCount * 62;
-        h = Math.max(h, 220); h = Math.min(h, MAX_H);
-      }
-      if (t === 'stream') {
-        const c = url.searchParams.get('c') || '';
-        const chatCount = c ? c.split('|').length : 0;
-        h = 420 + chatCount * 20;
-        h = Math.max(h, 460); h = Math.min(h, MAX_H);
+        h = 130 + itemCount * 72;
+        h = Math.max(h, 260); h = Math.min(h, MAX_H);
       }
       if (t === 'lock') {
-        const n = url.searchParams.get('n') || '';
-        const notifCount = n ? n.split('|').length : 0;
-        h = 330 + notifCount * 65;
-        h = Math.max(h, 460); h = Math.min(h, MAX_H);
-      }
-      if (t === 'insta') {
-        const c = url.searchParams.get('c') || '';
-        const commentCount = c ? c.split('|').length : 0;
-        h = 650 + commentCount * 36;
-        h = Math.max(h, 680); h = Math.min(h, MAX_H);
+        h = 844; // 아이폰 잠금화면 비율 고정
       }
       if (t === 'email') {
         const p = url.searchParams.get('p') || '';
         const bodyText = p.split(',').slice(5).join(',') || '';
-        const bodyLines = Math.ceil(bodyText.length / 44);
-        h = 240 + bodyLines * 19;
-        h = Math.max(h, 350); h = Math.min(h, MAX_H);
+        const bodyLines = Math.ceil(bodyText.length / 36);
+        h = 310 + bodyLines * 26;
+        h = Math.max(h, 440); h = Math.min(h, MAX_H);
       }
       if (t === 'news') {
         const p = url.searchParams.get('p') || '';
         const bodyText = p.split(',').slice(7).join(',') || '';
-        const bodyLines = Math.ceil(bodyText.length / 38);
-        h = 400 + bodyLines * 20;
-        h = Math.max(h, 440); h = Math.min(h, MAX_H);
+        const bodyLines = Math.ceil(bodyText.length / 32);
+        h = 470 + bodyLines * 26;
+        h = Math.max(h, 520); h = Math.min(h, MAX_H);
       }
       if (t === 'doc') {
         const i = url.searchParams.get('i') || '';
@@ -5469,26 +5341,28 @@ export default {
         const b = url.searchParams.get('b') || '';
         const infoCount = i ? i.split('|').length : 0;
         const tableRows = t2 ? t2.split('|').length : 0;
-        const bodyLines = Math.ceil(b.length / 44);
-        h = 180 + infoCount * 18 + tableRows * 28 + bodyLines * 19;
-        h = Math.max(h, 310); h = Math.min(h, MAX_H);
+        const bodyLines = Math.ceil(b.length / 36);
+        h = 230 + infoCount * 26 + tableRows * 36 + bodyLines * 26;
+        h = Math.max(h, 380); h = Math.min(h, MAX_H);
       }
       if (t === 'search') {
         const r = url.searchParams.get('r') || '';
         const a = url.searchParams.get('a') || '';
         const resultCount = r ? r.split('|').length : 0;
         const paaCount = a ? a.split('|').length : 0;
-        h = 110 + resultCount * 82 + paaCount * 38;
-        h = Math.max(h, 270); h = Math.min(h, MAX_H);
+        h = 150 + resultCount * 105 + paaCount * 48;
+        h = Math.max(h, 340); h = Math.min(h, MAX_H);
       }
       if (t === 'voice') {
         const tc = url.searchParams.get('tc') || '';
         const v = url.searchParams.get('v') || '';
+        const active = url.searchParams.get('active') || '';
         const tcCount = tc ? tc.split('|').length : 0;
         let memberCount = 0;
-        if (v) v.split(';').forEach(vc => { memberCount += vc.split(',').length - 1; });
-        h = 180 + tcCount * 26 + memberCount * 25;
-        h = Math.max(h, 360); h = Math.min(h, MAX_H);
+        let vcCount = 0;
+        if (v) v.split(';').forEach(vc => { vcCount++; const [,...rest] = vc.split(','); const mr = rest.join(','); if(mr) memberCount += mr.split('|').length; });
+        h = 240 + tcCount * 28 + vcCount * 28 + memberCount * 26 + (active ? 70 : 0);
+        h = Math.max(h, 440); h = Math.min(h, MAX_H);
       }
 
       const svg = wrapInSVG(html, w, h);

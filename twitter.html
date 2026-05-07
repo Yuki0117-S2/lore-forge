@@ -6,243 +6,192 @@
 <title>Twitter Post</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-
   :root {
     --col-indigo: #8889CD;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
   }
-
   body {
     background: #0d0d14;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    min-height: 100vh;
-    padding: 20px 0;
+    display: flex; justify-content: center; align-items: flex-start;
+    min-height: 100vh; padding: 20px 0;
   }
+  .tweet-wrap { width: 100%; max-width: 598px; color: #e7e9ea; }
 
+  /* ── 메인 트윗 ── */
   .tweet {
-    background: #0d0d14;
-    width: 100%;
-    max-width: 598px;
-    border: 1px solid #2a2535;
-    border-radius: 16px;
-    padding: 12px;
-    color: #e7e9ea;
+    background: #0d0d14; border: 1px solid #2a2535;
+    border-radius: 16px 16px 0 0; padding: 12px; border-bottom: none;
   }
-
-  .tweet-header {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 4px;
-  }
-
+  .tweet-header { display: flex; gap: 8px; margin-bottom: 4px; }
   .avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
+    width: 40px; height: 40px; border-radius: 50%;
     background: linear-gradient(135deg, var(--col-indigo), var(--col-rose));
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
+    flex-shrink: 0; display: flex; align-items: center; justify-content: center;
   }
-
   .avatar svg { width: 60%; height: 60%; fill: #fff; opacity: 0.85; }
-
   .header-right { flex: 1; min-width: 0; }
-
-  .name-row {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    flex-wrap: wrap;
-  }
-
-  .display-name {
-    font-size: 15px;
-    font-weight: 700;
-    color: #e7e9ea;
-  }
-
-  .verified {
-    width: 18px;
-    height: 18px;
-    fill: var(--col-indigo);
-    flex-shrink: 0;
-  }
-
-  .handle-time {
-    font-size: 15px;
-    color: #71767b;
-  }
-
+  .name-row { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .display-name { font-size: 15px; font-weight: 700; color: #e7e9ea; }
+  .verified { width: 18px; height: 18px; fill: var(--col-indigo); flex-shrink: 0; }
+  .handle-time { font-size: 14px; color: #71767b; }
   .more-btn {
-    margin-left: auto;
-    background: none;
-    border: none;
-    color: #71767b;
-    cursor: pointer;
-    font-size: 18px;
-    padding: 0 4px;
-    align-self: flex-start;
+    margin-left: auto; background: none; border: none;
+    color: #71767b; cursor: pointer; font-size: 18px; padding: 0 4px; align-self: flex-start;
   }
-
   .tweet-body {
-    font-size: 14px;
-    line-height: 1.3;
-    color: #e7e9ea;
-    margin: 6px 0 8px;
-    white-space: pre-wrap;
-    word-break: break-word;
+    font-size: 14px; line-height: 1.3; color: #e7e9ea;
+    margin: 6px 0 8px; white-space: pre-wrap; word-break: break-word;
   }
-
-  .tweet-body .translation {
-    color: #71767b;
-    font-size: 13px;
-    display: block;
-    margin-top: 4px;
-  }
-
+  .tweet-body .translation { color: #71767b; font-size: 13px; display: block; margin-top: 4px; }
   .tweet-image {
-    width: 100%;
-    aspect-ratio: 16/9;
-    background: #18141e;
-    border-radius: 16px;
-    border: 1px solid #2a2535;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    margin-bottom: 5px;
+    width: 100%; aspect-ratio: 16/9; background: #18141e;
+    border-radius: 16px; border: 1px solid #2a2535;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 8px; margin-bottom: 8px;
   }
-
   .tweet-image svg { width: 40px; height: 40px; fill: var(--col-indigo); opacity: 0.4; }
   .tweet-image .img-desc { font-size: 13px; color: var(--col-pink); opacity: 0.5; text-align: center; padding: 0 20px; }
 
+  /* 통계 텍스트 */
   .tweet-stats {
-    display: flex;
-    gap: 4px;
-    padding: 8px 0;
+    display: flex; gap: 4px; flex-wrap: wrap;
+    padding: 8px 0; font-size: 14px; color: #e7e9ea;
     border-top: 1px solid #2f3336;
-    border-bottom: 1px solid #2f3336;
-    margin-bottom: 5px;
-    font-size: 14px;
-    color: #e7e9ea;
-    flex-wrap: wrap;
   }
-
   .stat-item { display: flex; gap: 4px; }
   .stat-item span { color: #71767b; }
   .stat-divider { color: #71767b; margin: 0 4px; }
 
+  /* 액션 버튼 */
   .tweet-actions {
-    display: flex;
-    justify-content: space-between;
-    padding-top: 4px;
+    display: flex; justify-content: space-between;
+    padding: 4px 0; border-top: 1px solid #2f3336;
   }
-
   .action {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    color: #71767b;
-    font-size: 13px;
-    cursor: pointer;
-    padding: 8px;
-    border-radius: 999px;
-    transition: background 0.15s;
+    display: flex; align-items: center; gap: 6px;
+    color: #71767b; font-size: 13px; cursor: pointer;
+    padding: 6px 8px; border-radius: 999px; transition: background 0.15s;
   }
-
   .action:hover { background: rgba(136,137,205,0.12); color: var(--col-indigo); }
   .action:hover svg { stroke: var(--col-indigo); }
   .action.like:hover { background: rgba(187,102,136,0.12); color: var(--col-rose); }
   .action.like:hover svg { stroke: var(--col-rose); }
-
   .action svg {
-    width: 18px; height: 18px;
-    fill: none; stroke: #71767b;
-    stroke-width: 1.8;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    transition: stroke 0.15s;
+    width: 18px; height: 18px; fill: none; stroke: #71767b;
+    stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; transition: stroke 0.15s;
   }
 
-  .tweet-time-full {
-    font-size: 14px;
-    color: #71767b;
-    margin-top: 4px;
-    padding-top: 8px;
+  /* ── 답글 트윗 ── */
+  .replies-section {
+    border: 1px solid #2a2535; border-top: 1px solid #2f3336;
+    border-radius: 0 0 16px 16px; overflow: hidden;
+  }
+  .reply-item {
+    padding: 10px 12px; display: flex; gap: 8px;
+    border-bottom: 1px solid #1a1724; background: #0d0d14;
+    transition: background 0.15s;
+  }
+  .reply-item:last-child { border-bottom: none; }
+  .reply-item:hover { background: #111018; }
+  .reply-avatar-col { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+  .reply-avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; color: #fff;
+  }
+  .thread-line { width: 2px; flex: 1; min-height: 6px; background: #2f3336; margin-top: 4px; }
+  .reply-content { flex: 1; min-width: 0; }
+  .reply-header { display: flex; align-items: baseline; gap: 5px; margin-bottom: 2px; flex-wrap: wrap; }
+  .reply-name { font-size: 14px; font-weight: 700; color: #e7e9ea; }
+  .reply-handle { font-size: 13px; color: #71767b; }
+  .reply-body { font-size: 14px; line-height: 1.4; color: #e7e9ea; word-break: break-word; margin-bottom: 4px; }
+  .reply-likes { font-size: 12px; color: #71767b; display: flex; align-items: center; gap: 4px; }
+  .reply-likes svg {
+    width: 14px; height: 14px; fill: none; stroke: #71767b;
+    stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
   }
 </style>
 </head>
 <body>
-<div class="tweet">
-  <div class="tweet-header">
-    <div class="avatar">
-      <svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+<div class="tweet-wrap">
+  <div class="tweet">
+    <div class="tweet-header">
+      <div class="avatar">
+        <svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+      </div>
+      <div class="header-right">
+        <div class="name-row">
+          <span class="display-name" id="display-name">Display Name</span>
+          <svg class="verified" id="verified-badge" viewBox="0 0 24 24" style="display:none"><path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.9-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.46-2.91-.2-3.92.81s-1.26 2.52-.8 3.91C2.88 9.33 2 10.57 2 12s.88 2.67 2.19 3.34c-.46 1.39-.2 2.9.81 3.91s2.52 1.27 3.91.81c.66 1.31 1.9 2.19 3.34 2.19s2.67-.88 3.33-2.19c1.4.46 2.91.2 3.92-.81s1.26-2.52.8-3.91C21.37 14.67 22.25 13.43 22.25 12zm-6.12-1.26l-4.5 4.5a.75.75 0 01-1.06 0l-2.25-2.25a.75.75 0 011.06-1.06l1.72 1.72 3.97-3.97a.75.75 0 011.06 1.06z"/></svg>
+          <span class="handle-time" id="handle-time">@handle · 시간</span>
+        </div>
+      </div>
+      <button class="more-btn">···</button>
     </div>
-    <div class="header-right">
-      <div class="name-row">
-        <span class="display-name" id="display-name">Display Name</span>
-        <svg class="verified" id="verified-badge" viewBox="0 0 24 24" style="display:none"><path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.9-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.46-2.91-.2-3.92.81s-1.26 2.52-.8 3.91C2.88 9.33 2 10.57 2 12s.88 2.67 2.19 3.34c-.46 1.39-.2 2.9.81 3.91s2.52 1.27 3.91.81c.66 1.31 1.9 2.19 3.34 2.19s2.67-.88 3.33-2.19c1.4.46 2.91.2 3.92-.81s1.26-2.52.8-3.91C21.37 14.67 22.25 13.43 22.25 12zm-6.12-1.26l-4.5 4.5a.75.75 0 01-1.06 0l-2.25-2.25a.75.75 0 011.06-1.06l1.72 1.72 3.97-3.97a.75.75 0 011.06 1.06z"/></svg>
-        <span class="handle-time" id="handle-time">@handle · 시간</span>
+
+    <div class="tweet-body" id="tweet-body">트윗 내용</div>
+
+    <div class="tweet-image" id="tweet-image" style="display:none">
+      <svg viewBox="0 0 24 24"><path d="M12 15.2a3.2 3.2 0 100-6.4 3.2 3.2 0 000 6.4z"/><path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>
+      <div class="img-desc" id="img-desc"></div>
+    </div>
+
+    <div class="tweet-stats" id="tweet-stats">
+      <div class="stat-item"><strong id="retweets">0</strong><span>리트윗</span></div>
+      <span class="stat-divider">·</span>
+      <div class="stat-item"><strong id="quotes">0</strong><span>인용</span></div>
+      <span class="stat-divider">·</span>
+      <div class="stat-item"><strong id="likes">0</strong><span>마음에 들어요</span></div>
+      <span class="stat-divider">·</span>
+      <div class="stat-item"><strong id="bookmarks">0</strong><span>북마크</span></div>
+    </div>
+
+    <div class="tweet-actions">
+      <div class="action">
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        <span id="replies-count">0</span>
+      </div>
+      <div class="action">
+        <svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
+        <span id="rt-count">0</span>
+      </div>
+      <div class="action like">
+        <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+        <span id="likes-count">0</span>
+      </div>
+      <div class="action">
+        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      </div>
+      <div class="action">
+        <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
       </div>
     </div>
-    <button class="more-btn">···</button>
   </div>
 
-  <div class="tweet-body" id="tweet-body">트윗 내용</div>
-
-  <div class="tweet-image" id="tweet-image" style="display:none">
-    <svg viewBox="0 0 24 24"><path d="M12 15.2a3.2 3.2 0 100-6.4 3.2 3.2 0 000 6.4z"/><path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>
-    <div class="img-desc" id="img-desc"></div>
+  <!-- 답글 트윗 -->
+  <div class="replies-section" id="replies-section" style="display:none">
+    <div id="replies-container"></div>
   </div>
-
-  <div class="tweet-stats" id="tweet-stats">
-    <div class="stat-item"><strong id="retweets">0</strong><span>리트윗</span></div>
-    <span class="stat-divider">·</span>
-    <div class="stat-item"><strong id="quotes">0</strong><span>인용</span></div>
-    <span class="stat-divider">·</span>
-    <div class="stat-item"><strong id="likes">0</strong><span>마음에 들어요</span></div>
-    <span class="stat-divider">·</span>
-    <div class="stat-item"><strong id="bookmarks">0</strong><span>북마크</span></div>
-  </div>
-
-  <div class="tweet-actions">
-    <div class="action">
-      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-      <span id="replies-count">0</span>
-    </div>
-    <div class="action">
-      <svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
-      <span id="rt-count">0</span>
-    </div>
-    <div class="action like">
-      <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
-      <span id="likes-count">0</span>
-    </div>
-    <div class="action">
-      <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-    </div>
-    <div class="action">
-      <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-    </div>
-  </div>
-
-  <div class="tweet-time-full" id="tweet-time-full"></div>
 </div>
 
 <script>
-// 형식: ?p=@handle,표시이름,시간,본문,[번역],[이미지설명],답글수,리트윗수,인용수,좋아요수,북마크수,[verified]
+// ?p=@handle,표시이름,시간,본문,[번역],[이미지설명],답글수,RT수,인용수,좋아요수,북마크수,[verified]
+// &r=표시이름,@handle,시간,내용,좋아요수|표시이름,@handle,시간,내용,좋아요수
+
+function avatarBg(name) {
+  const colors = ['#5865f2','#eb459e','#57f287','#fee75c','#ed4245','#8889CD','#BB6688','#CCAA88'];
+  let h = 0;
+  for (let c of name) h = (h * 31 + c.charCodeAt(0)) % colors.length;
+  return colors[Math.abs(h)];
+}
+
 function parseParams() {
   const params = new URLSearchParams(window.location.search);
   const p = params.get('p');
+  const r = params.get('r');
   if (!p) return;
 
   const parts = p.split(',');
@@ -252,17 +201,11 @@ function parseParams() {
   const body        = parts[3] || '';
   let idx = 4;
 
-  // 번역 ([ 로 시작하면)
   let translation = '';
-  if (parts[idx] && parts[idx].startsWith('[')) {
-    translation = parts[idx]; idx++;
-  }
+  if (parts[idx] && parts[idx].startsWith('[')) { translation = parts[idx]; idx++; }
 
-  // 이미지 설명 (다음이 숫자가 아니고 [ 아니면 이미지)
   let imgDesc = '';
-  if (parts[idx] && isNaN(Number(parts[idx])) && !parts[idx].startsWith('[')) {
-    imgDesc = parts[idx]; idx++;
-  }
+  if (parts[idx] && isNaN(Number(parts[idx])) && !parts[idx].startsWith('[')) { imgDesc = parts[idx]; idx++; }
 
   const replies   = parts[idx]   || '0';
   const retweets  = parts[idx+1] || '0';
@@ -271,10 +214,8 @@ function parseParams() {
   const bookmarks = parts[idx+4] || '0';
   const verified  = parts[idx+5] === 'verified';
 
-  // 적용
   document.getElementById('display-name').textContent = displayName;
   document.getElementById('handle-time').textContent = `${handle} · ${time}`;
-
   if (verified) document.getElementById('verified-badge').style.display = 'inline';
 
   const bodyEl = document.getElementById('tweet-body');
@@ -292,16 +233,51 @@ function parseParams() {
   }
 
   const fmt = n => Number(n).toLocaleString();
-  document.getElementById('retweets').textContent    = fmt(retweets);
-  document.getElementById('quotes').textContent      = fmt(quotes);
-  document.getElementById('likes').textContent       = fmt(likes);
-  document.getElementById('bookmarks').textContent   = fmt(bookmarks);
+  document.getElementById('retweets').textContent      = fmt(retweets);
+  document.getElementById('quotes').textContent        = fmt(quotes);
+  document.getElementById('likes').textContent         = fmt(likes);
+  document.getElementById('bookmarks').textContent     = fmt(bookmarks);
   document.getElementById('replies-count').textContent = fmt(replies);
-  document.getElementById('rt-count').textContent    = fmt(retweets);
-  document.getElementById('likes-count').textContent = fmt(likes);
-  document.getElementById('tweet-time-full').textContent = time;
-}
+  document.getElementById('rt-count').textContent      = fmt(retweets);
+  document.getElementById('likes-count').textContent   = fmt(likes);
 
+  // 답글 트윗
+  if (r) {
+    document.getElementById('replies-section').style.display = 'block';
+    const container = document.getElementById('replies-container');
+    const replyList = r.split('|');
+    replyList.forEach((raw, i) => {
+      const seg   = raw.split(',');
+      const rName   = seg[0] || '';
+      const rHandle = seg[1] || '';
+      const rTime   = seg[2] || '';
+      const rBody   = seg[3] || '';
+      const rLikes  = seg[4] || '0';
+      const isLast  = i === replyList.length - 1;
+
+      const div = document.createElement('div');
+      div.className = 'reply-item';
+      div.innerHTML = `
+        <div class="reply-avatar-col">
+          <div class="reply-avatar" style="background:${avatarBg(rName)}">${rName.charAt(0)}</div>
+          ${!isLast ? '<div class="thread-line"></div>' : ''}
+        </div>
+        <div class="reply-content">
+          <div class="reply-header">
+            <span class="reply-name">${rName}</span>
+            <span class="reply-handle">${rHandle} · ${rTime}</span>
+          </div>
+          <div class="reply-body">${rBody}</div>
+          <div class="reply-likes">
+            <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+            ${fmt(rLikes)}
+          </div>
+        </div>
+      `;
+      container.appendChild(div);
+    });
+  }
+}
 parseParams();
 </script>
 </body>

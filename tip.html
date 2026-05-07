@@ -373,12 +373,13 @@ const CATEGORIES = [
       {
         id:'t-2-1', title:'🐦 트위터/X (twitter.html)',
         body:`<div class="label label-use">HTML 템플릿</div>
-<div class="desc">twitter.html 파일을 URL 파라미터로 호출. 다크 테마 X(트위터) UI. 인증 배지 옵션 포함.</div>
+<div class="desc">twitter.html 파일을 URL 파라미터로 호출. 다크 테마 X(트위터) UI. 인증 배지 + 답글 트윗 지원.</div>
 <hr class="divider">
 <div class="label label-example">파라미터 형식</div>
-<pre>?p=@핸들,표시이름,시간,본문,[번역],[이미지설명],답글수,RT수,인용수,좋아요수,북마크수,[verified]</pre>
+<pre>?p=@핸들,표시이름,시간,본문,[번역],[이미지설명],답글수,RT수,인용수,좋아요수,북마크수,[verified]
+&r=표시이름,@핸들,시간,내용,좋아요수|표시이름,@핸들,시간,내용,좋아요수</pre>
 <div class="label label-example">예시 URL</div>
-<pre>twitter.html?p=@jaymccoy,Jay McCoy,오후 3:14,시즌 시작 전 마지막 해변 🏈,[Last beach day before season],해변 풋볼 역광,24,187,12,2847,341,verified</pre>
+<pre>twitter.html?p=@jaymccoy,Jay McCoy,오후 3:14,시즌 시작 전 마지막 해변 🏈,[Last beach day before season],해변 풋볼 역광,24,187,12,2847,341,verified&r=Blair,@blairkingsley,3분+전,나도+해변+가고+싶다+😭,89|Noxym,@noxymc,5분+전,시즌+화이팅+🏈,234</pre>
 <hr class="divider">
 <div class="label label-example">필드 설명</div>
 <pre>@핸들       — @포함 아이디
@@ -388,7 +389,10 @@ const CATEGORIES = [
 [번역]      — 대괄호 감싸면 번역 표시 (선택)
 [이미지설명] — 있으면 이미지 영역 표시 (선택)
 답글/RT/인용/좋아요/북마크 — 각각 숫자
-verified    — 마지막에 쓰면 인증배지 표시 (선택)</pre>
+verified    — 마지막에 쓰면 인증배지 표시 (선택)
+&r= 답글    — 표시이름,@핸들,시간,내용,좋아요 (선택)
+              |로 구분하여 여러 답글 가능
+              없으면 답글 섹션 미표시</pre>
 <hr class="divider">
 <div class="label label-use">텍스트 대체 (마크다운용)</div>
 <pre>\`\`\`TWEET
@@ -399,7 +403,7 @@ verified    — 마지막에 쓰면 인증배지 표시 (선택)</pre>
 💬 24  🔁 187  ♡ 2,847  📊 341
 ─────────────────────────
 \`\`\`</pre>
-<a class="demo-btn" href="twitter.html?p=@jaymccoy,Jay McCoy,오후 3:14,시즌 시작 전 마지막 해변 🏈,[Last beach day before season],해변 풋볼 역광,24,187,12,2847,341,verified" target="_blank">▶ 예시 열어보기</a>`
+<a class="demo-btn" href="twitter.html?p=@jaymccoy,Jay McCoy,오후 3:14,시즌 시작 전 마지막 해변 🏈,[Last beach day before season],해변 풋볼 역광,24,187,12,2847,341,verified&r=Blair,@blairkingsley,3분+전,나도+해변+가고+싶다,89|Noxym,@noxymc,5분+전,시즌+화이팅,234" target="_blank">▶ 예시 열어보기</a>`
       },
       {
         id:'t-2-2', title:'💛 카카오톡 (kakao.html)',
@@ -721,15 +725,20 @@ EXP ████████████░░ 85%
       {
         id:'t-6-1', title:'트위터 (X) 포스트',
         body:`<div class="label label-use">URL 파라미터 형식</div>
-<pre>/?t=twitter&p=@handle,표시이름,시간,본문,[번역],[이미지설명],답글수,리트윗수,인용수,좋아요수,북마크수,[verified]</pre>
+<pre>/?t=twitter&p=@handle,표시이름,시간,본문,[번역],[이미지설명],답글수,리트윗수,인용수,좋아요수,북마크수,[verified]
+&r=표시이름,@handle,시간,내용,좋아요수|표시이름,@handle,시간,내용,좋아요수</pre>
 <hr class="divider">
 <div class="label label-example">예시</div>
-<pre>/?t=twitter&p=@jaymccoy,Jay McCoy,오후 3:14,시즌 시작 전 마지막 해변 🏈,[Last beach day],해변 풋볼 역광,24,187,12,2847,341,verified</pre>
+<pre>/?t=twitter&p=@jaymccoy,Jay McCoy,오후 3:14,시즌 시작 전 마지막 해변 🏈,[Last beach day],해변 풋볼 역광,24,187,12,2847,341,verified
+&r=Blair,@blairkingsley,3분 전,나도 해변 가고 싶다 😭,89|Noxym,@noxymc,5분 전,시즌 화이팅 🏈,234</pre>
 <hr class="divider">
 <div class="desc"><strong>파라미터 설명:</strong><br>
 • <strong>[번역]</strong>과 <strong>[이미지설명]</strong>은 선택사항<br>
 • 마지막에 <strong>verified</strong> 추가하면 파란 인증 배지 표시<br>
-• 번역은 대괄호 <strong>[ ]</strong>로 시작해야 인식됨</div>`
+• 번역은 대괄호 <strong>[ ]</strong>로 시작해야 인식됨<br>
+• <strong>&r=</strong> 답글 트윗 (선택) — 표시이름,@핸들,시간,내용,좋아요<br>
+• 답글은 <strong>|</strong>로 구분, 스레드 연결선으로 이어짐<br>
+• <strong>&r=</strong> 없으면 답글 섹션 미표시</div>`
       },
       {
         id:'t-6-2', title:'카카오톡 채팅',
@@ -990,7 +999,9 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로, #은 %23으로 변환
 ![](https://도메인/?t=story&p=@유저,시간,이미지설명,[캡션])
 
 ### 트위터
-![](https://도메인/?t=twitter&p=@handle,표시이름,시간,본문,[번역],[이미지설명],답글수,RT수,인용수,좋아요수,북마크수,[verified])
+![](https://도메인/?t=twitter&p=@handle,표시이름,시간,본문,[번역],[이미지설명],답글수,RT수,인용수,좋아요수,북마크수,[verified]&r=표시이름,@handle,시간,내용,좋아요|표시이름,@handle,시간,내용,좋아요)
+- &r= 없으면 답글 미표시
+- 답글은 스레드 연결선으로 이어짐
 
 ### 카카오톡
 ![](https://도메인/?t=kakao&r=방이름,날짜,인원수&m=이름,내용,시간,읽음수|이름,내용,시간,읽음수,me)
@@ -1049,19 +1060,20 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로, #은 %23으로 변환
 
 ### 길이 제한 (바베챗 이미지 높이 제한)
 이미지가 잘리지 않도록 아래 제한을 지킨다:
-- post: 본문 200자 이내, 댓글 최대 5개
-- kakao: 메시지 최대 10개
-- discord / discord-full: 메시지 최대 10개
-- reddit: 본문 150자 이내, 댓글 최대 4개
-- board: 글 목록 최대 8개
-- stream: 채팅 최대 15개
+- insta: 댓글 최대 5개
+- twitter: 답글 최대 4개 (이미지 포함 시 3개)
+- kakao: 메시지 최대 14개
+- reddit: 본문 400자 이내, 댓글 최대 5개
 - lock: 알림 최대 5개
-- insta: 댓글 최대 3개
 - email: 본문 300자 이내
-- news: 본문 250자 이내
-- doc: 표 행 최대 8개, 본문 200자 이내
-- search: 검색결과 최대 4개, 관련검색 최대 4개
-- voice: 음성채널 멤버 합계 최대 15명
+- search: 검색결과 최대 5개, 관련검색 최대 6개
+- news: 본문 950자 이내
+- doc: 표 행 최대 8개, 본문 450자 이내
+- board: 글 목록 최대 13개
+- post: 본문 400자 이내, 댓글 최대 6개
+- discord / discord-full: 메시지 최대 10개
+- voice: 음성채널 멤버 합계 최대 13명
+- stream: 채팅 최대 24개
 - 위 제한 초과 시 여러 이미지로 분리하여 출력</pre>`
       }
     ]

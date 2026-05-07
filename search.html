@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Search Results</title>
+<style>
+  :root {
+    --col-indigo: #8889CD;
+    --col-pink:   #DDAACC;
+    --col-sand:   #CCAA88;
+    --col-rose:   #BB6688;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0e0a14;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 0;
+    min-height: 100vh;
+  }
+  .search-page {
+    width: 100%;
+    max-width: 600px;
+    color: #d7d7d7;
+  }
+
+  /* Search bar */
+  .search-bar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #1a1422;
+    border-bottom: 1px solid #2a2235;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .search-back {
+    background: none;
+    border: none;
+    color: var(--col-pink);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px;
+  }
+  .search-input-wrap {
+    flex: 1;
+    background: #221b2a;
+    border: 1px solid #3a2e48;
+    border-radius: 24px;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .search-icon { font-size: 14px; color: var(--col-indigo); }
+  .search-text {
+    font-size: 14px;
+    color: #fff;
+    flex: 1;
+    font-weight: 500;
+  }
+  .search-clear {
+    background: none;
+    border: none;
+    color: #71677b;
+    cursor: pointer;
+    font-size: 14px;
+  }
+
+  /* Result count */
+  .result-info {
+    padding: 12px 16px 8px;
+    font-size: 12px;
+    color: #71677b;
+  }
+
+  /* Results */
+  .results { padding: 0 16px 20px; }
+  .result-item {
+    padding: 16px 0;
+    border-bottom: 1px solid #1e1828;
+  }
+  .result-item:last-child { border-bottom: none; }
+  .result-url {
+    font-size: 12px;
+    color: var(--col-sand);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .result-favicon {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #2a2235;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    flex-shrink: 0;
+  }
+  .result-title {
+    font-size: 16px;
+    color: var(--col-indigo);
+    font-weight: 600;
+    line-height: 1.4;
+    margin-bottom: 6px;
+    cursor: pointer;
+  }
+  .result-title:hover { text-decoration: underline; }
+  .result-snippet {
+    font-size: 13px;
+    color: #9a90a8;
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .result-snippet strong {
+    color: var(--col-pink);
+    font-weight: 600;
+  }
+
+  /* People also ask */
+  .paa {
+    margin: 8px 16px 16px;
+    background: #1a1422;
+    border: 1px solid #2a2235;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .paa-title {
+    padding: 14px 16px 10px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #ede8f2;
+  }
+  .paa-item {
+    padding: 12px 16px;
+    border-top: 1px solid #2a2235;
+    font-size: 14px;
+    color: #b8b0c4;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.15s;
+  }
+  .paa-item:hover { background: rgba(136,137,205,0.06); }
+  .paa-arrow { color: #71677b; font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="search-page">
+  <div class="search-bar">
+    <button class="search-back">←</button>
+    <div class="search-input-wrap">
+      <span class="search-icon">🔍</span>
+      <span class="search-text" id="search-query">검색어</span>
+      <button class="search-clear">✕</button>
+    </div>
+  </div>
+
+  <div class="result-info" id="result-info">검색결과 약 0개</div>
+  <div class="results" id="results"></div>
+  <div class="paa" id="paa" style="display:none">
+    <div class="paa-title">관련 검색어</div>
+    <div id="paa-items"></div>
+  </div>
+</div>
+
+<script>
+// ?q=검색어,결과수
+// &r=제목,URL,스니펫|제목,URL,스니펫
+// &a=관련검색1|관련검색2|관련검색3
+function parseParams() {
+  const params = new URLSearchParams(window.location.search);
+  const q = params.get('q');
+  const r = params.get('r');
+  const a = params.get('a');
+
+  if (q) {
+    const qp = q.split(',');
+    document.getElementById('search-query').textContent = qp[0] || '';
+    const count = qp[1] || '0';
+    document.getElementById('result-info').textContent =
+      `검색결과 약 ${Number(count).toLocaleString()}개 (0.${Math.floor(Math.random()*9)+1}${Math.floor(Math.random()*9)}초)`;
+  }
+
+  if (r) {
+    const container = document.getElementById('results');
+    r.split('|').forEach(raw => {
+      const seg = raw.split(',');
+      const title   = seg[0] || '';
+      const url     = seg[1] || '';
+      const snippet = seg.slice(2).join(',') || '';
+      const favicon = url.charAt(0).toUpperCase();
+
+      const div = document.createElement('div');
+      div.className = 'result-item';
+      div.innerHTML = `
+        <div class="result-url">
+          <div class="result-favicon">${favicon}</div>
+          ${url}
+        </div>
+        <div class="result-title">${title}</div>
+        <div class="result-snippet">${snippet}</div>
+      `;
+      container.appendChild(div);
+    });
+  }
+
+  if (a) {
+    document.getElementById('paa').style.display = 'block';
+    const paaContainer = document.getElementById('paa-items');
+    a.split('|').forEach(text => {
+      const div = document.createElement('div');
+      div.className = 'paa-item';
+      div.innerHTML = `<span>${text}</span><span class="paa-arrow">▼</span>`;
+      paaContainer.appendChild(div);
+    });
+  }
+}
+parseParams();
+</script>
+</body>
+</html>

@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Discord</title>
+<style>
+  :root {
+    --col-indigo: #8889CD;
+    --col-pink:   #DDAACC;
+    --col-sand:   #CCAA88;
+    --col-rose:   #BB6688;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #313338;
+    font-family: 'gg sans', 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+  }
+  .discord {
+    width: 100%;
+    max-width: 520px;
+    background: #313338;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  /* Channel header */
+  .channel-header {
+    background: #313338;
+    border-bottom: 1px solid #1e1f22;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .channel-hash {
+    font-size: 20px;
+    color: #80848e;
+    font-weight: 500;
+  }
+  .channel-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #f2f3f5;
+  }
+  .channel-topic {
+    font-size: 12px;
+    color: #80848e;
+    margin-left: 8px;
+    padding-left: 8px;
+    border-left: 1px solid #3f4147;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Messages */
+  .messages {
+    flex: 1;
+    padding: 16px 0;
+    overflow-y: auto;
+  }
+  .msg-group {
+    padding: 2px 16px;
+    display: flex;
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .msg-group:first-child { margin-top: 0; }
+  .msg-group:hover { background: rgba(0,0,0,0.06); }
+
+  .msg-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .msg-content { flex: 1; min-width: 0; }
+  .msg-header {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 2px;
+  }
+  .msg-author {
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .msg-author:hover { text-decoration: underline; }
+  .msg-role-tag {
+    font-size: 10px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-weight: 600;
+  }
+  .msg-timestamp {
+    font-size: 12px;
+    color: #80848e;
+  }
+  .msg-text {
+    font-size: 16px;
+    color: #dbdee1;
+    line-height: 1.4;
+    word-break: break-word;
+  }
+  .msg-text .mention {
+    background: rgba(136,137,205,0.15);
+    color: var(--col-indigo);
+    padding: 0 2px;
+    border-radius: 3px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  /* Reactions */
+  .msg-reactions {
+    display: flex;
+    gap: 4px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+  .reaction {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    background: rgba(136,137,205,0.1);
+    border: 1px solid rgba(136,137,205,0.2);
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .reaction:hover { background: rgba(136,137,205,0.2); }
+  .reaction-count { font-size: 12px; color: #dbdee1; font-weight: 600; }
+
+  /* Continued messages */
+  .msg-cont {
+    padding: 0 16px 0 72px;
+    margin-top: 2px;
+  }
+  .msg-cont:hover { background: rgba(0,0,0,0.06); }
+  .msg-cont .msg-text { font-size: 16px; }
+
+  /* Input */
+  .discord-input {
+    padding: 0 16px 24px;
+  }
+  .input-wrap {
+    background: #383a40;
+    border-radius: 8px;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .input-plus {
+    font-size: 20px;
+    color: #b5bac1;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .input-text {
+    flex: 1;
+    font-size: 16px;
+    color: #6d6f78;
+  }
+  .input-icons {
+    display: flex;
+    gap: 8px;
+    font-size: 18px;
+    color: #b5bac1;
+  }
+</style>
+</head>
+<body>
+<div class="discord">
+  <div class="channel-header">
+    <span class="channel-hash">#</span>
+    <span class="channel-name" id="channel-name">일반</span>
+    <span class="channel-topic" id="channel-topic"></span>
+  </div>
+
+  <div class="messages" id="messages"></div>
+
+  <div class="discord-input">
+    <div class="input-wrap">
+      <span class="input-plus">＋</span>
+      <span class="input-text" id="input-placeholder">#일반에 메시지 보내기</span>
+      <div class="input-icons">
+        <span>😀</span>
+        <span>🎁</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ?ch=채널이름,[토픽]
+// &m=닉네임,역할색,역할태그,시간,내용,[리액션]|닉네임,...
+// 역할색: 인디고/핑크/샌드/로즈/기본(흰색)
+// 리액션: 이모지+숫자 (예: 👍3 🔥5)
+// 같은 닉네임 연속이면 자동으로 이어붙이기
+
+function roleColor(c) {
+  const map = {
+    '인디고': '#8889CD', '핑크': '#DDAACC', '샌드': '#CCAA88',
+    '로즈': '#BB6688', '빨강': '#ed4245', '초록': '#57f287',
+    '파랑': '#5865f2', '노랑': '#fee75c'
+  };
+  return map[c] || '#f2f3f5';
+}
+
+function avatarBg(name) {
+  const colors = ['#5865f2','#eb459e','#57f287','#fee75c','#ed4245','#8889CD','#BB6688'];
+  let h = 0;
+  for (let c of name) h = (h * 31 + c.charCodeAt(0)) % colors.length;
+  return colors[Math.abs(h)];
+}
+
+function parseParams() {
+  const params = new URLSearchParams(window.location.search);
+  const ch = params.get('ch');
+  const m = params.get('m');
+
+  if (ch) {
+    const cp = ch.split(',');
+    document.getElementById('channel-name').textContent = cp[0] || '일반';
+    document.getElementById('input-placeholder').textContent = `#${cp[0] || '일반'}에 메시지 보내기`;
+    if (cp[1]) document.getElementById('channel-topic').textContent = cp[1];
+  }
+
+  if (!m) return;
+
+  const container = document.getElementById('messages');
+  const msgList = m.split('|');
+  let lastAuthor = '';
+
+  msgList.forEach(raw => {
+    const seg = raw.split(',');
+    const nick      = seg[0] || '';
+    const rColor    = seg[1] || '';
+    const rTag      = seg[2] || '';
+    const time      = seg[3] || '';
+    const text      = seg[4] || '';
+    const reactions  = seg[5] || '';
+
+    const isCont = nick === lastAuthor;
+    lastAuthor = nick;
+
+    if (isCont) {
+      const div = document.createElement('div');
+      div.className = 'msg-cont';
+      let html = `<div class="msg-text">${text}</div>`;
+      if (reactions) {
+        html += '<div class="msg-reactions">';
+        reactions.split(' ').forEach(r => {
+          const emoji = r.replace(/[0-9]/g,'');
+          const count = r.replace(/[^0-9]/g,'') || '1';
+          html += `<span class="reaction">${emoji}<span class="reaction-count">${count}</span></span>`;
+        });
+        html += '</div>';
+      }
+      div.innerHTML = html;
+      container.appendChild(div);
+    } else {
+      const group = document.createElement('div');
+      group.className = 'msg-group';
+
+      const color = roleColor(rColor);
+      const initial = nick.charAt(0).toUpperCase();
+
+      let html = `
+        <div class="msg-avatar" style="background:${avatarBg(nick)}">${initial}</div>
+        <div class="msg-content">
+          <div class="msg-header">
+            <span class="msg-author" style="color:${color}">${nick}</span>
+            ${rTag ? `<span class="msg-role-tag" style="background:${color}22;color:${color};border:1px solid ${color}44">${rTag}</span>` : ''}
+            <span class="msg-timestamp">${time}</span>
+          </div>
+          <div class="msg-text">${text}</div>`;
+
+      if (reactions) {
+        html += '<div class="msg-reactions">';
+        reactions.split(' ').forEach(r => {
+          const emoji = r.replace(/[0-9]/g,'');
+          const count = r.replace(/[^0-9]/g,'') || '1';
+          html += `<span class="reaction">${emoji}<span class="reaction-count">${count}</span></span>`;
+        });
+        html += '</div>';
+      }
+
+      html += '</div>';
+      group.innerHTML = html;
+      container.appendChild(group);
+    }
+  });
+}
+parseParams();
+</script>
+</body>
+</html>

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reddit Thread</title>
+<style>
+  :root {
+    --col-indigo: #8889CD;
+    --col-pink:   #DDAACC;
+    --col-sand:   #CCAA88;
+    --col-rose:   #BB6688;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0e0a14;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 20px 0;
+    min-height: 100vh;
+  }
+  .thread {
+    width: 100%;
+    max-width: 600px;
+    color: #d7d7d7;
+  }
+
+  /* Post */
+  .post {
+    background: #1a1422;
+    border: 1px solid #2a2235;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .post-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #71677b;
+    margin-bottom: 10px;
+  }
+  .subreddit { color: var(--col-indigo); font-weight: 700; }
+  .post-author { color: var(--col-sand); }
+  .post-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ede8f2;
+    line-height: 1.4;
+    margin-bottom: 12px;
+  }
+  .post-body {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #b8b0c4;
+    margin-bottom: 16px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .post-actions {
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+    color: #71677b;
+    font-weight: 600;
+  }
+  .post-action {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 20px;
+    transition: background 0.15s;
+  }
+  .post-action:hover { background: rgba(136,137,205,0.1); color: var(--col-indigo); }
+  .vote {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: #221b2a;
+  }
+  .vote-btn { cursor: pointer; font-size: 16px; color: #71677b; transition: color 0.15s; }
+  .vote-btn:hover { color: var(--col-rose); }
+  .vote-count { font-size: 12px; font-weight: 700; color: #d7d7d7; }
+
+  /* Comments */
+  .comments { padding: 0 4px; }
+  .comment {
+    background: #1a1422;
+    border: 1px solid #2a2235;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+  }
+  .comment-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    margin-bottom: 6px;
+  }
+  .comment-author { color: var(--col-pink); font-weight: 700; }
+  .comment-time { color: #71677b; }
+  .comment-body {
+    font-size: 13px;
+    line-height: 1.6;
+    color: #b8b0c4;
+    margin-bottom: 8px;
+  }
+  .comment-votes {
+    font-size: 11px;
+    color: #71677b;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .comment-votes .up { color: var(--col-rose); }
+</style>
+</head>
+<body>
+<div class="thread">
+  <div class="post" id="post"></div>
+  <div class="comments" id="comments"></div>
+</div>
+
+<script>
+// ?p=서브레딧,유저,시간,제목,본문,업보트,댓글수
+// &c=유저,내용,시간,업보트|유저,내용,시간,업보트
+function parseParams() {
+  const params = new URLSearchParams(window.location.search);
+  const p = params.get('p');
+  const c = params.get('c');
+  if (!p) return;
+
+  const parts = p.split(',');
+  const sub      = parts[0] || 'AskReddit';
+  const author   = parts[1] || 'throwaway';
+  const time     = parts[2] || '방금';
+  const title    = parts[3] || '';
+  const body     = parts[4] || '';
+  const upvotes  = parts[5] || '0';
+  const commentN = parts[6] || '0';
+
+  const fmt = n => {
+    const num = Number(n);
+    if (num >= 1000) return (num/1000).toFixed(1).replace(/\.0$/,'') + 'k';
+    return n;
+  };
+
+  document.getElementById('post').innerHTML = `
+    <div class="post-meta">
+      <span class="subreddit">r/${sub}</span>
+      <span>•</span>
+      <span class="post-author">u/${author}</span>
+      <span>•</span>
+      <span>${time}</span>
+    </div>
+    <div class="post-title">${title}</div>
+    <div class="post-body">${body}</div>
+    <div class="post-actions">
+      <div class="vote">
+        <span class="vote-btn">▲</span>
+        <span class="vote-count">${fmt(upvotes)}</span>
+        <span class="vote-btn">▼</span>
+      </div>
+      <div class="post-action">💬 ${fmt(commentN)}개</div>
+      <div class="post-action">↗ 공유</div>
+    </div>
+  `;
+
+  if (c) {
+    const container = document.getElementById('comments');
+    c.split('|').forEach(raw => {
+      const seg = raw.split(',');
+      const cUser = seg[0] || '';
+      const cBody = seg[1] || '';
+      const cTime = seg[2] || '';
+      const cUp   = seg[3] || '0';
+      const div = document.createElement('div');
+      div.className = 'comment';
+      div.innerHTML = `
+        <div class="comment-meta">
+          <span class="comment-author">${cUser}</span>
+          <span class="comment-time">${cTime}</span>
+        </div>
+        <div class="comment-body">${cBody}</div>
+        <div class="comment-votes"><span class="up">▲</span> ${fmt(cUp)}</div>
+      `;
+      container.appendChild(div);
+    });
+  }
+}
+parseParams();
+</script>
+</body>
+</html>

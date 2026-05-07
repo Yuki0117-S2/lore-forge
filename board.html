@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Board</title>
+<style>
+  :root {
+    --col-indigo: #8889CD;
+    --col-pink:   #DDAACC;
+    --col-sand:   #CCAA88;
+    --col-rose:   #BB6688;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0e0a14;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 20px 0;
+    min-height: 100vh;
+  }
+  .board {
+    width: 100%;
+    max-width: 600px;
+    color: #d7d7d7;
+  }
+
+  /* Header */
+  .board-header {
+    background: #1a1422;
+    border: 1px solid #2a2235;
+    border-radius: 12px 12px 0 0;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .board-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--col-indigo);
+  }
+  .board-count {
+    font-size: 12px;
+    color: #71677b;
+  }
+
+  /* Category tabs */
+  .board-tabs {
+    background: #1a1422;
+    border-left: 1px solid #2a2235;
+    border-right: 1px solid #2a2235;
+    padding: 0 12px;
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+  }
+  .board-tab {
+    padding: 8px 14px;
+    font-size: 12px;
+    color: #71677b;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: all 0.15s;
+    font-weight: 600;
+  }
+  .board-tab.active {
+    color: var(--col-pink);
+    border-bottom-color: var(--col-pink);
+  }
+  .board-tab:hover { color: var(--col-pink); }
+
+  /* Post list */
+  .board-list {
+    border: 1px solid #2a2235;
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    overflow: hidden;
+  }
+  .board-item {
+    padding: 12px 16px;
+    border-bottom: 1px solid #1e1828;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .board-item:last-child { border-bottom: none; }
+  .board-item:hover { background: rgba(136,137,205,0.05); }
+
+  .board-item-left { flex: 1; min-width: 0; }
+  .board-item-tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-right: 6px;
+  }
+  .tag-notice { background: rgba(187,102,136,0.2); color: var(--col-rose); }
+  .tag-hot { background: rgba(204,170,136,0.2); color: var(--col-sand); }
+  .tag-normal { background: rgba(136,137,205,0.15); color: var(--col-indigo); }
+  .tag-new { background: rgba(221,170,204,0.2); color: var(--col-pink); }
+
+  .board-item-title {
+    font-size: 14px;
+    color: #e0dae8;
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .board-item-comment {
+    font-size: 12px;
+    color: var(--col-rose);
+    font-weight: 600;
+    margin-left: 4px;
+  }
+  .board-item-meta {
+    margin-top: 4px;
+    font-size: 11px;
+    color: #71677b;
+    display: flex;
+    gap: 8px;
+  }
+  .board-item-right {
+    text-align: center;
+    flex-shrink: 0;
+    min-width: 40px;
+  }
+  .board-item-votes {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--col-indigo);
+  }
+  .board-item-vote-label {
+    font-size: 9px;
+    color: #71677b;
+  }
+</style>
+</head>
+<body>
+<div class="board">
+  <div class="board-header">
+    <span class="board-name" id="board-name">게시판</span>
+    <span class="board-count" id="board-count"></span>
+  </div>
+  <div class="board-tabs" id="board-tabs"></div>
+  <div class="board-list" id="board-list"></div>
+</div>
+
+<script>
+// ?b=게시판이름,[총게시글수]
+// &tabs=전체|인기|공지|자유   (선택)
+// &p=태그,제목,작성자,시간,조회,좋아요,[댓글수]|태그,제목,...
+// 태그: notice, hot, new, normal (또는 커스텀 텍스트)
+function parseParams() {
+  const params = new URLSearchParams(window.location.search);
+  const b = params.get('b');
+  const tabs = params.get('tabs');
+  const p = params.get('p');
+
+  if (b) {
+    const bp = b.split(',');
+    document.getElementById('board-name').textContent = bp[0] || '게시판';
+    if (bp[1]) document.getElementById('board-count').textContent = `총 ${Number(bp[1]).toLocaleString()}개`;
+  }
+
+  if (tabs) {
+    const tabsEl = document.getElementById('board-tabs');
+    tabs.split('|').forEach((t, i) => {
+      const div = document.createElement('div');
+      div.className = 'board-tab' + (i === 0 ? ' active' : '');
+      div.textContent = t;
+      tabsEl.appendChild(div);
+    });
+  }
+
+  if (p) {
+    const list = document.getElementById('board-list');
+    p.split('|').forEach(raw => {
+      const seg = raw.split(',');
+      const tag     = seg[0] || 'normal';
+      const title   = seg[1] || '';
+      const author  = seg[2] || '';
+      const time    = seg[3] || '';
+      const views   = seg[4] || '0';
+      const votes   = seg[5] || '0';
+      const comments = seg[6] || '';
+
+      const tagMap = {
+        notice: ['공지', 'tag-notice'],
+        hot: ['HOT', 'tag-hot'],
+        new: ['NEW', 'tag-new'],
+        normal: ['', 'tag-normal']
+      };
+      const [tagText, tagClass] = tagMap[tag] || [tag, 'tag-normal'];
+
+      const div = document.createElement('div');
+      div.className = 'board-item';
+      div.innerHTML = `
+        <div class="board-item-left">
+          <div class="board-item-title">
+            ${tagText ? `<span class="board-item-tag ${tagClass}">${tagText}</span>` : ''}${title}${comments ? `<span class="board-item-comment">[${comments}]</span>` : ''}
+          </div>
+          <div class="board-item-meta">
+            <span>${author}</span>
+            <span>${time}</span>
+            <span>조회 ${Number(views).toLocaleString()}</span>
+          </div>
+        </div>
+        <div class="board-item-right">
+          <div class="board-item-votes">${Number(votes).toLocaleString()}</div>
+          <div class="board-item-vote-label">추천</div>
+        </div>
+      `;
+      list.appendChild(div);
+    });
+  }
+}
+parseParams();
+</script>
+</body>
+</html>

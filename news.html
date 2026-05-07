@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>News Article</title>
+<style>
+  :root {
+    --col-indigo: #8889CD;
+    --col-pink:   #DDAACC;
+    --col-sand:   #CCAA88;
+    --col-rose:   #BB6688;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #f5f0f4;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Georgia, serif;
+    display: flex;
+    justify-content: center;
+    padding: 20px 0;
+    min-height: 100vh;
+  }
+  .article {
+    width: 100%;
+    max-width: 560px;
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e0d4dc;
+    overflow: hidden;
+  }
+
+  /* Top bar */
+  .article-bar {
+    background: #1a1422;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .article-outlet {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--col-pink);
+    font-family: Georgia, 'Times New Roman', serif;
+    letter-spacing: 0.5px;
+  }
+  .article-bar-tag {
+    margin-left: auto;
+    font-size: 10px;
+    color: var(--col-sand);
+    background: rgba(204,170,136,0.15);
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-family: -apple-system, sans-serif;
+  }
+
+  /* Image */
+  .article-image {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: #ede6ef;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .article-image svg {
+    width: 44px;
+    height: 44px;
+    fill: var(--col-pink);
+    opacity: 0.4;
+  }
+  .article-image-desc {
+    font-size: 12px;
+    color: var(--col-rose);
+    opacity: 0.5;
+    text-align: center;
+    padding: 0 20px;
+    font-family: -apple-system, sans-serif;
+  }
+  .article-image-credit {
+    font-size: 10px;
+    color: #b0a8b8;
+    text-align: right;
+    padding: 4px 16px;
+    font-family: -apple-system, sans-serif;
+  }
+
+  /* Content */
+  .article-content {
+    padding: 20px 20px 24px;
+  }
+  .article-category {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--col-rose);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 10px;
+    font-family: -apple-system, sans-serif;
+  }
+  .article-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a1a1a;
+    line-height: 1.35;
+    margin-bottom: 12px;
+    font-family: Georgia, 'Times New Roman', serif;
+  }
+  .article-subtitle {
+    font-size: 15px;
+    color: #666;
+    line-height: 1.5;
+    margin-bottom: 16px;
+    font-family: -apple-system, sans-serif;
+  }
+  .article-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #8e8e8e;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #f0e8ee;
+    margin-bottom: 18px;
+    font-family: -apple-system, sans-serif;
+  }
+  .article-author-name { color: var(--col-indigo); font-weight: 600; }
+  .article-body {
+    font-size: 15px;
+    line-height: 1.9;
+    color: #333;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  /* Share bar */
+  .article-share {
+    border-top: 1px solid #f0e8ee;
+    padding: 12px 20px;
+    display: flex;
+    gap: 12px;
+    font-family: -apple-system, sans-serif;
+  }
+  .share-btn {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid #e0d4dc;
+    background: #fff;
+    font-size: 12px;
+    color: #666;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .share-btn:hover {
+    border-color: var(--col-indigo);
+    color: var(--col-indigo);
+  }
+</style>
+</head>
+<body>
+<div class="article">
+  <div class="article-bar">
+    <span class="article-outlet" id="outlet">NEWS</span>
+    <span class="article-bar-tag" id="bar-tag"></span>
+  </div>
+
+  <div class="article-image" id="article-image">
+    <svg viewBox="0 0 24 24"><path d="M12 15.2a3.2 3.2 0 100-6.4 3.2 3.2 0 000 6.4z"/><path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>
+    <div class="article-image-desc" id="img-desc"></div>
+  </div>
+  <div class="article-image-credit" id="img-credit"></div>
+
+  <div class="article-content">
+    <div class="article-category" id="category"></div>
+    <div class="article-title" id="title">기사 제목</div>
+    <div class="article-subtitle" id="subtitle"></div>
+    <div class="article-meta">
+      <span class="article-author-name" id="author"></span>
+      <span>•</span>
+      <span id="date"></span>
+    </div>
+    <div class="article-body" id="body">기사 본문</div>
+  </div>
+
+  <div class="article-share">
+    <button class="share-btn">🔗 공유</button>
+    <button class="share-btn">🔖 저장</button>
+    <button class="share-btn">💬 댓글</button>
+  </div>
+</div>
+
+<script>
+// ?p=매체명,카테고리,제목,부제,기자,날짜,이미지설명,본문
+function parseParams() {
+  const params = new URLSearchParams(window.location.search);
+  const p = params.get('p');
+  if (!p) return;
+
+  const parts = p.split(',');
+  const outlet   = parts[0] || 'NEWS';
+  const category = parts[1] || '';
+  const title    = parts[2] || '';
+  const subtitle = parts[3] || '';
+  const author   = parts[4] || '';
+  const date     = parts[5] || '';
+  const imgDesc  = parts[6] || '';
+  const body     = parts.slice(7).join(',') || '';
+
+  document.getElementById('outlet').textContent = outlet;
+  document.getElementById('bar-tag').textContent = category;
+  document.getElementById('category').textContent = category;
+  document.getElementById('title').textContent = title;
+  if (subtitle) {
+    document.getElementById('subtitle').textContent = subtitle;
+  } else {
+    document.getElementById('subtitle').style.display = 'none';
+  }
+  document.getElementById('author').textContent = author;
+  document.getElementById('date').textContent = date;
+  if (imgDesc) document.getElementById('img-desc').textContent = imgDesc;
+  document.getElementById('body').textContent = body;
+}
+parseParams();
+</script>
+</body>
+</html>

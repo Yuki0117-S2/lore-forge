@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lock Screen</title>
+<style>
+  :root {
+    --col-indigo: #8889CD;
+    --col-pink:   #DDAACC;
+    --col-sand:   #CCAA88;
+    --col-rose:   #BB6688;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0812;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+  }
+  .phone {
+    width: 100%;
+    max-width: 390px;
+    min-height: 100vh;
+    background: linear-gradient(180deg, #12101a 0%, #1a1528 40%, #0e0a14 100%);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 60px;
+  }
+
+  /* Status bar */
+  .status-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 14px 24px 0;
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+  }
+  .status-icons { display: flex; gap: 5px; font-size: 12px; }
+
+  /* Time */
+  .lock-time {
+    font-size: 72px;
+    font-weight: 200;
+    color: #fff;
+    letter-spacing: -2px;
+    margin-top: 40px;
+    line-height: 1;
+  }
+  .lock-date {
+    font-size: 18px;
+    color: rgba(255,255,255,0.7);
+    margin-top: 6px;
+    font-weight: 400;
+  }
+
+  /* Notifications */
+  .notif-area {
+    width: 100%;
+    padding: 40px 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 30px;
+  }
+  .notif {
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(40px);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 16px;
+    padding: 12px 14px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .notif-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+  .notif-icon.msg   { background: linear-gradient(135deg, #34c759, #30b350); }
+  .notif-icon.call  { background: linear-gradient(135deg, #30b350, #28a745); }
+  .notif-icon.insta { background: linear-gradient(135deg, var(--col-rose), var(--col-indigo)); }
+  .notif-icon.sns   { background: linear-gradient(135deg, var(--col-indigo), var(--col-pink)); }
+  .notif-icon.mail  { background: linear-gradient(135deg, #3478f6, #2563eb); }
+  .notif-icon.app   { background: linear-gradient(135deg, var(--col-sand), var(--col-rose)); }
+  .notif-content { flex: 1; min-width: 0; }
+  .notif-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2px;
+  }
+  .notif-app {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.9);
+  }
+  .notif-time {
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+  }
+  .notif-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .notif-body {
+    font-size: 13px;
+    color: rgba(255,255,255,0.6);
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Bottom */
+  .bottom-bar {
+    margin-top: auto;
+    padding: 20px 0 30px;
+    display: flex;
+    justify-content: center;
+    gap: 60px;
+  }
+  .bottom-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(20px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+  }
+  .home-indicator {
+    width: 134px;
+    height: 5px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 3px;
+    margin: 0 auto 8px;
+  }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="status-bar">
+    <span id="status-time">12:00</span>
+    <div class="status-icons">
+      <span>📶</span>
+      <span>🔋</span>
+    </div>
+  </div>
+
+  <div class="lock-time" id="lock-time">12:00</div>
+  <div class="lock-date" id="lock-date">1월 1일 수요일</div>
+
+  <div class="notif-area" id="notif-area"></div>
+
+  <div class="bottom-bar">
+    <div class="bottom-btn">🔦</div>
+    <div class="bottom-btn">📷</div>
+  </div>
+  <div class="home-indicator"></div>
+</div>
+
+<script>
+// ?t=시간,날짜
+// &n=타입,앱이름,제목,내용,시간|타입,앱이름,제목,내용,시간
+// 타입: msg, call, insta, sns, mail, app
+function parseParams() {
+  const params = new URLSearchParams(window.location.search);
+  const t = params.get('t');
+  const n = params.get('n');
+
+  if (t) {
+    const tp = t.split(',');
+    const time = tp[0] || '12:00';
+    const date = tp[1] || '';
+    document.getElementById('lock-time').textContent = time;
+    document.getElementById('status-time').textContent = time;
+    if (date) document.getElementById('lock-date').textContent = date;
+  }
+
+  if (!n) return;
+
+  const container = document.getElementById('notif-area');
+  const icons = {
+    msg: '💬', call: '📞', insta: '📷',
+    sns: '🐦', mail: '✉️', app: '🔔'
+  };
+
+  n.split('|').forEach(raw => {
+    const seg = raw.split(',');
+    const type    = seg[0] || 'app';
+    const app     = seg[1] || '';
+    const title   = seg[2] || '';
+    const body    = seg[3] || '';
+    const time    = seg[4] || '';
+
+    const div = document.createElement('div');
+    div.className = 'notif';
+    div.innerHTML = `
+      <div class="notif-icon ${type}">${icons[type] || '🔔'}</div>
+      <div class="notif-content">
+        <div class="notif-header">
+          <span class="notif-app">${app}</span>
+          <span class="notif-time">${time}</span>
+        </div>
+        <div class="notif-title">${title}</div>
+        <div class="notif-body">${body}</div>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+parseParams();
+</script>
+</body>
+</html>

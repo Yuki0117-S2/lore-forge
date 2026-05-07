@@ -701,7 +701,7 @@ EXP ████████████░░ 85%
     ]
   },
   {
-    id:'cat-6', icon:'📱', title:'HTML UI 출력', sub:'인스타 / 트위터 / 카카오톡 UI 컴포넌트',
+    id:'cat-6', icon:'📱', title:'HTML UI 출력', sub:'13종 UI — SNS / 메신저 / 문서 / 게시판 / 디스코드 등',
     items:[
       {
         id:'t-6-0', title:'인스타그램 피드',
@@ -748,20 +748,207 @@ EXP ████████████░░ 85%
 • 아바타 색상은 이름 기반으로 자동 생성</div>`
       },
       {
-        id:'t-6-3', title:'바베챗 프롬프트에서 호출',
+        id:'t-6-3', title:'레딧 스레드',
+        body:`<div class="label label-use">URL 파라미터 형식</div>
+<pre>/reddit?p=서브레딧,유저,시간,제목,본문,업보트,댓글수
+&c=유저,내용,시간,업보트|유저,내용,시간,업보트</pre>
+<hr class="divider">
+<div class="label label-example">예시</div>
+<pre>/reddit?p=NoStupidQuestions,throwaway_beach99,30분전,파티 초대장을 받았는데 아는 사람이 한 명도 없으면 가도 됨?,라커에 초대장이 들어있었는데 솔직히 나 이 학교에서 친한 사람이 없거든,445,312
+&c=party_veteran_21,무조건 가. 최악의 경우 술이라도 공짜로 마시고 오는거임,28분전,1200|social_anxiety_irl,나도 이런 상황이었는데 가서 한 명이라도 말 걸어봐,25분전,876</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명:</strong><br>
+• 업보트 1000 이상이면 자동으로 <strong>1.2k</strong> 형식으로 표시<br>
+• 댓글은 <strong>|</strong>로 구분, 각각 유저/내용/시간/업보트</div>`
+      },
+      {
+        id:'t-6-4', title:'잠금화면 알림',
+        body:`<div class="label label-use">URL 파라미터 형식</div>
+<pre>/lock?t=시간,날짜
+&n=타입,앱이름,제목,내용,시간|타입,앱이름,제목,내용,시간</pre>
+<hr class="divider">
+<div class="label label-example">예시</div>
+<pre>/lock?t=23:47,1월 15일 수요일
+&n=call,전화,부재중 전화,엄마 (2),23:45|msg,메시지,블레어,야 어디야? 파티 시작했어,23:40|insta,Instagram,jaymccoy님이 스토리에 회원님을 언급했습니다,,23:32</pre>
+<hr class="divider">
+<div class="desc"><strong>타입 종류:</strong><br>
+• <strong>msg</strong> — 문자 메시지 (초록)<br>
+• <strong>call</strong> — 전화 (초록)<br>
+• <strong>insta</strong> — 인스타그램 (로즈→인디고 그라데이션)<br>
+• <strong>sns</strong> — 트위터 등 SNS (인디고→핑크)<br>
+• <strong>mail</strong> — 이메일 (파랑)<br>
+• <strong>app</strong> — 기타 앱 알림 (샌드→로즈)</div>`
+      },
+      {
+        id:'t-6-5', title:'이메일',
+        body:`<div class="label label-use">URL 파라미터 형식</div>
+<pre>/email?p=보낸사람이름,이메일주소,받는사람,제목,날짜,본문</pre>
+<hr class="divider">
+<div class="label label-example">예시</div>
+<pre>/email?p=코랄뷰 고등학교,admin@coralview.edu,학생 전체,[긴급] 금요일 체육대회 일정 변경 안내,2025년 1월 14일 오전 9:00,안녕하세요%20코랄뷰 고등학교입니다.%0A%0A금요일 예정이었던 체육대회가 우천으로 인해 다음 주 월요일로 연기되었습니다.%0A%0A감사합니다.</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명:</strong><br>
+• 본문에서 줄바꿈은 <strong>%0A</strong> 사용<br>
+• 공백은 <strong>%20</strong> 사용<br>
+• 아바타는 보낸사람 이름 첫 글자로 자동 생성<br>
+• 답장/전체답장/전달 버튼 포함</div>`
+      },
+      {
+        id:'t-6-6', title:'인스타 스토리',
+        body:`<div class="label label-use">URL 파라미터 형식</div>
+<pre>/story?p=@유저,시간,이미지설명,[캡션]</pre>
+<hr class="divider">
+<div class="label label-example">예시</div>
+<pre>/story?p=@jaymccoy,14분%20전,파티 초대장 사진. Saturday라고 적혀있음. 배경은 라커룸 벤치,내일 보자 🎉</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명:</strong><br>
+• 캡션은 선택사항 (없으면 이미지만 표시)<br>
+• 프로그레스 바, 닫기 버튼, 메시지 입력창 포함<br>
+• 전체 화면 스토리 레이아웃</div>`
+      },
+      {
+        id:'t-6-7', title:'검색 결과 페이지',
+        body:`<div class="label label-use">URL 파라미터 형식</div>
+<pre>/search?q=검색어,결과수
+&r=제목,URL,스니펫|제목,URL,스니펫
+&a=관련검색1|관련검색2|관련검색3</pre>
+<hr class="divider">
+<div class="label label-example">예시</div>
+<pre>/search?q=코랄뷰 고등학교 사건,12400
+&r=코랄뷰고 풋볼부 폭행 사건 전말,coralview-news.com,코랄뷰 고등학교 풋볼부에서 발생한 폭행 사건의 전말이 밝혀졌다|코랄뷰 고등학교 - 나무위키,namu.wiki,코랄뷰 고등학교는 플로리다주에 위치한 공립 고등학교
+&a=코랄뷰 고등학교 위치|코랄뷰 풋볼부 명단|코랄뷰 사건 후속</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명:</strong><br>
+• <strong>&r=</strong> 검색 결과 (제목,URL,스니펫을 <strong>|</strong>로 구분)<br>
+• <strong>&a=</strong> 관련 검색어 (선택사항, <strong>|</strong>로 구분)<br>
+• 파비콘은 URL 첫 글자로 자동 생성</div>`
+      },
+      {
+        id:'t-6-8', title:'뉴스 기사',
+        body:`<div class="label label-use">URL 파라미터 형식</div>
+<pre>/news?p=매체명,카테고리,제목,부제,기자,날짜,이미지설명,본문</pre>
+<hr class="divider">
+<div class="label label-example">예시</div>
+<pre>/news?p=Coral View Herald,사건사고,체육관 천장 붕괴로 3명 부상,금요일 오후 체육 수업 중 발생,김수현 기자,2025년 1월 15일,무너진 체육관 천장 잔해 사진,15일 오후 2시경 코랄뷰 고등학교 체육관에서 천장 일부가 붕괴되는 사고가 발생했다.%0A%0A이 사고로 학생 2명과 교사 1명이 경상을 입고 인근 병원으로 이송되었다.</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명:</strong><br>
+• 부제는 선택사항 (없으면 빈칸 가능)<br>
+• 본문 줄바꿈은 <strong>%0A</strong> 사용<br>
+• 매체명 + 카테고리가 상단 바에 표시됨<br>
+• 공유/저장/댓글 버튼 포함</div>`
+      },
+      {
+        id:'t-6-9', title:'공문서 / 서식',
+        body:`<div class="label label-use">URL 파라미터 형식</div>
+<pre>/doc?p=기관명,문서유형,제목,스탬프라벨
+&i=라벨:값|라벨:값|라벨:값
+&b=본문내용
+&t=헤더1:헤더2:헤더3|값1:값2:값3|값1:값2:값3
+&f=푸터텍스트,직인텍스트</pre>
+<hr class="divider">
+<div class="label label-example">예시 — 성적표</div>
+<pre>/doc?p=코랄뷰 고등학교,성적 통지서,2024학년도 2학기 성적표,OFFICIAL
+&i=학생명:Alex Carter|학번:2024-0312|학년/반:2학년 3반|담임:Ms. Thompson
+&t=과목:점수:등급:석차|영어:92:A:12/240|수학:78:B+:45/240|체육:98:A+:3/240|역사:85:B+:28/240
+&f=2025년 1월 20일 발행,코랄뷰 고등학교장</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명:</strong><br>
+• <strong>&i=</strong> 정보 그리드 (라벨:값을 <strong>|</strong>로 구분)<br>
+• <strong>&t=</strong> 표 데이터 (선택사항, 첫 줄이 헤더)<br>
+• <strong>&f=</strong> 푸터 + 직인 텍스트 (직인 없으면 생략 가능)<br>
+• 성적표, 정학 통보, 계약서, 진단서 등 범용</div>`
+      },
+      {
+        id:'t-6-10', title:'게시판',
+        body:`<div class="label label-use">URL 파라미터 형식</div>
+<pre>/board?b=게시판이름,[총게시글수]
+&tabs=전체|인기|공지|자유
+&p=태그,제목,작성자,시간,조회,좋아요,[댓글수]|태그,제목,...</pre>
+<hr class="divider">
+<div class="label label-example">예시</div>
+<pre>/board?b=코랄뷰 대나무숲,1842
+&tabs=전체|인기|제보|자유
+&p=hot,체육관에서 고백하다 차인 사람 누구임 ㅋㅋ,ㅇㅇ,2시간전,3420,89,47|notice,금요일 체육대회 공지,학생회,오늘,1204,12,3|new,새로 전학온 애 봄?,익명,32분전,892,34,21|normal,급식 왜 이래,배고파,1시간전,445,8,6</pre>
+<hr class="divider">
+<div class="desc"><strong>태그 종류:</strong><br>
+• <strong>notice</strong> — 공지 (로즈)<br>
+• <strong>hot</strong> — HOT (샌드)<br>
+• <strong>new</strong> — NEW (핑크)<br>
+• <strong>normal</strong> — 일반 (인디고)<br>
+• 커스텀 텍스트도 가능 (예: 제보, 익명 등)</div>`
+      },
+      {
+        id:'t-6-11', title:'디스코드',
+        body:`<div class="label label-use">URL 파라미터 형식</div>
+<pre>/discord?ch=채널이름,[토픽]
+&m=닉네임,역할색,역할태그,시간,내용,[리액션]|닉네임,...</pre>
+<hr class="divider">
+<div class="label label-example">예시</div>
+<pre>/discord?ch=일반,코랄뷰 비공식 서버
+&m=BlairK,핑크,치어리더,오후 3:22,야 오늘 파티 진짜 가는거지?,👍3 🔥2|JayMcCoy,인디고,QB,오후 3:23,당연하지,|BlairK,핑크,치어리더,오후 3:23,늦으면 죽는다 진짜로,😂5|NoxymX,샌드,,오후 3:25,나도 가도 됨?</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명:</strong><br>
+• <strong>역할색:</strong> 인디고/핑크/샌드/로즈/빨강/초록/파랑/노랑<br>
+• <strong>역할태그:</strong> 닉 옆에 뱃지로 표시 (빈칸이면 생략)<br>
+• <strong>리액션:</strong> 이모지+숫자 공백으로 구분 (예: 👍3 🔥5)<br>
+• 같은 닉네임 연속이면 자동으로 이어붙임</div>`
+      },
+      {
+        id:'t-6-12a', title:'디스코드 음성채널',
+        body:`<div class="label label-use">URL 파라미터 형식</div>
+<pre>/voice?s=서버이름,[내닉네임]
+&t=텍채1|텍채2|텍채3
+&v=음성채널이름,멤버1:역할색:상태:아이콘|멤버2:역할색:상태:아이콘;음성채널2,멤버...
+&active=현재접속중인채널이름</pre>
+<hr class="divider">
+<div class="label label-example">예시</div>
+<pre>/voice?s=코랄뷰 비공식,Alex
+&t=일반|공지|잡담
+&v=파티 준비,BlairK:핑크:online:|JayMcCoy:인디고:online:stream|NoxymX:샌드:idle:mute;스터디,Lisa:로즈:online:|Mark:흰색:dnd:deaf
+&active=파티 준비</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명:</strong><br>
+• <strong>상태:</strong> online(초록) / idle(노랑) / dnd(빨강) / streaming(보라)<br>
+• <strong>아이콘:</strong> mute / deaf / stream / video (공백으로 복수 가능)<br>
+• 음성채널 여러 개는 <strong>;</strong>으로 구분<br>
+• <strong>&active=</strong> 설정하면 하단에 '음성 연결됨' 바 표시<br>
+• 텍스트 채널 목록, 유저 패널, 연결 해제 버튼 포함</div>`
+      },
+      {
+        id:'t-6-12', title:'바베챗 프롬프트에서 호출',
         body:`<div class="label label-use">사용법</div>
 <div class="desc">바베챗은 마크다운 이미지 문법 <strong>![](URL)</strong>을 지원하므로, Workers URL을 이 형식으로 출력하면 대화창에 UI가 렌더링됨.</div>
 <pre># 프롬프트 예시 (캐릭터 상세설정에 삽입)
 
-## SNS UI 출력 규칙
-- 인스타 장면 필요 시:
-  ![](https://너의도메인.workers.dev/insta?p=@유저,팔로워,댓글수,시간,이미지설명,캡션,[번역],해시태그&c=닉,댓글,[번역],좋아요)
-- 트위터 장면 필요 시:
-  ![](https://너의도메인.workers.dev/twitter?p=@handle,표시이름,시간,본문,[번역],[이미지설명],답글,RT,인용,좋아요,북마크)
-- 카카오톡 장면 필요 시:
-  ![](https://너의도메인.workers.dev/kakao?r=방이름,날짜,인원&m=이름,내용,시간,읽음|이름,내용,시간,읽음,me)</pre>
+## SNS UI 출력 규칙 (12종)
+- 인스타 피드:
+  ![](https://도메인/insta?p=...)
+- 인스타 스토리:
+  ![](https://도메인/story?p=@유저,시간,이미지설명,[캡션])
+- 트위터:
+  ![](https://도메인/twitter?p=...)
+- 카카오톡:
+  ![](https://도메인/kakao?r=...&m=...)
+- 레딧:
+  ![](https://도메인/reddit?p=...&c=...)
+- 잠금화면:
+  ![](https://도메인/lock?t=...&n=...)
+- 이메일:
+  ![](https://도메인/email?p=...)
+- 검색 결과:
+  ![](https://도메인/search?q=...&r=...&a=...)
+- 뉴스 기사:
+  ![](https://도메인/news?p=...)
+- 공문서/서식:
+  ![](https://도메인/doc?p=기관,유형,제목,스탬프&i=라벨:값&b=본문&t=표&f=푸터,직인)
+- 게시판:
+  ![](https://도메인/board?b=이름,수&tabs=탭들&p=태그,제목,작성자,시간,조회,좋아요,댓글)
+- 디스코드:
+  ![](https://도메인/discord?ch=채널,토픽&m=닉,색,태그,시간,내용,리액션)
+- 디스코드 음성:
+  ![](https://도메인/voice?s=서버,내닉&t=텍채들&v=음채,멤버:색:상태:아이콘&active=채널)</pre>
 <hr class="divider">
-<div class="desc"><strong>주의:</strong> URL 내 공백은 <strong>%20</strong>으로, #은 <strong>%23</strong>으로 인코딩 필요</div>`
+<div class="desc"><strong>인코딩:</strong> 공백 → <strong>%20</strong> / # → <strong>%23</strong> / 줄바꿈 → <strong>%0A</strong> / 콜론 → <strong>%3A</strong></div>`
       }
     ]
   },
@@ -814,13 +1001,14 @@ export default {
         id:'t-7-2', title:'새 UI 추가하기',
         body:`<div class="label label-use">확장 방법</div>
 <div class="desc">새로운 UI (레딧, 이메일, 잠금화면 등)를 추가할 때마다 worker.js에 경로 한 줄 + HTML 함수 추가.</div>
-<pre># 경로 구조
-/insta    → 인스타그램
-/twitter  → 트위터
-/kakao    → 카카오톡
-/reddit   → 레딧 (나중에 추가)
-/email    → 이메일 (나중에 추가)
-/lock     → 잠금화면 (나중에 추가)</pre>
+<pre># 경로 구조 (13종)
+/insta    → 인스타그램 피드     /lock     → 잠금화면 알림
+/story    → 인스타 스토리       /email    → 이메일
+/twitter  → 트위터             /search   → 검색 결과
+/kakao    → 카카오톡           /news     → 뉴스 기사
+/reddit   → 레딧 스레드        /doc      → 공문서/서식
+/board    → 게시판             /discord  → 디스코드 채팅
+/voice    → 디스코드 음성</pre>
 <hr class="divider">
 <div class="desc"><strong>무료 한도:</strong> 하루 10만 건 요청까지 무료. 롤플레이용으로는 충분.</div>`
       }
@@ -841,7 +1029,17 @@ export default {
 <div class="desc">
 • <strong>인스타:</strong> 아바타 링 그라데이션, 이미지 플레이스홀더, 해시태그, 좋아요<br>
 • <strong>트위터:</strong> 배경 색조, 아바타 그라데이션, verified 배지, hover<br>
-• <strong>카카오:</strong> 배경(보라-회), 내 말풍선(핑크), 읽음수, 전송버튼(인디고)</div>`
+• <strong>카카오:</strong> 배경(보라-회), 내 말풍선(핑크), 읽음수, 전송버튼(인디고)<br>
+• <strong>레딧:</strong> 배경(다크퍼플), 서브레딧(인디고), 작성자(샌드), 댓글닉(핑크), 업보트(로즈)<br>
+• <strong>잠금화면:</strong> 인스타 알림(로즈→인디고), SNS 알림(인디고→핑크), 앱 알림(샌드→로즈)<br>
+• <strong>이메일:</strong> 아바타(인디고→로즈), 답장 버튼(인디고), 배경(연핑크)<br>
+• <strong>스토리:</strong> 아바타 링(샌드→로즈→인디고), 이미지 설명(핑크), 배경(다크퍼플)<br>
+• <strong>검색:</strong> 제목 링크(인디고), URL(샌드), 하이라이트(핑크), 배경(다크퍼플)<br>
+• <strong>뉴스:</strong> 매체명(핑크), 카테고리(로즈), 기자명(인디고), 이미지 플레이스홀더(핑크)<br>
+• <strong>공문서:</strong> 기관명(핑크), 스탬프(샌드), 직인(로즈), 표 헤더(다크+핑크)<br>
+• <strong>게시판:</strong> 게시판명(인디고), 공지태그(로즈), HOT태그(샌드), NEW태그(핑크), 추천수(인디고)<br>
+• <strong>디스코드:</strong> 역할색(4색), 멘션(인디고), 리액션 테두리(인디고), 아바타(자동색상)<br>
+• <strong>디스코드 음성:</strong> 역할색(4색+기본), 접속 상태 점(초/노/빨/보), 하단 연결바(초록)</div>`
       }
     ]
   }

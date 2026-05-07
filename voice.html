@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Discord Voice</title>
+<style>
+  :root {
+    --col-indigo: #8889CD;
+    --col-pink:   #DDAACC;
+    --col-sand:   #CCAA88;
+    --col-rose:   #BB6688;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #2b2d31;
+    font-family: 'gg sans', 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+  }
+  .discord-vc {
+    width: 100%;
+    max-width: 280px;
+    background: #2b2d31;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  /* Server name */
+  .server-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid #1e1f22;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .server-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #f2f3f5;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .server-chevron {
+    font-size: 11px;
+    color: #80848e;
+  }
+
+  /* Channel list */
+  .channel-list {
+    flex: 1;
+    padding: 8px 0;
+    overflow-y: auto;
+  }
+
+  /* Category */
+  .category {
+    padding: 18px 8px 4px 16px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #80848e;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+  }
+  .category-arrow {
+    font-size: 8px;
+    color: #80848e;
+  }
+
+  /* Text channels */
+  .text-channel {
+    padding: 6px 8px 6px 16px;
+    margin: 1px 8px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .text-channel:hover { background: rgba(255,255,255,0.04); }
+  .text-channel.active { background: rgba(255,255,255,0.06); color: #f2f3f5; }
+  .text-channel .ch-hash {
+    font-size: 18px;
+    color: #80848e;
+    font-weight: 500;
+    width: 20px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .text-channel .ch-name {
+    font-size: 15px;
+    color: #80848e;
+    font-weight: 500;
+  }
+  .text-channel.active .ch-name { color: #f2f3f5; }
+  .text-channel:hover .ch-name { color: #dbdee1; }
+
+  /* Voice channel */
+  .voice-channel {
+    padding: 6px 8px 6px 16px;
+    margin: 1px 8px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .voice-channel:hover { background: rgba(255,255,255,0.04); }
+  .voice-channel .vc-icon {
+    font-size: 18px;
+    color: #80848e;
+    width: 20px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .voice-channel .vc-name {
+    font-size: 15px;
+    color: #80848e;
+    font-weight: 500;
+    flex: 1;
+  }
+  .voice-channel.active-vc .vc-name { color: #23a55a; }
+  .voice-channel .vc-count {
+    font-size: 12px;
+    color: #80848e;
+    background: rgba(255,255,255,0.06);
+    padding: 1px 6px;
+    border-radius: 8px;
+  }
+
+  /* Voice members */
+  .vc-members {
+    padding: 0 0 4px 44px;
+  }
+  .vc-member {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    margin: 1px 0;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .vc-member:hover { background: rgba(255,255,255,0.04); }
+  .vc-member-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .vc-member-status {
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 2px solid #2b2d31;
+  }
+  .status-online { background: #23a55a; }
+  .status-idle { background: #f0b232; }
+  .status-dnd { background: #f23f43; }
+  .status-streaming { background: #593695; }
+  .vc-member-name {
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .vc-member-icons {
+    margin-left: auto;
+    display: flex;
+    gap: 4px;
+    font-size: 12px;
+    color: #80848e;
+    flex-shrink: 0;
+  }
+  .icon-muted { color: #f23f43; }
+  .icon-deafened { color: #f23f43; }
+  .icon-streaming { color: #593695; }
+  .icon-video { color: #23a55a; }
+
+  /* Connected bar */
+  .connected-bar {
+    background: #232428;
+    border-top: 1px solid #1e1f22;
+    padding: 8px 12px;
+  }
+  .connected-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .connected-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #23a55a;
+    flex-shrink: 0;
+  }
+  .connected-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: #23a55a;
+  }
+  .connected-channel {
+    font-size: 12px;
+    color: #80848e;
+    font-weight: 500;
+  }
+  .connected-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+  }
+  .vc-action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #383a40;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: #b5bac1;
+    transition: all 0.15s;
+  }
+  .vc-action-btn:hover { background: #43444b; }
+  .vc-action-btn.disconnect { background: #a12d2f; color: #fff; }
+  .vc-action-btn.disconnect:hover { background: #c93b3e; }
+
+  /* User panel */
+  .user-panel {
+    background: #232428;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-top: 1px solid #1e1f22;
+  }
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .user-info { flex: 1; min-width: 0; }
+  .user-display {
+    font-size: 14px;
+    font-weight: 600;
+    color: #f2f3f5;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .user-status-text {
+    font-size: 12px;
+    color: #80848e;
+  }
+  .user-actions {
+    display: flex;
+    gap: 4px;
+  }
+  .user-action-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    color: #b5bac1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+  }
+  .user-action-btn:hover { background: rgba(255,255,255,0.08); }
+</style>
+</head>
+<body>
+<div class="discord-vc">
+  <div class="server-header">
+    <span class="server-name" id="server-name">서버 이름</span>
+    <span class="server-chevron">▼</span>
+  </div>
+
+  <div class="channel-list" id="channel-list"></div>
+
+  <div class="connected-bar" id="connected-bar" style="display:none">
+    <div class="connected-info">
+      <div class="connected-dot"></div>
+      <span class="connected-text">음성 연결됨</span>
+    </div>
+    <div class="connected-channel" id="connected-ch"></div>
+    <div class="connected-actions">
+      <button class="vc-action-btn">📷</button>
+      <button class="vc-action-btn">🖥</button>
+      <button class="vc-action-btn">🎤</button>
+      <button class="vc-action-btn">🎧</button>
+      <button class="vc-action-btn disconnect">📞</button>
+    </div>
+  </div>
+
+  <div class="user-panel">
+    <div class="user-avatar" id="user-avatar" style="background:#5865f2">나</div>
+    <div class="user-info">
+      <div class="user-display" id="user-display">나</div>
+      <div class="user-status-text">온라인</div>
+    </div>
+    <div class="user-actions">
+      <button class="user-action-btn">🎤</button>
+      <button class="user-action-btn">🎧</button>
+      <button class="user-action-btn">⚙</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ?s=서버이름,[내닉네임]
+// &t=채널1|채널2|채널3  (텍스트 채널 목록)
+// &v=음성채널이름,멤버1:역할색:상태:아이콘|멤버2:역할색:상태:아이콘;음성채널2,멤버...
+//   상태: online, idle, dnd, streaming
+//   아이콘: mute, deaf, stream, video (공백구분 복수 가능)
+// &active=현재접속중인음성채널이름  (선택 - 하단 연결 바 표시)
+
+function avatarBg(name) {
+  const colors = ['#5865f2','#eb459e','#57f287','#fee75c','#ed4245','#8889CD','#BB6688','#CCAA88'];
+  let h = 0;
+  for (let c of name) h = (h * 31 + c.charCodeAt(0)) % colors.length;
+  return colors[Math.abs(h)];
+}
+
+function roleColor(c) {
+  const map = {
+    '인디고': '#8889CD', '핑크': '#DDAACC', '샌드': '#CCAA88',
+    '로즈': '#BB6688', '빨강': '#ed4245', '초록': '#57f287',
+    '파랑': '#5865f2', '노랑': '#fee75c', '흰색': '#f2f3f5'
+  };
+  return map[c] || '#b5bac1';
+}
+
+function parseParams() {
+  const params = new URLSearchParams(window.location.search);
+  const s = params.get('s');
+  const t = params.get('t');
+  const v = params.get('v');
+  const active = params.get('active');
+
+  let myName = '나';
+  if (s) {
+    const sp = s.split(',');
+    document.getElementById('server-name').textContent = sp[0] || '서버';
+    if (sp[1]) {
+      myName = sp[1];
+      document.getElementById('user-display').textContent = sp[1];
+      document.getElementById('user-avatar').textContent = sp[1].charAt(0);
+      document.getElementById('user-avatar').style.background = avatarBg(sp[1]);
+    }
+  }
+
+  const list = document.getElementById('channel-list');
+
+  // 텍스트 채널
+  if (t) {
+    const catDiv = document.createElement('div');
+    catDiv.innerHTML = '<div class="category"><span class="category-arrow">▼</span> 채팅 채널</div>';
+    list.appendChild(catDiv);
+
+    t.split('|').forEach((ch, i) => {
+      const div = document.createElement('div');
+      div.className = 'text-channel' + (i === 0 ? ' active' : '');
+      div.innerHTML = `<span class="ch-hash">#</span><span class="ch-name">${ch}</span>`;
+      list.appendChild(div);
+    });
+  }
+
+  // 음성 채널
+  if (v) {
+    const catDiv = document.createElement('div');
+    catDiv.innerHTML = '<div class="category"><span class="category-arrow">▼</span> 음성 채널</div>';
+    list.appendChild(catDiv);
+
+    v.split(';').forEach(vcRaw => {
+      const [vcInfo, ...rest] = vcRaw.split(',');
+      const vcName = vcInfo || '음성';
+      const membersRaw = rest.join(',');
+
+      // Parse members
+      const members = [];
+      if (membersRaw) {
+        membersRaw.split('|').forEach(mRaw => {
+          const parts = mRaw.split(':');
+          members.push({
+            name: parts[0] || '',
+            color: parts[1] || '',
+            status: parts[2] || 'online',
+            icons: parts[3] || ''
+          });
+        });
+      }
+
+      const isActive = active && vcName === active;
+
+      const vcDiv = document.createElement('div');
+      vcDiv.className = 'voice-channel' + (isActive ? ' active-vc' : '');
+      vcDiv.innerHTML = `
+        <span class="vc-icon">🔊</span>
+        <span class="vc-name">${vcName}</span>
+        ${members.length > 0 ? `<span class="vc-count">${members.length}</span>` : ''}
+      `;
+      list.appendChild(vcDiv);
+
+      // Members
+      if (members.length > 0) {
+        const membersDiv = document.createElement('div');
+        membersDiv.className = 'vc-members';
+
+        members.forEach(m => {
+          const color = roleColor(m.color);
+          const statusClass = 'status-' + m.status;
+          let iconsHtml = '';
+          if (m.icons) {
+            const iconMap = { mute: '🔇', deaf: '🔇', stream: '🖥', video: '📷' };
+            m.icons.split(' ').forEach(ic => {
+              const cls = (ic === 'mute' || ic === 'deaf') ? ' icon-muted' : (ic === 'stream' ? ' icon-streaming' : ' icon-video');
+              iconsHtml += `<span class="${cls}">${iconMap[ic] || ''}</span>`;
+            });
+          }
+
+          const mDiv = document.createElement('div');
+          mDiv.className = 'vc-member';
+          mDiv.innerHTML = `
+            <div class="vc-member-avatar" style="background:${avatarBg(m.name)}">
+              ${m.name.charAt(0)}
+              <div class="vc-member-status ${statusClass}"></div>
+            </div>
+            <span class="vc-member-name" style="color:${color}">${m.name}</span>
+            <div class="vc-member-icons">${iconsHtml}</div>
+          `;
+          membersDiv.appendChild(mDiv);
+        });
+
+        list.appendChild(membersDiv);
+      }
+    });
+
+    // Connected bar
+    if (active) {
+      document.getElementById('connected-bar').style.display = 'block';
+      document.getElementById('connected-ch').textContent = `🔊 ${active}`;
+    }
+  }
+}
+parseParams();
+</script>
+</body>
+</html>

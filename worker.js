@@ -1,9 +1,7 @@
-// ═══════════════════════════════════════════════════════════════
-// 겨울의 SNS UI Workers v5 — 13종 UI
-// ═══════════════════════════════════════════════════════════════
-
+// 겨울의 SNS UI Workers v7 — 15종 UI
+// 사용법: /?t=insta&p=... /?t=kakao&r=...&m=...
 const PAGES = {
-  '/insta': `<!DOCTYPE html>
+  'insta': `<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -430,7 +428,7 @@ parseParams();
 </body>
 </html>
 `,
-  '/twitter': `<!DOCTYPE html>
+  'twitter': `<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -739,7 +737,7 @@ parseParams();
 </body>
 </html>
 `,
-  '/kakao': `<!DOCTYPE html>
+  'kakao': `<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -1132,7 +1130,7 @@ parseParams();
 </body>
 </html>
 `,
-  '/reddit': `<!DOCTYPE html>
+  'reddit': `<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -1334,7 +1332,7 @@ parseParams();
 </body>
 </html>
 `,
-  '/lock': `<!DOCTYPE html>
+  'lock': `<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -1525,11 +1523,11 @@ parseParams();
 // 타입: msg, call, insta, sns, mail, app
 function parseParams() {
   const params = new URLSearchParams(window.location.search);
-  const t = params.get('t');
+  const timeParam = params.get('time') || params.get('t');
   const n = params.get('n');
 
-  if (t) {
-    const tp = t.split(',');
+  if (timeParam) {
+    const tp = timeParam.split(',');
     const time = tp[0] || '12:00';
     const date = tp[1] || '';
     document.getElementById('lock-time').textContent = time;
@@ -1574,7 +1572,7 @@ parseParams();
 </body>
 </html>
 `,
-  '/email': `<!DOCTYPE html>
+  'email': `<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -1773,7 +1771,7 @@ parseParams();
 </body>
 </html>
 `,
-  '/story': `<!DOCTYPE html>
+  'story': `<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -2003,7 +2001,7 @@ parseParams();
 </body>
 </html>
 `,
-  '/search': `<!DOCTYPE html>
+  'search': `<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -2237,7 +2235,7 @@ parseParams();
 </body>
 </html>
 `,
-  '/news': `<!DOCTYPE html>
+  'news': `<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -2468,7 +2466,7 @@ parseParams();
 </body>
 </html>
 `,
-  '/doc': `<!DOCTYPE html>
+  'doc': `<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -2714,7 +2712,7 @@ parseParams();
 </body>
 </html>
 `,
-  '/board': `<!DOCTYPE html>
+  'board': `<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -2942,7 +2940,7 @@ parseParams();
 </body>
 </html>
 `,
-  '/discord': `<!DOCTYPE html>
+  'discord': `<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -3256,7 +3254,7 @@ parseParams();
 </body>
 </html>
 `,
-  '/voice': `<!DOCTYPE html>
+  'voice': `<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -3742,25 +3740,877 @@ parseParams();
 </body>
 </html>
 `,
+  'discord-full': `<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Discord Full</title>
+<style>
+  :root {
+    --col-indigo: #8889CD;
+    --col-pink:   #DDAACC;
+    --col-sand:   #CCAA88;
+    --col-rose:   #BB6688;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #313338;
+    font-family: 'gg sans', 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+  }
+  .app {
+    width: 100%;
+    max-width: 800px;
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* Server bar */
+  .server-bar {
+    width: 52px;
+    background: #1e1f22;
+    padding: 8px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .server-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    cursor: pointer;
+    transition: border-radius 0.2s;
+    position: relative;
+  }
+  .server-icon:hover { border-radius: 12px; }
+  .server-icon.active { border-radius: 12px; }
+  .server-icon .indicator {
+    position: absolute;
+    left: -8px;
+    width: 4px;
+    height: 8px;
+    background: #fff;
+    border-radius: 0 4px 4px 0;
+  }
+  .server-icon.active .indicator { height: 32px; }
+  .server-divider {
+    width: 28px;
+    height: 2px;
+    background: #35363c;
+    border-radius: 1px;
+    margin: 2px 0;
+  }
+  .home-icon {
+    background: #313338;
+    border-radius: 50%;
+  }
+  .home-icon:hover { background: #5865f2; border-radius: 12px; }
+
+  /* Channel sidebar */
+  .channel-side {
+    width: 180px;
+    background: #2b2d31;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+  .server-header {
+    padding: 12px 12px;
+    border-bottom: 1px solid #1e1f22;
+    font-size: 14px;
+    font-weight: 700;
+    color: #f2f3f5;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .channels { flex: 1; padding: 8px 0; overflow-y: auto; }
+  .category {
+    padding: 16px 8px 4px 12px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #80848e;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .ch-item {
+    padding: 5px 8px 5px 12px;
+    margin: 1px 6px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #80848e;
+    font-weight: 500;
+    transition: background 0.1s;
+  }
+  .ch-item:hover { background: rgba(255,255,255,0.04); color: #dbdee1; }
+  .ch-item.active { background: rgba(255,255,255,0.06); color: #f2f3f5; }
+  .ch-icon { width: 18px; text-align: center; font-size: 16px; flex-shrink: 0; }
+
+  /* Voice members in sidebar */
+  .vc-members-side { padding-left: 36px; }
+  .vc-member-side {
+    padding: 3px 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #80848e;
+  }
+  .vc-av-sm {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 700; color: #fff; flex-shrink: 0;
+  }
+
+  /* User panel */
+  .user-panel {
+    background: #232428;
+    padding: 6px 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-top: 1px solid #1e1f22;
+  }
+  .user-av {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0;
+  }
+  .user-name { font-size: 12px; font-weight: 600; color: #f2f3f5; flex: 1; }
+  .user-btns { display: flex; gap: 2px; }
+  .user-btn {
+    width: 24px; height: 24px; background: none; border: none;
+    cursor: pointer; font-size: 13px; color: #b5bac1; border-radius: 4px;
+  }
+
+  /* Chat area */
+  .chat-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #313338;
+    min-width: 0;
+  }
+  .chat-header {
+    padding: 10px 14px;
+    border-bottom: 1px solid #1e1f22;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #f2f3f5;
+    flex-shrink: 0;
+  }
+  .chat-header-hash { color: #80848e; font-weight: 500; }
+  .chat-header-topic {
+    font-size: 12px; color: #80848e; font-weight: 400;
+    margin-left: 8px; padding-left: 8px;
+    border-left: 1px solid #3f4147;
+  }
+
+  /* Messages */
+  .messages {
+    flex: 1;
+    padding: 12px 0;
+    overflow-y: auto;
+  }
+  .date-divider {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 16px; margin: 8px 0;
+  }
+  .date-divider::before, .date-divider::after {
+    content: ''; flex: 1; height: 1px; background: #3f4147;
+  }
+  .date-divider span {
+    font-size: 11px; font-weight: 700; color: #80848e;
+    white-space: nowrap;
+  }
+
+  .msg-group {
+    padding: 2px 16px;
+    display: flex;
+    gap: 14px;
+    margin-top: 14px;
+  }
+  .msg-group:hover { background: rgba(0,0,0,0.06); }
+  .msg-avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    flex-shrink: 0; display: flex; align-items: center;
+    justify-content: center; font-size: 15px; font-weight: 700; color: #fff;
+  }
+  .msg-content { flex: 1; min-width: 0; }
+  .msg-header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 2px; }
+  .msg-author { font-size: 15px; font-weight: 600; cursor: pointer; }
+  .msg-author:hover { text-decoration: underline; }
+  .msg-time { font-size: 11px; color: #80848e; }
+  .msg-text { font-size: 15px; color: #dbdee1; line-height: 1.4; word-break: break-word; }
+
+  .msg-cont {
+    padding: 1px 16px 1px 70px;
+  }
+  .msg-cont:hover { background: rgba(0,0,0,0.06); }
+
+  /* Chat input */
+  .chat-input {
+    padding: 0 14px 20px;
+    flex-shrink: 0;
+  }
+  .input-box {
+    background: #383a40;
+    border-radius: 8px;
+    padding: 9px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .input-plus { font-size: 18px; color: #b5bac1; cursor: pointer; }
+  .input-text { flex: 1; font-size: 15px; color: #6d6f78; }
+  .input-icons { display: flex; gap: 6px; font-size: 16px; color: #b5bac1; }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Server bar -->
+  <div class="server-bar" id="server-bar">
+    <div class="server-icon home-icon">🏠</div>
+    <div class="server-divider"></div>
+  </div>
+
+  <!-- Channel sidebar -->
+  <div class="channel-side">
+    <div class="server-header" id="server-name">서버</div>
+    <div class="channels" id="channels"></div>
+    <div class="user-panel">
+      <div class="user-av" id="user-av" style="background:#5865f2">나</div>
+      <span class="user-name" id="user-name">나</span>
+      <div class="user-btns">
+        <button class="user-btn">🎤</button>
+        <button class="user-btn">🎧</button>
+        <button class="user-btn">⚙</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat -->
+  <div class="chat-area">
+    <div class="chat-header">
+      <span class="chat-header-hash">#</span>
+      <span id="chat-ch-name">일반</span>
+      <span class="chat-header-topic" id="chat-topic"></span>
+    </div>
+    <div class="messages" id="messages"></div>
+    <div class="chat-input">
+      <div class="input-box">
+        <span class="input-plus">＋</span>
+        <span class="input-text" id="input-ph">#일반에 메시지 보내기</span>
+        <div class="input-icons"><span>😀</span><span>🎁</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ?s=서버이름,내닉네임
+// &sv=서버약자1:색|서버약자2:색  (왼쪽 서버 아이콘들, 첫번째가 active)
+// &tc=텍채1|텍채2|텍채3  (active는 첫번째)
+// &vc=음챗이름,멤버1|멤버2|멤버3;음챗2,멤버...
+// &ch=현재채널이름,[토픽]
+// &d=날짜구분텍스트  (선택)
+// &m=닉네임,역할색,시간,내용|닉네임,...
+
+function avatarBg(name) {
+  const colors = ['#5865f2','#eb459e','#57f287','#fee75c','#ed4245','#8889CD','#BB6688','#CCAA88'];
+  let h = 0;
+  for (let c of name) h = (h * 31 + c.charCodeAt(0)) % colors.length;
+  return colors[Math.abs(h)];
+}
+function roleColor(c) {
+  const map = {
+    '인디고':'#8889CD','핑크':'#DDAACC','샌드':'#CCAA88',
+    '로즈':'#BB6688','빨강':'#ed4245','초록':'#57f287',
+    '파랑':'#5865f2','노랑':'#fee75c','흰색':'#f2f3f5'
+  };
+  return map[c] || '#b5bac1';
+}
+
+function parseParams() {
+  const params = new URLSearchParams(window.location.search);
+  const s = params.get('s');
+  const sv = params.get('sv');
+  const tc = params.get('tc');
+  const vc = params.get('vc');
+  const ch = params.get('ch');
+  const d = params.get('d');
+  const m = params.get('m');
+
+  let myName = '나';
+  if (s) {
+    const sp = s.split(',');
+    document.getElementById('server-name').textContent = sp[0] || '서버';
+    if (sp[1]) {
+      myName = sp[1];
+      document.getElementById('user-name').textContent = sp[1];
+      document.getElementById('user-av').textContent = sp[1].charAt(0);
+      document.getElementById('user-av').style.background = avatarBg(sp[1]);
+    }
+  }
+
+  // Server icons
+  if (sv) {
+    const bar = document.getElementById('server-bar');
+    sv.split('|').forEach((raw, i) => {
+      const [abbr, color] = raw.split(':');
+      const div = document.createElement('div');
+      div.className = 'server-icon' + (i === 0 ? ' active' : '');
+      div.style.background = color || avatarBg(abbr);
+      div.textContent = abbr;
+      if (i === 0) div.innerHTML = '<div class="indicator"></div>' + abbr;
+      bar.appendChild(div);
+    });
+  }
+
+  // Channels
+  const chList = document.getElementById('channels');
+  if (tc) {
+    const cat = document.createElement('div');
+    cat.className = 'category';
+    cat.textContent = '▾ 채팅 채널';
+    chList.appendChild(cat);
+
+    const activeChName = ch ? ch.split(',')[0] : '';
+    tc.split('|').forEach(name => {
+      const div = document.createElement('div');
+      div.className = 'ch-item' + (name === activeChName ? ' active' : '');
+      div.innerHTML = \`<span class="ch-icon">#</span>\${name}\`;
+      chList.appendChild(div);
+    });
+  }
+
+  if (vc) {
+    const cat = document.createElement('div');
+    cat.className = 'category';
+    cat.textContent = '▾ 음성 채널';
+    chList.appendChild(cat);
+
+    vc.split(';').forEach(vcRaw => {
+      const parts = vcRaw.split(',');
+      const vcName = parts[0];
+      const members = parts.slice(1);
+
+      const div = document.createElement('div');
+      div.className = 'ch-item';
+      div.innerHTML = \`<span class="ch-icon">🔊</span>\${vcName}\`;
+      chList.appendChild(div);
+
+      if (members.length > 0 && members[0]) {
+        const mDiv = document.createElement('div');
+        mDiv.className = 'vc-members-side';
+        members.forEach(name => {
+          const md = document.createElement('div');
+          md.className = 'vc-member-side';
+          md.innerHTML = \`<div class="vc-av-sm" style="background:\${avatarBg(name)}">\${name.charAt(0)}</div>\${name}\`;
+          mDiv.appendChild(md);
+        });
+        chList.appendChild(mDiv);
+      }
+    });
+  }
+
+  // Chat header
+  if (ch) {
+    const cp = ch.split(',');
+    document.getElementById('chat-ch-name').textContent = cp[0] || '일반';
+    document.getElementById('input-ph').textContent = \`#\${cp[0] || '일반'}에 메시지 보내기\`;
+    if (cp[1]) document.getElementById('chat-topic').textContent = cp[1];
+  }
+
+  const msgContainer = document.getElementById('messages');
+
+  // Date divider
+  if (d) {
+    const dd = document.createElement('div');
+    dd.className = 'date-divider';
+    dd.innerHTML = \`<span>\${d}</span>\`;
+    msgContainer.appendChild(dd);
+  }
+
+  // Messages
+  if (m) {
+    let lastAuthor = '';
+    m.split('|').forEach(raw => {
+      const seg = raw.split(',');
+      const nick = seg[0] || '';
+      const rColor = seg[1] || '';
+      const time = seg[2] || '';
+      const text = seg.slice(3).join(',') || '';
+      const isCont = nick === lastAuthor;
+      lastAuthor = nick;
+
+      if (isCont) {
+        const div = document.createElement('div');
+        div.className = 'msg-cont';
+        div.innerHTML = \`<div class="msg-text">\${text}</div>\`;
+        msgContainer.appendChild(div);
+      } else {
+        const div = document.createElement('div');
+        div.className = 'msg-group';
+        div.innerHTML = \`
+          <div class="msg-avatar" style="background:\${avatarBg(nick)}">\${nick.charAt(0)}</div>
+          <div class="msg-content">
+            <div class="msg-header">
+              <span class="msg-author" style="color:\${roleColor(rColor)}">\${nick}</span>
+              <span class="msg-time">\${time}</span>
+            </div>
+            <div class="msg-text">\${text}</div>
+          </div>
+        \`;
+        msgContainer.appendChild(div);
+      }
+    });
+  }
+
+  // Scroll to bottom
+  msgContainer.scrollTop = msgContainer.scrollHeight;
+}
+parseParams();
+</script>
+</body>
+</html>
+`,
+  'stream': `<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live Stream</title>
+<style>
+  :root {
+    --col-indigo: #8889CD;
+    --col-pink:   #DDAACC;
+    --col-sand:   #CCAA88;
+    --col-rose:   #BB6688;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0e0a14;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+  }
+  .stream-app {
+    width: 100%;
+    max-width: 820px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  /* Top bar */
+  .top-bar {
+    background: #1a1422;
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid #2a2235;
+  }
+  .top-logo {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--col-indigo);
+  }
+  .top-search {
+    flex: 1;
+    background: #2a2235;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 13px;
+    color: #71677b;
+    max-width: 240px;
+    margin-left: auto;
+  }
+  .top-user {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--col-rose);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: #fff;
+  }
+
+  /* Main content */
+  .main {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+  }
+
+  /* Video section */
+  .video-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  /* Player */
+  .player {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: #111;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .player svg {
+    width: 48px; height: 48px;
+    fill: var(--col-indigo); opacity: 0.3;
+  }
+  .player-desc {
+    font-size: 13px; color: var(--col-pink); opacity: 0.4;
+    text-align: center; padding: 0 20px;
+  }
+  .live-badge {
+    position: absolute;
+    top: 12px; left: 12px;
+    background: #e91916;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+  }
+  .viewer-count {
+    position: absolute;
+    top: 12px; right: 12px;
+    background: rgba(0,0,0,0.6);
+    color: #fff;
+    font-size: 12px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .viewer-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #e91916;
+  }
+
+  /* Player controls */
+  .player-controls {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: linear-gradient(transparent, rgba(0,0,0,0.8));
+    padding: 24px 12px 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .ctrl-btn {
+    background: none; border: none;
+    color: #fff; font-size: 16px; cursor: pointer;
+    padding: 4px;
+  }
+  .ctrl-spacer { flex: 1; }
+  .live-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #e91916;
+  }
+  .live-text { font-size: 12px; color: #fff; font-weight: 600; }
+
+  /* Stream info */
+  .stream-info {
+    padding: 12px 14px;
+    display: flex;
+    gap: 10px;
+    border-bottom: 1px solid #2a2235;
+  }
+  .streamer-avatar {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 700; color: #fff;
+    flex-shrink: 0;
+    border: 2px solid var(--col-rose);
+  }
+  .stream-details { flex: 1; min-width: 0; }
+  .stream-title {
+    font-size: 15px; font-weight: 700; color: #ede8f2;
+    line-height: 1.3;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .streamer-name {
+    font-size: 13px; color: var(--col-indigo); font-weight: 600;
+    margin-top: 2px;
+  }
+  .stream-tags {
+    display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap;
+  }
+  .stream-tag {
+    font-size: 10px; padding: 2px 8px;
+    background: rgba(136,137,205,0.12);
+    color: var(--col-pink);
+    border-radius: 12px; font-weight: 600;
+  }
+  .follow-btn {
+    align-self: center;
+    background: var(--col-rose);
+    border: none; border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 12px; font-weight: 700;
+    color: #fff; cursor: pointer;
+    flex-shrink: 0;
+    font-family: inherit;
+  }
+  .follow-btn:hover { opacity: 0.9; }
+
+  /* Chat sidebar */
+  .chat-side {
+    width: 280px;
+    background: #1a1422;
+    border-left: 1px solid #2a2235;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+  .chat-header {
+    padding: 10px 12px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #ede8f2;
+    border-bottom: 1px solid #2a2235;
+    text-align: center;
+  }
+  .chat-messages {
+    flex: 1;
+    padding: 8px 10px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .chat-msg {
+    font-size: 13px;
+    line-height: 1.5;
+    word-break: break-word;
+  }
+  .chat-nick {
+    font-weight: 700;
+    margin-right: 4px;
+  }
+  .chat-text { color: #b8b0c4; }
+  .chat-system {
+    font-size: 12px;
+    color: #71677b;
+    text-align: center;
+    padding: 4px 0;
+  }
+
+  /* Chat input */
+  .chat-input-area {
+    padding: 8px 10px;
+    border-top: 1px solid #2a2235;
+  }
+  .chat-input-box {
+    background: #2a2235;
+    border-radius: 6px;
+    padding: 8px 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .chat-input-text {
+    flex: 1;
+    font-size: 13px;
+    color: #71677b;
+  }
+  .chat-send {
+    background: var(--col-indigo);
+    border: none; border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 12px; font-weight: 700;
+    color: #fff; cursor: pointer;
+    font-family: inherit;
+  }
+
+  @media (max-width: 600px) {
+    .chat-side { width: 200px; }
+  }
+</style>
+</head>
+<body>
+<div class="stream-app">
+  <div class="top-bar">
+    <span class="top-logo">LIVE</span>
+    <div class="top-search">검색</div>
+    <div class="top-user" id="top-user">U</div>
+  </div>
+
+  <div class="main">
+    <div class="video-section">
+      <div class="player">
+        <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <div class="player-desc" id="player-desc">방송 화면</div>
+        <div class="live-badge">LIVE</div>
+        <div class="viewer-count">
+          <div class="viewer-dot"></div>
+          <span id="viewer-count">0</span>
+        </div>
+        <div class="player-controls">
+          <button class="ctrl-btn">▶</button>
+          <button class="ctrl-btn">🔊</button>
+          <div class="ctrl-spacer"></div>
+          <div class="live-dot"></div>
+          <span class="live-text">LIVE</span>
+          <button class="ctrl-btn">⛶</button>
+        </div>
+      </div>
+      <div class="stream-info">
+        <div class="streamer-avatar" id="streamer-avatar">S</div>
+        <div class="stream-details">
+          <div class="stream-title" id="stream-title">방송 제목</div>
+          <div class="streamer-name" id="streamer-name">스트리머</div>
+          <div class="stream-tags" id="stream-tags"></div>
+        </div>
+        <button class="follow-btn">팔로우</button>
+      </div>
+    </div>
+
+    <div class="chat-side">
+      <div class="chat-header">실시간 채팅</div>
+      <div class="chat-messages" id="chat-messages"></div>
+      <div class="chat-input-area">
+        <div class="chat-input-box">
+          <span class="chat-input-text">채팅을 입력하세요</span>
+          <button class="chat-send">전송</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ?p=스트리머닉,방송제목,시청자수,화면설명,[태그1 태그2 태그3]
+// &c=닉:색:내용|닉:색:내용|system:시스템메시지
+// 색: 인디고/핑크/샌드/로즈/빨강/초록/파랑/노랑 또는 생략
+
+function roleColor(c) {
+  const map = {
+    '인디고':'#8889CD','핑크':'#DDAACC','샌드':'#CCAA88',
+    '로즈':'#BB6688','빨강':'#ed4245','초록':'#57f287',
+    '파랑':'#5865f2','노랑':'#fee75c','구독자':'#BB6688',
+    '매니저':'#CCAA88'
+  };
+  return map[c] || '#DDAACC';
+}
+
+function parseParams() {
+  const params = new URLSearchParams(window.location.search);
+  const p = params.get('p');
+  const c = params.get('c');
+
+  if (p) {
+    const pp = p.split(',');
+    const streamer = pp[0] || '스트리머';
+    const title    = pp[1] || '';
+    const viewers  = pp[2] || '0';
+    const desc     = pp[3] || '';
+    const tags     = pp[4] || '';
+
+    document.getElementById('streamer-name').textContent = streamer;
+    document.getElementById('streamer-avatar').textContent = streamer.charAt(0);
+    document.getElementById('streamer-avatar').style.background =
+      \`linear-gradient(135deg, var(--col-indigo), var(--col-rose))\`;
+    document.getElementById('stream-title').textContent = title;
+    document.getElementById('viewer-count').textContent = Number(viewers).toLocaleString();
+    if (desc) document.getElementById('player-desc').textContent = desc;
+
+    if (tags) {
+      const tagsEl = document.getElementById('stream-tags');
+      tags.split(' ').forEach(t => {
+        const span = document.createElement('span');
+        span.className = 'stream-tag';
+        span.textContent = t;
+        tagsEl.appendChild(span);
+      });
+    }
+  }
+
+  if (c) {
+    const chatEl = document.getElementById('chat-messages');
+    c.split('|').forEach(raw => {
+      const seg = raw.split(':');
+
+      if (seg[0] === 'system') {
+        const div = document.createElement('div');
+        div.className = 'chat-system';
+        div.textContent = seg.slice(1).join(':');
+        chatEl.appendChild(div);
+        return;
+      }
+
+      const nick  = seg[0] || '';
+      const color = seg[1] || '';
+      const text  = seg.slice(2).join(':') || '';
+
+      const div = document.createElement('div');
+      div.className = 'chat-msg';
+      div.innerHTML = \`<span class="chat-nick" style="color:\${roleColor(color)}">\${nick}</span><span class="chat-text">\${text}</span>\`;
+      chatEl.appendChild(div);
+    });
+
+    chatEl.scrollTop = chatEl.scrollHeight;
+  }
+}
+parseParams();
+</script>
+</body>
+</html>
+`,
 };
 
 export default {
   async fetch(request) {
     const url = new URL(request.url);
-    const path = url.pathname;
-    if (path === '/' || path === '') {
-      const links = Object.keys(PAGES).map(p => 
-        '<li><a href="' + p + '" style="color:#DDAACC;">' + p + '</a></li>'
+    const t = url.searchParams.get('t');
+    if (!t) {
+      const links = Object.keys(PAGES).map(k => 
+        '<li><a href="/?t=' + k + '" style="color:#DDAACC;">/?t=' + k + '</a></li>'
       ).join('');
       return new Response(
         '<html><body style="font-family:sans-serif;padding:40px;background:#1a1a2e;color:#e0e0e0;">'
-        + '<h1 style="color:#8889CD;">겨울의 SNS UI v5</h1>'
-        + '<p>사용 가능한 경로 (13종):</p><ul>' + links + '</ul>'
+        + '<h1 style="color:#8889CD;">겨울의 SNS UI v7</h1>'
+        + '<p>사용 가능한 타입 (15종):</p><ul>' + links + '</ul>'
         + '</body></html>',
         { headers: { 'content-type': 'text/html;charset=UTF-8' } }
       );
     }
-    const html = PAGES[path];
+    const html = PAGES[t];
     if (html) return new Response(html, { headers: { 'content-type': 'text/html;charset=UTF-8' } });
     return new Response('404 Not Found', { status: 404 });
   }

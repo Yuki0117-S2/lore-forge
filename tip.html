@@ -699,6 +699,151 @@ EXP ████████████░░ 85%
 ⚡ 스태미나: [██░░░░░░░░] 20/100</pre>`
       }
     ]
+  },
+  {
+    id:'cat-6', icon:'📱', title:'HTML UI 출력', sub:'인스타 / 트위터 / 카카오톡 UI 컴포넌트',
+    items:[
+      {
+        id:'t-6-0', title:'인스타그램 피드',
+        body:`<div class="label label-use">URL 파라미터 형식</div>
+<pre>/insta?p=@유저명,팔로워수,댓글수,시간,이미지설명,캡션,[번역],해시태그
+&c=닉네임,댓글,[번역],좋아요수|닉네임,댓글,[번역],좋아요수</pre>
+<hr class="divider">
+<div class="label label-example">예시</div>
+<pre>/insta?p=@jaymccoy,2847,312,3시간%20전,석양 배경 역광 풋볼,Last one before the grind 🏈,[시즌 시작 전 마지막],#football #coralview
+&c=blairkingsley,obsessed 😍,[집착 😍],89|marcusc_04,dawg u look crazy,[야 미쳤다],67|noxym,mid,[별로],42</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명:</strong><br>
+• <strong>[번역]</strong>은 대괄호로 시작하면 번역으로 인식, 없으면 생략 가능<br>
+• <strong>&c=</strong> 댓글 파트에서 <strong>|</strong>로 각 댓글 구분<br>
+• 좋아요 버튼 토글 가능 (인터랙티브)</div>`
+      },
+      {
+        id:'t-6-1', title:'트위터 (X) 포스트',
+        body:`<div class="label label-use">URL 파라미터 형식</div>
+<pre>/twitter?p=@handle,표시이름,시간,본문,[번역],[이미지설명],답글수,리트윗수,인용수,좋아요수,북마크수,[verified]</pre>
+<hr class="divider">
+<div class="label label-example">예시</div>
+<pre>/twitter?p=@jaymccoy,Jay McCoy,오후 3:14,시즌 시작 전 마지막 해변 🏈,[Last beach day],해변 풋볼 역광,24,187,12,2847,341,verified</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명:</strong><br>
+• <strong>[번역]</strong>과 <strong>[이미지설명]</strong>은 선택사항<br>
+• 마지막에 <strong>verified</strong> 추가하면 파란 인증 배지 표시<br>
+• 번역은 대괄호 <strong>[ ]</strong>로 시작해야 인식됨</div>`
+      },
+      {
+        id:'t-6-2', title:'카카오톡 채팅',
+        body:`<div class="label label-use">URL 파라미터 형식</div>
+<pre>/kakao?r=방이름,날짜,[인원수]
+&m=발신자,내용,시간,읽음수|발신자,내용,시간,읽음수,me</pre>
+<hr class="divider">
+<div class="label label-example">예시</div>
+<pre>/kakao?r=코랄뷰 동창,1월 15일 수요일,5
+&m=블레어,야 파티 가?,오후 2:14,1|나,응 갈듯,오후 2:15,0,me|블레어,ㄹㅇ? 기대돼,오후 2:15,2</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명:</strong><br>
+• 마지막에 <strong>me</strong> 붙이면 → 내 메시지 (핑크 말풍선)<br>
+• <strong>읽음수 0</strong>이면 숫자 안 보임<br>
+• 같은 발신자 연속 메시지면 아바타/이름 자동 숨김<br>
+• 아바타 색상은 이름 기반으로 자동 생성</div>`
+      },
+      {
+        id:'t-6-3', title:'바베챗 프롬프트에서 호출',
+        body:`<div class="label label-use">사용법</div>
+<div class="desc">바베챗은 마크다운 이미지 문법 <strong>![](URL)</strong>을 지원하므로, Workers URL을 이 형식으로 출력하면 대화창에 UI가 렌더링됨.</div>
+<pre># 프롬프트 예시 (캐릭터 상세설정에 삽입)
+
+## SNS UI 출력 규칙
+- 인스타 장면 필요 시:
+  ![](https://너의도메인.workers.dev/insta?p=@유저,팔로워,댓글수,시간,이미지설명,캡션,[번역],해시태그&c=닉,댓글,[번역],좋아요)
+- 트위터 장면 필요 시:
+  ![](https://너의도메인.workers.dev/twitter?p=@handle,표시이름,시간,본문,[번역],[이미지설명],답글,RT,인용,좋아요,북마크)
+- 카카오톡 장면 필요 시:
+  ![](https://너의도메인.workers.dev/kakao?r=방이름,날짜,인원&m=이름,내용,시간,읽음|이름,내용,시간,읽음,me)</pre>
+<hr class="divider">
+<div class="desc"><strong>주의:</strong> URL 내 공백은 <strong>%20</strong>으로, #은 <strong>%23</strong>으로 인코딩 필요</div>`
+      }
+    ]
+  },
+  {
+    id:'cat-7', icon:'☁️', title:'Cloudflare Workers 배포', sub:'HTML UI를 URL로 서빙하는 방법',
+    items:[
+      {
+        id:'t-7-0', title:'가입 & Worker 생성',
+        body:`<div class="label label-use">단계별 가이드</div>
+<pre>1. dash.cloudflare.com/sign-up 접속 → 무료 가입
+2. 왼쪽 메뉴 "Workers & Pages" 클릭
+3. "Create" 버튼 → Worker 이름 정하기
+   (예: sns-ui → URL에 들어가므로 짧고 깔끔하게)
+4. "Deploy" 클릭 (빈 코드로 우선 배포)
+5. "Edit Code" 클릭 → 코드 에디터 진입</pre>
+<hr class="divider">
+<div class="desc"><strong>참고:</strong> Worker 이름이 URL 앞부분이 됨<br>
+<strong>https://[워커이름].[서브도메인].workers.dev</strong><br>
+서브도메인은 가입 시 직접 지정 가능 (나중에 변경도 가능)</div>`
+      },
+      {
+        id:'t-7-1', title:'코드 배포 방법',
+        body:`<div class="label label-use">코드 붙여넣기</div>
+<pre>1. Edit Code 화면에서 기본 코드 전부 삭제
+2. worker.js 파일 내용 전체 복사 → 붙여넣기
+3. "Save and Deploy" 클릭
+4. 완료! URL로 접속 가능</pre>
+<hr class="divider">
+<div class="label label-example">worker.js 구조</div>
+<pre>const PAGES = {
+  '/insta':   \`인스타 HTML 전체\`,
+  '/twitter': \`트위터 HTML 전체\`,
+  '/kakao':   \`카카오 HTML 전체\`,
+  // 새 UI 추가 시 여기에 한 줄 추가
+};
+
+export default {
+  async fetch(request) {
+    const url = new URL(request.url);
+    const path = url.pathname;
+    const html = PAGES[path];
+    if (html) return new Response(html, {
+      headers: { 'content-type': 'text/html;charset=UTF-8' }
+    });
+    return new Response('404', { status: 404 });
+  }
+};</pre>`
+      },
+      {
+        id:'t-7-2', title:'새 UI 추가하기',
+        body:`<div class="label label-use">확장 방법</div>
+<div class="desc">새로운 UI (레딧, 이메일, 잠금화면 등)를 추가할 때마다 worker.js에 경로 한 줄 + HTML 함수 추가.</div>
+<pre># 경로 구조
+/insta    → 인스타그램
+/twitter  → 트위터
+/kakao    → 카카오톡
+/reddit   → 레딧 (나중에 추가)
+/email    → 이메일 (나중에 추가)
+/lock     → 잠금화면 (나중에 추가)</pre>
+<hr class="divider">
+<div class="desc"><strong>무료 한도:</strong> 하루 10만 건 요청까지 무료. 롤플레이용으로는 충분.</div>`
+      }
+    ]
+  },
+  {
+    id:'cat-8', icon:'🎨', title:'커스텀 색상 테마', sub:'UI 전체에 적용된 색상 팔레트',
+    items:[
+      {
+        id:'t-8-0', title:'기본 색상 코드',
+        body:`<div class="label label-use">4색 팔레트</div>
+<pre>--col-indigo: #8889CD  → 인증배지, 해시태그, 전송버튼
+--col-pink:   #DDAACC  → 카카오 내 말풍선, 이미지 아이콘
+--col-sand:   #CCAA88  → 아바타 내부, 따뜻한 포인트
+--col-rose:   #BB6688  → 좋아요, 읽음수, 하트, hover</pre>
+<hr class="divider">
+<div class="label label-example">적용 위치</div>
+<div class="desc">
+• <strong>인스타:</strong> 아바타 링 그라데이션, 이미지 플레이스홀더, 해시태그, 좋아요<br>
+• <strong>트위터:</strong> 배경 색조, 아바타 그라데이션, verified 배지, hover<br>
+• <strong>카카오:</strong> 배경(보라-회), 내 말풍선(핑크), 읽음수, 전송버튼(인디고)</div>`
+      }
+    ]
   }
 ];
 

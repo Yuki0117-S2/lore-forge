@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Board Post</title>
+<style>
+  :root {
+    --col-indigo: #8889CD;
+    --col-pink:   #DDAACC;
+    --col-sand:   #CCAA88;
+    --col-rose:   #BB6688;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0e0a14;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 20px 0;
+    min-height: 100vh;
+  }
+  .post-page {
+    width: 100%;
+    max-width: 600px;
+    color: #d7d7d7;
+  }
+
+  /* Header */
+  .post-header {
+    background: #1a1422;
+    border: 1px solid #2a2235;
+    border-radius: 12px 12px 0 0;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .post-back {
+    color: var(--col-pink);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0 4px;
+  }
+  .post-board-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--col-indigo);
+  }
+
+  /* Post content */
+  .post-content {
+    background: #1a1422;
+    border-left: 1px solid #2a2235;
+    border-right: 1px solid #2a2235;
+    padding: 18px 18px 14px;
+  }
+  .post-tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-bottom: 8px;
+  }
+  .tag-notice { background: rgba(187,102,136,0.2); color: var(--col-rose); }
+  .tag-hot { background: rgba(204,170,136,0.2); color: var(--col-sand); }
+  .tag-new { background: rgba(221,170,204,0.2); color: var(--col-pink); }
+  .tag-normal { background: rgba(136,137,205,0.15); color: var(--col-indigo); }
+  .post-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ede8f2;
+    line-height: 1.4;
+    margin-bottom: 10px;
+  }
+  .post-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #71677b;
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #2a2235;
+  }
+  .post-author { color: var(--col-sand); font-weight: 600; }
+  .post-body {
+    font-size: 14px;
+    line-height: 1.8;
+    color: #b8b0c4;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  /* Post actions */
+  .post-actions {
+    background: #1a1422;
+    border-left: 1px solid #2a2235;
+    border-right: 1px solid #2a2235;
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border-top: 1px solid #2a2235;
+  }
+  .vote-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px;
+    background: #221b2a;
+    border-radius: 20px;
+  }
+  .vote-btn {
+    cursor: pointer;
+    font-size: 14px;
+    color: #71677b;
+  }
+  .vote-btn:hover { color: var(--col-rose); }
+  .vote-count {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--col-indigo);
+  }
+  .action-item {
+    font-size: 12px;
+    color: #71677b;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .action-item:hover { color: var(--col-pink); }
+
+  /* Comments */
+  .comments-section {
+    background: #1a1422;
+    border: 1px solid #2a2235;
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    padding: 14px 18px;
+  }
+  .comments-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #71677b;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .comments-count {
+    color: var(--col-indigo);
+  }
+  .comment {
+    padding: 12px 0;
+    border-bottom: 1px solid #1e1828;
+  }
+  .comment:last-child { border-bottom: none; }
+  .comment-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    margin-bottom: 6px;
+  }
+  .comment-author {
+    color: var(--col-pink);
+    font-weight: 700;
+  }
+  .comment-time { color: #71677b; }
+  .comment-op {
+    font-size: 9px;
+    background: rgba(136,137,205,0.2);
+    color: var(--col-indigo);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-weight: 700;
+  }
+  .comment-body {
+    font-size: 13px;
+    line-height: 1.6;
+    color: #b8b0c4;
+  }
+  .comment-actions {
+    margin-top: 4px;
+    display: flex;
+    gap: 8px;
+    font-size: 11px;
+    color: #71677b;
+  }
+  .comment-like { cursor: pointer; }
+  .comment-like:hover { color: var(--col-rose); }
+
+  /* Reply */
+  .reply {
+    margin-left: 20px;
+    padding-left: 12px;
+    border-left: 2px solid #2a2235;
+  }
+</style>
+</head>
+<body>
+<div class="post-page">
+  <div class="post-header">
+    <span class="post-back">←</span>
+    <span class="post-board-name" id="board-name">게시판</span>
+  </div>
+  <div class="post-content">
+    <div id="post-tag"></div>
+    <div class="post-title" id="post-title">제목</div>
+    <div class="post-meta">
+      <span class="post-author" id="post-author">작성자</span>
+      <span id="post-time">시간</span>
+      <span>조회 <span id="post-views">0</span></span>
+    </div>
+    <div class="post-body" id="post-body">본문</div>
+  </div>
+  <div class="post-actions">
+    <div class="vote-box">
+      <span class="vote-btn">▲</span>
+      <span class="vote-count" id="post-votes">0</span>
+      <span class="vote-btn">▼</span>
+    </div>
+    <div class="action-item">💬 댓글 <span id="comment-count">0</span></div>
+    <div class="action-item">↗ 공유</div>
+    <div class="action-item">🔖 저장</div>
+  </div>
+  <div class="comments-section">
+    <div class="comments-title">댓글 <span class="comments-count" id="comment-count2">0</span></div>
+    <div id="comments-container"></div>
+  </div>
+</div>
+
+<script>
+// ?p=게시판명,태그,제목,작성자,시간,조회,추천,본문
+// &c=닉,시간,내용,[op]|닉,시간,내용|>닉,시간,내용 (>는 대댓글)
+function parseParams() {
+  const params = new URLSearchParams(window.location.search);
+  const p = params.get('p');
+  const c = params.get('c');
+  if (!p) return;
+
+  const parts = p.split(',');
+  const board = parts[0] || '게시판';
+  const tag = parts[1] || '';
+  const title = parts[2] || '';
+  const author = parts[3] || '';
+  const time = parts[4] || '';
+  const views = parts[5] || '0';
+  const votes = parts[6] || '0';
+  const body = parts.slice(7).join(',') || '';
+
+  document.getElementById('board-name').textContent = board;
+  document.getElementById('post-title').textContent = title;
+  document.getElementById('post-author').textContent = author;
+  document.getElementById('post-time').textContent = time;
+  document.getElementById('post-views').textContent = Number(views).toLocaleString();
+  document.getElementById('post-votes').textContent = Number(votes).toLocaleString();
+  document.getElementById('post-body').textContent = body;
+
+  if (tag) {
+    const tagMap = {notice:['공지','tag-notice'],hot:['HOT','tag-hot'],new:['NEW','tag-new'],normal:['','tag-normal']};
+    const [tagText, tagClass] = tagMap[tag] || [tag, 'tag-normal'];
+    if (tagText) document.getElementById('post-tag').innerHTML = '<span class="post-tag '+tagClass+'">'+tagText+'</span>';
+  }
+
+  if (c) {
+    const container = document.getElementById('comments-container');
+    const commentList = c.split('|');
+    let count = 0;
+    commentList.forEach(raw => {
+      const isReply = raw.startsWith('>');
+      const clean = isReply ? raw.substring(1) : raw;
+      const seg = clean.split(',');
+      const cNick = seg[0] || '';
+      const cTime = seg[1] || '';
+      const cBody = seg[2] || '';
+      const isOp = seg[3] === 'op';
+
+      const div = document.createElement('div');
+      div.className = 'comment' + (isReply ? ' reply' : '');
+      div.innerHTML =
+        '<div class="comment-meta">' +
+          '<span class="comment-author">' + cNick + '</span>' +
+          (isOp ? '<span class="comment-op">글쓴이</span>' : '') +
+          '<span class="comment-time">' + cTime + '</span>' +
+        '</div>' +
+        '<div class="comment-body">' + cBody + '</div>' +
+        '<div class="comment-actions"><span class="comment-like">♡ 좋아요</span><span>답글</span></div>';
+      container.appendChild(div);
+      count++;
+    });
+    document.getElementById('comment-count').textContent = count;
+    document.getElementById('comment-count2').textContent = count;
+  }
+}
+parseParams();
+</script>
+</body>
+</html>

@@ -701,7 +701,7 @@ EXP ████████████░░ 85%
     ]
   },
   {
-    id:'cat-6', icon:'📱', title:'HTML UI 출력', sub:'15종 UI — SNS / 메신저 / 문서 / 게시판 / 디스코드 / 방송 등',
+    id:'cat-6', icon:'📱', title:'HTML UI 출력', sub:'16종 UI — SNS / 메신저 / 문서 / 게시판 / 디스코드 / 방송 등',
     items:[
       {
         id:'t-6-0', title:'인스타그램 피드',
@@ -878,6 +878,23 @@ EXP ████████████░░ 85%
 • 커스텀 텍스트도 가능 (예: 제보, 익명 등)</div>`
       },
       {
+        id:'t-6-10a', title:'게시판 글 상세 (post)',
+        body:`<div class="label label-use">URL 파라미터 형식</div>
+<pre>/?t=post&p=게시판명,태그,제목,작성자,시간,조회,추천,본문
+&c=닉,시간,내용,[op]|닉,시간,내용|>닉,시간,내용(대댓글)</pre>
+<hr class="divider">
+<div class="label label-example">예시</div>
+<pre>/?t=post&p=대나무숲,hot,체육관에서 고백하다 차인 사람 누구임,ㅇㅇ,2시간전,3420,89,아까 체육관에서 큰 소리로 고백하다가 차이는 거 봄 ㅋㅋ 누군지 아는 사람?
+&c=익명1,1시간전,ㅋㅋㅋ 나도 봤음 존나 민망했겠다|익명2,58분전,그거 2반 걔 아님?|>ㅇㅇ,55분전,맞음 ㅋㅋ 어떻게 알았냐,op|익명3,30분전,용기 있네 솔직히 대단함</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명:</strong><br>
+• <strong>태그:</strong> notice / hot / new / normal (게시판과 동일)<br>
+• <strong>op</strong> 붙이면 글쓴이 뱃지 표시<br>
+• <strong>></strong>로 시작하면 대댓글 (들여쓰기)<br>
+• 추천 투표 박스, 공유/저장 버튼 포함<br>
+• 게시판(board)과 같은 디자인 톤으로 자연스럽게 연결됨</div>`
+      },
+      {
         id:'t-6-11', title:'디스코드',
         body:`<div class="label label-use">URL 파라미터 형식</div>
 <pre>/?t=discord&ch=채널이름,[토픽]
@@ -1005,6 +1022,10 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로, #은 %23으로 변환
 ![](https://도메인/?t=board&b=이름,총수&tabs=탭1|탭2&p=태그,제목,작성자,시간,조회,좋아요,댓글수|태그,제목,...)
 - 태그: notice / hot / new / normal
 
+### 게시판 글 상세
+![](https://도메인/?t=post&p=게시판명,태그,제목,작성자,시간,조회,추천,본문&c=닉,시간,내용,[op]|>닉,시간,내용(대댓글))
+- op 붙이면 글쓴이 뱃지, > 붙이면 대댓글
+
 ### 디스코드 채팅
 ![](https://도메인/?t=discord&ch=채널,토픽&m=닉,역할색,역할태그,시간,내용,리액션|닉,...)
 - 역할색: 인디고/핑크/샌드/로즈/빨강/초록/파랑/노랑
@@ -1094,15 +1115,15 @@ export default {
         id:'t-7-2', title:'새 UI 추가하기',
         body:`<div class="label label-use">확장 방법</div>
 <div class="desc">새로운 UI (레딧, 이메일, 잠금화면 등)를 추가할 때마다 worker.js에 경로 한 줄 + HTML 함수 추가.</div>
-<pre># URL 형식 (15종) — 모두 /?t=타입&파라미터 형식
+<pre># URL 형식 (16종) — 모두 /?t=타입&파라미터 형식
 /?t=insta         인스타 피드        /?t=email         이메일
 /?t=story         인스타 스토리      /?t=search        검색 결과
 /?t=twitter       트위터            /?t=news          뉴스 기사
 /?t=kakao         카카오톡          /?t=doc           공문서/서식
 /?t=reddit        레딧 스레드       /?t=board         게시판
-/?t=lock          잠금화면          /?t=discord       디스코드 채팅
-/?t=voice         디스코드 음성      /?t=discord-full  디스코드 풀
-/?t=stream        인터넷 방송</pre>
+/?t=lock          잠금화면          /?t=post          게시판 글 상세
+/?t=voice         디스코드 음성      /?t=discord       디스코드 채팅
+/?t=discord-full  디스코드 풀       /?t=stream        인터넷 방송</pre>
 <hr class="divider">
 <div class="desc"><strong>무료 한도:</strong> 하루 10만 건 요청까지 무료. 롤플레이용으로는 충분.</div>`
       }
@@ -1132,6 +1153,7 @@ export default {
 • <strong>뉴스:</strong> 매체명(핑크), 카테고리(로즈), 기자명(인디고), 이미지 플레이스홀더(핑크)<br>
 • <strong>공문서:</strong> 기관명(핑크), 스탬프(샌드), 직인(로즈), 표 헤더(다크+핑크)<br>
 • <strong>게시판:</strong> 게시판명(인디고), 공지태그(로즈), HOT태그(샌드), NEW태그(핑크), 추천수(인디고)<br>
+• <strong>게시판 글:</strong> 작성자(샌드), 글쓴이뱃지(인디고), 댓글닉(핑크), 투표수(인디고), 대댓글 선(다크퍼플)<br>
 • <strong>디스코드:</strong> 역할색(4색), 멘션(인디고), 리액션 테두리(인디고), 아바타(자동색상)<br>
 • <strong>디스코드 음성:</strong> 역할색(4색+기본), 접속 상태 점(초/노/빨/보), 하단 연결바(초록)<br>
 • <strong>디스코드 풀:</strong> 서버 아이콘(커스텀색), 역할색(4색), 날짜구분선, 유저 패널<br>

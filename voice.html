@@ -345,7 +345,7 @@
 
 <script>
 // ?s=서버이름,[내닉네임]
-// &t=채널1|채널2|채널3  (텍스트 채널 목록)
+// &tc=채널1|채널2|채널3  (텍스트 채널 목록)
 // &v=음성채널이름,멤버1:역할색:상태:아이콘|멤버2:역할색:상태:아이콘;음성채널2,멤버...
 //   상태: online, idle, dnd, streaming
 //   아이콘: mute, deaf, stream, video (공백구분 복수 가능)
@@ -370,7 +370,7 @@ function roleColor(c) {
 function parseParams() {
   const params = new URLSearchParams(window.location.search);
   const s = params.get('s');
-  const t = params.get('t');
+  const tc = params.get('tc');
   const v = params.get('v');
   const active = params.get('active');
 
@@ -389,12 +389,12 @@ function parseParams() {
   const list = document.getElementById('channel-list');
 
   // 텍스트 채널
-  if (t) {
+  if (tc) {
     const catDiv = document.createElement('div');
     catDiv.innerHTML = '<div class="category"><span class="category-arrow">▼</span> 채팅 채널</div>';
     list.appendChild(catDiv);
 
-    t.split('|').forEach((ch, i) => {
+    tc.split('|').forEach((ch, i) => {
       const div = document.createElement('div');
       div.className = 'text-channel' + (i === 0 ? ' active' : '');
       div.innerHTML = `<span class="ch-hash">#</span><span class="ch-name">${ch}</span>`;

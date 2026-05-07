@@ -1,6 +1,5 @@
-// 겨울의 SNS UI Workers v7 — 15종 UI
-// 사용법: /?t=insta&p=... /?t=kakao&r=...&m=...
-const PAGES = {
+// 겨울의 SNS UI Workers v12 — 15종 UI (서버사이드 렌더링 완성)
+const TEMPLATES = {
   'insta': `<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -1010,7 +1009,7 @@ parseParams();
 
   <div class="input-bar">
     <button class="input-btn">+</button>
-    <input class="input-field" placeholder="메시지 보내기" readonly>
+    <input class="input-field" placeholder="메시지 보내기" readonly="readonly"/>
     <button class="send-btn">
       <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
     </button>
@@ -1968,7 +1967,7 @@ parseParams();
   </div>
 
   <div class="story-bottom">
-    <input class="story-input" placeholder="메시지 보내기..." readonly>
+    <input class="story-input" placeholder="메시지 보내기..." readonly="readonly"/>
     <span class="story-send">❤️</span>
     <span class="story-send">↗</span>
   </div>
@@ -3601,7 +3600,7 @@ parseParams();
 
 <script>
 // ?s=서버이름,[내닉네임]
-// &t=채널1|채널2|채널3  (텍스트 채널 목록)
+// &tc=채널1|채널2|채널3  (텍스트 채널 목록)
 // &v=음성채널이름,멤버1:역할색:상태:아이콘|멤버2:역할색:상태:아이콘;음성채널2,멤버...
 //   상태: online, idle, dnd, streaming
 //   아이콘: mute, deaf, stream, video (공백구분 복수 가능)
@@ -3626,7 +3625,7 @@ function roleColor(c) {
 function parseParams() {
   const params = new URLSearchParams(window.location.search);
   const s = params.get('s');
-  const t = params.get('t');
+  const tc = params.get('tc');
   const v = params.get('v');
   const active = params.get('active');
 
@@ -3645,12 +3644,12 @@ function parseParams() {
   const list = document.getElementById('channel-list');
 
   // 텍스트 채널
-  if (t) {
+  if (tc) {
     const catDiv = document.createElement('div');
     catDiv.innerHTML = '<div class="category"><span class="category-arrow">▼</span> 채팅 채널</div>';
     list.appendChild(catDiv);
 
-    t.split('|').forEach((ch, i) => {
+    tc.split('|').forEach((ch, i) => {
       const div = document.createElement('div');
       div.className = 'text-channel' + (i === 0 ? ' active' : '');
       div.innerHTML = \`<span class="ch-hash">#</span><span class="ch-name">\${ch}</span>\`;
@@ -4594,24 +4593,482 @@ parseParams();
 `,
 };
 
+const SIZES = {
+  'insta': [470, 900], 'twitter': [598, 600], 'kakao': [480, 700],
+  'reddit': [600, 700], 'lock': [390, 844], 'email': [560, 600],
+  'story': [420, 750], 'search': [600, 700], 'news': [560, 800],
+  'doc': [540, 700], 'board': [600, 600], 'discord': [520, 700],
+  'voice': [280, 700], 'discord-full': [800, 700], 'stream': [820, 700],
+};
+
+
+// ══════════════════════════════════════════════════════════════
+// 서버사이드 렌더러 — 각 UI 타입별로 파라미터를 HTML에 직접 주입
+// ══════════════════════════════════════════════════════════════
+
+function fmt(n) {
+  const num = Number(n);
+  if (num >= 1000) return (num/1000).toFixed(1).replace(/\.0$/,'') + 'k';
+  return String(n);
+}
+
+function avatarColor(name) {
+  const colors = ['#e8736c','#f0a05a','#7eb8d4','#82c4a0','#a78fd4','#d47eb8','#7ab8c4'];
+  let hash = 0;
+  for (const c of name) hash = (hash * 31 + c.charCodeAt(0)) % colors.length;
+  return colors[Math.abs(hash)];
+}
+
+function avatarBg(name) {
+  const colors = ['#5865f2','#eb459e','#57f287','#fee75c','#ed4245','#8889CD','#BB6688','#CCAA88'];
+  let h = 0;
+  for (const c of name) h = (h * 31 + c.charCodeAt(0)) % colors.length;
+  return colors[Math.abs(h)];
+}
+
+function roleColor(c) {
+  const map = {'인디고':'#8889CD','핑크':'#DDAACC','샌드':'#CCAA88','로즈':'#BB6688','빨강':'#ed4245','초록':'#57f287','파랑':'#5865f2','노랑':'#fee75c','흰색':'#f2f3f5','구독자':'#BB6688','매니저':'#CCAA88'};
+  return map[c] || '#b5bac1';
+}
+
+// ── INSTA ──
+function renderInsta(html, url) {
+  const p = url.searchParams.get('p');
+  const c = url.searchParams.get('c');
+  if (!p) return html;
+  const parts = p.split(',');
+  const user = parts[0] || '@lorem_ipsum';
+  const followers = parts[1] || '0';
+  const commentCount = parts[2] || '0';
+  const time = parts[3] || '방금';
+  const imgDesc = parts[4] || '사진 설명';
+  const caption = parts[5] || '';
+  const hasT = parts[6] && parts[6].startsWith('[');
+  const capT = hasT ? parts[6] : '';
+  const tags = hasT ? (parts[7]||'') : (parts[6]||'');
+  const uname = user.startsWith('@') ? user : '@'+user;
+  html = html.replace('>@lorem_ipsum<', '>'+uname+'<');
+  html = html.replace('id="cap-user">lorem_ipsum<', 'id="cap-user">'+uname.replace('@','')+'<');
+  html = html.replace('>사진 설명<', '>'+imgDesc+'<');
+  html = html.replace('>좋아요 1,204개<', '>좋아요 '+Number(followers).toLocaleString()+'개<');
+  html = html.replace('>오늘 수고했어요<', '>'+caption+'<');
+  html = html.replace('>[Good job today]<', '>'+(capT||'')+'<');
+  if (!capT) html = html.replace('class="cap-translation"', 'class="cap-translation" style="display:none"');
+  html = html.replace('>#일상 #감성<', '>'+tags.replace(/%23/g,'#')+'<');
+  if (!tags) html = html.replace('class="post-hashtags"', 'class="post-hashtags" style="display:none"');
+  html = html.replace('>댓글 48개 모두 보기<', '>댓글 '+commentCount+'개 모두 보기<');
+  html = html.replace('>2일 전<', '>'+time+'<');
+  if (c) {
+    let ch = '';
+    c.split('|').forEach(raw => {
+      const seg = raw.split(',');
+      const cu=seg[0]||'', ct=seg[1]||'';
+      const hasCT = seg.length>=4 && !isNaN(Number(seg[seg.length-1]));
+      const ctr = hasCT && seg.length>=4 ? seg[2] : '';
+      const cl = seg[seg.length-1]||'0';
+      ch += '<div class="comment"><div class="comment-left"><span class="com-user">'+cu+'</span>'+ct;
+      if(ctr) ch += '<span class="com-translation">'+ctr+'</span>';
+      ch += '</div><div class="comment-likes">♡ '+Number(cl).toLocaleString()+'</div></div>';
+    });
+    html = html.replace('id="comments-container"></div>', 'id="comments-container">'+ch+'</div>');
+  }
+  return html;
+}
+
+// ── TWITTER ──
+function renderTwitter(html, url) {
+  const p = url.searchParams.get('p');
+  if (!p) return html;
+  const parts = p.split(',');
+  const handle=parts[0]||'@handle', displayName=parts[1]||'Name', time=parts[2]||'방금', body=parts[3]||'';
+  let idx=4, translation='', imgDesc='';
+  if (parts[idx]&&parts[idx].startsWith('[')) { translation=parts[idx]; idx++; }
+  if (parts[idx]&&isNaN(Number(parts[idx]))&&!(parts[idx]||'').startsWith('[')) { imgDesc=parts[idx]; idx++; }
+  const replies=parts[idx]||'0',retweets=parts[idx+1]||'0',quotes=parts[idx+2]||'0',likes=parts[idx+3]||'0',bookmarks=parts[idx+4]||'0';
+  const verified = parts[idx+5]==='verified';
+  html = html.replace('>Display Name<', '>'+displayName+'<');
+  html = html.replace('>@handle · 시간<', '>'+handle+' · '+time+'<');
+  html = html.replace('>트윗 내용<', '>'+body+(translation?'<span class="translation">'+translation+'</span>':'')+'<');
+  if (imgDesc) { html=html.replace('id="tweet-image" style="display:none"','id="tweet-image"'); html=html.replace('id="img-desc"></div>','id="img-desc">'+imgDesc+'</div>'); }
+  if (verified) html=html.replace('id="verified-badge" style="display:none"','id="verified-badge"');
+  html=html.replace('id="retweets">0<','id="retweets">'+Number(retweets).toLocaleString()+'<');
+  html=html.replace('id="quotes">0<','id="quotes">'+Number(quotes).toLocaleString()+'<');
+  html=html.replace('id="likes">0<','id="likes">'+Number(likes).toLocaleString()+'<');
+  html=html.replace('id="bookmarks">0<','id="bookmarks">'+Number(bookmarks).toLocaleString()+'<');
+  html=html.replace('id="replies-count">0<','id="replies-count">'+Number(replies).toLocaleString()+'<');
+  html=html.replace('id="rt-count">0<','id="rt-count">'+Number(retweets).toLocaleString()+'<');
+  html=html.replace('id="likes-count">0<','id="likes-count">'+Number(likes).toLocaleString()+'<');
+  html=html.replace('id="tweet-time-full"></div>','id="tweet-time-full">'+time+'</div>');
+  return html;
+}
+
+// ── KAKAO ──
+function renderKakao(html, url) {
+  const r = url.searchParams.get('r');
+  const m = url.searchParams.get('m');
+  if (r) {
+    const rp = r.split(',');
+    html = html.replace('>채팅방<', '>'+(rp[0]||'채팅방')+'<');
+    if (rp[1]) html = html.replace('>2025년 1월 1일 수요일<', '>'+rp[1]+'<');
+    if (rp[2]) html = html.replace('id="member-count"></span>', 'id="member-count">'+rp[2]+'</span>');
+  }
+  if (m) {
+    let msgs = '';
+    const msgList = m.split('|');
+    msgList.forEach((raw,i) => {
+      const seg=raw.split(',');
+      const sender=seg[0]||'',content=seg[1]||'',time=seg[2]||'',readCnt=seg[3]||'0';
+      const isMe=seg[seg.length-1]==='me';
+      const prev=i>0?msgList[i-1].split(',')[0]:null;
+      const next=i<msgList.length-1?msgList[i+1].split(',')[0]:null;
+      const isCont=sender===prev, isLast=sender!==next;
+      const cls = isMe?'msg-row me':'msg-row other';
+      const bubbleCls = isMe?'bubble':'bubble';
+      const ac = avatarColor(sender);
+      let row = '<div class="'+cls+(isCont?' cont':'')+'">';
+      if (!isMe) {
+        row += '<div class="msg-avatar" style="background:'+ac+'">'+sender.charAt(0)+'</div>';
+        row += '<div class="msg-content">';
+        if (!isCont) row += '<div class="msg-name">'+sender+'</div>';
+        row += '<div class="'+bubbleCls+'">'+content+'</div></div>';
+      } else {
+        const meta = '<div class="meta">'+(readCnt!=='0'?'<div class="read-count">'+readCnt+'</div>':'')+(isLast?'<div class="msg-time">'+time+'</div>':'')+'</div>';
+        row += meta+'<div class="msg-content"><div class="'+bubbleCls+'">'+content+'</div></div>';
+      }
+      if (!isMe) {
+        row += '<div class="meta">'+(isLast?'<div class="msg-time">'+time+'</div>':'')+'</div>';
+      }
+      row += '</div>';
+      msgs += row;
+    });
+    html = html.replace('id="messages">\n    <div class="date-divider"', 'id="messages"><div class="date-divider"');
+    html = html.replace('</div>\n  </div>\n\n  <div class="input-bar">', '</div>'+msgs+'</div><div class="input-bar">');
+  }
+  return html;
+}
+
+// ── REDDIT ──
+function renderReddit(html, url) {
+  const p = url.searchParams.get('p');
+  const c = url.searchParams.get('c');
+  if (!p) return html;
+  const parts=p.split(',');
+  const sub=parts[0]||'AskReddit',author=parts[1]||'throwaway',time=parts[2]||'방금',title=parts[3]||'',body=parts[4]||'',upvotes=parts[5]||'0',commentN=parts[6]||'0';
+  let postHtml = '<div class="post-meta"><span class="subreddit">r/'+sub+'</span><span>•</span><span class="post-author">u/'+author+'</span><span>•</span><span>'+time+'</span></div>';
+  postHtml += '<div class="post-title">'+title+'</div><div class="post-body">'+body+'</div>';
+  postHtml += '<div class="post-actions"><div class="vote"><span class="vote-btn">▲</span><span class="vote-count">'+fmt(upvotes)+'</span><span class="vote-btn">▼</span></div><div class="post-action">💬 '+fmt(commentN)+'개</div><div class="post-action">↗ 공유</div></div>';
+  html = html.replace('id="post"></div>', 'id="post">'+postHtml+'</div>');
+  if (c) {
+    let ch='';
+    c.split('|').forEach(raw => {
+      const seg=raw.split(',');
+      ch+='<div class="comment"><div class="comment-meta"><span class="comment-author">'+(seg[0]||'')+'</span><span class="comment-time">'+(seg[2]||'')+'</span></div><div class="comment-body">'+(seg[1]||'')+'</div><div class="comment-votes"><span class="up">▲</span> '+fmt(seg[3]||'0')+'</div></div>';
+    });
+    html = html.replace('id="comments"></div>', 'id="comments">'+ch+'</div>');
+  }
+  return html;
+}
+
+// ── LOCKSCREEN ──
+function renderLock(html, url) {
+  const time = url.searchParams.get('time');
+  const n = url.searchParams.get('n');
+  if (time) {
+    const tp=time.split(',');
+    html=html.replace('>12:00</div>\n  <div class="lock-date"','>'+(tp[0]||'12:00')+'</div><div class="lock-date"');
+    html=html.replace('id="lock-time">12:00<','id="lock-time">'+(tp[0]||'12:00')+'<');
+    html=html.replace('id="status-time">12:00<','id="status-time">'+(tp[0]||'12:00')+'<');
+    if(tp[1]) html=html.replace('>1월 1일 수요일<','>'+tp[1]+'<');
+  }
+  if (n) {
+    const icons={'msg':'💬','call':'📞','insta':'📷','sns':'🐦','mail':'✉️','app':'🔔'};
+    let nh='';
+    n.split('|').forEach(raw => {
+      const seg=raw.split(',');
+      const type=seg[0]||'app',app=seg[1]||'',title=seg[2]||'',body=seg[3]||'',time=seg[4]||'';
+      nh+='<div class="notif"><div class="notif-icon '+type+'">'+(icons[type]||'🔔')+'</div><div class="notif-content"><div class="notif-header"><span class="notif-app">'+app+'</span><span class="notif-time">'+time+'</span></div><div class="notif-title">'+title+'</div><div class="notif-body">'+body+'</div></div></div>';
+    });
+    html=html.replace('id="notif-area"></div>','id="notif-area">'+nh+'</div>');
+  }
+  return html;
+}
+
+// ── EMAIL ──
+function renderEmail(html, url) {
+  const p = url.searchParams.get('p');
+  if (!p) return html;
+  const parts=p.split(',');
+  const fromName=parts[0]||'',fromEmail=parts[1]||'',toAddr=parts[2]||'',subject=parts[3]||'',date=parts[4]||'',body=parts.slice(5).join(',')||'';
+  const initial=fromName.charAt(0).toUpperCase();
+  const headerHtml='<div class="email-subject">'+subject+'</div><div class="email-from-row"><div class="email-avatar">'+initial+'</div><div class="email-from-info"><div class="email-from-name">'+fromName+'</div><div class="email-from-addr">&lt;'+fromEmail+'&gt;</div><div class="email-to">받는 사람: '+toAddr+'</div></div><div class="email-date">'+date+'</div></div>';
+  html=html.replace('id="email-header"></div>','id="email-header">'+headerHtml+'</div>');
+  html=html.replace('>이메일 내용<','>'+body+'<');
+  return html;
+}
+
+// ── STORY ──
+function renderStory(html, url) {
+  const p = url.searchParams.get('p');
+  if (!p) return html;
+  const parts=p.split(',');
+  const user=parts[0]||'@user',time=parts[1]||'',desc=parts[2]||'',caption=parts[3]||'';
+  html=html.replace('>username<','>'+user.replace('@','')+'<');
+  if(time) html=html.replace('>14분 전<','>'+time+'<');
+  if(desc) html=html.replace('>사진 설명<','>'+desc+'<');
+  if(caption) { html=html.replace('id="story-caption" style="display:none"','id="story-caption"'); html=html.replace('id="caption-text"></div>','id="caption-text">'+caption+'</div>'); }
+  return html;
+}
+
+// ── SEARCH ──
+function renderSearch(html, url) {
+  const q = url.searchParams.get('q');
+  const r = url.searchParams.get('r');
+  const a = url.searchParams.get('a');
+  if(q) {
+    const qp=q.split(',');
+    html=html.replace('>검색어<','>'+(qp[0]||'')+'<');
+    html=html.replace('>검색결과 약 0개<','>검색결과 약 '+Number(qp[1]||0).toLocaleString()+'개 (0.42초)<');
+  }
+  if(r) {
+    let rh='';
+    r.split('|').forEach(raw => {
+      const seg=raw.split(',');
+      const title=seg[0]||'',rurl=seg[1]||'',snippet=seg.slice(2).join(',')||'';
+      const fav=rurl.charAt(0).toUpperCase();
+      rh+='<div class="result-item"><div class="result-url"><div class="result-favicon">'+fav+'</div>'+rurl+'</div><div class="result-title">'+title+'</div><div class="result-snippet">'+snippet+'</div></div>';
+    });
+    html=html.replace('id="results"></div>','id="results">'+rh+'</div>');
+  }
+  if(a) {
+    html=html.replace('id="paa" style="display:none"','id="paa"');
+    let ah='';
+    a.split('|').forEach(t => { ah+='<div class="paa-item"><span>'+t+'</span><span class="paa-arrow">▼</span></div>'; });
+    html=html.replace('id="paa-items"></div>','id="paa-items">'+ah+'</div>');
+  }
+  return html;
+}
+
+// ── NEWS ──
+function renderNews(html, url) {
+  const p = url.searchParams.get('p');
+  if (!p) return html;
+  const parts=p.split(',');
+  const outlet=parts[0]||'NEWS',category=parts[1]||'',title=parts[2]||'',subtitle=parts[3]||'',author=parts[4]||'',date=parts[5]||'',imgDesc=parts[6]||'',body=parts.slice(7).join(',')||'';
+  html=html.replace('>NEWS<','>'+outlet+'<');
+  html=html.replace('id="bar-tag"></span>','id="bar-tag">'+category+'</span>');
+  html=html.replace('id="category"></div>','id="category">'+category+'</div>');
+  html=html.replace('>기사 제목<','>'+title+'<');
+  if(subtitle) html=html.replace('id="subtitle"></div>','id="subtitle">'+subtitle+'</div>');
+  else html=html.replace('id="subtitle"></div>','id="subtitle" style="display:none"></div>');
+  html=html.replace('id="author"></span>','id="author">'+author+'</span>');
+  html=html.replace('id="date"></span>','id="date">'+date+'</span>');
+  if(imgDesc) html=html.replace('id="img-desc"></div>','id="img-desc">'+imgDesc+'</div>');
+  html=html.replace('>기사 본문<','>'+body+'<');
+  return html;
+}
+
+// ── DOC ──
+function renderDoc(html, url) {
+  const p=url.searchParams.get('p'), info=url.searchParams.get('i'), b=url.searchParams.get('b'), t=url.searchParams.get('t2'), f=url.searchParams.get('f');
+  if(p) {
+    const pp=p.split(',');
+    html=html.replace('>기관명<','>'+(pp[0]||'')+'<');
+    html=html.replace('>문서 유형<','>'+(pp[1]||'')+'<');
+    html=html.replace('>문서 제목<','>'+(pp[2]||'')+'<');
+    if(pp[3]) html=html.replace('id="stamp"></span>','id="stamp">'+pp[3]+'</span>');
+  }
+  if(info) {
+    let ih='';
+    info.split('|').forEach(pair => { const [l,v]=pair.split(':'); ih+='<div class="doc-info-label">'+(l||'')+'</div><div class="doc-info-value">'+(v||'')+'</div>'; });
+    html=html.replace('id="doc-info"></div>','id="doc-info">'+ih+'</div>');
+  }
+  if(b) html=html.replace('id="doc-body"></div>','id="doc-body">'+b+'</div>');
+  if(t) {
+    const rows=t.split('|');
+    const headers=rows[0].split(':');
+    let th='<table class="doc-table"><thead><tr>';
+    headers.forEach(h => th+='<th>'+h+'</th>');
+    th+='</tr></thead><tbody>';
+    rows.slice(1).forEach(row => { th+='<tr>'; row.split(':').forEach(cell => th+='<td>'+cell+'</td>'); th+='</tr>'; });
+    th+='</tbody></table>';
+    html=html.replace('id="doc-body">','id="doc-body">'+th);
+  }
+  if(f) {
+    const fp=f.split(',');
+    html=html.replace('id="doc-footer"></div>','id="doc-footer">'+(fp[0]||'')+'</div>');
+    if(fp[1]) html=html.replace('id="doc-seal"></div>','id="doc-seal">'+fp[1]+'</div>');
+    else html=html.replace('id="doc-seal"></div>','id="doc-seal" style="display:none"></div>');
+  }
+  return html;
+}
+
+// ── BOARD ──
+function renderBoard(html, url) {
+  const b=url.searchParams.get('b'), tabs=url.searchParams.get('tabs'), p=url.searchParams.get('p');
+  if(b) {
+    const bp=b.split(',');
+    html=html.replace('>게시판<','>'+(bp[0]||'게시판')+'<');
+    if(bp[1]) html=html.replace('id="board-count"></span>','id="board-count">총 '+Number(bp[1]).toLocaleString()+'개</span>');
+  }
+  if(tabs) {
+    let th='';
+    tabs.split('|').forEach((t,i) => { th+='<div class="board-tab'+(i===0?' active':'')+'">'+t+'</div>'; });
+    html=html.replace('id="board-tabs"></div>','id="board-tabs">'+th+'</div>');
+  }
+  if(p) {
+    const tagMap={'notice':['공지','tag-notice'],'hot':['HOT','tag-hot'],'new':['NEW','tag-new'],'normal':['','tag-normal']};
+    let lh='';
+    p.split('|').forEach(raw => {
+      const seg=raw.split(',');
+      const tag=seg[0]||'normal',title=seg[1]||'',author=seg[2]||'',time=seg[3]||'',views=seg[4]||'0',votes=seg[5]||'0',comments=seg[6]||'';
+      const [tagText,tagClass]=tagMap[tag]||[tag,'tag-normal'];
+      lh+='<div class="board-item"><div class="board-item-left"><div class="board-item-title">'+(tagText?'<span class="board-item-tag '+tagClass+'">'+tagText+'</span>':'')+title+(comments?'<span class="board-item-comment">['+comments+']</span>':'')+'</div><div class="board-item-meta"><span>'+author+'</span><span>'+time+'</span><span>조회 '+Number(views).toLocaleString()+'</span></div></div><div class="board-item-right"><div class="board-item-votes">'+Number(votes).toLocaleString()+'</div><div class="board-item-vote-label">추천</div></div></div>';
+    });
+    html=html.replace('id="board-list"></div>','id="board-list">'+lh+'</div>');
+  }
+  return html;
+}
+
+// ── DISCORD ──
+function renderDiscord(html, url) {
+  const ch=url.searchParams.get('ch'), m=url.searchParams.get('m');
+  if(ch) {
+    const cp=ch.split(',');
+    html=html.replace('>일반<','>'+(cp[0]||'일반')+'<');
+    html=html.replace('id="input-placeholder">#일반에 메시지 보내기<','id="input-placeholder">#'+(cp[0]||'일반')+'에 메시지 보내기<');
+    if(cp[1]) html=html.replace('id="channel-topic"></span>','id="channel-topic">'+cp[1]+'</span>');
+  }
+  if(m) {
+    let mh='', lastAuthor='';
+    m.split('|').forEach(raw => {
+      const seg=raw.split(',');
+      const nick=seg[0]||'',rColor=seg[1]||'',rTag=seg[2]||'',time=seg[3]||'',text=seg[4]||'',reactions=seg[5]||'';
+      const color=roleColor(rColor);
+      const isCont=nick===lastAuthor;
+      lastAuthor=nick;
+      let rh='';
+      if(reactions) { rh='<div class="msg-reactions">'; reactions.split(' ').forEach(r=>{const emoji=r.replace(/[0-9]/g,'');const count=r.replace(/[^0-9]/g,'')||'1';rh+='<span class="reaction">'+emoji+'<span class="reaction-count">'+count+'</span></span>';}); rh+='</div>'; }
+      if(isCont) {
+        mh+='<div class="msg-cont"><div class="msg-text">'+text+'</div>'+rh+'</div>';
+      } else {
+        mh+='<div class="msg-group"><div class="msg-avatar" style="background:'+avatarBg(nick)+'">'+nick.charAt(0)+'</div><div class="msg-content"><div class="msg-header"><span class="msg-author" style="color:'+color+'">'+nick+'</span>'+(rTag?'<span class="msg-role-tag" style="background:'+color+'22;color:'+color+'">'+rTag+'</span>':'')+'<span class="msg-timestamp">'+time+'</span></div><div class="msg-text">'+text+'</div>'+rh+'</div></div>';
+      }
+    });
+    html=html.replace('id="messages"></div>','id="messages">'+mh+'</div>');
+  }
+  return html;
+}
+
+// ── VOICE ── (복잡해서 기본 passthrough, 필요시 추가)
+function renderVoice(html, url) {
+  const s=url.searchParams.get('s'),tc=url.searchParams.get('tc'),v=url.searchParams.get('v'),active=url.searchParams.get('active');
+  if(s){const sp=s.split(',');html=html.replace('>서버 이름<','>'+(sp[0]||'서버')+'<');if(sp[1]){html=html.replace('id="user-display">나<','id="user-display">'+sp[1]+'<');html=html.replace('id="user-avatar" style="background:#5865f2">나<','id="user-avatar" style="background:'+avatarBg(sp[1])+'">'+sp[1].charAt(0)+'<');}}
+  let chHtml='';
+  if(tc){chHtml+='<div class="category"><span class="category-arrow">▼</span> 채팅 채널</div>';tc.split('|').forEach((ch,i)=>{chHtml+='<div class="text-channel'+(i===0?' active':'')+'"><span class="ch-hash">#</span><span class="ch-name">'+ch+'</span></div>';});}
+  if(v){chHtml+='<div class="category"><span class="category-arrow">▼</span> 음성 채널</div>';v.split(';').forEach(vcRaw=>{const parts=vcRaw.split(',');const vcName=parts[0]||'음성';const members=parts.slice(1);const isActive=active&&vcName===active;chHtml+='<div class="voice-channel'+(isActive?' active-vc':'')+'"><span class="vc-icon">🔊</span><span class="vc-name">'+vcName+'</span>'+(members.length>0?'<span class="vc-count">'+members.length+'</span>':'')+'</div>';if(members.length>0&&members[0]){chHtml+='<div class="vc-members">';members.forEach(mRaw=>{const mp=mRaw.split(':');const name=mp[0]||'';const color=roleColor(mp[1]||'');const status=mp[2]||'online';chHtml+='<div class="vc-member"><div class="vc-member-avatar" style="background:'+avatarBg(name)+'">'+name.charAt(0)+'<div class="vc-member-status status-'+status+'"></div></div><span class="vc-member-name" style="color:'+color+'">'+name+'</span></div>';});chHtml+='</div>';}});}
+  html=html.replace('id="channel-list"></div>','id="channel-list">'+chHtml+'</div>');
+  if(active){html=html.replace('id="connected-bar" style="display:none"','id="connected-bar"');html=html.replace('id="connected-ch"></div>','id="connected-ch">🔊 '+active+'</div>');}
+  return html;
+}
+
+// ── DISCORD-FULL ──
+function renderDiscordFull(html, url) {
+  const s=url.searchParams.get('s'),sv=url.searchParams.get('sv'),tc=url.searchParams.get('tc'),vc=url.searchParams.get('vc'),ch=url.searchParams.get('ch'),d=url.searchParams.get('d'),m=url.searchParams.get('m');
+  if(s){const sp=s.split(',');html=html.replace('id="server-name">서버<','id="server-name">'+(sp[0]||'서버')+'<');if(sp[1]){html=html.replace('id="user-name">나<','id="user-name">'+sp[1]+'<');html=html.replace('id="user-av" style="background:#5865f2">나<','id="user-av" style="background:'+avatarBg(sp[1])+'">'+sp[1].charAt(0)+'<');}}
+  if(sv){let svh='';sv.split('|').forEach((raw,i)=>{const[abbr,color]=raw.split(':');svh+='<div class="server-icon'+(i===0?' active':'')+'" style="background:'+(color||avatarBg(abbr))+'">'+(i===0?'<div class="indicator"></div>':'')+abbr+'</div>';});html=html.replace('class="server-divider"></div>\n</div>','class="server-divider"></div>'+svh+'</div>');}
+  if(tc||vc){const activeChName=ch?ch.split(',')[0]:'';let allCh='';if(tc){allCh+='<div class="category">▾ 채팅 채널</div>';tc.split('|').forEach(name=>{allCh+='<div class="ch-item'+(name===activeChName?' active':'')+'"><span class="ch-icon">#</span>'+name+'</div>';});}if(vc){allCh+='<div class="category">▾ 음성 채널</div>';vc.split(';').forEach(vcRaw=>{const parts=vcRaw.split(',');const vcName=parts[0]||'음성';const members=parts.slice(1);allCh+='<div class="ch-item"><span class="ch-icon">🔊</span>'+vcName+'</div>';if(members.length>0&&members[0]){allCh+='<div class="vc-members-side">';members.forEach(name=>{allCh+='<div class="vc-member-side"><div class="vc-av-sm" style="background:'+avatarBg(name)+'">'+name.charAt(0)+'</div>'+name+'</div>';});allCh+='</div>';}});}html=html.replace('id="channels"></div>','id="channels">'+allCh+'</div>');}
+  if(ch){const cp=ch.split(',');html=html.replace('id="chat-ch-name">일반<','id="chat-ch-name">'+(cp[0]||'일반')+'<');html=html.replace('id="input-ph">#일반에 메시지 보내기<','id="input-ph">#'+(cp[0]||'일반')+'에 메시지 보내기<');if(cp[1])html=html.replace('id="chat-topic"></span>','id="chat-topic">'+cp[1]+'</span>');}
+  if(m){let mh='',lastAuthor='';if(d)mh+='<div class="date-divider"><span>'+d+'</span></div>';m.split('|').forEach(raw=>{const seg=raw.split(',');const nick=seg[0]||'',rColor=seg[1]||'',time=seg[2]||'',text=seg.slice(3).join(',')||'';const isCont=nick===lastAuthor;lastAuthor=nick;if(isCont){mh+='<div class="msg-cont"><div class="msg-text">'+text+'</div></div>';}else{mh+='<div class="msg-group"><div class="msg-avatar" style="background:'+avatarBg(nick)+'">'+nick.charAt(0)+'</div><div class="msg-content"><div class="msg-header"><span class="msg-author" style="color:'+roleColor(rColor)+'">'+nick+'</span><span class="msg-time">'+time+'</span></div><div class="msg-text">'+text+'</div></div></div>';}});html=html.replace('id="messages"></div>','id="messages">'+mh+'</div>');}
+  return html;
+}
+
+// ── STREAM ──
+function renderStream(html, url) {
+  const p=url.searchParams.get('p'), c=url.searchParams.get('c');
+  if(p){
+    const pp=p.split(',');
+    const streamer=pp[0]||'스트리머',title=pp[1]||'',viewers=pp[2]||'0',desc=pp[3]||'',tags=pp[4]||'';
+    html=html.replace('>스트리머<','>'+streamer+'<');
+    html=html.replace('id="streamer-avatar">S<','id="streamer-avatar">'+streamer.charAt(0)+'<');
+    html=html.replace('>방송 제목<','>'+title+'<');
+    html=html.replace('id="viewer-count">0<','id="viewer-count">'+Number(viewers).toLocaleString()+'<');
+    if(desc) html=html.replace('>방송 화면<','>'+desc+'<');
+    if(tags){let th='';tags.split(' ').forEach(t=>{th+='<span class="stream-tag">'+t+'</span>';});html=html.replace('id="stream-tags"></div>','id="stream-tags">'+th+'</div>');}
+  }
+  if(c){
+    let ch='';
+    c.split('|').forEach(raw=>{
+      const seg=raw.split(':');
+      if(seg[0]==='system'){ch+='<div class="chat-system">'+seg.slice(1).join(':')+'</div>';return;}
+      const nick=seg[0]||'',color=seg[1]||'',text=seg.slice(2).join(':')||'';
+      ch+='<div class="chat-msg"><span class="chat-nick" style="color:'+roleColor(color)+'">'+nick+'</span><span class="chat-text">'+text+'</span></div>';
+    });
+    html=html.replace('id="chat-messages"></div>','id="chat-messages">'+ch+'</div>');
+  }
+  return html;
+}
+
+function renderDefault(html, url) { return html; }
+
+const RENDERERS = {
+  'insta': renderInsta, 'twitter': renderTwitter, 'kakao': renderKakao,
+  'reddit': renderReddit, 'lock': renderLock, 'email': renderEmail,
+  'story': renderStory, 'search': renderSearch, 'news': renderNews,
+  'doc': renderDoc, 'board': renderBoard, 'discord': renderDiscord,
+  'voice': renderVoice, 'discord-full': renderDiscordFull, 'stream': renderStream,
+};
+
+
+function stripToBody(html) {
+  const styles = [];
+  html.replace(/<style[^>]*>([\s\S]*?)<\/style>/gi, (m, s) => { styles.push(s); return ''; });
+  const bodyMatch = html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+  const bodyContent = bodyMatch ? bodyMatch[1] : html;
+  const scripts = [];
+  const cleanBody = bodyContent.replace(/<script[^>]*>([\s\S]*?)<\/script>/gi, (m, s) => { scripts.push(s); return ''; });
+  return { styles: styles.join('\n'), body: cleanBody, scripts: scripts.join('\n') };
+}
+
+function wrapInSVG(html, width, height) {
+  const { styles, body } = stripToBody(html);
+  const safeStyles = styles.replace(/&/g, '&amp;');
+  const safeBody = body.replace(/&/g, '&amp;');
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
+<foreignObject width="100%" height="100%">
+<div xmlns="http://www.w3.org/1999/xhtml">
+<style>${safeStyles}</style>
+${safeBody}
+</div>
+</foreignObject>
+</svg>`;
+}
+
 export default {
   async fetch(request) {
     const url = new URL(request.url);
     const t = url.searchParams.get('t');
     if (!t) {
-      const links = Object.keys(PAGES).map(k => 
+      const links = Object.keys(TEMPLATES).map(k => 
         '<li><a href="/?t=' + k + '" style="color:#DDAACC;">/?t=' + k + '</a></li>'
       ).join('');
       return new Response(
         '<html><body style="font-family:sans-serif;padding:40px;background:#1a1a2e;color:#e0e0e0;">'
-        + '<h1 style="color:#8889CD;">겨울의 SNS UI v7</h1>'
+        + '<h1 style="color:#8889CD;">겨울의 SNS UI v12</h1>'
         + '<p>사용 가능한 타입 (15종):</p><ul>' + links + '</ul>'
         + '</body></html>',
         { headers: { 'content-type': 'text/html;charset=UTF-8' } }
       );
     }
-    const html = PAGES[t];
-    if (html) return new Response(html, { headers: { 'content-type': 'text/html;charset=UTF-8' } });
+    let html = TEMPLATES[t];
+    if (html) {
+      const renderer = RENDERERS[t] || renderDefault;
+      html = renderer(html, url);
+      const [w, h] = SIZES[t] || [600, 700];
+      const svg = wrapInSVG(html, w, h);
+      return new Response(svg, {
+        headers: { 'content-type': 'image/svg+xml', 'cache-control': 'no-cache' }
+      });
+    }
     return new Response('404 Not Found', { status: 404 });
   }
 };

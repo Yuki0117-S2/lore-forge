@@ -189,11 +189,11 @@
 // 타입: msg, call, insta, sns, mail, app
 function parseParams() {
   const params = new URLSearchParams(window.location.search);
-  const t = params.get('t');
+  const timeParam = params.get('time') || params.get('t');
   const n = params.get('n');
 
-  if (t) {
-    const tp = t.split(',');
+  if (timeParam) {
+    const tp = timeParam.split(',');
     const time = tp[0] || '12:00';
     const date = tp[1] || '';
     document.getElementById('lock-time').textContent = time;

@@ -897,13 +897,13 @@ EXP ████████████░░ 85%
         id:'t-6-12a', title:'디스코드 음성채널',
         body:`<div class="label label-use">URL 파라미터 형식</div>
 <pre>/?t=voice&s=서버이름,[내닉네임]
-&t=텍채1|텍채2|텍채3
+&tc=텍채1|텍채2|텍채3
 &v=음성채널이름,멤버1:역할색:상태:아이콘|멤버2:역할색:상태:아이콘;음성채널2,멤버...
 &active=현재접속중인채널이름</pre>
 <hr class="divider">
 <div class="label label-example">예시</div>
 <pre>/?t=voice&s=코랄뷰 비공식,Alex
-&t=일반|공지|잡담
+&tc=일반|공지|잡담
 &v=파티 준비,BlairK:핑크:online:|JayMcCoy:인디고:online:stream|NoxymX:샌드:idle:mute;스터디,Lisa:로즈:online:|Mark:흰색:dnd:deaf
 &active=파티 준비</pre>
 <hr class="divider">
@@ -957,44 +957,74 @@ EXP ████████████░░ 85%
 • 팔로우 버튼, 태그, 채팅 입력창 포함</div>`
       },
       {
-        id:'t-6-12', title:'바베챗 프롬프트에서 호출',
-        body:`<div class="label label-use">사용법</div>
-<div class="desc">바베챗은 마크다운 이미지 문법 <strong>![](URL)</strong>을 지원하므로, Workers URL을 이 형식으로 출력하면 대화창에 UI가 렌더링됨.</div>
-<pre># 프롬프트 예시 (캐릭터 상세설정에 삽입)
+        id:'t-6-13', title:'바베챗 프롬프트 (복사용)',
+        body:`<div class="label label-use">캐릭터 상세설정에 붙여넣기</div>
+<div class="desc">아래 전체를 프롬프트에 삽입하면 AI가 장면에 맞는 SNS UI를 자동 생성합니다.<br>
+<strong>도메인</strong> 부분을 본인 Workers 주소로 교체하세요.</div>
+<pre>## SNS UI 출력 규칙
 
-## SNS UI 출력 규칙 (12종)
-- 인스타 피드:
-  ![](https://도메인/?t=insta&p=...)
-- 인스타 스토리:
-  ![](https://도메인/?t=story&p=@유저,시간,이미지설명,[캡션])
-- 트위터:
-  ![](https://도메인/?t=twitter&p=...)
-- 카카오톡:
-  ![](https://도메인/?t=kakao&r=...&m=...)
-- 레딧:
-  ![](https://도메인/?t=reddit&p=...&c=...)
-- 잠금화면:
-  ![](https://도메인/?t=lock&time=...&n=...)
-- 이메일:
-  ![](https://도메인/?t=email&p=...)
-- 검색 결과:
-  ![](https://도메인/?t=search&q=...&r=...&a=...)
-- 뉴스 기사:
-  ![](https://도메인/?t=news&p=...)
-- 공문서/서식:
-  ![](https://도메인/?t=doc&p=기관,유형,제목,스탬프&i=라벨:값&b=본문&t=표&f=푸터,직인)
-- 게시판:
-  ![](https://도메인/?t=board&b=이름,수&tabs=탭들&p=태그,제목,작성자,시간,조회,좋아요,댓글)
-- 디스코드:
-  ![](https://도메인/?t=discord&ch=채널,토픽&m=닉,색,태그,시간,내용,리액션)
-- 디스코드 음성:
-  ![](https://도메인/?t=voice&s=서버,내닉&t=텍채들&v=음채,멤버:색:상태:아이콘&active=채널)
-- 디스코드 풀:
-  ![](https://도메인/?t=discord-full&s=서버,닉&sv=약자:색&tc=텍채&vc=음챗,멤버&ch=채널,토픽&m=닉,색,시간,내용)
-- 방송 (스트림):
-  ![](https://도메인/?t=stream&p=스트리머,제목,시청자,화면설명,태그&c=닉:색:내용)</pre>
-<hr class="divider">
-<div class="desc"><strong>인코딩:</strong> 공백 → <strong>%20</strong> / # → <strong>%23</strong> / 줄바꿈 → <strong>%0A</strong> / 콜론 → <strong>%3A</strong></div>`
+스토리 진행 중 SNS/메시지/문서 장면이 필요할 때 아래 형식으로 출력한다.
+URL은 반드시 한 줄로 작성하고, 공백은 + 로, #은 %23으로 변환한다.
+
+### 인스타그램 피드
+![](https://도메인/?t=insta&p=@유저,팔로워수,댓글수,시간,이미지설명,캡션,[번역],해시태그&c=닉,댓글,[번역],좋아요|닉,댓글,[번역],좋아요)
+
+### 인스타그램 스토리
+![](https://도메인/?t=story&p=@유저,시간,이미지설명,[캡션])
+
+### 트위터
+![](https://도메인/?t=twitter&p=@handle,표시이름,시간,본문,[번역],[이미지설명],답글수,RT수,인용수,좋아요수,북마크수,[verified])
+
+### 카카오톡
+![](https://도메인/?t=kakao&r=방이름,날짜,인원수&m=이름,내용,시간,읽음수|이름,내용,시간,읽음수,me)
+- me 붙이면 내 메시지 (핑크 말풍선)
+- 읽음수 0이면 표시 안 함
+
+### 레딧
+![](https://도메인/?t=reddit&p=서브레딧,유저,시간,제목,본문,업보트,댓글수&c=유저,내용,시간,업보트|유저,내용,시간,업보트)
+
+### 잠금화면
+![](https://도메인/?t=lock&time=시간,날짜&n=타입,앱이름,제목,내용,시간|타입,앱이름,제목,내용,시간)
+- 타입: msg / call / insta / sns / mail / app
+
+### 이메일
+![](https://도메인/?t=email&p=보낸사람,이메일주소,받는사람,제목,날짜,본문)
+
+### 검색 결과
+![](https://도메인/?t=search&q=검색어,결과수&r=제목,URL,스니펫|제목,URL,스니펫&a=관련검색1|관련검색2)
+
+### 뉴스 기사
+![](https://도메인/?t=news&p=매체명,카테고리,제목,부제,기자,날짜,이미지설명,본문)
+
+### 공문서/서식
+![](https://도메인/?t=doc&p=기관,유형,제목,스탬프&i=라벨:값|라벨:값&b=본문&t2=헤더1:헤더2|값1:값2&f=푸터,직인)
+- 표 파라미터는 t2 사용 (t와 충돌 방지)
+- 성적표, 정학통보, 계약서 등 범용
+
+### 게시판
+![](https://도메인/?t=board&b=이름,총수&tabs=탭1|탭2&p=태그,제목,작성자,시간,조회,좋아요,댓글수|태그,제목,...)
+- 태그: notice / hot / new / normal
+
+### 디스코드 채팅
+![](https://도메인/?t=discord&ch=채널,토픽&m=닉,역할색,역할태그,시간,내용,리액션|닉,...)
+- 역할색: 인디고/핑크/샌드/로즈/빨강/초록/파랑/노랑
+- 리액션: 이모지+숫자 (예: 👍3 🔥5)
+
+### 디스코드 음성
+![](https://도메인/?t=voice&s=서버,내닉&tc=텍채1|텍채2&v=음챗,멤버:색:상태|멤버:색:상태;음챗2,멤버&active=채널)
+- 상태: online / idle / dnd / streaming
+
+### 디스코드 풀 레이아웃
+![](https://도메인/?t=discord-full&s=서버,닉&sv=약자:색|약자:색&tc=텍채1|텍채2&vc=음챗,멤버1|멤버2&ch=채널,토픽&d=날짜&m=닉,색,시간,내용|닉,색,시간,내용)
+
+### 인터넷 방송
+![](https://도메인/?t=stream&p=스트리머,제목,시청자수,화면설명,태그1+태그2&c=닉:색:내용|system:시스템메시지)
+
+### 공통 인코딩 규칙
+- 공백 → +
+- # → %23
+- 줄바꿈 → %0A
+- URL은 절대 줄바꿈하지 않는다</pre>`
       }
     ]
   },
@@ -1023,25 +1053,42 @@ EXP ████████████░░ 85%
 3. "Save and Deploy" 클릭
 4. 완료! URL로 접속 가능</pre>
 <hr class="divider">
-<div class="label label-example">worker.js 구조</div>
-<pre>const PAGES = {
-  '/insta':   \`인스타 HTML 전체\`,
-  '/twitter': \`트위터 HTML 전체\`,
-  '/kakao':   \`카카오 HTML 전체\`,
-  // 새 UI 추가 시 여기에 한 줄 추가
+<div class="label label-example">worker.js 구조 (v12)</div>
+<pre>const TEMPLATES = {
+  'insta':   \`인스타 HTML 전체\`,
+  'twitter': \`트위터 HTML 전체\`,
+  // 15종 등록
 };
+
+// 타입별 서버사이드 렌더러
+const RENDERERS = {
+  'insta': renderInsta,
+  'twitter': renderTwitter,
+  // 각 타입별 함수가 파라미터를 읽어서 HTML에 직접 주입
+};
+
+// HTML → SVG foreignObject 래핑 (바베챗 호환)
+function wrapInSVG(html, width, height) { ... }
 
 export default {
   async fetch(request) {
     const url = new URL(request.url);
-    const path = url.pathname;
-    const html = PAGES[path];
-    if (html) return new Response(html, {
-      headers: { 'content-type': 'text/html;charset=UTF-8' }
+    const t = url.searchParams.get('t');
+    let html = TEMPLATES[t];
+    // 1. 렌더러가 파라미터를 HTML에 주입
+    html = RENDERERS[t](html, url);
+    // 2. SVG로 감싸서 이미지 응답
+    const svg = wrapInSVG(html, w, h);
+    return new Response(svg, {
+      headers: { 'content-type': 'image/svg+xml' }
     });
-    return new Response('404', { status: 404 });
   }
-};</pre>`
+};</pre>
+<hr class="divider">
+<div class="desc"><strong>핵심 구조:</strong><br>
+1. <strong>서버사이드 렌더링</strong> — SVG 안에서는 JS 실행 불가하므로 worker.js가 파라미터를 읽어서 HTML 기본값을 직접 치환<br>
+2. <strong>SVG foreignObject 래핑</strong> — 바베챗이 <strong>![](URL)</strong>로 이미지만 렌더링하므로 <strong>image/svg+xml</strong>로 응답<br>
+3. <strong>XML 호환</strong> — HTML의 <strong>&amp;</strong>를 <strong>&amp;amp;</strong>로 이스케이프, boolean 속성에 값 필수 (readonly="readonly")</div>`
       },
       {
         id:'t-7-2', title:'새 UI 추가하기',

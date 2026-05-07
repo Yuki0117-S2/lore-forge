@@ -4902,7 +4902,7 @@ const SIZES = {
   'story': [420, 750], 'search': [600, 700], 'news': [560, 800],
   'doc': [540, 700], 'board': [600, 600], 'discord': [520, 700],
   'voice': [280, 700], 'discord-full': [800, 700], 'stream': [820, 700],
-  'post': [600, 800],
+  'post': [600, 1200],
 };
 
 
@@ -5386,7 +5386,112 @@ export default {
     if (html) {
       const renderer = RENDERERS[t] || renderDefault;
       html = renderer(html, url);
-      const [w, h] = SIZES[t] || [600, 700];
+      let [w, h] = SIZES[t] || [600, 700];
+
+      // 동적 높이 계산 (최대 900px — 바베챗 이미지 표시 제한)
+      const MAX_H = 900;
+      if (t === 'post') {
+        const p = url.searchParams.get('p') || '';
+        const c = url.searchParams.get('c') || '';
+        const bodyText = p.split(',').slice(7).join(',') || '';
+        const bodyLines = Math.ceil(bodyText.length / 35);
+        const commentCount = c ? c.split('|').length : 0;
+        h = 300 + bodyLines * 24 + commentCount * 90;
+        h = Math.max(h, 400); h = Math.min(h, MAX_H);
+      }
+      if (t === 'kakao') {
+        const m = url.searchParams.get('m') || '';
+        const msgCount = m ? m.split('|').length : 0;
+        h = 200 + msgCount * 65;
+        h = Math.max(h, 300); h = Math.min(h, MAX_H);
+      }
+      if (t === 'discord') {
+        const m = url.searchParams.get('m') || '';
+        const msgCount = m ? m.split('|').length : 0;
+        h = 200 + msgCount * 60;
+        h = Math.max(h, 300); h = Math.min(h, MAX_H);
+      }
+      if (t === 'discord-full') {
+        const m = url.searchParams.get('m') || '';
+        const msgCount = m ? m.split('|').length : 0;
+        h = 250 + msgCount * 55;
+        h = Math.max(h, 400); h = Math.min(h, MAX_H);
+      }
+      if (t === 'reddit') {
+        const p = url.searchParams.get('p') || '';
+        const c = url.searchParams.get('c') || '';
+        const bodyText = p.split(',')[4] || '';
+        const bodyLines = Math.ceil(bodyText.length / 40);
+        const commentCount = c ? c.split('|').length : 0;
+        h = 250 + bodyLines * 22 + commentCount * 85;
+        h = Math.max(h, 350); h = Math.min(h, MAX_H);
+      }
+      if (t === 'board') {
+        const p = url.searchParams.get('p') || '';
+        const itemCount = p ? p.split('|').length : 0;
+        h = 120 + itemCount * 75;
+        h = Math.max(h, 250); h = Math.min(h, MAX_H);
+      }
+      if (t === 'stream') {
+        const c = url.searchParams.get('c') || '';
+        const chatCount = c ? c.split('|').length : 0;
+        h = 450 + chatCount * 24;
+        h = Math.max(h, 500); h = Math.min(h, MAX_H);
+      }
+      if (t === 'lock') {
+        const n = url.searchParams.get('n') || '';
+        const notifCount = n ? n.split('|').length : 0;
+        h = 350 + notifCount * 80;
+        h = Math.max(h, 500); h = Math.min(h, MAX_H);
+      }
+      if (t === 'insta') {
+        const c = url.searchParams.get('c') || '';
+        const commentCount = c ? c.split('|').length : 0;
+        h = 750 + commentCount * 45;
+        h = Math.max(h, 780); h = Math.min(h, MAX_H);
+      }
+      if (t === 'email') {
+        const p = url.searchParams.get('p') || '';
+        const bodyText = p.split(',').slice(5).join(',') || '';
+        const bodyLines = Math.ceil(bodyText.length / 40);
+        h = 280 + bodyLines * 24;
+        h = Math.max(h, 400); h = Math.min(h, MAX_H);
+      }
+      if (t === 'news') {
+        const p = url.searchParams.get('p') || '';
+        const bodyText = p.split(',').slice(7).join(',') || '';
+        const bodyLines = Math.ceil(bodyText.length / 35);
+        h = 450 + bodyLines * 24;
+        h = Math.max(h, 500); h = Math.min(h, MAX_H);
+      }
+      if (t === 'doc') {
+        const i = url.searchParams.get('i') || '';
+        const t2 = url.searchParams.get('t2') || '';
+        const b = url.searchParams.get('b') || '';
+        const infoCount = i ? i.split('|').length : 0;
+        const tableRows = t2 ? t2.split('|').length : 0;
+        const bodyLines = Math.ceil(b.length / 40);
+        h = 200 + infoCount * 22 + tableRows * 32 + bodyLines * 24;
+        h = Math.max(h, 350); h = Math.min(h, MAX_H);
+      }
+      if (t === 'search') {
+        const r = url.searchParams.get('r') || '';
+        const a = url.searchParams.get('a') || '';
+        const resultCount = r ? r.split('|').length : 0;
+        const paaCount = a ? a.split('|').length : 0;
+        h = 120 + resultCount * 100 + paaCount * 45;
+        h = Math.max(h, 300); h = Math.min(h, MAX_H);
+      }
+      if (t === 'voice') {
+        const tc = url.searchParams.get('tc') || '';
+        const v = url.searchParams.get('v') || '';
+        const tcCount = tc ? tc.split('|').length : 0;
+        let memberCount = 0;
+        if (v) v.split(';').forEach(vc => { memberCount += vc.split(',').length - 1; });
+        h = 200 + tcCount * 32 + memberCount * 30;
+        h = Math.max(h, 400); h = Math.min(h, MAX_H);
+      }
+
       const svg = wrapInSVG(html, w, h);
       return new Response(svg, {
         headers: { 'content-type': 'image/svg+xml', 'cache-control': 'no-cache' }

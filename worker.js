@@ -3598,310 +3598,283 @@ parseParams();
   body {
     background: #313338;
     font-family: 'gg sans', 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    display: flex;
+    justify-content: center;
     min-height: 100vh;
   }
   .app {
     width: 100%;
     max-width: 800px;
-    margin: 0 auto;
+    display: flex;
     min-height: 100vh;
-    background: #313338;
   }
 
-  /* ── 상단 네비 바 ── */
-  .top-bar {
+  /* Server bar */
+  .server-bar {
+    width: 52px;
     background: #1e1f22;
-    padding: 6px 10px;
-    display: block;
-    border-bottom: 1px solid #0e0e10;
+    padding: 8px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
   }
-  .top-servers {
-    display: inline;
-  }
-  .sv-pill {
-    display: inline-block;
-    width: 32px; height: 32px;
+  .server-icon {
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    text-align: center;
-    line-height: 32px;
-    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
     font-weight: 700;
     color: #fff;
-    margin-right: 4px;
-    vertical-align: middle;
+    cursor: pointer;
+    transition: border-radius 0.2s;
+    position: relative;
   }
-  .sv-pill.active {
-    border-radius: 8px;
+  .server-icon:hover { border-radius: 12px; }
+  .server-icon.active { border-radius: 12px; }
+  .server-icon .indicator {
+    position: absolute;
+    left: -8px;
+    width: 4px;
+    height: 8px;
+    background: #fff;
+    border-radius: 0 4px 4px 0;
   }
-  .sv-home {
-    background: #313338;
-    font-size: 14px;
-    margin-right: 6px;
-  }
-  .sv-divider {
-    display: inline-block;
-    width: 24px; height: 2px;
+  .server-icon.active .indicator { height: 32px; }
+  .server-divider {
+    width: 28px;
+    height: 2px;
     background: #35363c;
-    vertical-align: middle;
-    margin: 0 4px 0 2px;
+    border-radius: 1px;
+    margin: 2px 0;
   }
-  .sv-name {
-    display: inline-block;
-    vertical-align: middle;
-    margin-left: 6px;
+  .home-icon {
+    background: #313338;
+    border-radius: 50%;
+  }
+  .home-icon:hover { background: #5865f2; border-radius: 12px; }
+
+  /* Channel sidebar */
+  .channel-side {
+    width: 180px;
+    background: #2b2d31;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+  .server-header {
+    padding: 12px 12px;
+    border-bottom: 1px solid #1e1f22;
     font-size: 14px;
     font-weight: 700;
     color: #f2f3f5;
-  }
-
-  /* ── 채널 바 ── */
-  .channel-bar {
-    background: #2b2d31;
-    padding: 5px 10px;
-    border-bottom: 1px solid #1e1f22;
     white-space: nowrap;
-    overflow-x: auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-  .ch-pill {
-    display: inline-block;
-    padding: 3px 10px;
-    border-radius: 4px;
-    font-size: 13px;
-    color: #80848e;
-    margin-right: 3px;
-    vertical-align: middle;
-  }
-  .ch-pill.active {
-    background: rgba(255,255,255,0.06);
-    color: #f2f3f5;
-  }
-  .ch-hash { color: #80848e; margin-right: 2px; }
-  .ch-vc { margin-right: 2px; }
-  .vc-inline-members {
-    display: inline;
-    font-size: 11px;
-    color: #5d5f65;
-    margin-left: 2px;
-  }
-  .vc-inline-av {
-    display: inline-block;
-    width: 16px; height: 16px;
-    border-radius: 50%;
-    text-align: center;
-    line-height: 16px;
-    font-size: 8px;
+  .channels { flex: 1; padding: 8px 0; overflow-y: auto; }
+  .category {
+    padding: 16px 8px 4px 12px;
+    font-size: 10px;
     font-weight: 700;
-    color: #fff;
-    margin-left: 1px;
-    vertical-align: middle;
+    color: #80848e;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .ch-item {
+    padding: 5px 8px 5px 12px;
+    margin: 1px 6px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #80848e;
+    font-weight: 500;
+    transition: background 0.1s;
+  }
+  .ch-item:hover { background: rgba(255,255,255,0.04); color: #dbdee1; }
+  .ch-item.active { background: rgba(255,255,255,0.06); color: #f2f3f5; }
+  .ch-icon { width: 18px; text-align: center; font-size: 16px; flex-shrink: 0; }
+
+  /* Voice members in sidebar */
+  .vc-members-side { padding-left: 36px; }
+  .vc-member-side {
+    padding: 3px 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #80848e;
+  }
+  .vc-av-sm {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 700; color: #fff; flex-shrink: 0;
   }
 
-  /* ── 채팅 헤더 ── */
-  .chat-header {
-    padding: 8px 12px;
-    border-bottom: 1px solid #1e1f22;
-    background: #313338;
+  /* User panel */
+  .user-panel {
+    background: #232428;
+    padding: 6px 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-top: 1px solid #1e1f22;
   }
-  .chat-header-ch {
+  .user-av {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0;
+  }
+  .user-name { font-size: 12px; font-weight: 600; color: #f2f3f5; flex: 1; }
+  .user-btns { display: flex; gap: 2px; }
+  .user-btn {
+    width: 24px; height: 24px; background: none; border: none;
+    cursor: pointer; font-size: 13px; color: #b5bac1; border-radius: 4px;
+  }
+
+  /* Chat area */
+  .chat-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #313338;
+    min-width: 0;
+  }
+  .chat-header {
+    padding: 10px 14px;
+    border-bottom: 1px solid #1e1f22;
+    display: flex;
+    align-items: center;
+    gap: 8px;
     font-size: 15px;
     font-weight: 600;
     color: #f2f3f5;
+    flex-shrink: 0;
   }
   .chat-header-hash { color: #80848e; font-weight: 500; }
   .chat-header-topic {
-    font-size: 12px;
-    color: #80848e;
-    margin-left: 8px;
-    padding-left: 8px;
+    font-size: 12px; color: #80848e; font-weight: 400;
+    margin-left: 8px; padding-left: 8px;
     border-left: 1px solid #3f4147;
   }
 
-  /* ── 메시지 ── */
+  /* Messages */
   .messages {
-    padding: 6px 0;
+    flex: 1;
+    padding: 8px 0;
+    overflow-y: auto;
   }
   .date-divider {
-    text-align: center;
-    padding: 6px 14px;
-    margin: 4px 0;
-    position: relative;
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 16px; margin: 8px 0;
   }
-  .date-divider::before {
-    content: '';
-    position: absolute;
-    left: 14px; right: 14px;
-    top: 50%;
-    height: 1px;
-    background: #3f4147;
+  .date-divider::before, .date-divider::after {
+    content: ''; flex: 1; height: 1px; background: #3f4147;
   }
   .date-divider span {
-    position: relative;
-    background: #313338;
-    padding: 0 8px;
-    font-size: 11px;
-    font-weight: 700;
-    color: #80848e;
+    font-size: 11px; font-weight: 700; color: #80848e;
+    white-space: nowrap;
   }
 
   .msg-group {
-    padding: 2px 14px;
-    margin-top: 6px;
+    padding: 1px 14px;
+    display: flex;
+    gap: 7px;
+    margin-top: 8px;
   }
   .msg-group:hover { background: rgba(0,0,0,0.06); }
   .msg-avatar {
-    display: inline-block;
-    width: 36px; height: 36px;
-    border-radius: 50%;
-    text-align: center;
-    line-height: 36px;
-    font-size: 13px;
-    font-weight: 700;
-    color: #fff;
-    vertical-align: top;
-    margin-right: 8px;
+    width: 36px; height: 36px; border-radius: 50%;
+    flex-shrink: 0; display: flex; align-items: center;
+    justify-content: center; font-size: 13px; font-weight: 700; color: #fff;
   }
-  .msg-body {
-    display: inline-block;
-    vertical-align: top;
-    max-width: calc(100% - 52px);
-  }
-  .msg-header-line {
-    margin-bottom: 1px;
-  }
-  .msg-author {
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-  }
+  .msg-content { flex: 1; min-width: 0; }
+  .msg-header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 2px; }
+  .msg-author { font-size: 14px; font-weight: 600; cursor: pointer; }
   .msg-author:hover { text-decoration: underline; }
-  .msg-time {
-    font-size: 11px;
-    color: #80848e;
-    margin-left: 6px;
-  }
-  .msg-text {
-    font-size: 14px;
-    color: #dbdee1;
-    line-height: 1.3;
-    word-break: break-word;
-  }
+  .msg-time { font-size: 11px; color: #80848e; }
+  .msg-text { font-size: 14px; color: #dbdee1; line-height: 1.3; word-break: break-word; }
+
   .msg-cont {
-    padding: 0 14px 0 58px;
+    padding: 0 14px 0 68px;
   }
   .msg-cont:hover { background: rgba(0,0,0,0.06); }
 
-  /* ── 하단 유저 패널 + 입력 ── */
+  /* Chat input */
   .chat-input {
-    padding: 0 10px 10px;
+    padding: 0 12px 14px;
+    flex-shrink: 0;
   }
   .input-box {
     background: #383a40;
     border-radius: 8px;
-    padding: 8px 12px;
+    padding: 9px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
-  .input-plus {
-    display: inline-block;
-    font-size: 18px;
-    color: #b5bac1;
-    vertical-align: middle;
-    margin-right: 8px;
-  }
-  .input-text {
-    display: inline-block;
-    font-size: 14px;
-    color: #6d6f78;
-    vertical-align: middle;
-  }
-  .input-icons {
-    float: right;
-    font-size: 15px;
-    color: #b5bac1;
-  }
-  .input-icons span { margin-left: 5px; }
-
-  .user-strip {
-    background: #232428;
-    padding: 5px 10px;
-    border-top: 1px solid #1e1f22;
-  }
-  .user-av {
-    display: inline-block;
-    width: 24px; height: 24px;
-    border-radius: 50%;
-    text-align: center;
-    line-height: 24px;
-    font-size: 10px;
-    font-weight: 700;
-    color: #fff;
-    vertical-align: middle;
-    margin-right: 6px;
-  }
-  .user-name {
-    font-size: 12px;
-    font-weight: 600;
-    color: #f2f3f5;
-    vertical-align: middle;
-  }
-  .user-btns {
-    float: right;
-    font-size: 13px;
-    color: #b5bac1;
-  }
-  .user-btns span { margin-left: 4px; cursor: pointer; }
+  .input-plus { font-size: 18px; color: #b5bac1; cursor: pointer; }
+  .input-text { flex: 1; font-size: 15px; color: #6d6f78; }
+  .input-icons { display: flex; gap: 6px; font-size: 16px; color: #b5bac1; }
 </style>
 </head>
 <body>
 <div class="app">
-  <!-- 상단: 서버 아이콘 바 -->
-  <div class="top-bar">
-    <span class="top-servers">
-      <span class="sv-pill sv-home">🏠</span>
-      <span class="sv-divider"></span>
-      <span id="server-icons"></span>
-    </span>
-    <span class="sv-name" id="server-name">서버</span>
+  <!-- Server bar -->
+  <div class="server-bar" id="server-bar">
+    <div class="server-icon home-icon">🏠</div>
+    <div class="server-divider"></div>
   </div>
 
-  <!-- 채널 가로 바 -->
-  <div class="channel-bar" id="channel-bar"></div>
-
-  <!-- 채팅 헤더 -->
-  <div class="chat-header">
-    <span class="chat-header-ch">
-      <span class="chat-header-hash">#</span>
-      <span id="chat-ch-name">일반</span>
-    </span>
-    <span class="chat-header-topic" id="chat-topic"></span>
-  </div>
-
-  <!-- 메시지 -->
-  <div class="messages" id="messages"></div>
-
-  <!-- 입력 -->
-  <div class="chat-input">
-    <div class="input-box">
-      <span class="input-plus">＋</span>
-      <span class="input-text" id="input-ph">#일반에 메시지 보내기</span>
-      <span class="input-icons"><span>😀</span><span>🎁</span></span>
+  <!-- Channel sidebar -->
+  <div class="channel-side">
+    <div class="server-header" id="server-name">서버</div>
+    <div class="channels" id="channels"></div>
+    <div class="user-panel">
+      <div class="user-av" id="user-av" style="background:#5865f2">나</div>
+      <span class="user-name" id="user-name">나</span>
+      <div class="user-btns">
+        <button class="user-btn">🎤</button>
+        <button class="user-btn">🎧</button>
+        <button class="user-btn">⚙</button>
+      </div>
     </div>
   </div>
 
-  <!-- 유저 패널 -->
-  <div class="user-strip">
-    <span class="user-av" id="user-av" style="background:#5865f2">나</span>
-    <span class="user-name" id="user-name">나</span>
-    <span class="user-btns"><span>🎤</span><span>🎧</span><span>⚙</span></span>
+  <!-- Chat -->
+  <div class="chat-area">
+    <div class="chat-header">
+      <span class="chat-header-hash">#</span>
+      <span id="chat-ch-name">일반</span>
+      <span class="chat-header-topic" id="chat-topic"></span>
+    </div>
+    <div class="messages" id="messages"></div>
+    <div class="chat-input">
+      <div class="input-box">
+        <span class="input-plus">＋</span>
+        <span class="input-text" id="input-ph">#일반에 메시지 보내기</span>
+        <div class="input-icons"><span>😀</span><span>🎁</span></div>
+      </div>
+    </div>
   </div>
 </div>
 
 <script>
-// 파라미터 형식은 기존과 동일:
 // ?s=서버이름,내닉네임
-// &sv=서버약자1:색|서버약자2:색
-// &tc=텍채1|텍채2|텍채3
-// &vc=음챗이름,멤버1|멤버2;음챗2,멤버...
+// &sv=서버약자1:색|서버약자2:색  (왼쪽 서버 아이콘들, 첫번째가 active)
+// &tc=텍채1|텍채2|텍채3  (active는 첫번째)
+// &vc=음챗이름,멤버1|멤버2|멤버3;음챗2,멤버...
 // &ch=현재채널이름,[토픽]
-// &d=날짜구분텍스트
+// &d=날짜구분텍스트  (선택)
 // &m=닉네임,역할색,시간,내용|닉네임,...
 
 function avatarBg(name) {
@@ -3943,48 +3916,62 @@ function parseParams() {
 
   // Server icons
   if (sv) {
-    const container = document.getElementById('server-icons');
+    const bar = document.getElementById('server-bar');
     sv.split('|').forEach((raw, i) => {
       const [abbr, color] = raw.split(':');
-      const span = document.createElement('span');
-      span.className = 'sv-pill' + (i === 0 ? ' active' : '');
-      span.style.background = color || avatarBg(abbr);
-      span.textContent = abbr;
-      container.appendChild(span);
+      const div = document.createElement('div');
+      div.className = 'server-icon' + (i === 0 ? ' active' : '');
+      div.style.background = color || avatarBg(abbr);
+      div.textContent = abbr;
+      if (i === 0) div.innerHTML = '<div class="indicator"></div>' + abbr;
+      bar.appendChild(div);
     });
   }
 
-  // Channel bar
-  const chBar = document.getElementById('channel-bar');
-  const activeChName = ch ? ch.split(',')[0] : '';
-
+  // Channels
+  const chList = document.getElementById('channels');
   if (tc) {
+    const cat = document.createElement('div');
+    cat.className = 'category';
+    cat.textContent = '▾ 채팅 채널';
+    chList.appendChild(cat);
+
+    const activeChName = ch ? ch.split(',')[0] : '';
     tc.split('|').forEach(name => {
-      const span = document.createElement('span');
-      span.className = 'ch-pill' + (name === activeChName ? ' active' : '');
-      span.innerHTML = '<span class="ch-hash">#</span>' + name;
-      chBar.appendChild(span);
+      const div = document.createElement('div');
+      div.className = 'ch-item' + (name === activeChName ? ' active' : '');
+      div.innerHTML = \`<span class="ch-icon">#</span>\${name}\`;
+      chList.appendChild(div);
     });
   }
 
   if (vc) {
+    const cat = document.createElement('div');
+    cat.className = 'category';
+    cat.textContent = '▾ 음성 채널';
+    chList.appendChild(cat);
+
     vc.split(';').forEach(vcRaw => {
       const parts = vcRaw.split(',');
       const vcName = parts[0];
       const members = parts.slice(1);
 
-      const span = document.createElement('span');
-      span.className = 'ch-pill';
-      let inner = '<span class="ch-vc">🔊</span>' + vcName;
+      const div = document.createElement('div');
+      div.className = 'ch-item';
+      div.innerHTML = \`<span class="ch-icon">🔊</span>\${vcName}\`;
+      chList.appendChild(div);
+
       if (members.length > 0 && members[0]) {
-        inner += '<span class="vc-inline-members">';
+        const mDiv = document.createElement('div');
+        mDiv.className = 'vc-members-side';
         members.forEach(name => {
-          inner += ' <span class="vc-inline-av" style="background:' + avatarBg(name) + '">' + name.charAt(0) + '</span>';
+          const md = document.createElement('div');
+          md.className = 'vc-member-side';
+          md.innerHTML = \`<div class="vc-av-sm" style="background:\${avatarBg(name)}">\${name.charAt(0)}</div>\${name}\`;
+          mDiv.appendChild(md);
         });
-        inner += '</span>';
+        chList.appendChild(mDiv);
       }
-      span.innerHTML = inner;
-      chBar.appendChild(span);
     });
   }
 
@@ -3992,7 +3979,7 @@ function parseParams() {
   if (ch) {
     const cp = ch.split(',');
     document.getElementById('chat-ch-name').textContent = cp[0] || '일반';
-    document.getElementById('input-ph').textContent = '#' + (cp[0] || '일반') + '에 메시지 보내기';
+    document.getElementById('input-ph').textContent = \`#\${cp[0] || '일반'}에 메시지 보내기\`;
     if (cp[1]) document.getElementById('chat-topic').textContent = cp[1];
   }
 
@@ -4002,7 +3989,7 @@ function parseParams() {
   if (d) {
     const dd = document.createElement('div');
     dd.className = 'date-divider';
-    dd.innerHTML = '<span>' + d + '</span>';
+    dd.innerHTML = \`<span>\${d}</span>\`;
     msgContainer.appendChild(dd);
   }
 
@@ -4021,30 +4008,33 @@ function parseParams() {
       if (isCont) {
         const div = document.createElement('div');
         div.className = 'msg-cont';
-        div.innerHTML = '<div class="msg-text">' + text + '</div>';
+        div.innerHTML = \`<div class="msg-text">\${text}</div>\`;
         msgContainer.appendChild(div);
       } else {
         const div = document.createElement('div');
         div.className = 'msg-group';
-        div.innerHTML =
-          '<span class="msg-avatar" style="background:' + avatarBg(nick) + '">' + nick.charAt(0) + '</span>' +
-          '<span class="msg-body">' +
-            '<div class="msg-header-line">' +
-              '<span class="msg-author" style="color:' + roleColor(rColor) + '">' + nick + '</span>' +
-              '<span class="msg-time">' + time + '</span>' +
-            '</div>' +
-            '<div class="msg-text">' + text + '</div>' +
-          '</span>';
+        div.innerHTML = \`
+          <div class="msg-avatar" style="background:\${avatarBg(nick)}">\${nick.charAt(0)}</div>
+          <div class="msg-content">
+            <div class="msg-header">
+              <span class="msg-author" style="color:\${roleColor(rColor)}">\${nick}</span>
+              <span class="msg-time">\${time}</span>
+            </div>
+            <div class="msg-text">\${text}</div>
+          </div>
+        \`;
         msgContainer.appendChild(div);
       }
     });
   }
+
+  // Scroll to bottom
+  msgContainer.scrollTop = msgContainer.scrollHeight;
 }
 parseParams();
 </script>
 </body>
-</html>
-`,
+</html>`,
   'stream': `<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -5142,12 +5132,142 @@ function renderVoice(html, url) {
 
 // ── DISCORD-FULL ──
 function renderDiscordFull(html, url) {
-  const s=url.searchParams.get('s'),sv=url.searchParams.get('sv'),tc=url.searchParams.get('tc'),vc=url.searchParams.get('vc'),ch=url.searchParams.get('ch'),d=url.searchParams.get('d'),m=url.searchParams.get('m');
-  if(s){const sp=s.split(',');html=html.replace('id="server-name">서버<','id="server-name">'+(sp[0]||'서버')+'<');if(sp[1]){html=html.replace('id="user-name">나<','id="user-name">'+sp[1]+'<');html=html.replace('id="user-av" style="background:#5865f2">나<','id="user-av" style="background:'+avatarBg(sp[1])+'">'+sp[1].charAt(0)+'<');}}
-  if(sv){let svh='';sv.split('|').forEach((raw,i)=>{const[abbr,color]=raw.split(':');svh+='<span class="sv-pill'+(i===0?' active':'')+'" style="background:'+(color||avatarBg(abbr))+'">'+abbr+'</span>';});html=html.replace('id="server-icons"></span>','id="server-icons">'+svh+'</span>');}
-  if(tc||vc){const activeChName=ch?ch.split(',')[0]:'';let allCh='';if(tc){tc.split('|').forEach(name=>{allCh+='<span class="ch-pill'+(name===activeChName?' active':'')+'"><span class="ch-hash">#</span>'+name+'</span>';});}if(vc){vc.split(';').forEach(vcRaw=>{const parts=vcRaw.split(',');const vcName=parts[0]||'음성';const members=parts.slice(1);let inner='<span class="ch-vc">🔊</span>'+vcName;if(members.length>0&&members[0]){inner+='<span class="vc-inline-members">';members.forEach(name=>{inner+=' <span class="vc-inline-av" style="background:'+avatarBg(name)+'">'+name.charAt(0)+'</span>';});inner+='</span>';}allCh+='<span class="ch-pill">'+inner+'</span>';});}html=html.replace('id="channel-bar"></div>','id="channel-bar">'+allCh+'</div>');}
-  if(ch){const cp=ch.split(',');html=html.replace('id="chat-ch-name">일반<','id="chat-ch-name">'+(cp[0]||'일반')+'<');html=html.replace('id="input-ph">#일반에 메시지 보내기<','id="input-ph">#'+(cp[0]||'일반')+'에 메시지 보내기<');if(cp[1])html=html.replace('id="chat-topic"></span>','id="chat-topic">'+cp[1]+'</span>');}
-  if(m){let mh='',lastAuthor='';if(d)mh+='<div class="date-divider"><span>'+d+'</span></div>';m.split('|').forEach(raw=>{const seg=raw.split(',');const nick=seg[0]||'',rColor=seg[1]||'',time=seg[2]||'',text=seg.slice(3).join(',')||'';const isCont=nick===lastAuthor;lastAuthor=nick;if(isCont){mh+='<div class="msg-cont"><div class="msg-text">'+text+'</div></div>';}else{mh+='<div class="msg-group"><span class="msg-avatar" style="background:'+avatarBg(nick)+'">'+nick.charAt(0)+'</span><span class="msg-body"><div class="msg-header-line"><span class="msg-author" style="color:'+roleColor(rColor)+'">'+nick+'</span><span class="msg-time">'+time+'</span></div><div class="msg-text">'+text+'</div></span></div>';}});html=html.replace('id="messages"></div>','id="messages">'+mh+'</div>');}
+  const params = url.searchParams;
+  const s  = params.get('s');
+  const sv = params.get('sv');
+  const tc = params.get('tc');
+  const vc = params.get('vc');
+  const ch = params.get('ch');
+  const d  = params.get('d');
+  const m  = params.get('m');
+
+  const esc = (v) => String(v ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
+  const br = (v) => esc(v).replace(/\r?\n/g, '<br/>');
+
+  const safeColor = (v, fallback) => {
+    const c = String(v || '').trim();
+    if (/^#[0-9a-fA-F]{3,8}$/.test(c)) return c;
+    if (/^(rgb|rgba|hsl|hsla)\([0-9.,%\s]+\)$/.test(c)) return c;
+    return fallback;
+  };
+
+  let serverName = '서버';
+  let myName = '나';
+
+  if (s) {
+    const sp = s.split(',');
+    serverName = sp[0] || '서버';
+    myName = sp[1] || '나';
+  }
+
+  html = html.replace('id="server-name">서버<', 'id="server-name">' + esc(serverName) + '<');
+  html = html.replace('id="user-name">나<', 'id="user-name">' + esc(myName) + '<');
+  html = html.replace(
+    'id="user-av" style="background:#5865f2">나<',
+    'id="user-av" style="background:' + avatarBg(myName) + '">' + esc(myName.charAt(0) || '나') + '<'
+  );
+
+  if (sv) {
+    let svh = '';
+    sv.split('|').forEach((raw, i) => {
+      const [abbrRaw, colorRaw] = raw.split(':');
+      const abbr = abbrRaw || '';
+      const bg = safeColor(colorRaw, avatarBg(abbr));
+      svh += '<div class="server-icon' + (i === 0 ? ' active' : '') + '" style="background:' + bg + '">' +
+        (i === 0 ? '<div class="indicator"></div>' : '') +
+        esc(abbr) +
+      '</div>';
+    });
+    html = html.replace('<div class="server-divider"></div>', '<div class="server-divider"></div>' + svh);
+  }
+
+  const activeChName = ch ? (ch.split(',')[0] || '일반') : (tc ? (tc.split('|')[0] || '일반') : '일반');
+
+  let channelHtml = '';
+  if (tc) {
+    channelHtml += '<div class="category">▾ 채팅 채널</div>';
+    tc.split('|').forEach(nameRaw => {
+      const name = nameRaw || '';
+      channelHtml += '<div class="ch-item' + (name === activeChName ? ' active' : '') + '">' +
+        '<span class="ch-icon">#</span>' + esc(name) +
+      '</div>';
+    });
+  }
+
+  if (vc) {
+    channelHtml += '<div class="category">▾ 음성 채널</div>';
+    vc.split(';').forEach(vcRaw => {
+      const parts = vcRaw.split(',');
+      const vcName = parts[0] || '음성';
+      const members = parts.slice(1).filter(Boolean);
+
+      channelHtml += '<div class="ch-item"><span class="ch-icon">🔊</span>' + esc(vcName) + '</div>';
+
+      if (members.length > 0) {
+        channelHtml += '<div class="vc-members-side">';
+        members.forEach(name => {
+          channelHtml += '<div class="vc-member-side">' +
+            '<div class="vc-av-sm" style="background:' + avatarBg(name) + '">' + esc(name.charAt(0)) + '</div>' +
+            esc(name) +
+          '</div>';
+        });
+        channelHtml += '</div>';
+      }
+    });
+  }
+  html = html.replace('id="channels"></div>', 'id="channels">' + channelHtml + '</div>');
+
+  if (activeChName) {
+    html = html.replace('id="chat-ch-name">일반<', 'id="chat-ch-name">' + esc(activeChName) + '<');
+    html = html.replace('id="input-ph">#일반에 메시지 보내기<', 'id="input-ph">#' + esc(activeChName) + '에 메시지 보내기<');
+  }
+
+  if (ch) {
+    const cp = ch.split(',');
+    const topic = cp.slice(1).join(',');
+    if (topic) html = html.replace('id="chat-topic"></span>', 'id="chat-topic">' + esc(topic) + '</span>');
+  }
+
+  let msgHtml = '';
+  if (d) {
+    msgHtml += '<div class="date-divider"><span>' + esc(d) + '</span></div>';
+  }
+
+  if (m) {
+    let lastAuthor = '';
+    m.split('|').forEach(raw => {
+      const seg = raw.split(',');
+      const nick = seg[0] || '';
+      const rColor = seg[1] || '';
+      const time = seg[2] || '';
+      const bodyText = seg.slice(3).join(',') || '';
+      const isCont = nick === lastAuthor;
+      lastAuthor = nick;
+
+      if (isCont) {
+        msgHtml += '<div class="msg-cont"><div class="msg-text">' + br(bodyText) + '</div></div>';
+      } else {
+        msgHtml += '<div class="msg-group">' +
+          '<div class="msg-avatar" style="background:' + avatarBg(nick) + '">' + esc(nick.charAt(0)) + '</div>' +
+          '<div class="msg-content">' +
+            '<div class="msg-header">' +
+              '<span class="msg-author" style="color:' + roleColor(rColor) + '">' + esc(nick) + '</span>' +
+              '<span class="msg-time">' + esc(time) + '</span>' +
+            '</div>' +
+            '<div class="msg-text">' + br(bodyText) + '</div>' +
+          '</div>' +
+        '</div>';
+      }
+    });
+  }
+
+  html = html.replace('id="messages"></div>', 'id="messages">' + msgHtml + '</div>');
   return html;
 }
 
@@ -5219,8 +5339,9 @@ function stripToBody(html) {
 
 function wrapInSVG(html, width, height) {
   const { styles, body } = stripToBody(html);
-  const safeStyles = styles.replace(/&/g, '&amp;');
-  const safeBody = body.replace(/&/g, '&amp;');
+  const escapeBareAmp = (s) => s.replace(/&(?!amp;|lt;|gt;|quot;|#39;|#[0-9]+;|#x[0-9a-fA-F]+;)/g, '&amp;');
+  const safeStyles = escapeBareAmp(styles);
+  const safeBody = escapeBareAmp(body);
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
 <foreignObject width="100%" height="100%">
 <div xmlns="http://www.w3.org/1999/xhtml">
@@ -5300,8 +5421,8 @@ export default {
       if (t === 'discord-full') {
         const m = url.searchParams.get('m') || '';
         const msgCount = m ? m.split('|').length : 0;
-        h = 230 + msgCount * 50;
-        h = Math.max(h, 350); h = Math.min(h, MAX_H);
+        h = 700 + Math.max(0, msgCount - 8) * 46;
+        h = Math.max(h, 700); h = Math.min(h, MAX_H);
       }
       if (t === 'reddit') {
         const p = url.searchParams.get('p') || '';

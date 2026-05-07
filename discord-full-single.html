@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Discord Full</title>
+<style>
+  :root {
+    --col-indigo: #8889CD;
+    --col-pink:   #DDAACC;
+    --col-sand:   #CCAA88;
+    --col-rose:   #BB6688;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #313338;
+    font-family: 'gg sans', 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    min-height: 100vh;
+  }
+  .app {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: #313338;
+  }
+
+  /* ── 상단 네비 바 ── */
+  .top-bar {
+    background: #1e1f22;
+    padding: 6px 10px;
+    display: block;
+    border-bottom: 1px solid #0e0e10;
+  }
+  .top-servers {
+    display: inline;
+  }
+  .sv-pill {
+    display: inline-block;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 32px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    margin-right: 4px;
+    vertical-align: middle;
+  }
+  .sv-pill.active {
+    border-radius: 8px;
+  }
+  .sv-home {
+    background: #313338;
+    font-size: 14px;
+    margin-right: 6px;
+  }
+  .sv-divider {
+    display: inline-block;
+    width: 24px; height: 2px;
+    background: #35363c;
+    vertical-align: middle;
+    margin: 0 4px 0 2px;
+  }
+  .sv-name {
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 6px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #f2f3f5;
+  }
+
+  /* ── 채널 바 ── */
+  .channel-bar {
+    background: #2b2d31;
+    padding: 5px 10px;
+    border-bottom: 1px solid #1e1f22;
+    white-space: nowrap;
+    overflow-x: auto;
+  }
+  .ch-pill {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #80848e;
+    margin-right: 3px;
+    vertical-align: middle;
+  }
+  .ch-pill.active {
+    background: rgba(255,255,255,0.06);
+    color: #f2f3f5;
+  }
+  .ch-hash { color: #80848e; margin-right: 2px; }
+  .ch-vc { margin-right: 2px; }
+  .vc-inline-members {
+    display: inline;
+    font-size: 11px;
+    color: #5d5f65;
+    margin-left: 2px;
+  }
+  .vc-inline-av {
+    display: inline-block;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 16px;
+    font-size: 8px;
+    font-weight: 700;
+    color: #fff;
+    margin-left: 1px;
+    vertical-align: middle;
+  }
+
+  /* ── 채팅 헤더 ── */
+  .chat-header {
+    padding: 8px 12px;
+    border-bottom: 1px solid #1e1f22;
+    background: #313338;
+  }
+  .chat-header-ch {
+    font-size: 15px;
+    font-weight: 600;
+    color: #f2f3f5;
+  }
+  .chat-header-hash { color: #80848e; font-weight: 500; }
+  .chat-header-topic {
+    font-size: 12px;
+    color: #80848e;
+    margin-left: 8px;
+    padding-left: 8px;
+    border-left: 1px solid #3f4147;
+  }
+
+  /* ── 메시지 ── */
+  .messages {
+    padding: 6px 0;
+  }
+  .date-divider {
+    text-align: center;
+    padding: 6px 14px;
+    margin: 4px 0;
+    position: relative;
+  }
+  .date-divider::before {
+    content: '';
+    position: absolute;
+    left: 14px; right: 14px;
+    top: 50%;
+    height: 1px;
+    background: #3f4147;
+  }
+  .date-divider span {
+    position: relative;
+    background: #313338;
+    padding: 0 8px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #80848e;
+  }
+
+  .msg-group {
+    padding: 2px 14px;
+    margin-top: 6px;
+  }
+  .msg-group:hover { background: rgba(0,0,0,0.06); }
+  .msg-avatar {
+    display: inline-block;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 36px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    vertical-align: top;
+    margin-right: 8px;
+  }
+  .msg-body {
+    display: inline-block;
+    vertical-align: top;
+    max-width: calc(100% - 52px);
+  }
+  .msg-header-line {
+    margin-bottom: 1px;
+  }
+  .msg-author {
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .msg-author:hover { text-decoration: underline; }
+  .msg-time {
+    font-size: 11px;
+    color: #80848e;
+    margin-left: 6px;
+  }
+  .msg-text {
+    font-size: 14px;
+    color: #dbdee1;
+    line-height: 1.3;
+    word-break: break-word;
+  }
+  .msg-cont {
+    padding: 0 14px 0 58px;
+  }
+  .msg-cont:hover { background: rgba(0,0,0,0.06); }
+
+  /* ── 하단 유저 패널 + 입력 ── */
+  .chat-input {
+    padding: 0 10px 10px;
+  }
+  .input-box {
+    background: #383a40;
+    border-radius: 8px;
+    padding: 8px 12px;
+  }
+  .input-plus {
+    display: inline-block;
+    font-size: 18px;
+    color: #b5bac1;
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+  .input-text {
+    display: inline-block;
+    font-size: 14px;
+    color: #6d6f78;
+    vertical-align: middle;
+  }
+  .input-icons {
+    float: right;
+    font-size: 15px;
+    color: #b5bac1;
+  }
+  .input-icons span { margin-left: 5px; }
+
+  .user-strip {
+    background: #232428;
+    padding: 5px 10px;
+    border-top: 1px solid #1e1f22;
+  }
+  .user-av {
+    display: inline-block;
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 24px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #fff;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+  .user-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: #f2f3f5;
+    vertical-align: middle;
+  }
+  .user-btns {
+    float: right;
+    font-size: 13px;
+    color: #b5bac1;
+  }
+  .user-btns span { margin-left: 4px; cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- 상단: 서버 아이콘 바 -->
+  <div class="top-bar">
+    <span class="top-servers">
+      <span class="sv-pill sv-home">🏠</span>
+      <span class="sv-divider"></span>
+      <span id="server-icons"></span>
+    </span>
+    <span class="sv-name" id="server-name">서버</span>
+  </div>
+
+  <!-- 채널 가로 바 -->
+  <div class="channel-bar" id="channel-bar"></div>
+
+  <!-- 채팅 헤더 -->
+  <div class="chat-header">
+    <span class="chat-header-ch">
+      <span class="chat-header-hash">#</span>
+      <span id="chat-ch-name">일반</span>
+    </span>
+    <span class="chat-header-topic" id="chat-topic"></span>
+  </div>
+
+  <!-- 메시지 -->
+  <div class="messages" id="messages"></div>
+
+  <!-- 입력 -->
+  <div class="chat-input">
+    <div class="input-box">
+      <span class="input-plus">＋</span>
+      <span class="input-text" id="input-ph">#일반에 메시지 보내기</span>
+      <span class="input-icons"><span>😀</span><span>🎁</span></span>
+    </div>
+  </div>
+
+  <!-- 유저 패널 -->
+  <div class="user-strip">
+    <span class="user-av" id="user-av" style="background:#5865f2">나</span>
+    <span class="user-name" id="user-name">나</span>
+    <span class="user-btns"><span>🎤</span><span>🎧</span><span>⚙</span></span>
+  </div>
+</div>
+
+<script>
+// 파라미터 형식은 기존과 동일:
+// ?s=서버이름,내닉네임
+// &sv=서버약자1:색|서버약자2:색
+// &tc=텍채1|텍채2|텍채3
+// &vc=음챗이름,멤버1|멤버2;음챗2,멤버...
+// &ch=현재채널이름,[토픽]
+// &d=날짜구분텍스트
+// &m=닉네임,역할색,시간,내용|닉네임,...
+
+function avatarBg(name) {
+  const colors = ['#5865f2','#eb459e','#57f287','#fee75c','#ed4245','#8889CD','#BB6688','#CCAA88'];
+  let h = 0;
+  for (let c of name) h = (h * 31 + c.charCodeAt(0)) % colors.length;
+  return colors[Math.abs(h)];
+}
+function roleColor(c) {
+  const map = {
+    '인디고':'#8889CD','핑크':'#DDAACC','샌드':'#CCAA88',
+    '로즈':'#BB6688','빨강':'#ed4245','초록':'#57f287',
+    '파랑':'#5865f2','노랑':'#fee75c','흰색':'#f2f3f5'
+  };
+  return map[c] || '#b5bac1';
+}
+
+function parseParams() {
+  const params = new URLSearchParams(window.location.search);
+  const s = params.get('s');
+  const sv = params.get('sv');
+  const tc = params.get('tc');
+  const vc = params.get('vc');
+  const ch = params.get('ch');
+  const d = params.get('d');
+  const m = params.get('m');
+
+  let myName = '나';
+  if (s) {
+    const sp = s.split(',');
+    document.getElementById('server-name').textContent = sp[0] || '서버';
+    if (sp[1]) {
+      myName = sp[1];
+      document.getElementById('user-name').textContent = sp[1];
+      document.getElementById('user-av').textContent = sp[1].charAt(0);
+      document.getElementById('user-av').style.background = avatarBg(sp[1]);
+    }
+  }
+
+  // Server icons
+  if (sv) {
+    const container = document.getElementById('server-icons');
+    sv.split('|').forEach((raw, i) => {
+      const [abbr, color] = raw.split(':');
+      const span = document.createElement('span');
+      span.className = 'sv-pill' + (i === 0 ? ' active' : '');
+      span.style.background = color || avatarBg(abbr);
+      span.textContent = abbr;
+      container.appendChild(span);
+    });
+  }
+
+  // Channel bar
+  const chBar = document.getElementById('channel-bar');
+  const activeChName = ch ? ch.split(',')[0] : '';
+
+  if (tc) {
+    tc.split('|').forEach(name => {
+      const span = document.createElement('span');
+      span.className = 'ch-pill' + (name === activeChName ? ' active' : '');
+      span.innerHTML = '<span class="ch-hash">#</span>' + name;
+      chBar.appendChild(span);
+    });
+  }
+
+  if (vc) {
+    vc.split(';').forEach(vcRaw => {
+      const parts = vcRaw.split(',');
+      const vcName = parts[0];
+      const members = parts.slice(1);
+
+      const span = document.createElement('span');
+      span.className = 'ch-pill';
+      let inner = '<span class="ch-vc">🔊</span>' + vcName;
+      if (members.length > 0 && members[0]) {
+        inner += '<span class="vc-inline-members">';
+        members.forEach(name => {
+          inner += ' <span class="vc-inline-av" style="background:' + avatarBg(name) + '">' + name.charAt(0) + '</span>';
+        });
+        inner += '</span>';
+      }
+      span.innerHTML = inner;
+      chBar.appendChild(span);
+    });
+  }
+
+  // Chat header
+  if (ch) {
+    const cp = ch.split(',');
+    document.getElementById('chat-ch-name').textContent = cp[0] || '일반';
+    document.getElementById('input-ph').textContent = '#' + (cp[0] || '일반') + '에 메시지 보내기';
+    if (cp[1]) document.getElementById('chat-topic').textContent = cp[1];
+  }
+
+  const msgContainer = document.getElementById('messages');
+
+  // Date divider
+  if (d) {
+    const dd = document.createElement('div');
+    dd.className = 'date-divider';
+    dd.innerHTML = '<span>' + d + '</span>';
+    msgContainer.appendChild(dd);
+  }
+
+  // Messages
+  if (m) {
+    let lastAuthor = '';
+    m.split('|').forEach(raw => {
+      const seg = raw.split(',');
+      const nick = seg[0] || '';
+      const rColor = seg[1] || '';
+      const time = seg[2] || '';
+      const text = seg.slice(3).join(',') || '';
+      const isCont = nick === lastAuthor;
+      lastAuthor = nick;
+
+      if (isCont) {
+        const div = document.createElement('div');
+        div.className = 'msg-cont';
+        div.innerHTML = '<div class="msg-text">' + text + '</div>';
+        msgContainer.appendChild(div);
+      } else {
+        const div = document.createElement('div');
+        div.className = 'msg-group';
+        div.innerHTML =
+          '<span class="msg-avatar" style="background:' + avatarBg(nick) + '">' + nick.charAt(0) + '</span>' +
+          '<span class="msg-body">' +
+            '<div class="msg-header-line">' +
+              '<span class="msg-author" style="color:' + roleColor(rColor) + '">' + nick + '</span>' +
+              '<span class="msg-time">' + time + '</span>' +
+            '</div>' +
+            '<div class="msg-text">' + text + '</div>' +
+          '</span>';
+        msgContainer.appendChild(div);
+      }
+    });
+  }
+}
+parseParams();
+</script>
+</body>
+</html>

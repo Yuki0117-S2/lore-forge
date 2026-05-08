@@ -773,7 +773,12 @@ parseParams();
     white-space: nowrap;
   }
 
+  /* 발신자 변경 시 간격 */
+  .msg-row:not(.cont) { margin-top: 10px; }
+  .msg-row:not(.cont):first-child { margin-top: 0; }
+
   /* 연속 메시지 */
+  .msg-row.cont { margin-top: 6px; }
   .msg-row.cont .msg-avatar { opacity: 0; }
   .msg-row.cont .msg-name { display: none; }
 

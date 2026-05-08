@@ -1554,8 +1554,8 @@ async function copyPrompt(){
 }
 
 // ===== 저장 =====
-function saveAll(){saveCurrentProjectFromUI();try{localStorage.setItem('loreforge_v3',JSON.stringify({projects,currentProjectId}));}catch(e){}}
-function loadAll(){try{const raw=localStorage.getItem('loreforge_v3');if(!raw)return false;const data=JSON.parse(raw);projects=data.projects||{};currentProjectId=data.currentProjectId||null;if(currentProjectId&&!projects[currentProjectId])currentProjectId=Object.keys(projects)[0]||null;return true;}catch(e){return false;}}
+function saveAll(){saveCurrentProjectFromUI();try{localStorage.setItem('loreforge_v3',JSON.stringify({projects,currentProjectId,customChips}));}catch(e){}}
+function loadAll(){try{const raw=localStorage.getItem('loreforge_v3');if(!raw)return false;const data=JSON.parse(raw);projects=data.projects||{};currentProjectId=data.currentProjectId||null;if(data.customChips){customChips=data.customChips;saveCustomChips();}if(currentProjectId&&!projects[currentProjectId])currentProjectId=Object.keys(projects)[0]||null;return true;}catch(e){return false;}}
 
 // ===== GITHUB GIST 연동 =====
 function openGistModal(){
@@ -1622,7 +1622,7 @@ async function pushSlot(token, gistId, deviceLabel){
       }
     }catch(e){}
   }
-  slots.unshift({savedAt:new Date().toISOString(),device:deviceLabel,projects,currentProjectId});
+  slots.unshift({savedAt:new Date().toISOString(),device:deviceLabel,projects,currentProjectId,customChips});
   if(slots.length>5) slots=slots.slice(0,5);
   const body={description:'LORE FORGE — 챗봇 빌더 데이터',public:false,files:{'loreforge_data.json':{content:JSON.stringify({version:4,slots},null,2)}}};
   try{
@@ -1682,6 +1682,7 @@ function showSlotPicker(slots, token, gistId){
       overlay.remove();
       projects=slot.projects;
       currentProjectId=slot.currentProjectId||Object.keys(slot.projects||{})[0]||null;
+      if(slot.customChips){customChips=slot.customChips;saveCustomChips();}
       renderProjectDropdown();loadProjectUI();saveAll();
       localStorage.setItem('loreforge_gist_token',token);
       localStorage.setItem('loreforge_gist_id',gistId);
@@ -1705,7 +1706,7 @@ document.addEventListener('click',(e)=>{
 
 function exportJSON(){
   saveAll();const proj=getProject();if(!proj){alert('프로젝트가 없어!');return;}
-  const blob=new Blob([JSON.stringify({version:3,project:proj},null,2)],{type:'application/json'});
+  const blob=new Blob([JSON.stringify({version:3,project:proj,customChips},null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(proj.name||'project').replace(/[^\w가-힣]/g,'_')+'.json';a.click();
 }
 
@@ -1716,7 +1717,9 @@ function handleImport(e){
   reader.onload=(ev)=>{
     try{const data=JSON.parse(ev.target.result);const proj=data.project||data;if(!proj.id)proj.id='proj_'+Date.now();if(!proj.name)proj.name='불러온 프로젝트';
       if(projects[proj.id]){if(!confirm(`"${proj.name}" 프로젝트가 이미 있어. 덮어쓸까?`))return;}
-      projects[proj.id]=proj;currentProjectId=proj.id;renderProjectDropdown();loadProjectUI();try{localStorage.setItem('loreforge_v3',JSON.stringify({projects,currentProjectId}));}catch(e){}showToast('✅ 프로젝트 불러옴!');
+      projects[proj.id]=proj;currentProjectId=proj.id;
+      if(data.customChips){Object.keys(data.customChips).forEach(k=>{customChips[k]=[...new Set([...(customChips[k]||[]),...data.customChips[k]])];});saveCustomChips();}
+      renderProjectDropdown();loadProjectUI();try{localStorage.setItem('loreforge_v3',JSON.stringify({projects,currentProjectId,customChips}));}catch(e){}showToast('✅ 프로젝트 불러옴!');
     }catch(err){alert('JSON 파일이 잘못됐어.');}
   };
   reader.readAsText(file);e.target.value='';

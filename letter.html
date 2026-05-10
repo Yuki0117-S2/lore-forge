@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Letter</title>
+<style>
+  :root {
+    --col-indigo: #8889CD;
+    --col-pink:   #DDAACC;
+    --col-sand:   #CCAA88;
+    --col-rose:   #BB6688;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #e8e0e6;
+    font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
+    display: flex;
+    justify-content: center;
+    padding: 20px 8px;
+    min-height: 100vh;
+  }
+
+  .letter-wrap {
+    width: 100%;
+    max-width: 480px;
+  }
+
+  /* ── 봉투 상단 (접힌 플랩) ── */
+  .envelope-flap {
+    width: 100%;
+    height: 44px;
+    background: linear-gradient(135deg, #d4c4b8, #c9b8a8);
+    clip-path: polygon(0 0, 50% 100%, 100% 0);
+    position: relative;
+    z-index: 2;
+  }
+  .envelope-flap::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--col-rose);
+    opacity: 0.6;
+  }
+
+  /* ── 편지지 본체 ── */
+  .letter {
+    background: #fffbf5;
+    border-left: 1px solid #e0d4c8;
+    border-right: 1px solid #e0d4c8;
+    border-bottom: 1px solid #e0d4c8;
+    position: relative;
+    overflow: hidden;
+    margin-top: -2px;
+  }
+
+  /* 줄무늬 배경 */
+  .letter::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      transparent,
+      transparent 27px,
+      rgba(136,137,205,0.08) 27px,
+      rgba(136,137,205,0.08) 28px
+    );
+    pointer-events: none;
+  }
+
+  /* 왼쪽 빨간 줄 (편지지 느낌) */
+  .letter::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 38px;
+    bottom: 0;
+    width: 1.5px;
+    background: rgba(187,102,136,0.2);
+    pointer-events: none;
+  }
+
+  /* ── 날짜 영역 ── */
+  .letter-date {
+    padding: 18px 24px 4px 52px;
+    font-size: 12px;
+    color: var(--col-sand);
+    text-align: left;
+    position: relative;
+    z-index: 1;
+    letter-spacing: 0.5px;
+    font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
+  }
+
+  /* ── 수신자 ── */
+  .letter-to {
+    padding: 10px 24px 14px 52px;
+    font-size: 16px;
+    color: #4a3a2e;
+    position: relative;
+    z-index: 1;
+    line-height: 1.6;
+    font-weight: 600;
+    font-family: cursive, 'Segoe Script', 'Comic Sans MS', serif;
+  }
+
+  .letter-to .dear-label {
+    font-size: 12px;
+    color: var(--col-rose);
+    font-weight: 400;
+    display: block;
+    margin-bottom: 2px;
+    letter-spacing: 1px;
+  }
+
+  /* ── 본문 ── */
+  .letter-body {
+    padding: 8px 24px 16px 52px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #3a2e24;
+    position: relative;
+    z-index: 1;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: cursive, 'Segoe Script', 'Comic Sans MS', serif;
+  }
+
+  /* ── 서명 영역 ── */
+  .letter-sign {
+    padding: 14px 24px 8px 52px;
+    text-align: right;
+    position: relative;
+    z-index: 1;
+  }
+
+  .letter-closing {
+    font-size: 13px;
+    color: var(--col-sand);
+    margin-bottom: 6px;
+    font-style: italic;
+    font-family: cursive, 'Segoe Script', 'Comic Sans MS', serif;
+  }
+
+  .letter-from {
+    font-size: 18px;
+    font-weight: 700;
+    color: #4a3a2e;
+    display: inline-block;
+    position: relative;
+    font-family: cursive, 'Segoe Script', 'Comic Sans MS', serif;
+  }
+
+  .letter-from::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--col-pink), transparent);
+  }
+
+  /* ── PS ── */
+  .letter-ps {
+    padding: 10px 24px 18px 52px;
+    font-size: 12px;
+    color: var(--col-rose);
+    font-style: italic;
+    position: relative;
+    z-index: 1;
+    line-height: 1.5;
+    font-family: cursive, 'Segoe Script', 'Comic Sans MS', serif;
+  }
+
+  .letter-ps::before {
+    content: 'P.S.';
+    font-weight: 700;
+    margin-right: 4px;
+  }
+
+  /* ── 봉투 하단 ── */
+  .envelope-bottom {
+    width: 100%;
+    height: 28px;
+    background: linear-gradient(180deg, #d4c4b8, #c0ae9e);
+    border-radius: 0 0 4px 4px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .envelope-bottom::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(187,102,136,0.3), transparent);
+  }
+
+  .envelope-stamp {
+    font-size: 8px;
+    color: rgba(74,58,46,0.4);
+    letter-spacing: 2px;
+    font-family: -apple-system, sans-serif;
+  }
+
+  /* ── 장식: 우표 ── */
+  .stamp {
+    position: absolute;
+    top: 10px;
+    right: 14px;
+    width: 44px;
+    height: 52px;
+    background: #fff;
+    border: 2px dashed rgba(136,137,205,0.3);
+    border-radius: 2px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    z-index: 3;
+    opacity: 0.7;
+  }
+
+  .stamp-icon {
+    font-size: 18px;
+    opacity: 0.6;
+  }
+
+  .stamp-text {
+    font-size: 7px;
+    color: var(--col-indigo);
+    font-family: -apple-system, sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-align: center;
+  }
+
+  /* ── 장식: 꽃/하트 워터마크 ── */
+  .watermark {
+    position: absolute;
+    bottom: 40px;
+    right: 20px;
+    font-size: 64px;
+    opacity: 0.04;
+    z-index: 0;
+    pointer-events: none;
+    transform: rotate(-15deg);
+  }
+</style>
+</head>
+<body>
+<div class="letter-wrap">
+  <div class="envelope-flap"></div>
+  <div class="letter">
+    <div class="stamp">
+      <div class="stamp-icon">✉</div>
+      <div class="stamp-text" id="stamp-label">LETTER</div>
+    </div>
+    <div class="watermark" id="watermark">♥</div>
+    <div class="letter-date" id="letter-date">2026. 01. 01.</div>
+    <div class="letter-to" id="letter-to">
+      <span class="dear-label">To.</span>
+      받는 사람
+    </div>
+    <div class="letter-body" id="letter-body">편지 내용</div>
+    <div class="letter-sign">
+      <div class="letter-closing" id="letter-closing">마음을 담아</div>
+      <div class="letter-from" id="letter-from">보내는 사람</div>
+    </div>
+    <div class="letter-ps" id="letter-ps" style="display:none;"></div>
+  </div>
+  <div class="envelope-bottom">
+    <span class="envelope-stamp">MAIL</span>
+  </div>
+</div>
+
+<script>
+// ?p=보내는사람§받는사람§날짜§맺음말§우표라벨
+// &b=본문내용
+// &ps=추신내용
+// &w=워터마크이모지
+function parseParams() {
+  const params = new URLSearchParams(window.location.search);
+  const p = params.get('p');
+  const b = params.get('b');
+  const ps = params.get('ps');
+  const w = params.get('w');
+
+  if (p) {
+    const pp = p.split('§');
+    const from = pp[0] || '';
+    const to = pp[1] || '';
+    const date = pp[2] || '';
+    const closing = pp[3] || '마음을 담아';
+    const stampLabel = pp[4] || 'LETTER';
+
+    if (to) {
+      document.getElementById('letter-to').innerHTML =
+        '<span class="dear-label">To.</span>' + to;
+    }
+    if (from) document.getElementById('letter-from').textContent = from;
+    if (date) document.getElementById('letter-date').textContent = date;
+    if (closing) document.getElementById('letter-closing').textContent = closing;
+    if (stampLabel) document.getElementById('stamp-label').textContent = stampLabel;
+  }
+
+  if (b) {
+    document.getElementById('letter-body').textContent = b;
+  }
+
+  if (ps) {
+    const psEl = document.getElementById('letter-ps');
+    psEl.style.display = 'block';
+    psEl.textContent = '';
+    psEl.insertAdjacentText('beforeend', ps);
+  }
+
+  if (w) {
+    document.getElementById('watermark').textContent = w;
+  }
+}
+parseParams();
+</script>
+</body>
+</html>

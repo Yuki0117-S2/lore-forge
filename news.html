@@ -194,13 +194,13 @@
 </div>
 
 <script>
-// ?p=매체명,카테고리,제목,부제,기자,날짜,이미지설명,본문
+// ?p=매체명§카테고리§제목§부제§기자§날짜§이미지설명§본문
 function parseParams() {
   const params = new URLSearchParams(window.location.search);
   const p = params.get('p');
   if (!p) return;
 
-  const parts = p.split(',');
+  const parts = p.split('§');
   const outlet   = parts[0] || 'NEWS';
   const category = parts[1] || '';
   const title    = parts[2] || '';
@@ -208,7 +208,7 @@ function parseParams() {
   const author   = parts[4] || '';
   const date     = parts[5] || '';
   const imgDesc  = parts[6] || '';
-  const body     = parts.slice(7).join(',') || '';
+  const body     = parts.slice(7).join('§') || '';
 
   document.getElementById('outlet').textContent = outlet;
   document.getElementById('bar-tag').textContent = category;

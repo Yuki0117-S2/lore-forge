@@ -320,7 +320,7 @@
 
 <script>
 // ── URL 파라미터 파싱 ──────────────────────────────────────────
-// 형식: ?p=@유저,팔로워수,댓글수,시간,이미지설명,캡션,[번역],해시태그&c=닉,댓글,[번역],좋아요|닉,댓글,[번역],좋아요
+// 형식: ?p=@유저§팔로워수§댓글수§시간§이미지설명§캡션§[번역]§해시태그&c=닉,댓글,[번역],좋아요|닉,댓글,[번역],좋아요
 // 번역은 선택사항 (없으면 빈칸)
 
 function parseParams() {
@@ -330,7 +330,7 @@ function parseParams() {
 
   if (!p) return;
 
-  const parts = p.split(',');
+  const parts = p.split('§');
   const user    = parts[0] || '@lorem_ipsum';
   // parts[1] = 팔로워 (표시 안 함)
   const commentCount = parts[2] || '48';
@@ -382,7 +382,7 @@ function parseParams() {
     container.innerHTML = '';
     const commentList = c.split('|');
     commentList.forEach(raw => {
-      const seg = raw.split(',');
+      const seg = raw.split('§');
       const cUser  = seg[0] || '';
       const cText  = seg[1] || '';
       const hasCtrans = seg[2] && !isNaN(Number(seg[seg.length-1])) && seg.length >= 4;

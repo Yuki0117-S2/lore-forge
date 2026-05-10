@@ -180,7 +180,7 @@
 </div>
 
 <script>
-// ?p=기관명,문서유형,제목,스탬프라벨
+// ?p=기관명§문서유형§제목§스탬프라벨
 // &i=라벨:값|라벨:값|라벨:값
 // &b=본문내용
 // &t=헤더1:헤더2:헤더3|값1:값2:값3|값1:값2:값3  (표 데이터, 선택)
@@ -190,11 +190,11 @@ function parseParams() {
   const p = params.get('p');
   const i = params.get('i');
   const b = params.get('b');
-  const t = params.get('t');
+  const t = params.get('t2');
   const f = params.get('f');
 
   if (p) {
-    const pp = p.split(',');
+    const pp = p.split('§');
     document.getElementById('org').textContent = pp[0] || '';
     document.getElementById('doc-type').textContent = pp[1] || '';
     document.getElementById('doc-title').textContent = pp[2] || '';
@@ -230,7 +230,7 @@ function parseParams() {
   }
 
   if (f) {
-    const fp = f.split(',');
+    const fp = f.split('§');
     document.getElementById('doc-footer').textContent = fp[0] || '';
     if (fp[1]) {
       document.getElementById('doc-seal').textContent = fp[1];

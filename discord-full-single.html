@@ -348,7 +348,7 @@ function parseParams() {
 
   let myName = '나';
   if (s) {
-    const sp = s.split(',');
+    const sp = s.split('§');
     document.getElementById('server-name').textContent = sp[0] || '서버';
     if (sp[1]) {
       myName = sp[1];
@@ -373,7 +373,7 @@ function parseParams() {
 
   // Channel bar
   const chBar = document.getElementById('channel-bar');
-  const activeChName = ch ? ch.split(',')[0] : '';
+  const activeChName = ch ? ch.split('§')[0] : '';
 
   if (tc) {
     tc.split('|').forEach(name => {
@@ -386,7 +386,7 @@ function parseParams() {
 
   if (vc) {
     vc.split(';').forEach(vcRaw => {
-      const parts = vcRaw.split(',');
+      const parts = vcRaw.split('§');
       const vcName = parts[0];
       const members = parts.slice(1);
 
@@ -407,7 +407,7 @@ function parseParams() {
 
   // Chat header
   if (ch) {
-    const cp = ch.split(',');
+    const cp = ch.split('§');
     document.getElementById('chat-ch-name').textContent = cp[0] || '일반';
     document.getElementById('input-ph').textContent = '#' + (cp[0] || '일반') + '에 메시지 보내기';
     if (cp[1]) document.getElementById('chat-topic').textContent = cp[1];
@@ -427,11 +427,11 @@ function parseParams() {
   if (m) {
     let lastAuthor = '';
     m.split('|').forEach(raw => {
-      const seg = raw.split(',');
+      const seg = raw.split('§');
       const nick = seg[0] || '';
       const rColor = seg[1] || '';
       const time = seg[2] || '';
-      const text = seg.slice(3).join(',') || '';
+      const text = seg.slice(3).join('§') || '';
       const isCont = nick === lastAuthor;
       lastAuthor = nick;
 

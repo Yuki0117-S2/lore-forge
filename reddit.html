@@ -137,7 +137,7 @@ function parseParams() {
   const c = params.get('c');
   if (!p) return;
 
-  const parts = p.split(',');
+  const parts = p.split('§');
   const sub      = parts[0] || 'AskReddit';
   const author   = parts[1] || 'throwaway';
   const time     = parts[2] || '방금';
@@ -176,7 +176,7 @@ function parseParams() {
   if (c) {
     const container = document.getElementById('comments');
     c.split('|').forEach(raw => {
-      const seg = raw.split(',');
+      const seg = raw.split('§');
       const cUser = seg[0] || '';
       const cBody = seg[1] || '';
       const cTime = seg[2] || '';

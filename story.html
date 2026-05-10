@@ -202,13 +202,13 @@
 </div>
 
 <script>
-// ?p=@유저,시간,이미지설명,[캡션]
+// ?p=@유저§시간§이미지설명§[캡션]
 function parseParams() {
   const params = new URLSearchParams(window.location.search);
   const p = params.get('p');
   if (!p) return;
 
-  const parts = p.split(',');
+  const parts = p.split('§');
   const user    = parts[0] || '@user';
   const time    = parts[1] || '';
   const desc    = parts[2] || '';

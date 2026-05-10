@@ -285,8 +285,8 @@
 
 <script>
 // ── 파라미터 형식 ──────────────────────────────────────────────
-// ?r=방이름,날짜,[인원수]
-// &m=발신자,내용,시간,[읽음수],[me]|발신자,내용,시간,[읽음수],[me]|...
+// ?r=방이름§날짜§[인원수]
+// &m=발신자§내용§시간§[읽음수]§[me]|발신자,내용,시간,[읽음수],[me]|...
 //
 // 발신자: 이름 (me 면 내 메시지)
 // 읽음수: 안 읽은 사람 수 (0이면 표시 안 함)
@@ -309,7 +309,7 @@ function parseParams() {
   const m = params.get('m');
 
   if (r) {
-    const rp = r.split(',');
+    const rp = r.split('§');
     document.getElementById('room-name').textContent = rp[0] || '채팅방';
     if (rp[1]) document.getElementById('date-divider').textContent = rp[1];
     if (rp[2]) document.getElementById('member-count').textContent = rp[2];
@@ -322,15 +322,15 @@ function parseParams() {
   const prevSenders = {};
 
   msgList.forEach((raw, i) => {
-    const seg = raw.split(',');
+    const seg = raw.split('§');
     const sender  = seg[0] || '';
     const content = seg[1] || '';
     const time    = seg[2] || '';
     const readCnt = seg[3] || '0';
     const isMe    = seg[seg.length - 1] === 'me';
 
-    const prevSender = i > 0 ? msgList[i-1].split(',')[0] : null;
-    const nextSender = i < msgList.length-1 ? msgList[i+1].split(',')[0] : null;
+    const prevSender = i > 0 ? msgList[i-1].split('§')[0] : null;
+    const nextSender = i < msgList.length-1 ? msgList[i+1].split('§')[0] : null;
     const isCont = sender === prevSender;
     const isLast = sender !== nextSender;
 

@@ -178,7 +178,7 @@
 </div>
 
 <script>
-// ?p=@handle,표시이름,시간,본문,[번역],[이미지설명],답글수,RT수,인용수,좋아요수,북마크수,[verified]
+// ?p=@handle§표시이름§시간§본문,[번역],[이미지설명],답글수,RT수,인용수,좋아요수,북마크수,[verified]
 // &r=표시이름,@handle,시간,내용,좋아요수|표시이름,@handle,시간,내용,좋아요수
 
 function avatarBg(name) {
@@ -194,7 +194,7 @@ function parseParams() {
   const r = params.get('r');
   if (!p) return;
 
-  const parts = p.split(',');
+  const parts = p.split('§');
   const handle      = parts[0] || '@handle';
   const displayName = parts[1] || 'Name';
   const time        = parts[2] || '방금';
@@ -247,7 +247,7 @@ function parseParams() {
     const container = document.getElementById('replies-container');
     const replyList = r.split('|');
     replyList.forEach((raw, i) => {
-      const seg   = raw.split(',');
+      const seg   = raw.split('§');
       const rName   = seg[0] || '';
       const rHandle = seg[1] || '';
       const rTime   = seg[2] || '';

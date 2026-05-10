@@ -1,4 +1,4 @@
-// 겨울의 SNS UI Workers v12 — 16종 UI (서버사이드 렌더링 완성)
+// 겨울의 SNS UI Workers v13 — 18종 UI (구분자 § 통일 + letter/menu 추가)
 const TEMPLATES = {
   'insta': `<!DOCTYPE html>
 <html lang="ko">
@@ -332,7 +332,7 @@ function parseParams() {
 
   if (!p) return;
 
-  const parts = p.split(',');
+  const parts = p.split('§');
   const user    = parts[0] || '@lorem_ipsum';
   // parts[1] = 팔로워 (표시 안 함)
   const commentCount = parts[2] || '48';
@@ -384,7 +384,7 @@ function parseParams() {
     container.innerHTML = '';
     const commentList = c.split('|');
     commentList.forEach(raw => {
-      const seg = raw.split(',');
+      const seg = raw.split('§');
       const cUser  = seg[0] || '';
       const cText  = seg[1] || '';
       const hasCtrans = seg[2] && !isNaN(Number(seg[seg.length-1])) && seg.length >= 4;
@@ -597,13 +597,13 @@ parseParams();
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    min-height: 800px;
+    min-height: 900px;
   }
 
   .chat-wrap {
     width: 100%;
-    max-width: 480px;
-    min-height: 800px;
+    max-width: 420px;
+    min-height: 900px;
     background: #c8bdd4;
     display: flex;
     flex-direction: column;
@@ -789,7 +789,7 @@ parseParams();
     left: 50%;
     transform: translateX(-50%);
     width: 100%;
-    max-width: 480px;
+    max-width: 420px;
     background: #fff;
     border-top: 1px solid rgba(0,0,0,0.1);
     padding: 8px 12px;
@@ -874,10 +874,10 @@ parseParams();
 // &m=블레어,야 너 파티 가?,오후 2:14,1|나,응 갈듯,오후 2:15,0,me|블레어,ㄹㅇ? 완전 기대돼,오후 2:15,2
 
 function avatarColor(name) {
-  const colors = ['#e8736c','#f0a05a','#7eb8d4','#82c4a0','#a78fd4','#d47eb8','#7ab8c4'];
-  let hash = 0;
-  for (let c of name) hash = (hash * 31 + c.charCodeAt(0)) % colors.length;
-  return colors[Math.abs(hash)];
+  const colors = ['#e8736c','#f0a05a','#7eb8d4','#82c4a0','#a78fd4','#d47eb8','#7ab8c4','#e0976e','#6ecfcf','#c87eaa','#8fb87e','#cf9e6e','#7eaab8','#d48f8f'];
+  let hash = 7;
+  let _i=0; for (const c of name) { hash = (hash * 31 + c.charCodeAt(0) + _i * 17) | 0; _i++; }
+  return colors[((hash % colors.length) + colors.length) % colors.length];
 }
 
 function parseParams() {
@@ -886,7 +886,7 @@ function parseParams() {
   const m = params.get('m');
 
   if (r) {
-    const rp = r.split(',');
+    const rp = r.split('§');
     document.getElementById('room-name').textContent = rp[0] || '채팅방';
     if (rp[1]) document.getElementById('date-divider').textContent = rp[1];
     if (rp[2]) document.getElementById('member-count').textContent = rp[2];
@@ -899,15 +899,15 @@ function parseParams() {
   const prevSenders = {};
 
   msgList.forEach((raw, i) => {
-    const seg = raw.split(',');
+    const seg = raw.split('§');
     const sender  = seg[0] || '';
     const content = seg[1] || '';
     const time    = seg[2] || '';
     const readCnt = seg[3] || '0';
     const isMe    = seg[seg.length - 1] === 'me';
 
-    const prevSender = i > 0 ? msgList[i-1].split(',')[0] : null;
-    const nextSender = i < msgList.length-1 ? msgList[i+1].split(',')[0] : null;
+    const prevSender = i > 0 ? msgList[i-1].split('§')[0] : null;
+    const nextSender = i < msgList.length-1 ? msgList[i+1].split('§')[0] : null;
     const isCont = sender === prevSender;
     const isLast = sender !== nextSender;
 
@@ -1112,7 +1112,7 @@ function parseParams() {
   const c = params.get('c');
   if (!p) return;
 
-  const parts = p.split(',');
+  const parts = p.split('§');
   const sub      = parts[0] || 'AskReddit';
   const author   = parts[1] || 'throwaway';
   const time     = parts[2] || '방금';
@@ -1151,7 +1151,7 @@ function parseParams() {
   if (c) {
     const container = document.getElementById('comments');
     c.split('|').forEach(raw => {
-      const seg = raw.split(',');
+      const seg = raw.split('§');
       const cUser = seg[0] || '';
       const cBody = seg[1] || '';
       const cTime = seg[2] || '';
@@ -1374,7 +1374,7 @@ function parseParams() {
   const n = params.get('n');
 
   if (timeParam) {
-    const tp = timeParam.split(',');
+    const tp = timeParam.split('§');
     const time = tp[0] || '12:00';
     const date = tp[1] || '';
     document.getElementById('lock-time').textContent = time;
@@ -1391,7 +1391,7 @@ function parseParams() {
   };
 
   n.split('|').forEach(raw => {
-    const seg = raw.split(',');
+    const seg = raw.split('§');
     const type    = seg[0] || 'app';
     const app     = seg[1] || '';
     const title   = seg[2] || '';
@@ -1439,7 +1439,7 @@ parseParams();
     display: flex;
     justify-content: center;
     padding: 20px 0;
-    min-height: 100vh;
+    min-height: 844px;
   }
   .email {
     width: 100%;
@@ -1588,13 +1588,13 @@ function parseParams() {
   const p = params.get('p');
   if (!p) return;
 
-  const parts = p.split(',');
+  const parts = p.split('§');
   const fromName  = parts[0] || '';
   const fromEmail = parts[1] || '';
   const toAddr    = parts[2] || '';
   const subject   = parts[3] || '';
   const date      = parts[4] || '';
-  const body      = parts.slice(5).join(',') || '';
+  const body      = parts.slice(5).join('§') || '';
 
   const initial = fromName.charAt(0).toUpperCase();
 
@@ -1638,12 +1638,12 @@ parseParams();
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    min-height: 750px;
+    min-height: 900px;
   }
   .story {
     width: 100%;
     max-width: 420px;
-    min-height: 750px;
+    min-height: 900px;
     background: #1a1422;
     position: relative;
     display: flex;
@@ -1828,7 +1828,7 @@ function parseParams() {
   const p = params.get('p');
   if (!p) return;
 
-  const parts = p.split(',');
+  const parts = p.split('§');
   const user    = parts[0] || '@user';
   const time    = parts[1] || '';
   const desc    = parts[2] || '';
@@ -2036,7 +2036,7 @@ function parseParams() {
   const a = params.get('a');
 
   if (q) {
-    const qp = q.split(',');
+    const qp = q.split('§');
     document.getElementById('search-query').textContent = qp[0] || '';
     const count = qp[1] || '0';
     document.getElementById('result-info').textContent =
@@ -2046,10 +2046,10 @@ function parseParams() {
   if (r) {
     const container = document.getElementById('results');
     r.split('|').forEach(raw => {
-      const seg = raw.split(',');
+      const seg = raw.split('§');
       const title   = seg[0] || '';
       const url     = seg[1] || '';
-      const snippet = seg.slice(2).join(',') || '';
+      const snippet = seg.slice(2).join('§') || '';
       const favicon = url.charAt(0).toUpperCase();
 
       const div = document.createElement('div');
@@ -2284,7 +2284,7 @@ function parseParams() {
   const p = params.get('p');
   if (!p) return;
 
-  const parts = p.split(',');
+  const parts = p.split('§');
   const outlet   = parts[0] || 'NEWS';
   const category = parts[1] || '';
   const title    = parts[2] || '';
@@ -2292,7 +2292,7 @@ function parseParams() {
   const author   = parts[4] || '';
   const date     = parts[5] || '';
   const imgDesc  = parts[6] || '';
-  const body     = parts.slice(7).join(',') || '';
+  const body     = parts.slice(7).join('§') || '';
 
   document.getElementById('outlet').textContent = outlet;
   document.getElementById('bar-tag').textContent = category;
@@ -2505,11 +2505,11 @@ function parseParams() {
   const p = params.get('p');
   const i = params.get('i');
   const b = params.get('b');
-  const t = params.get('t');
+  const t = params.get('t2');
   const f = params.get('f');
 
   if (p) {
-    const pp = p.split(',');
+    const pp = p.split('§');
     document.getElementById('org').textContent = pp[0] || '';
     document.getElementById('doc-type').textContent = pp[1] || '';
     document.getElementById('doc-title').textContent = pp[2] || '';
@@ -2545,7 +2545,7 @@ function parseParams() {
   }
 
   if (f) {
-    const fp = f.split(',');
+    const fp = f.split('§');
     document.getElementById('doc-footer').textContent = fp[0] || '';
     if (fp[1]) {
       document.getElementById('doc-seal').textContent = fp[1];
@@ -2725,7 +2725,7 @@ function parseParams() {
   const p = params.get('p');
 
   if (b) {
-    const bp = b.split(',');
+    const bp = b.split('§');
     document.getElementById('board-name').textContent = bp[0] || '게시판';
     if (bp[1]) document.getElementById('board-count').textContent = \`총 \${Number(bp[1]).toLocaleString()}개\`;
   }
@@ -2743,7 +2743,7 @@ function parseParams() {
   if (p) {
     const list = document.getElementById('board-list');
     p.split('|').forEach(raw => {
-      const seg = raw.split(',');
+      const seg = raw.split('§');
       const tag     = seg[0] || 'normal';
       const title   = seg[1] || '';
       const author  = seg[2] || '';
@@ -2806,7 +2806,7 @@ parseParams();
     font-family: 'gg sans', 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif;
     display: flex;
     justify-content: center;
-    min-height: 700px;
+    min-height: 900px;
   }
   .discord {
     width: 100%;
@@ -2814,7 +2814,7 @@ parseParams();
     background: #313338;
     display: flex;
     flex-direction: column;
-    min-height: 700px;
+    min-height: 900px;
   }
 
   /* Channel header */
@@ -3011,10 +3011,10 @@ function roleColor(c) {
 }
 
 function avatarBg(name) {
-  const colors = ['#5865f2','#eb459e','#57f287','#fee75c','#ed4245','#8889CD','#BB6688'];
-  let h = 0;
-  for (let c of name) h = (h * 31 + c.charCodeAt(0)) % colors.length;
-  return colors[Math.abs(h)];
+  const colors = ['#5865f2','#FF6699','#57f287','#fee75c','#ed4245','#8889CD','#BB6688','#CCAA88','#3ba55c','#FF7722','#0077DD','#e8a44d','#9b84ec','#00BBDD'];
+  let h = 7;
+  let _i=0; for (const c of name) { h = (h * 31 + c.charCodeAt(0) + _i * 17) | 0; _i++; }
+  return colors[((h % colors.length) + colors.length) % colors.length];
 }
 
 function parseParams() {
@@ -3023,7 +3023,7 @@ function parseParams() {
   const m = params.get('m');
 
   if (ch) {
-    const cp = ch.split(',');
+    const cp = ch.split('§');
     document.getElementById('channel-name').textContent = cp[0] || '일반';
     document.getElementById('input-placeholder').textContent = \`#\${cp[0] || '일반'}에 메시지 보내기\`;
     if (cp[1]) document.getElementById('channel-topic').textContent = cp[1];
@@ -3036,7 +3036,7 @@ function parseParams() {
   let lastAuthor = '';
 
   msgList.forEach(raw => {
-    const seg = raw.split(',');
+    const seg = raw.split('§');
     const nick      = seg[0] || '';
     const rColor    = seg[1] || '';
     const rTag      = seg[2] || '';
@@ -3119,7 +3119,7 @@ parseParams();
     font-family: 'gg sans', 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif;
     display: flex;
     justify-content: center;
-    min-height: 700px;
+    min-height: 900px;
   }
   .discord-vc {
     width: 100%;
@@ -3127,7 +3127,7 @@ parseParams();
     background: #2b2d31;
     display: flex;
     flex-direction: column;
-    min-height: 700px;
+    min-height: 900px;
   }
 
   /* Server name */
@@ -3454,10 +3454,10 @@ parseParams();
 // &active=현재접속중인음성채널이름  (선택 - 하단 연결 바 표시)
 
 function avatarBg(name) {
-  const colors = ['#5865f2','#eb459e','#57f287','#fee75c','#ed4245','#8889CD','#BB6688','#CCAA88'];
-  let h = 0;
-  for (let c of name) h = (h * 31 + c.charCodeAt(0)) % colors.length;
-  return colors[Math.abs(h)];
+  const colors = ['#5865f2','#FF6699','#57f287','#fee75c','#ed4245','#8889CD','#BB6688','#CCAA88','#3ba55c','#FF7722','#0077DD','#e8a44d','#9b84ec','#00BBDD'];
+  let h = 7;
+  let _i=0; for (const c of name) { h = (h * 31 + c.charCodeAt(0) + _i * 17) | 0; _i++; }
+  return colors[((h % colors.length) + colors.length) % colors.length];
 }
 
 function roleColor(c) {
@@ -3478,7 +3478,7 @@ function parseParams() {
 
   let myName = '나';
   if (s) {
-    const sp = s.split(',');
+    const sp = s.split('§');
     document.getElementById('server-name').textContent = sp[0] || '서버';
     if (sp[1]) {
       myName = sp[1];
@@ -3511,9 +3511,9 @@ function parseParams() {
     list.appendChild(catDiv);
 
     v.split(';').forEach(vcRaw => {
-      const [vcInfo, ...rest] = vcRaw.split(',');
+      const [vcInfo, ...rest] = vcRaw.split('§');
       const vcName = vcInfo || '음성';
-      const membersRaw = rest.join(',');
+      const membersRaw = rest.join('§');
 
       // Parse members
       const members = [];
@@ -3605,13 +3605,13 @@ parseParams();
     font-family: 'gg sans', 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif;
     display: flex;
     justify-content: center;
-    min-height: 100vh;
+    min-height: 900px;
   }
   .app {
     width: 100%;
     max-width: 800px;
     display: flex;
-    min-height: 100vh;
+    min-height: 900px;
   }
 
   /* Server bar */
@@ -3883,10 +3883,10 @@ parseParams();
 // &m=닉네임,역할색,시간,내용|닉네임,...
 
 function avatarBg(name) {
-  const colors = ['#5865f2','#eb459e','#57f287','#fee75c','#ed4245','#8889CD','#BB6688','#CCAA88'];
-  let h = 0;
-  for (let c of name) h = (h * 31 + c.charCodeAt(0)) % colors.length;
-  return colors[Math.abs(h)];
+  const colors = ['#5865f2','#FF6699','#57f287','#fee75c','#ed4245','#8889CD','#BB6688','#CCAA88','#3ba55c','#FF7722','#0077DD','#e8a44d','#9b84ec','#00BBDD'];
+  let h = 7;
+  let _i=0; for (const c of name) { h = (h * 31 + c.charCodeAt(0) + _i * 17) | 0; _i++; }
+  return colors[((h % colors.length) + colors.length) % colors.length];
 }
 function roleColor(c) {
   const map = {
@@ -3909,7 +3909,7 @@ function parseParams() {
 
   let myName = '나';
   if (s) {
-    const sp = s.split(',');
+    const sp = s.split('§');
     document.getElementById('server-name').textContent = sp[0] || '서버';
     if (sp[1]) {
       myName = sp[1];
@@ -3941,7 +3941,7 @@ function parseParams() {
     cat.textContent = '▾ 채팅 채널';
     chList.appendChild(cat);
 
-    const activeChName = ch ? ch.split(',')[0] : '';
+    const activeChName = ch ? ch.split('§')[0] : '';
     tc.split('|').forEach(name => {
       const div = document.createElement('div');
       div.className = 'ch-item' + (name === activeChName ? ' active' : '');
@@ -3957,7 +3957,7 @@ function parseParams() {
     chList.appendChild(cat);
 
     vc.split(';').forEach(vcRaw => {
-      const parts = vcRaw.split(',');
+      const parts = vcRaw.split('§');
       const vcName = parts[0];
       const members = parts.slice(1);
 
@@ -3982,7 +3982,7 @@ function parseParams() {
 
   // Chat header
   if (ch) {
-    const cp = ch.split(',');
+    const cp = ch.split('§');
     document.getElementById('chat-ch-name').textContent = cp[0] || '일반';
     document.getElementById('input-ph').textContent = \`#\${cp[0] || '일반'}에 메시지 보내기\`;
     if (cp[1]) document.getElementById('chat-topic').textContent = cp[1];
@@ -4002,11 +4002,11 @@ function parseParams() {
   if (m) {
     let lastAuthor = '';
     m.split('|').forEach(raw => {
-      const seg = raw.split(',');
+      const seg = raw.split('§');
       const nick = seg[0] || '';
       const rColor = seg[1] || '';
       const time = seg[2] || '';
-      const text = seg.slice(3).join(',') || '';
+      const text = seg.slice(3).join('§') || '';
       const isCont = nick === lastAuthor;
       lastAuthor = nick;
 
@@ -4059,14 +4059,14 @@ parseParams();
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     display: flex;
     justify-content: center;
-    min-height: 750px;
+    min-height: 900px;
   }
   .stream-app {
     width: 100%;
     max-width: 820px;
     display: flex;
     flex-direction: column;
-    min-height: 750px;
+    min-height: 900px;
   }
 
   /* Top bar */
@@ -4380,7 +4380,7 @@ function parseParams() {
   const c = params.get('c');
 
   if (p) {
-    const pp = p.split(',');
+    const pp = p.split('§');
     const streamer = pp[0] || '스트리머';
     const title    = pp[1] || '';
     const viewers  = pp[2] || '0';
@@ -4681,7 +4681,7 @@ function parseParams() {
   const c = params.get('c');
   if (!p) return;
 
-  const parts = p.split(',');
+  const parts = p.split('§');
   const board = parts[0] || '게시판';
   const tag = parts[1] || '';
   const title = parts[2] || '';
@@ -4689,7 +4689,7 @@ function parseParams() {
   const time = parts[4] || '';
   const views = parts[5] || '0';
   const votes = parts[6] || '0';
-  const body = parts.slice(7).join(',') || '';
+  const body = parts.slice(7).join('§') || '';
 
   document.getElementById('board-name').textContent = board;
   document.getElementById('post-title').textContent = title;
@@ -4712,7 +4712,7 @@ function parseParams() {
     commentList.forEach(raw => {
       const isReply = raw.startsWith('>');
       const clean = isReply ? raw.substring(1) : raw;
-      const seg = clean.split(',');
+      const seg = clean.split('§');
       const cNick = seg[0] || '';
       const cTime = seg[1] || '';
       const cBody = seg[2] || '';
@@ -4740,16 +4740,713 @@ parseParams();
 </body>
 </html>
 `,
+  'letter': `<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Letter</title>
+<style>
+  :root {
+    --col-indigo: #8889CD;
+    --col-pink:   #DDAACC;
+    --col-sand:   #CCAA88;
+    --col-rose:   #BB6688;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #e8e0e6;
+    font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
+    display: flex;
+    justify-content: center;
+    padding: 20px 8px;
+    min-height: 100vh;
+  }
+
+  .letter-wrap {
+    width: 100%;
+    max-width: 480px;
+  }
+
+  /* ── 봉투 상단 (접힌 플랩) ── */
+  .envelope-flap {
+    width: 100%;
+    height: 44px;
+    background: linear-gradient(135deg, #d4c4b8, #c9b8a8);
+    clip-path: polygon(0 0, 50% 100%, 100% 0);
+    position: relative;
+    z-index: 2;
+  }
+  .envelope-flap::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--col-rose);
+    opacity: 0.6;
+  }
+
+  /* ── 편지지 본체 ── */
+  .letter {
+    background: #fffbf5;
+    border-left: 1px solid #e0d4c8;
+    border-right: 1px solid #e0d4c8;
+    border-bottom: 1px solid #e0d4c8;
+    position: relative;
+    overflow: hidden;
+    margin-top: -2px;
+  }
+
+  /* 줄무늬 배경 */
+  .letter::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      transparent,
+      transparent 27px,
+      rgba(136,137,205,0.08) 27px,
+      rgba(136,137,205,0.08) 28px
+    );
+    pointer-events: none;
+  }
+
+  /* 왼쪽 빨간 줄 (편지지 느낌) */
+  .letter::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 38px;
+    bottom: 0;
+    width: 1.5px;
+    background: rgba(187,102,136,0.2);
+    pointer-events: none;
+  }
+
+  /* ── 날짜 영역 ── */
+  .letter-date {
+    padding: 18px 24px 4px 52px;
+    font-size: 12px;
+    color: var(--col-sand);
+    text-align: left;
+    position: relative;
+    z-index: 1;
+    letter-spacing: 0.5px;
+    font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
+  }
+
+  /* ── 수신자 ── */
+  .letter-to {
+    padding: 10px 24px 14px 52px;
+    font-size: 16px;
+    color: #4a3a2e;
+    position: relative;
+    z-index: 1;
+    line-height: 1.6;
+    font-weight: 600;
+    font-family: cursive, 'Segoe Script', 'Comic Sans MS', serif;
+  }
+
+  .letter-to .dear-label {
+    font-size: 12px;
+    color: var(--col-rose);
+    font-weight: 400;
+    display: block;
+    margin-bottom: 2px;
+    letter-spacing: 1px;
+  }
+
+  /* ── 본문 ── */
+  .letter-body {
+    padding: 8px 24px 16px 52px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #3a2e24;
+    position: relative;
+    z-index: 1;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: cursive, 'Segoe Script', 'Comic Sans MS', serif;
+  }
+
+  /* ── 서명 영역 ── */
+  .letter-sign {
+    padding: 14px 24px 8px 52px;
+    text-align: right;
+    position: relative;
+    z-index: 1;
+  }
+
+  .letter-closing {
+    font-size: 13px;
+    color: var(--col-sand);
+    margin-bottom: 6px;
+    font-style: italic;
+    font-family: cursive, 'Segoe Script', 'Comic Sans MS', serif;
+  }
+
+  .letter-from {
+    font-size: 18px;
+    font-weight: 700;
+    color: #4a3a2e;
+    display: inline-block;
+    position: relative;
+    font-family: cursive, 'Segoe Script', 'Comic Sans MS', serif;
+  }
+
+  .letter-from::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--col-pink), transparent);
+  }
+
+  /* ── PS ── */
+  .letter-ps {
+    padding: 10px 24px 18px 52px;
+    font-size: 12px;
+    color: var(--col-rose);
+    font-style: italic;
+    position: relative;
+    z-index: 1;
+    line-height: 1.5;
+    font-family: cursive, 'Segoe Script', 'Comic Sans MS', serif;
+  }
+
+  .letter-ps::before {
+    content: 'P.S.';
+    font-weight: 700;
+    margin-right: 4px;
+  }
+
+  /* ── 봉투 하단 ── */
+  .envelope-bottom {
+    width: 100%;
+    height: 28px;
+    background: linear-gradient(180deg, #d4c4b8, #c0ae9e);
+    border-radius: 0 0 4px 4px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .envelope-bottom::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(187,102,136,0.3), transparent);
+  }
+
+  .envelope-stamp {
+    font-size: 8px;
+    color: rgba(74,58,46,0.4);
+    letter-spacing: 2px;
+    font-family: -apple-system, sans-serif;
+  }
+
+  /* ── 장식: 우표 ── */
+  .stamp {
+    position: absolute;
+    top: 10px;
+    right: 14px;
+    width: 44px;
+    height: 52px;
+    background: #fff;
+    border: 2px dashed rgba(136,137,205,0.3);
+    border-radius: 2px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    z-index: 3;
+    opacity: 0.7;
+  }
+
+  .stamp-icon {
+    font-size: 18px;
+    opacity: 0.6;
+  }
+
+  .stamp-text {
+    font-size: 7px;
+    color: var(--col-indigo);
+    font-family: -apple-system, sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-align: center;
+  }
+
+  /* ── 장식: 꽃/하트 워터마크 ── */
+  .watermark {
+    position: absolute;
+    bottom: 40px;
+    right: 20px;
+    font-size: 64px;
+    opacity: 0.04;
+    z-index: 0;
+    pointer-events: none;
+    transform: rotate(-15deg);
+  }
+</style>
+</head>
+<body>
+<div class="letter-wrap">
+  <div class="envelope-flap"></div>
+  <div class="letter">
+    <div class="stamp">
+      <div class="stamp-icon">✉</div>
+      <div class="stamp-text" id="stamp-label">LETTER</div>
+    </div>
+    <div class="watermark" id="watermark">♥</div>
+    <div class="letter-date" id="letter-date">2026. 01. 01.</div>
+    <div class="letter-to" id="letter-to">
+      <span class="dear-label">To.</span>
+      받는 사람
+    </div>
+    <div class="letter-body" id="letter-body">편지 내용</div>
+    <div class="letter-sign">
+      <div class="letter-closing" id="letter-closing">마음을 담아</div>
+      <div class="letter-from" id="letter-from">보내는 사람</div>
+    </div>
+    <div class="letter-ps" id="letter-ps" style="display:none;"></div>
+  </div>
+  <div class="envelope-bottom">
+    <span class="envelope-stamp">MAIL</span>
+  </div>
+</div>
+
+<script>
+// ?p=보내는사람§받는사람§날짜§맺음말§우표라벨
+// &b=본문내용
+// &ps=추신내용
+// &w=워터마크이모지
+function parseParams() {
+  const params = new URLSearchParams(window.location.search);
+  const p = params.get('p');
+  const b = params.get('b');
+  const ps = params.get('ps');
+  const w = params.get('w');
+
+  if (p) {
+    const pp = p.split('§');
+    const from = pp[0] || '';
+    const to = pp[1] || '';
+    const date = pp[2] || '';
+    const closing = pp[3] || '마음을 담아';
+    const stampLabel = pp[4] || 'LETTER';
+
+    if (to) {
+      document.getElementById('letter-to').innerHTML =
+        '<span class="dear-label">To.</span>' + to;
+    }
+    if (from) document.getElementById('letter-from').textContent = from;
+    if (date) document.getElementById('letter-date').textContent = date;
+    if (closing) document.getElementById('letter-closing').textContent = closing;
+    if (stampLabel) document.getElementById('stamp-label').textContent = stampLabel;
+  }
+
+  if (b) {
+    document.getElementById('letter-body').textContent = b;
+  }
+
+  if (ps) {
+    const psEl = document.getElementById('letter-ps');
+    psEl.style.display = 'block';
+    psEl.textContent = '';
+    psEl.insertAdjacentText('beforeend', ps);
+  }
+
+  if (w) {
+    document.getElementById('watermark').textContent = w;
+  }
+}
+parseParams();
+</script>
+</body>
+</html>
+`,
+  'menu': `<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Menu</title>
+<style>
+  :root {
+    --col-indigo: #8889CD;
+    --col-pink:   #DDAACC;
+    --col-sand:   #CCAA88;
+    --col-rose:   #BB6688;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #e8e0e6;
+    font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
+    display: flex;
+    justify-content: center;
+    padding: 20px 8px;
+    min-height: 100vh;
+  }
+
+  .menu {
+    width: 100%;
+    max-width: 480px;
+    background: #1a1520;
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* 질감 오버레이 */
+  .menu::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── 메뉴판 헤더 ── */
+  .menu-header {
+    padding: 28px 24px 20px;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    border-bottom: 1px solid rgba(221,170,204,0.15);
+  }
+
+  .menu-header::before,
+  .menu-header::after {
+    content: '✦';
+    position: absolute;
+    top: 24px;
+    font-size: 10px;
+    color: var(--col-sand);
+    opacity: 0.5;
+  }
+  .menu-header::before { left: 20px; }
+  .menu-header::after { right: 20px; }
+
+  .menu-name {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--col-pink);
+    letter-spacing: 5px;
+    margin-bottom: 4px;
+    font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
+  }
+
+  .menu-sub {
+    font-size: 11px;
+    color: var(--col-sand);
+    opacity: 0.7;
+    letter-spacing: 4px;
+    font-family: 'Courier New', Courier, monospace;
+    text-transform: uppercase;
+  }
+
+  /* 장식 라인 */
+  .menu-divider {
+    width: 60px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--col-rose), transparent);
+    margin: 12px auto 0;
+  }
+
+  /* ── 카테고리 섹션 ── */
+  .menu-section {
+    padding: 18px 22px 10px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(136,137,205,0.1);
+  }
+
+  .section-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(136,137,205,0.25), transparent);
+  }
+
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--col-indigo);
+    letter-spacing: 3px;
+    white-space: nowrap;
+    text-transform: uppercase;
+    background: rgba(136,137,205,0.08);
+    padding: 4px 12px;
+    border-radius: 3px;
+    border: 1px solid rgba(136,137,205,0.12);
+  }
+
+  .section-icon {
+    font-size: 14px;
+    opacity: 0.7;
+  }
+
+  /* ── 메뉴 아이템 ── */
+  .menu-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 8px 0;
+    gap: 8px;
+  }
+
+  .menu-item + .menu-item {
+    border-top: 1px dashed rgba(221,170,204,0.12);
+  }
+
+  .item-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .item-name-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .item-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #f0eaf0;
+    line-height: 1.3;
+    font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
+  }
+
+  .item-badge {
+    font-size: 8px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 3px;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+    font-family: -apple-system, sans-serif;
+  }
+
+  .badge-best {
+    background: rgba(187,102,136,0.2);
+    color: var(--col-rose);
+    border: 1px solid rgba(187,102,136,0.35);
+  }
+
+  .badge-new {
+    background: rgba(136,137,205,0.2);
+    color: var(--col-indigo);
+    border: 1px solid rgba(136,137,205,0.35);
+  }
+
+  .badge-hot {
+    background: rgba(204,170,136,0.2);
+    color: var(--col-sand);
+    border: 1px solid rgba(204,170,136,0.35);
+  }
+
+  .item-desc {
+    font-size: 11px;
+    color: rgba(221,170,204,0.5);
+    margin-top: 3px;
+    line-height: 1.4;
+    font-style: italic;
+  }
+
+  .item-price {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--col-sand);
+    white-space: nowrap;
+    flex-shrink: 0;
+    align-self: center;
+    background: rgba(204,170,136,0.1);
+    padding: 3px 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(204,170,136,0.15);
+  }
+
+  .item-dots {
+    flex: 0 0 auto;
+    align-self: center;
+    border-bottom: 1px dotted rgba(204,170,136,0.2);
+    min-width: 20px;
+    flex-grow: 1;
+    height: 0;
+    margin: 0 4px;
+  }
+
+  /* ── 푸터 ── */
+  .menu-footer {
+    padding: 14px 22px 18px;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    border-top: 1px solid rgba(221,170,204,0.1);
+  }
+
+  .menu-footer-text {
+    font-size: 10px;
+    color: rgba(204,170,136,0.4);
+    letter-spacing: 1px;
+    line-height: 1.6;
+    font-family: -apple-system, sans-serif;
+  }
+
+  .menu-footer-line {
+    width: 40px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--col-rose), transparent);
+    margin: 8px auto;
+    opacity: 0.4;
+  }
+
+  .menu-hours {
+    font-size: 10px;
+    color: rgba(136,137,205,0.5);
+    margin-top: 4px;
+    font-family: -apple-system, sans-serif;
+  }
+</style>
+</head>
+<body>
+<div class="menu">
+
+  <!-- 헤더 -->
+  <div class="menu-header">
+    <div class="menu-name" id="menu-name">가게 이름</div>
+    <div class="menu-sub" id="menu-sub">MENU</div>
+    <div class="menu-divider"></div>
+  </div>
+
+  <!-- 메뉴 섹션들 -->
+  <div id="menu-sections"></div>
+
+  <!-- 푸터 -->
+  <div class="menu-footer">
+    <div class="menu-footer-line"></div>
+    <div class="menu-footer-text" id="menu-notice"></div>
+    <div class="menu-hours" id="menu-hours"></div>
+  </div>
+
+</div>
+
+<script>
+// ?p=가게이름§부제(MENU등)§공지문구§영업시간
+// &s=카테고리명§아이콘|메뉴명§설명§가격§뱃지|메뉴명~설명~가격;;카테고리명2~아이콘|...
+//   뱃지: best / new / hot (선택)
+//   카테고리 구분: ;;  /  아이템 구분: |  /  필드 구분: §
+function parseParams() {
+  const params = new URLSearchParams(window.location.search);
+  const p = params.get('p');
+  const s = params.get('s');
+
+  if (p) {
+    const pp = p.split('§');
+    if (pp[0]) document.getElementById('menu-name').textContent = pp[0];
+    if (pp[1]) document.getElementById('menu-sub').textContent = pp[1];
+    if (pp[2]) document.getElementById('menu-notice').textContent = pp[2];
+    if (pp[3]) document.getElementById('menu-hours').textContent = pp[3];
+  }
+
+  if (s) {
+    const container = document.getElementById('menu-sections');
+    container.innerHTML = '';
+
+    // 카테고리별 분리
+    const categories = s.split(';;');
+
+    categories.forEach(cat => {
+      const items = cat.split('|');
+      if (items.length === 0) return;
+
+      // 첫 번째는 카테고리 헤더
+      const catParts = items[0].split('§');
+      const catName = catParts[0] || '';
+      const catIcon = catParts[1] || '';
+
+      const section = document.createElement('div');
+      section.className = 'menu-section';
+
+      // 섹션 헤더
+      let headerHtml = '<div class="section-header">';
+      headerHtml += '<div class="section-line"></div>';
+      if (catIcon) headerHtml += '<span class="section-icon">' + catIcon + '</span>';
+      headerHtml += '<span class="section-title">' + catName + '</span>';
+      if (catIcon) headerHtml += '<span class="section-icon">' + catIcon + '</span>';
+      headerHtml += '<div class="section-line"></div>';
+      headerHtml += '</div>';
+
+      let itemsHtml = '';
+      // 나머지는 메뉴 아이템
+      items.slice(1).forEach(raw => {
+        const seg = raw.split('§');
+        const name = seg[0] || '';
+        const desc = seg[1] || '';
+        const price = seg[2] || '';
+        const badge = seg[3] || '';
+
+        let badgeHtml = '';
+        if (badge === 'best') badgeHtml = '<span class="item-badge badge-best">BEST</span>';
+        else if (badge === 'new') badgeHtml = '<span class="item-badge badge-new">NEW</span>';
+        else if (badge === 'hot') badgeHtml = '<span class="item-badge badge-hot">HOT</span>';
+
+        itemsHtml += '<div class="menu-item">';
+        itemsHtml += '<div class="item-info">';
+        itemsHtml += '<div class="item-name-row"><span class="item-name">' + name + '</span>' + badgeHtml + '</div>';
+        if (desc) itemsHtml += '<div class="item-desc">' + desc + '</div>';
+        itemsHtml += '</div>';
+        if (price) {
+          itemsHtml += '<div class="item-dots"></div>';
+          itemsHtml += '<div class="item-price">' + price + '</div>';
+        }
+        itemsHtml += '</div>';
+      });
+
+      section.innerHTML = headerHtml + itemsHtml;
+      container.appendChild(section);
+    });
+  }
+}
+parseParams();
+</script>
+</body>
+</html>
+`,
 };
 
 const SIZES = {
-  // 🔒 고정: lock(844), story(750), kakao(800), insta(800), stream(750)
-  'insta': [470, 800], 'twitter': [598, 600], 'kakao': [480, 800],
+  // 🔒 고정: lock(844), story(900), kakao(900), insta(1000), stream(900), discord(900), voice(900)
+  'insta': [470, 800], 'twitter': [598, 600], 'kakao': [420, 900],
   'reddit': [600, 700], 'lock': [390, 844], 'email': [560, 600],
-  'story': [420, 750], 'search': [600, 700], 'news': [560, 800],
+  'story': [420, 900], 'search': [600, 700], 'news': [560, 800],
   'doc': [540, 700], 'board': [600, 600], 'discord': [520, 700],
   'voice': [280, 700], 'discord-full': [620, 700], 'stream': [820, 750],
   'post': [600, 1200],
+  'letter': [480, 700],
+  'menu': [480, 850],
 };
 
 
@@ -4764,17 +5461,17 @@ function fmt(n) {
 }
 
 function avatarColor(name) {
-  const colors = ['#e8736c','#f0a05a','#7eb8d4','#82c4a0','#a78fd4','#d47eb8','#7ab8c4'];
-  let hash = 0;
-  for (const c of name) hash = (hash * 31 + c.charCodeAt(0)) % colors.length;
-  return colors[Math.abs(hash)];
+  const colors = ['#e8736c','#f0a05a','#7eb8d4','#82c4a0','#a78fd4','#d47eb8','#7ab8c4','#e0976e','#6ecfcf','#c87eaa','#8fb87e','#cf9e6e','#7eaab8','#d48f8f'];
+  let hash = 7;
+  let _i=0; for (const c of name) { hash = (hash * 31 + c.charCodeAt(0) + _i * 17) | 0; _i++; }
+  return colors[((hash % colors.length) + colors.length) % colors.length];
 }
 
 function avatarBg(name) {
-  const colors = ['#5865f2','#eb459e','#57f287','#fee75c','#ed4245','#8889CD','#BB6688','#CCAA88'];
-  let h = 0;
-  for (const c of name) h = (h * 31 + c.charCodeAt(0)) % colors.length;
-  return colors[Math.abs(h)];
+  const colors = ['#5865f2','#FF6699','#57f287','#fee75c','#ed4245','#8889CD','#BB6688','#CCAA88','#3ba55c','#FF7722','#0077DD','#e8a44d','#9b84ec','#00BBDD'];
+  let h = 7;
+  let _i=0; for (const c of name) { h = (h * 31 + c.charCodeAt(0) + _i * 17) | 0; _i++; }
+  return colors[((h % colors.length) + colors.length) % colors.length];
 }
 
 function roleColor(c) {
@@ -4787,7 +5484,7 @@ function renderInsta(html, url) {
   const p = url.searchParams.get('p');
   const c = url.searchParams.get('c');
   if (!p) return html;
-  const parts = p.split(',');
+  const parts = p.split('§');
   const user = parts[0] || '@lorem_ipsum';
   const followers = parts[1] || '0';
   const commentCount = parts[2] || '0';
@@ -4812,7 +5509,7 @@ function renderInsta(html, url) {
   if (c) {
     let ch = '';
     c.split('|').forEach(raw => {
-      const seg = raw.split(',');
+      const seg = raw.split('§');
       const cu=seg[0]||'', ct=seg[1]||'';
       const hasCT = seg.length>=4 && !isNaN(Number(seg[seg.length-1]));
       const ctr = hasCT && seg.length>=4 ? seg[2] : '';
@@ -4831,7 +5528,7 @@ function renderTwitter(html, url) {
   const p = url.searchParams.get('p');
   const r = url.searchParams.get('r');
   if (!p) return html;
-  const parts = p.split(',');
+  const parts = p.split('§');
   const handle=parts[0]||'@handle', displayName=parts[1]||'Name', time=parts[2]||'방금', body=parts[3]||'';
   let idx=4, translation='', imgDesc='';
   if (parts[idx]&&parts[idx].startsWith('[')) { translation=parts[idx]; idx++; }
@@ -4851,12 +5548,12 @@ function renderTwitter(html, url) {
   if (r) {
     html=html.replace('class="tweet no-replies"','class="tweet"');
     html=html.replace('id="replies-section" style="display:none"','id="replies-section"');
-    const colors=['#5865f2','#eb459e','#57f287','#fee75c','#ed4245','#8889CD','#BB6688','#CCAA88'];
-    const abg=name=>{let h=0;for(let c of name)h=(h*31+c.charCodeAt(0))%colors.length;return colors[Math.abs(h)];};
+    const colors=['#5865f2','#FF6699','#57f287','#fee75c','#ed4245','#8889CD','#BB6688','#CCAA88','#3ba55c','#FF7722','#0077DD','#e8a44d','#9b84ec','#00BBDD'];
+    const abg=name=>{let h=7;let _i=0;for(const c of name){h=(h*31+c.charCodeAt(0)+_i*17)|0;_i++;}return colors[((h%colors.length)+colors.length)%colors.length];};
     const replyList=r.split('|');
     let rh='';
     replyList.forEach((raw,i)=>{
-      const seg=raw.split(',');
+      const seg=raw.split('§');
       const rName=seg[0]||'',rHandle=seg[1]||'',rTime=seg[2]||'',rBody=seg[3]||'',rLikes=Number(seg[4]||'0').toLocaleString();
       const isLast=i===replyList.length-1;
       rh+='<div class="reply-item"><div class="reply-avatar-col"><div class="reply-avatar" style="background:'+abg(rName)+'">'+rName.charAt(0)+'</div>'+(isLast?'':'<div class="thread-line"></div>')+'</div><div class="reply-content"><div class="reply-header"><span class="reply-name">'+rName+'</span><span class="reply-handle">'+rHandle+' · '+rTime+'</span></div><div class="reply-body">'+rBody+'</div><div class="reply-likes"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>'+rLikes+'</div></div></div>';
@@ -4871,7 +5568,7 @@ function renderKakao(html, url) {
   const r = url.searchParams.get('r');
   const m = url.searchParams.get('m');
   if (r) {
-    const rp = r.split(',');
+    const rp = r.split('§');
     html = html.replace('>채팅방<', '>'+(rp[0]||'채팅방')+'<');
     if (rp[1]) html = html.replace('>2025년 1월 1일 수요일<', '>'+rp[1]+'<');
     if (rp[2]) html = html.replace('id="member-count"></span>', 'id="member-count">'+rp[2]+'</span>');
@@ -4880,11 +5577,11 @@ function renderKakao(html, url) {
     let msgs = '';
     const msgList = m.split('|');
     msgList.forEach((raw,i) => {
-      const seg=raw.split(',');
+      const seg=raw.split('§');
       const sender=seg[0]||'',content=seg[1]||'',time=seg[2]||'',readCnt=seg[3]||'0';
       const isMe=seg[seg.length-1]==='me';
-      const prev=i>0?msgList[i-1].split(',')[0]:null;
-      const next=i<msgList.length-1?msgList[i+1].split(',')[0]:null;
+      const prev=i>0?msgList[i-1].split('§')[0]:null;
+      const next=i<msgList.length-1?msgList[i+1].split('§')[0]:null;
       const isCont=sender===prev, isLast=sender!==next;
       const cls = isMe?'msg-row me':'msg-row other';
       const bubbleCls = isMe?'bubble':'bubble';
@@ -4916,7 +5613,7 @@ function renderReddit(html, url) {
   const p = url.searchParams.get('p');
   const c = url.searchParams.get('c');
   if (!p) return html;
-  const parts=p.split(',');
+  const parts=p.split('§');
   const sub=parts[0]||'AskReddit',author=parts[1]||'throwaway',time=parts[2]||'방금',title=parts[3]||'',body=parts[4]||'',upvotes=parts[5]||'0',commentN=parts[6]||'0';
   let postHtml = '<div class="post-meta"><span class="subreddit">r/'+sub+'</span><span>•</span><span class="post-author">u/'+author+'</span><span>•</span><span>'+time+'</span></div>';
   postHtml += '<div class="post-title">'+title+'</div><div class="post-body">'+body+'</div>';
@@ -4925,7 +5622,7 @@ function renderReddit(html, url) {
   if (c) {
     let ch='';
     c.split('|').forEach(raw => {
-      const seg=raw.split(',');
+      const seg=raw.split('§');
       ch+='<div class="comment"><div class="comment-meta"><span class="comment-author">'+(seg[0]||'')+'</span><span class="comment-time">'+(seg[2]||'')+'</span></div><div class="comment-body">'+(seg[1]||'')+'</div><div class="comment-votes"><span class="up">▲</span> '+fmt(seg[3]||'0')+'</div></div>';
     });
     html = html.replace('id="comments"></div>', 'id="comments">'+ch+'</div>');
@@ -4938,7 +5635,7 @@ function renderLock(html, url) {
   const time = url.searchParams.get('time');
   const n = url.searchParams.get('n');
   if (time) {
-    const tp=time.split(',');
+    const tp=time.split('§');
     html=html.replace('>12:00</div>\n  <div class="lock-date"','>'+(tp[0]||'12:00')+'</div><div class="lock-date"');
     html=html.replace('id="lock-time">12:00<','id="lock-time">'+(tp[0]||'12:00')+'<');
     html=html.replace('id="status-time">12:00<','id="status-time">'+(tp[0]||'12:00')+'<');
@@ -4948,7 +5645,7 @@ function renderLock(html, url) {
     const icons={'msg':'💬','call':'📞','insta':'📷','sns':'🐦','mail':'✉️','app':'🔔'};
     let nh='';
     n.split('|').forEach(raw => {
-      const seg=raw.split(',');
+      const seg=raw.split('§');
       const type=seg[0]||'app',app=seg[1]||'',title=seg[2]||'',body=seg[3]||'',time=seg[4]||'';
       nh+='<div class="notif"><div class="notif-icon '+type+'">'+(icons[type]||'🔔')+'</div><div class="notif-content"><div class="notif-header"><span class="notif-app">'+app+'</span><span class="notif-time">'+time+'</span></div><div class="notif-title">'+title+'</div><div class="notif-body">'+body+'</div></div></div>';
     });
@@ -4961,8 +5658,8 @@ function renderLock(html, url) {
 function renderEmail(html, url) {
   const p = url.searchParams.get('p');
   if (!p) return html;
-  const parts=p.split(',');
-  const fromName=parts[0]||'',fromEmail=parts[1]||'',toAddr=parts[2]||'',subject=parts[3]||'',date=parts[4]||'',body=parts.slice(5).join(',')||'';
+  const parts=p.split('§');
+  const fromName=parts[0]||'',fromEmail=parts[1]||'',toAddr=parts[2]||'',subject=parts[3]||'',date=parts[4]||'',body=parts.slice(5).join('§')||'';
   const initial=fromName.charAt(0).toUpperCase();
   const headerHtml='<div class="email-subject">'+subject+'</div><div class="email-from-row"><div class="email-avatar">'+initial+'</div><div class="email-from-info"><div class="email-from-name">'+fromName+'</div><div class="email-from-addr">&lt;'+fromEmail+'&gt;</div><div class="email-to">받는 사람: '+toAddr+'</div></div><div class="email-date">'+date+'</div></div>';
   html=html.replace('id="email-header"></div>','id="email-header">'+headerHtml+'</div>');
@@ -4974,7 +5671,7 @@ function renderEmail(html, url) {
 function renderStory(html, url) {
   const p = url.searchParams.get('p');
   if (!p) return html;
-  const parts=p.split(',');
+  const parts=p.split('§');
   const user=parts[0]||'@user',time=parts[1]||'',desc=parts[2]||'',caption=parts[3]||'';
   html=html.replace('>username<','>'+user.replace('@','')+'<');
   if(time) html=html.replace('>14분 전<','>'+time+'<');
@@ -4989,15 +5686,15 @@ function renderSearch(html, url) {
   const r = url.searchParams.get('r');
   const a = url.searchParams.get('a');
   if(q) {
-    const qp=q.split(',');
+    const qp=q.split('§');
     html=html.replace('>검색어<','>'+(qp[0]||'')+'<');
     html=html.replace('>검색결과 약 0개<','>검색결과 약 '+Number(qp[1]||0).toLocaleString()+'개 (0.42초)<');
   }
   if(r) {
     let rh='';
     r.split('|').forEach(raw => {
-      const seg=raw.split(',');
-      const title=seg[0]||'',rurl=seg[1]||'',snippet=seg.slice(2).join(',')||'';
+      const seg=raw.split('§');
+      const title=seg[0]||'',rurl=seg[1]||'',snippet=seg.slice(2).join('§')||'';
       const fav=rurl.charAt(0).toUpperCase();
       rh+='<div class="result-item"><div class="result-url"><div class="result-favicon">'+fav+'</div>'+rurl+'</div><div class="result-title">'+title+'</div><div class="result-snippet">'+snippet+'</div></div>';
     });
@@ -5016,8 +5713,8 @@ function renderSearch(html, url) {
 function renderNews(html, url) {
   const p = url.searchParams.get('p');
   if (!p) return html;
-  const parts=p.split(',');
-  const outlet=parts[0]||'NEWS',category=parts[1]||'',title=parts[2]||'',subtitle=parts[3]||'',author=parts[4]||'',date=parts[5]||'',imgDesc=parts[6]||'',body=parts.slice(7).join(',')||'';
+  const parts=p.split('§');
+  const outlet=parts[0]||'NEWS',category=parts[1]||'',title=parts[2]||'',subtitle=parts[3]||'',author=parts[4]||'',date=parts[5]||'',imgDesc=parts[6]||'',body=parts.slice(7).join('§')||'';
   html=html.replace('>NEWS<','>'+outlet+'<');
   html=html.replace('id="bar-tag"></span>','id="bar-tag">'+category+'</span>');
   html=html.replace('id="category"></div>','id="category">'+category+'</div>');
@@ -5035,7 +5732,7 @@ function renderNews(html, url) {
 function renderDoc(html, url) {
   const p=url.searchParams.get('p'), info=url.searchParams.get('i'), b=url.searchParams.get('b'), t=url.searchParams.get('t2'), f=url.searchParams.get('f');
   if(p) {
-    const pp=p.split(',');
+    const pp=p.split('§');
     html=html.replace('>기관명<','>'+(pp[0]||'')+'<');
     html=html.replace('>문서 유형<','>'+(pp[1]||'')+'<');
     html=html.replace('>문서 제목<','>'+(pp[2]||'')+'<');
@@ -5058,7 +5755,7 @@ function renderDoc(html, url) {
     html=html.replace('id="doc-body">','id="doc-body">'+th);
   }
   if(f) {
-    const fp=f.split(',');
+    const fp=f.split('§');
     html=html.replace('id="doc-footer"></div>','id="doc-footer">'+(fp[0]||'')+'</div>');
     if(fp[1]) html=html.replace('id="doc-seal"></div>','id="doc-seal">'+fp[1]+'</div>');
     else html=html.replace('id="doc-seal"></div>','id="doc-seal" style="display:none"></div>');
@@ -5070,7 +5767,7 @@ function renderDoc(html, url) {
 function renderBoard(html, url) {
   const b=url.searchParams.get('b'), tabs=url.searchParams.get('tabs'), p=url.searchParams.get('p');
   if(b) {
-    const bp=b.split(',');
+    const bp=b.split('§');
     html=html.replace('>게시판<','>'+(bp[0]||'게시판')+'<');
     if(bp[1]) html=html.replace('id="board-count"></span>','id="board-count">총 '+Number(bp[1]).toLocaleString()+'개</span>');
   }
@@ -5083,7 +5780,7 @@ function renderBoard(html, url) {
     const tagMap={'notice':['공지','tag-notice'],'hot':['HOT','tag-hot'],'new':['NEW','tag-new'],'normal':['','tag-normal']};
     let lh='';
     p.split('|').forEach(raw => {
-      const seg=raw.split(',');
+      const seg=raw.split('§');
       const tag=seg[0]||'normal',title=seg[1]||'',author=seg[2]||'',time=seg[3]||'',views=seg[4]||'0',votes=seg[5]||'0',comments=seg[6]||'';
       const [tagText,tagClass]=tagMap[tag]||[tag,'tag-normal'];
       lh+='<div class="board-item"><div class="board-item-left"><div class="board-item-title">'+(tagText?'<span class="board-item-tag '+tagClass+'">'+tagText+'</span>':'')+title+(comments?'<span class="board-item-comment">['+comments+']</span>':'')+'</div><div class="board-item-meta"><span>'+author+'</span><span>'+time+'</span><span>조회 '+Number(views).toLocaleString()+'</span></div></div><div class="board-item-right"><div class="board-item-votes">'+Number(votes).toLocaleString()+'</div><div class="board-item-vote-label">추천</div></div></div>';
@@ -5097,7 +5794,7 @@ function renderBoard(html, url) {
 function renderDiscord(html, url) {
   const ch=url.searchParams.get('ch'), m=url.searchParams.get('m');
   if(ch) {
-    const cp=ch.split(',');
+    const cp=ch.split('§');
     html=html.replace('>일반<','>'+(cp[0]||'일반')+'<');
     html=html.replace('id="input-placeholder">#일반에 메시지 보내기<','id="input-placeholder">#'+(cp[0]||'일반')+'에 메시지 보내기<');
     if(cp[1]) html=html.replace('id="channel-topic"></span>','id="channel-topic">'+cp[1]+'</span>');
@@ -5105,7 +5802,7 @@ function renderDiscord(html, url) {
   if(m) {
     let mh='', lastAuthor='';
     m.split('|').forEach(raw => {
-      const seg=raw.split(',');
+      const seg=raw.split('§');
       const nick=seg[0]||'',rColor=seg[1]||'',rTag=seg[2]||'',time=seg[3]||'',text=seg[4]||'',reactions=seg[5]||'';
       const color=roleColor(rColor);
       const isCont=nick===lastAuthor;
@@ -5126,10 +5823,10 @@ function renderDiscord(html, url) {
 // ── VOICE ── (복잡해서 기본 passthrough, 필요시 추가)
 function renderVoice(html, url) {
   const s=url.searchParams.get('s'),tc=url.searchParams.get('tc'),v=url.searchParams.get('v'),active=url.searchParams.get('active');
-  if(s){const sp=s.split(',');html=html.replace('>서버 이름<','>'+(sp[0]||'서버')+'<');if(sp[1]){html=html.replace('id="user-display">나<','id="user-display">'+sp[1]+'<');html=html.replace('id="user-avatar" style="background:#5865f2">나<','id="user-avatar" style="background:'+avatarBg(sp[1])+'">'+sp[1].charAt(0)+'<');}}
+  if(s){const sp=s.split('§');html=html.replace('>서버 이름<','>'+(sp[0]||'서버')+'<');if(sp[1]){html=html.replace('id="user-display">나<','id="user-display">'+sp[1]+'<');html=html.replace('id="user-avatar" style="background:#5865f2">나<','id="user-avatar" style="background:'+avatarBg(sp[1])+'">'+sp[1].charAt(0)+'<');}}
   let chHtml='';
   if(tc){chHtml+='<div class="category"><span class="category-arrow">▼</span> 채팅 채널</div>';tc.split('|').forEach((ch,i)=>{chHtml+='<div class="text-channel'+(i===0?' active':'')+'"><span class="ch-hash">#</span><span class="ch-name">'+ch+'</span></div>';});}
-  if(v){chHtml+='<div class="category"><span class="category-arrow">▼</span> 음성 채널</div>';v.split(';').forEach(vcRaw=>{const [vcInfo,...rest]=vcRaw.split(',');const vcName=vcInfo||'음성';const membersRaw=rest.join(',');const members=[];if(membersRaw){membersRaw.split('|').forEach(mRaw=>{const mp=mRaw.split(':');members.push({name:mp[0]||'',color:mp[1]||'',status:mp[2]||'online',icons:mp[3]||''});});}const isActive=active&&vcName===active;chHtml+='<div class="voice-channel'+(isActive?' active-vc':'')+'"><span class="vc-icon">🔊</span><span class="vc-name">'+vcName+'</span>'+(members.length>0?'<span class="vc-count">'+members.length+'</span>':'')+'</div>';if(members.length>0){chHtml+='<div class="vc-members">';members.forEach(m=>{const color=roleColor(m.color);const statusClass='status-'+m.status;let iconsHtml='';if(m.icons){const iconMap={mute:'🔇',deaf:'🔇',stream:'🖥',video:'📷'};m.icons.split(' ').forEach(ic=>{const cls=(ic==='mute'||ic==='deaf')?' icon-muted':(ic==='stream'?' icon-streaming':' icon-video');iconsHtml+='<span class="'+cls+'">'+(iconMap[ic]||'')+'</span>';});}chHtml+='<div class="vc-member"><div class="vc-member-avatar" style="background:'+avatarBg(m.name)+'">'+m.name.charAt(0)+'<div class="vc-member-status '+statusClass+'"></div></div><span class="vc-member-name" style="color:'+color+'">'+m.name+'</span><div class="vc-member-icons">'+iconsHtml+'</div></div>';});chHtml+='</div>';}});}
+  if(v){chHtml+='<div class="category"><span class="category-arrow">▼</span> 음성 채널</div>';v.split(';').forEach(vcRaw=>{const [vcInfo,...rest]=vcRaw.split('§');const vcName=vcInfo||'음성';const membersRaw=rest.join('§');const members=[];if(membersRaw){membersRaw.split('|').forEach(mRaw=>{const mp=mRaw.split(':');members.push({name:mp[0]||'',color:mp[1]||'',status:mp[2]||'online',icons:mp[3]||''});});}const isActive=active&&vcName===active;chHtml+='<div class="voice-channel'+(isActive?' active-vc':'')+'"><span class="vc-icon">🔊</span><span class="vc-name">'+vcName+'</span>'+(members.length>0?'<span class="vc-count">'+members.length+'</span>':'')+'</div>';if(members.length>0){chHtml+='<div class="vc-members">';members.forEach(m=>{const color=roleColor(m.color);const statusClass='status-'+m.status;let iconsHtml='';if(m.icons){const iconMap={mute:'🔇',deaf:'🔇',stream:'🖥',video:'📷'};m.icons.split(' ').forEach(ic=>{const cls=(ic==='mute'||ic==='deaf')?' icon-muted':(ic==='stream'?' icon-streaming':' icon-video');iconsHtml+='<span class="'+cls+'">'+(iconMap[ic]||'')+'</span>';});}chHtml+='<div class="vc-member"><div class="vc-member-avatar" style="background:'+avatarBg(m.name)+'">'+m.name.charAt(0)+'<div class="vc-member-status '+statusClass+'"></div></div><span class="vc-member-name" style="color:'+color+'">'+m.name+'</span><div class="vc-member-icons">'+iconsHtml+'</div></div>';});chHtml+='</div>';}});}
   html=html.replace('id="channel-list"></div>','id="channel-list">'+chHtml+'</div>');
   if(active){html=html.replace('id="connected-bar" style="display:none"','id="connected-bar"');html=html.replace('id="connected-ch"></div>','id="connected-ch">🔊 '+active+'</div>');}
   return html;
@@ -5156,7 +5853,8 @@ function renderDiscordFull(html, url) {
   const br = (v) => esc(v).replace(/\r?\n/g, '<br/>');
 
   const safeColor = (v, fallback) => {
-    const c = String(v || '').trim();
+    let c = String(v || '').trim();
+    if (/^[0-9a-fA-F]{3,8}$/.test(c)) c = '#' + c;
     if (/^#[0-9a-fA-F]{3,8}$/.test(c)) return c;
     if (/^(rgb|rgba|hsl|hsla)\([0-9.,%\s]+\)$/.test(c)) return c;
     return fallback;
@@ -5166,7 +5864,7 @@ function renderDiscordFull(html, url) {
   let myName = '나';
 
   if (s) {
-    const sp = s.split(',');
+    const sp = s.split('§');
     serverName = sp[0] || '서버';
     myName = sp[1] || '나';
   }
@@ -5192,7 +5890,7 @@ function renderDiscordFull(html, url) {
     html = html.replace('<div class="server-divider"></div>', '<div class="server-divider"></div>' + svh);
   }
 
-  const activeChName = ch ? (ch.split(',')[0] || '일반') : (tc ? (tc.split('|')[0] || '일반') : '일반');
+  const activeChName = ch ? (ch.split('§')[0] || '일반') : (tc ? (tc.split('|')[0] || '일반') : '일반');
 
   let channelHtml = '';
   if (tc) {
@@ -5208,9 +5906,10 @@ function renderDiscordFull(html, url) {
   if (vc) {
     channelHtml += '<div class="category">▾ 음성 채널</div>';
     vc.split(';').forEach(vcRaw => {
-      const parts = vcRaw.split(',');
+      const parts = vcRaw.split('§');
       const vcName = parts[0] || '음성';
-      const members = parts.slice(1).filter(Boolean);
+      const membersRaw = parts.slice(1).join('§');
+      const members = membersRaw ? membersRaw.split('|').filter(Boolean) : [];
 
       channelHtml += '<div class="ch-item"><span class="ch-icon">🔊</span>' + esc(vcName) + '</div>';
 
@@ -5234,8 +5933,8 @@ function renderDiscordFull(html, url) {
   }
 
   if (ch) {
-    const cp = ch.split(',');
-    const topic = cp.slice(1).join(',');
+    const cp = ch.split('§');
+    const topic = cp.slice(1).join('§');
     if (topic) html = html.replace('id="chat-topic"></span>', 'id="chat-topic">' + esc(topic) + '</span>');
   }
 
@@ -5247,11 +5946,11 @@ function renderDiscordFull(html, url) {
   if (m) {
     let lastAuthor = '';
     m.split('|').forEach(raw => {
-      const seg = raw.split(',');
+      const seg = raw.split('§');
       const nick = seg[0] || '';
       const rColor = seg[1] || '';
       const time = seg[2] || '';
-      const bodyText = seg.slice(3).join(',') || '';
+      const bodyText = seg.slice(3).join('§') || '';
       const isCont = nick === lastAuthor;
       lastAuthor = nick;
 
@@ -5280,7 +5979,7 @@ function renderDiscordFull(html, url) {
 function renderStream(html, url) {
   const p=url.searchParams.get('p'), c=url.searchParams.get('c');
   if(p){
-    const pp=p.split(',');
+    const pp=p.split('§');
     const streamer=pp[0]||'스트리머',title=pp[1]||'',viewers=pp[2]||'0',desc=pp[3]||'',tags=pp[4]||'';
     html=html.replace('>스트리머<','>'+streamer+'<');
     html=html.replace('id="streamer-avatar">S<','id="streamer-avatar">'+streamer.charAt(0)+'<');
@@ -5307,8 +6006,8 @@ function renderStream(html, url) {
 function renderPost(html, url) {
   const p=url.searchParams.get('p'), c=url.searchParams.get('c');
   if(!p) return html;
-  const parts=p.split(',');
-  const board=parts[0]||'게시판',tag=parts[1]||'',title=parts[2]||'',author=parts[3]||'',time=parts[4]||'',views=parts[5]||'0',votes=parts[6]||'0',body=parts.slice(7).join(',')||'';
+  const parts=p.split('§');
+  const board=parts[0]||'게시판',tag=parts[1]||'',title=parts[2]||'',author=parts[3]||'',time=parts[4]||'',views=parts[5]||'0',votes=parts[6]||'0',body=parts.slice(7).join('§')||'';
   html=html.replace('>게시판<','>'+board+'<');
   html=html.replace('>제목<','>'+title+'<');
   html=html.replace('>작성자<','>'+author+'<');
@@ -5317,7 +6016,101 @@ function renderPost(html, url) {
   html=html.replace('id="post-votes">0<','id="post-votes">'+Number(votes).toLocaleString()+'<');
   html=html.replace('>본문<','>'+body+'<');
   if(tag){const tagMap={'notice':['공지','tag-notice'],'hot':['HOT','tag-hot'],'new':['NEW','tag-new'],'normal':['','tag-normal']};const[tagText,tagClass]=tagMap[tag]||[tag,'tag-normal'];if(tagText)html=html.replace('id="post-tag"></div>','id="post-tag"><span class="post-tag '+tagClass+'">'+tagText+'</span></div>');}
-  if(c){let ch='',count=0;c.split('|').forEach(raw=>{const isReply=raw.startsWith('>');const clean=isReply?raw.substring(1):raw;const seg=clean.split(',');const cNick=seg[0]||'',cTime=seg[1]||'',cBody=seg[2]||'',isOp=seg[3]==='op';ch+='<div class="comment'+(isReply?' reply':'')+'"><div class="comment-meta"><span class="comment-author">'+cNick+'</span>'+(isOp?'<span class="comment-op">글쓴이</span>':'')+'<span class="comment-time">'+cTime+'</span></div><div class="comment-body">'+cBody+'</div><div class="comment-actions"><span class="comment-like">♡ 좋아요</span><span>답글</span></div></div>';count++;});html=html.replace('id="comments-container"></div>','id="comments-container">'+ch+'</div>');html=html.replace('id="comment-count">0<','id="comment-count">'+count+'<');html=html.replace('id="comment-count2">0<','id="comment-count2">'+count+'<');}
+  if(c){let ch='',count=0;c.split('|').forEach(raw=>{const isReply=raw.startsWith('>');const clean=isReply?raw.substring(1):raw;const seg=clean.split('§');const cNick=seg[0]||'',cTime=seg[1]||'',cBody=seg[2]||'',isOp=seg[3]==='op';ch+='<div class="comment'+(isReply?' reply':'')+'"><div class="comment-meta"><span class="comment-author">'+cNick+'</span>'+(isOp?'<span class="comment-op">글쓴이</span>':'')+'<span class="comment-time">'+cTime+'</span></div><div class="comment-body">'+cBody+'</div><div class="comment-actions"><span class="comment-like">♡ 좋아요</span><span>답글</span></div></div>';count++;});html=html.replace('id="comments-container"></div>','id="comments-container">'+ch+'</div>');html=html.replace('id="comment-count">0<','id="comment-count">'+count+'<');html=html.replace('id="comment-count2">0<','id="comment-count2">'+count+'<');}
+  return html;
+}
+
+function renderLetter(html, url) {
+  const p = url.searchParams.get('p');
+  const b = url.searchParams.get('b');
+  const ps = url.searchParams.get('ps');
+  const w = url.searchParams.get('w');
+
+  if (p) {
+    const pp = p.split('§');
+    const from = pp[0] || '';
+    const to = pp[1] || '';
+    const date = pp[2] || '';
+    const closing = pp[3] || '마음을 담아';
+    const stampLabel = pp[4] || 'LETTER';
+
+    if (to) html = html.replace('>받는 사람<', '>' + to + '<');
+    if (from) html = html.replace('>보내는 사람<', '>' + from + '<');
+    if (date) html = html.replace('>2026. 01. 01.<', '>' + date + '<');
+    if (closing) html = html.replace('>마음을 담아<', '>' + closing + '<');
+    if (stampLabel) html = html.replace('>LETTER<', '>' + stampLabel + '<');
+  }
+
+  if (b) {
+    html = html.replace('>편지 내용<', '>' + b + '<');
+  }
+
+  if (ps) {
+    html = html.replace('id="letter-ps" style="display:none;">', 'id="letter-ps">' + ps);
+  }
+
+  if (w) {
+    html = html.replace('>♥<', '>' + w + '<');
+  }
+
+  return html;
+}
+
+function renderMenu(html, url) {
+  const p = url.searchParams.get('p');
+  const s = url.searchParams.get('s');
+
+  if (p) {
+    const pp = p.split('§');
+    if (pp[0]) html = html.replace('>가게 이름<', '>' + pp[0] + '<');
+    if (pp[1]) html = html.replace('>MENU<', '>' + pp[1] + '<');
+    if (pp[2]) html = html.replace('id="menu-notice"><', 'id="menu-notice">' + pp[2] + '<');
+    if (pp[3]) html = html.replace('id="menu-hours"><', 'id="menu-hours">' + pp[3] + '<');
+  }
+
+  if (s) {
+    let sectionsHtml = '';
+    const categories = s.split(';;');
+
+    categories.forEach(cat => {
+      const items = cat.split('|');
+      if (items.length === 0) return;
+
+      const catParts = items[0].split('§');
+      const catName = catParts[0] || '';
+      const catIcon = catParts[1] || '';
+
+      sectionsHtml += '<div class="menu-section"><div class="section-header"><div class="section-line"></div>';
+      if (catIcon) sectionsHtml += '<span class="section-icon">' + catIcon + '</span>';
+      sectionsHtml += '<span class="section-title">' + catName + '</span>';
+      if (catIcon) sectionsHtml += '<span class="section-icon">' + catIcon + '</span>';
+      sectionsHtml += '<div class="section-line"></div></div>';
+
+      items.slice(1).forEach(raw => {
+        const seg = raw.split('§');
+        const name = seg[0] || '';
+        const desc = seg[1] || '';
+        const price = seg[2] || '';
+        const badge = seg[3] || '';
+
+        let badgeHtml = '';
+        if (badge === 'best') badgeHtml = '<span class="item-badge badge-best">BEST</span>';
+        else if (badge === 'new') badgeHtml = '<span class="item-badge badge-new">NEW</span>';
+        else if (badge === 'hot') badgeHtml = '<span class="item-badge badge-hot">HOT</span>';
+
+        sectionsHtml += '<div class="menu-item"><div class="item-info"><div class="item-name-row"><span class="item-name">' + name + '</span>' + badgeHtml + '</div>';
+        if (desc) sectionsHtml += '<div class="item-desc">' + desc + '</div>';
+        sectionsHtml += '</div>';
+        if (price) sectionsHtml += '<div class="item-dots"></div><div class="item-price">' + price + '</div>';
+        sectionsHtml += '</div>';
+      });
+
+      sectionsHtml += '</div>';
+    });
+
+    html = html.replace('id="menu-sections"></div>', 'id="menu-sections">' + sectionsHtml + '</div>');
+  }
+
   return html;
 }
 
@@ -5329,6 +6122,7 @@ const RENDERERS = {
   'story': renderStory, 'search': renderSearch, 'news': renderNews,
   'doc': renderDoc, 'board': renderBoard, 'discord': renderDiscord,
   'voice': renderVoice, 'discord-full': renderDiscordFull, 'stream': renderStream, 'post': renderPost,
+  'letter': renderLetter, 'menu': renderMenu,
 };
 
 
@@ -5342,14 +6136,18 @@ function stripToBody(html) {
   return { styles: styles.join('\n'), body: cleanBody, scripts: scripts.join('\n') };
 }
 
-function wrapInSVG(html, width, height) {
+function wrapInSVG(html, width, height, isFixed) {
   const { styles, body } = stripToBody(html);
   const escapeBareAmp = (s) => s.replace(/&(?!amp;|lt;|gt;|quot;|#39;|#[0-9]+;|#x[0-9a-fA-F]+;)/g, '&amp;');
   const safeStyles = escapeBareAmp(styles);
   const safeBody = escapeBareAmp(body);
+  // body 배경색 추출하여 wrapper div에 적용
+  const bgMatch = styles.match(/body\s*\{[^}]*background\s*:\s*([^;}]+)/);
+  const bgStyle = bgMatch ? `background:${bgMatch[1].trim()};` : '';
+  const minH = isFixed ? `min-height:${height}px;` : '';
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
 <foreignObject width="100%" height="100%">
-<div xmlns="http://www.w3.org/1999/xhtml">
+<div xmlns="http://www.w3.org/1999/xhtml" style="${minH}${bgStyle}">
 <style>${safeStyles}</style>
 ${safeBody}
 </div>
@@ -5367,8 +6165,8 @@ export default {
       ).join('');
       return new Response(
         '<html><body style="font-family:sans-serif;padding:40px;background:#1a1a2e;color:#e0e0e0;">'
-        + '<h1 style="color:#8889CD;">겨울의 SNS UI v12</h1>'
-        + '<p>사용 가능한 타입 (15종):</p><ul>' + links + '</ul>'
+        + '<h1 style="color:#8889CD;">겨울의 SNS UI v13</h1>'
+        + '<p>사용 가능한 타입 (18종):</p><ul>' + links + '</ul>'
         + '</body></html>',
         { headers: { 'content-type': 'text/html;charset=UTF-8' } }
       );
@@ -5379,119 +6177,381 @@ export default {
       html = renderer(html, url);
       let [w, h] = SIZES[t] || [600, 700];
 
-      // 동적 높이 계산 (최대 850px)
-      const MAX_H = 850;
+      // ══════════════════════════════════════════════════════════
+      // 동적 높이 계산 v3 — 줄별 계산 + body padding 반영 + footer 보강
+      // ══════════════════════════════════════════════════════════
+      const MAX_H = 1800;
+      const MARGIN = 20; // 안전 여유 마진 (잘림 방지, v2보다 축소)
 
-      // ── 🔒 고정 높이 (디바이스 화면 시뮬레이션) ──
-      // story: 인스타 스토리 — SIZES 기본값 420×750 그대로
-
-      // ── 📱 폰 앱 UI (고정 높이) ──
-      if (t === 'kakao') {
-        h = 800; // 폰 채팅 화면 고정
+      // 텍스트 줄 수 계산 — 줄바꿈 기준으로 각 줄 개별 계산 (이중 계산 방지)
+      function calcLines(text, containerPx) {
+        if (!text) return 0;
+        const lines = text.split('\n');
+        let total = 0;
+        for (const line of lines) {
+          if (line.length === 0) { total += 1; continue; } // 빈 줄도 1줄
+          let cjk = 0, ascii = 0;
+          for (const ch of line) { ch.charCodeAt(0) > 0x7F ? cjk++ : ascii++; }
+          const estWidth = cjk * 13 + ascii * 7.5;
+          total += Math.max(Math.ceil(estWidth / containerPx), 1);
+        }
+        return total;
       }
+
+      // ── 🔒 고정 높이 ──
+      if (t === 'kakao') { h = 900; }
+      if (t === 'lock')  { h = 844; }
+      if (t === 'stream') { h = 900; }
+      if (t === 'discord') { h = 900; }
+      if (t === 'discord-full') { h = 900; }
+      if (t === 'voice') { h = 900; }
+      // story: SIZES 기본값 420×900 그대로
+
+      // ── 📸 INSTA ──
+      // body: padding 20px 0 → 상하 40px 추가
+      // 구조: header(58) + image(4:3=352) + actions(40) + likes(26)
+      //       + caption + translation? + hashtags? + comments-link(24) + comments + time(32)
+      // max-width 470, 텍스트 padding 16 양쪽 → ~438px
       if (t === 'insta') {
-        h = 800; // 인스타 피드 고정
-      }
-
-      // ── 📺 방송 UI ──
-      if (t === 'stream') {
-        h = 750; // 플레이어+채팅 레이아웃 고정
-      }
-
-      // ── 📏 동적 높이 (내용 양에 따라) ──
-      if (t === 'post') {
-        const p = url.searchParams.get('p') || '';
         const c = url.searchParams.get('c') || '';
-        const bodyText = p.split(',').slice(7).join(',') || '';
-        const bodyLines = Math.ceil(bodyText.length / 35);
-        const commentCount = c ? c.split('|').length : 0;
-        h = 280 + bodyLines * 22 + commentCount * 80;
-        h = Math.max(h, 380); h = Math.min(h, MAX_H);
+        const p = url.searchParams.get('p') || '';
+        const parts = p.split('§');
+        const caption = parts[5] || '';
+        const hasTranslation = parts[6] && parts[6].startsWith('[');
+        const hashtags = hasTranslation ? (parts[7] || '') : (parts[6] || '');
+
+        // body padding(40) + header(58) + image(352) + actions(40) + likes(26) + comments-link(24) + timestamp(32)
+        let base = 40 + 58 + 352 + 40 + 26 + 24 + 32; // = 572
+
+        // 캡션 (font 13px, line-height 1.35 → ~18px/줄, 컨테이너 438px) + padding 8
+        const capLines = calcLines(caption, 438);
+        base += Math.max(capLines, 1) * 18 + 8;
+
+        // 번역
+        if (hasTranslation) base += 20;
+
+        // 해시태그 (font 14px, 컨테이너 438px)
+        if (hashtags) {
+          const tagLines = calcLines(hashtags, 438);
+          base += tagLines * 20 + 6;
+        }
+
+        // 댓글 (com-user + text inline, font 13px, 컨테이너 ~390px, margin-bottom 4)
+        if (c) {
+          c.split('|').forEach(raw => {
+            const seg = raw.split('§');
+            const combined = (seg[0] || '') + ' ' + (seg[1] || '');
+            // 번역 존재: 4필드 이상 + 마지막이 숫자(좋아요) + seg[2]가 실제 텍스트 있음
+            const hasCT = seg.length >= 4 && !isNaN(Number(seg[seg.length - 1])) && seg[2] && seg[2].length > 0;
+            const cmLines = Math.max(calcLines(combined, 390), 1);
+            base += cmLines * 18 + (hasCT ? 16 : 0) + 4;
+          });
+        }
+
+        h = base + MARGIN;
+        h = Math.max(h, 560); h = Math.min(h, MAX_H);
       }
+
+      // ── 🐦 TWITTER ──
+      // body: padding 20px 0 → 상하 40px
+      // tweet: padding 12, border-radius, header(44), body, image?, stats(40), actions(36)
       if (t === 'twitter') {
         const p = url.searchParams.get('p') || '';
         const r = url.searchParams.get('r') || '';
-        const hasImg = p.split(',').length > 6 && isNaN(Number(p.split(',')[4] || ''));
-        const imgH = hasImg ? 200 : 0;
-        const replyCount = r ? r.split('|').length : 0;
-        h = 350 + imgH + replyCount * 90;
-        h = Math.max(h, 340); h = Math.min(h, MAX_H);
-      }
-      if (t === 'discord') {
-        const m = url.searchParams.get('m') || '';
-        const msgCount = m ? m.split('|').length : 0;
-        h = 200 + msgCount * 58;
+        const parts = p.split('§');
+        const body = parts[3] || '';
+        let idx = 4;
+        let hasTranslation = false;
+        if (parts[idx] && parts[idx].startsWith('[')) { hasTranslation = true; idx++; }
+        let hasImg = false;
+        if (parts[idx] && isNaN(Number(parts[idx])) && !(parts[idx] || '').startsWith('[')) { hasImg = true; idx++; }
+
+        // body padding(40) + tweet padding(24) + header(44) + stats(40) + actions(36) + borders(4)
+        let base = 40 + 24 + 44 + 40 + 36 + 4; // = 188
+
+        // 본문 (font 14px, line-height 1.35 → ~19px, 컨테이너 ~530px) + margin 14
+        const bodyLines = calcLines(body, 530);
+        base += Math.max(bodyLines, 1) * 19 + 14;
+
+        if (hasTranslation) base += 18;
+        if (hasImg) base += 120;
+
+        // 리플라이
+        if (r) {
+          const replies = r.split('|');
+          base += 2;
+          replies.forEach(raw => {
+            const seg = raw.split('§');
+            const rBody = seg[3] || '';
+            const rLines = Math.max(calcLines(rBody, 500), 1);
+            base += 20 + 16 + rLines * 20 + 4 + 16 + 8;
+          });
+        }
+
+        h = base + MARGIN;
         h = Math.max(h, 300); h = Math.min(h, MAX_H);
       }
-      if (t === 'discord-full') {
-        const m = url.searchParams.get('m') || '';
-        const msgCount = m ? m.split('|').length : 0;
-        h = 700 + Math.max(0, msgCount - 8) * 46;
-        h = Math.max(h, 700); h = Math.min(h, MAX_H);
+
+      // ── 📋 POST (게시판 글) ──
+      // body: padding 20px 0 → 상하 40px
+      if (t === 'post') {
+        const p = url.searchParams.get('p') || '';
+        const c = url.searchParams.get('c') || '';
+        const parts = p.split('§');
+        const tag = parts[1] || '';
+        const title = parts[2] || '';
+        const bodyText = parts.slice(7).join('§') || '';
+
+        // body padding(40) + header(42) + tag + meta(40) + actions(44) + comments header(30) + section padding(20)
+        let base = 40 + 42 + (tag ? 22 : 0) + 40 + 44 + 30 + 20;
+
+        // 제목 (font 17px, line-height 1.3 → ~22px)
+        const titleLines = Math.max(calcLines(title, 568), 1);
+        base += titleLines * 22 + 6;
+
+        // 본문 (font 13px, line-height 1.35 → ~18px)
+        const bodyLines = calcLines(bodyText, 568);
+        base += bodyLines * 18;
+
+        // 댓글
+        if (c) {
+          c.split('|').forEach(raw => {
+            const isReply = raw.startsWith('>');
+            const clean = isReply ? raw.substring(1) : raw;
+            const seg = clean.split('§');
+            const cBody = seg[2] || '';
+            const cLines = Math.max(calcLines(cBody, isReply ? 520 : 568), 1);
+            base += 16 + 20 + cLines * 16 + 20 + 1;
+          });
+        }
+
+        h = base + MARGIN;
+        h = Math.max(h, 340); h = Math.min(h, MAX_H);
       }
+
+      // ── 🟠 REDDIT ──
+      // body: padding 20px 0 → 상하 40px
       if (t === 'reddit') {
         const p = url.searchParams.get('p') || '';
         const c = url.searchParams.get('c') || '';
-        const bodyText = p.split(',')[4] || '';
-        const bodyLines = Math.ceil(bodyText.length / 38);
-        const commentCount = c ? c.split('|').length : 0;
-        h = 240 + bodyLines * 22 + commentCount * 78;
-        h = Math.max(h, 340); h = Math.min(h, MAX_H);
+        const parts = p.split('§');
+        const title = parts[3] || '';
+        const bodyText = parts[4] || '';
+
+        // body padding(40) + post padding(24) + meta(20) + actions(36) + border/margin(8)
+        let base = 40 + 24 + 20 + 36 + 8;
+
+        // 제목
+        const titleLines = Math.max(calcLines(title, 576), 1);
+        base += titleLines * 22 + 4;
+
+        // 본문
+        const bodyLines = calcLines(bodyText, 576);
+        base += bodyLines * 19 + 6;
+
+        // 댓글
+        if (c) {
+          c.split('|').forEach(raw => {
+            const seg = raw.split('§');
+            const cBody = seg[1] || '';
+            const cLines = Math.max(calcLines(cBody, 530), 1);
+            base += 20 + 18 + cLines * 19 + 18 + 4;
+          });
+        }
+
+        h = base + MARGIN;
+        h = Math.max(h, 300); h = Math.min(h, MAX_H);
       }
+
+      // ── 📑 BOARD (목록) ──
+      // 아이템: padding 10*2 + title row(~18) + meta(~14) + border(1) ≈ 53px
       if (t === 'board') {
         const p = url.searchParams.get('p') || '';
+        const tabs = url.searchParams.get('tabs') || '';
         const itemCount = p ? p.split('|').length : 0;
-        h = 130 + itemCount * 72;
-        h = Math.max(h, 260); h = Math.min(h, MAX_H);
+        const hasTab = !!tabs;
+        h = 50 + (hasTab ? 40 : 0) + itemCount * 56 + MARGIN;
+        h = Math.max(h, 200); h = Math.min(h, MAX_H);
       }
-      if (t === 'lock') {
-        h = 844; // 아이폰 잠금화면 비율 고정
-      }
+
+      // ── ✉️ EMAIL ──
+      // body: padding 20px 0 → 상하 40px
       if (t === 'email') {
         const p = url.searchParams.get('p') || '';
-        const bodyText = p.split(',').slice(5).join(',') || '';
-        const bodyLines = Math.ceil(bodyText.length / 36);
-        h = 310 + bodyLines * 26;
-        h = Math.max(h, 440); h = Math.min(h, MAX_H);
+        const parts = p.split('§');
+        const subject = parts[3] || '';
+        const bodyText = parts.slice(5).join('§') || '';
+
+        // body padding(40) + toolbar(44) + subject(28) + from-row(60) + divider(20) + body padding(40)
+        let base = 40 + 44 + 28 + 60 + 20 + 40;
+
+        // 제목 줄 수
+        const subjLines = Math.max(calcLines(subject, 520), 1);
+        base += (subjLines - 1) * 24;
+
+        // 본문 (font 14px, line-height 1.6 → ~22px)
+        const bodyLines = calcLines(bodyText, 520);
+        base += Math.max(bodyLines, 1) * 22;
+
+        h = base + MARGIN;
+        h = Math.max(h, 300); h = Math.min(h, MAX_H);
       }
+
+      // ── 📰 NEWS ──
+      // body: padding 20px 0 → 상하 40px
       if (t === 'news') {
         const p = url.searchParams.get('p') || '';
-        const bodyText = p.split(',').slice(7).join(',') || '';
-        const bodyLines = Math.ceil(bodyText.length / 32);
-        h = 470 + bodyLines * 26;
-        h = Math.max(h, 520); h = Math.min(h, MAX_H);
+        const parts = p.split('§');
+        const title = parts[2] || '';
+        const subtitle = parts[3] || '';
+        const bodyText = parts.slice(7).join('§') || '';
+
+        // body padding(40) + topbar(36) + category(28) + meta(26) + image(200) + body margin(16)
+        let base = 40 + 36 + 28 + 26 + 200 + 16;
+
+        // 제목 (font 24px, line-height 1.3 → ~31px)
+        const titleLines = Math.max(calcLines(title, 520), 1);
+        base += titleLines * 31 + 8;
+
+        // 부제
+        if (subtitle) {
+          const subLines = Math.max(calcLines(subtitle, 520), 1);
+          base += subLines * 22 + 8;
+        }
+
+        // 본문 (font 15px, line-height 1.7 → ~26px)
+        const bodyLines = calcLines(bodyText, 520);
+        base += Math.max(bodyLines, 1) * 26;
+
+        h = base + MARGIN;
+        h = Math.max(h, 480); h = Math.min(h, MAX_H);
       }
+
+      // ── 📄 DOC ──
       if (t === 'doc') {
-        const i = url.searchParams.get('i') || '';
+        const pDoc = url.searchParams.get('p') || '';
+        const info = url.searchParams.get('i') || '';
         const t2 = url.searchParams.get('t2') || '';
         const b = url.searchParams.get('b') || '';
-        const infoCount = i ? i.split('|').length : 0;
+        const f = url.searchParams.get('f') || '';
+        const infoCount = info ? info.split('|').length : 0;
         const tableRows = t2 ? t2.split('|').length : 0;
-        const bodyLines = Math.ceil(b.length / 36);
-        h = 230 + infoCount * 26 + tableRows * 36 + bodyLines * 26;
-        h = Math.max(h, 380); h = Math.min(h, MAX_H);
+
+        // body padding(40) + header(134) + footer
+        let base = 40 + 134 + (f ? 70 : 0);
+
+        base += infoCount * 28;
+
+        if (tableRows > 0) {
+          base += 36 + tableRows * 36 + 16;
+        }
+
+        const bodyLines = calcLines(b, 500);
+        base += bodyLines * 22;
+
+        h = base + MARGIN;
+        h = Math.max(h, 350); h = Math.min(h, MAX_H);
       }
+
+      // ── 🔍 SEARCH ──
       if (t === 'search') {
         const r = url.searchParams.get('r') || '';
         const a = url.searchParams.get('a') || '';
-        const resultCount = r ? r.split('|').length : 0;
-        const paaCount = a ? a.split('|').length : 0;
-        h = 150 + resultCount * 105 + paaCount * 48;
-        h = Math.max(h, 340); h = Math.min(h, MAX_H);
-      }
-      if (t === 'voice') {
-        const tc = url.searchParams.get('tc') || '';
-        const v = url.searchParams.get('v') || '';
-        const active = url.searchParams.get('active') || '';
-        const tcCount = tc ? tc.split('|').length : 0;
-        let memberCount = 0;
-        let vcCount = 0;
-        if (v) v.split(';').forEach(vc => { vcCount++; const [,...rest] = vc.split(','); const mr = rest.join(','); if(mr) memberCount += mr.split('|').length; });
-        h = 240 + tcCount * 28 + vcCount * 28 + memberCount * 26 + (active ? 70 : 0);
-        h = Math.max(h, 440); h = Math.min(h, MAX_H);
+
+        let base = 56 + 20; // searchbar + top padding
+
+        if (r) {
+          r.split('|').forEach(raw => {
+            const seg = raw.split('§');
+            const snippet = seg.slice(2).join('§') || '';
+            const snipLines = Math.max(calcLines(snippet, 540), 1);
+            base += 20 + 22 + snipLines * 18 + 16;
+          });
+        }
+
+        if (a) {
+          const paaCount = a.split('|').length;
+          base += 40 + paaCount * 44;
+        }
+
+        h = base + MARGIN;
+        h = Math.max(h, 300); h = Math.min(h, MAX_H);
       }
 
-      const svg = wrapInSVG(html, w, h);
+      // ── 💌 LETTER ──
+      // body: padding 20px 8px → 상하 40px
+      // flap(44) + date(37) + to(66) + body(pad 24 + 줄당22) + sign(68) + bottom(28) - overlap(2)
+      // letter-body 컨테이너: 480-52-24=404px, cursive 폰트 보정 → 380px
+      if (t === 'letter') {
+        const b = url.searchParams.get('b') || '';
+        const ps = url.searchParams.get('ps') || '';
+
+        // body padding(40) + flap(44) + date(37) + to(66) + body padding(24) + sign(68) + bottom(28) - overlap(2)
+        let base = 40 + 44 + 37 + 66 + 24 + 68 + 28 - 2; // = 305
+
+        // 본문 (font 14px, line-height 1.6 → 22px, 컨테이너 380px cursive 보정)
+        const bodyLines = calcLines(b, 380);
+        base += Math.max(bodyLines, 1) * 22;
+
+        // PS (font 12px, line-height 1.5 → 18px, padding 10+18=28)
+        if (ps) {
+          const psLines = Math.max(calcLines(ps, 380), 1);
+          base += 28 + psLines * 18;
+        }
+
+        h = base + MARGIN;
+        h = Math.max(h, 340); h = Math.min(h, MAX_H);
+      }
+
+      // ── 🍽️ MENU ──
+      // body: padding 20px 8px → 상하 40px
+      // menu-header: pad 28+20 + name(28) + sub(11) + divider(13) + border(1) = 101
+      // menu-footer: pad 14+18 + border(1) + line(17) = 50 (기본 프레임)
+      //   + notice(16px/줄) + hours(16px/줄 + mt4)
+      // menu-section: pad 18+10 = 28
+      // section-header: mb14 + pb8 + title(21) + border(1) = 44
+      // item without desc: pad 8*2 + name(18) + border(1) = 35
+      // item with desc: pad 8*2 + name(18) + desc(18) + border(1) = 53
+      if (t === 'menu') {
+        const s = url.searchParams.get('s') || '';
+        const pMenu = url.searchParams.get('p') || '';
+        const menuParts = pMenu ? pMenu.split('§') : [];
+        const noticeText = menuParts[2] || '';
+        const hoursText = menuParts[3] || '';
+
+        // body padding(40) + header(108) + footer 기본 프레임(50)
+        let base = 40 + 108 + 50;
+
+        // footer 동적: notice + hours
+        if (noticeText) {
+          const noticeLines = Math.max(calcLines(noticeText, 430), 1);
+          base += noticeLines * 16;
+        }
+        if (hoursText) {
+          const hoursLines = Math.max(calcLines(hoursText, 430), 1);
+          base += hoursLines * 16 + 4;
+        }
+
+        if (s) {
+          const cats = s.split(';;');
+          cats.forEach(cat => {
+            const items = cat.split('|');
+            base += 28 + 49; // section padding(18+10) + section header(49)
+            items.slice(1).forEach((item, idx) => {
+              const seg = item.split('§');
+              const desc = seg[1] || '';
+              base += (desc ? 53 : 35) + (idx > 0 ? 1 : 0); // item + border between items
+            });
+          });
+        }
+
+        h = base + MARGIN;
+        h = Math.max(h, 350); h = Math.min(h, MAX_H);
+      }
+
+      const FIXED_TYPES = ['kakao', 'lock', 'stream', 'story', 'discord', 'discord-full', 'voice'];
+      const isFixed = FIXED_TYPES.includes(t);
+      const svg = wrapInSVG(html, w, h, isFixed);
       return new Response(svg, {
         headers: { 'content-type': 'image/svg+xml', 'cache-control': 'no-cache' }
       });

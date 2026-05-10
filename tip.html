@@ -333,28 +333,9 @@ const CATEGORIES = [
     id:'cat-2', icon:'💬', title:'커뮤니케이션 UI', sub:'메신저, SNS, 이메일 등 소통 UI (HTML 템플릿 포함)',
     items:[
       {
-        id:'t-2-0', title:'📸 인스타그램 (instagram.html)',
-        body:`<div class="label label-use">HTML 템플릿</div>
-<div class="desc">instagram.html 파일을 URL 파라미터로 호출하면 인스타 게시물 UI가 렌더링됨. 좋아요 토글도 동작.</div>
-<hr class="divider">
-<div class="label label-example">파라미터 형식</div>
-<pre>?p=@유저명,좋아요수,댓글수,시간,이미지설명,캡션,[번역],해시태그
-&c=닉,댓글,[번역],좋아요수|닉,댓글,좋아요수</pre>
-<div class="label label-example">예시 URL</div>
-<pre>instagram.html?p=@jaymccoy,2847,312,3시간 전,석양 배경 역광 풋볼,Last one before the grind 🏈,[시즌 시작 전 마지막],#football #coralview&c=blairkingsley,obsessed 😍,[집착 😍],89|marcusc_04,dawg u look crazy,[야 미쳤다],67</pre>
-<hr class="divider">
-<div class="label label-example">필드 설명</div>
-<pre>@유저명     — @포함 계정명
-좋아요수    — 숫자 (자동 콤마 포맷)
-댓글수      — "댓글 N개 모두 보기"에 표시
-시간        — "2일 전", "방금" 등 자유 형식
-이미지설명  — 이미지 자리에 표시될 텍스트
-캡션        — 게시물 본문
-[번역]      — 대괄호로 감싸면 번역 표시 (선택)
-해시태그    — #태그1 #태그2 형태</pre>
-<hr class="divider">
-<div class="label label-use">텍스트 대체 (마크다운용)</div>
-<div class="desc">HTML 파일 없이 텍스트로 인스타 느낌을 낼 때:</div>
+        id:'t-2-0', title:'📸 인스타그램 (마크다운)',
+        body:`<div class="label label-use">텍스트 대체 (마크다운용)</div>
+<div class="desc">HTML UI는 카테고리 07 참조. 텍스트로 인스타 느낌을 낼 때:</div>
 <pre>\`\`\`INSTAGRAM
 ┌─────────────────────────┐
 │ 📷 @jaymccoy             │
@@ -368,33 +349,12 @@ const CATEGORIES = [
 │ ── 3시간 전 ──           │
 └─────────────────────────┘
 \`\`\`</pre>
-<a class="demo-btn" href="instagram.html?p=@jaymccoy,2847,312,3시간 전,석양 배경 역광 풋볼,Last one before the grind 🏈,[시즌 시작 전 마지막],#football #coralview&c=blairkingsley,obsessed 😍,[집착 😍],89|marcusc_04,dawg u look crazy,[야 미쳤다],67" target="_blank">▶ 예시 열어보기</a>`
+`
       },
       {
-        id:'t-2-1', title:'🐦 트위터/X (twitter.html)',
-        body:`<div class="label label-use">HTML 템플릿</div>
-<div class="desc">twitter.html 파일을 URL 파라미터로 호출. 다크 테마 X(트위터) UI. 인증 배지 + 답글 트윗 지원.</div>
-<hr class="divider">
-<div class="label label-example">파라미터 형식</div>
-<pre>?p=@핸들,표시이름,시간,본문,[번역],[이미지설명],답글수,RT수,인용수,좋아요수,북마크수,[verified]
-&r=표시이름,@핸들,시간,내용,좋아요수|표시이름,@핸들,시간,내용,좋아요수</pre>
-<div class="label label-example">예시 URL</div>
-<pre>twitter.html?p=@jaymccoy,Jay McCoy,오후 3:14,시즌 시작 전 마지막 해변 🏈,[Last beach day before season],해변 풋볼 역광,24,187,12,2847,341,verified&r=Blair,@blairkingsley,3분+전,나도+해변+가고+싶다+😭,89|Noxym,@noxymc,5분+전,시즌+화이팅+🏈,234</pre>
-<hr class="divider">
-<div class="label label-example">필드 설명</div>
-<pre>@핸들       — @포함 아이디
-표시이름    — 프로필에 보이는 이름
-시간        — 트윗 시각 ("오후 3:14" 등)
-본문        — 트윗 내용
-[번역]      — 대괄호 감싸면 번역 표시 (선택)
-[이미지설명] — 있으면 이미지 영역 표시 (선택)
-답글/RT/인용/좋아요/북마크 — 각각 숫자
-verified    — 마지막에 쓰면 인증배지 표시 (선택)
-&r= 답글    — 표시이름,@핸들,시간,내용,좋아요 (선택)
-              |로 구분하여 여러 답글 가능
-              없으면 답글 섹션 미표시</pre>
-<hr class="divider">
-<div class="label label-use">텍스트 대체 (마크다운용)</div>
+        id:'t-2-1', title:'🐦 트위터/X (마크다운)',
+        body:`<div class="label label-use">텍스트 대체 (마크다운용)</div>
+<div class="desc">HTML UI는 카테고리 07 참조. 텍스트로 트위터 느낌을 낼 때:</div>
 <pre>\`\`\`TWEET
 🐦 Jay McCoy ✓ @jaymccoy · 3h
 ─────────────────────────
@@ -403,33 +363,12 @@ verified    — 마지막에 쓰면 인증배지 표시 (선택)
 💬 24  🔁 187  ♡ 2,847  📊 341
 ─────────────────────────
 \`\`\`</pre>
-<a class="demo-btn" href="twitter.html?p=@jaymccoy,Jay McCoy,오후 3:14,시즌 시작 전 마지막 해변 🏈,[Last beach day before season],해변 풋볼 역광,24,187,12,2847,341,verified&r=Blair,@blairkingsley,3분+전,나도+해변+가고+싶다,89|Noxym,@noxymc,5분+전,시즌+화이팅,234" target="_blank">▶ 예시 열어보기</a>`
+`
       },
       {
-        id:'t-2-2', title:'💛 카카오톡 (kakao.html)',
-        body:`<div class="label label-use">HTML 템플릿</div>
-<div class="desc">kakao.html 파일을 URL 파라미터로 호출. 카톡 채팅방 UI. 아바타 색상 자동 생성, 연속 메시지 그룹핑.</div>
-<hr class="divider">
-<div class="label label-example">파라미터 형식</div>
-<pre>?r=방이름,날짜,[인원수]
-&m=발신자,내용,시간,읽음수|발신자,내용,시간,읽음수,me</pre>
-<div class="label label-example">예시 URL</div>
-<pre>kakao.html?r=코랄뷰 동창,1월 15일 수요일,5&m=블레어,야 파티 가?,오후 2:14,1|나,응 갈듯,오후 2:15,0,me|블레어,ㄹㅇ? 기대돼,오후 2:15,2</pre>
-<hr class="divider">
-<div class="label label-example">필드 설명</div>
-<pre>r 파라미터:
-  방이름    — 채팅방 제목
-  날짜      — 날짜 구분선에 표시
-  인원수    — 방 제목 옆 표시 (선택)
-
-m 파라미터 (|로 구분):
-  발신자    — 이름 (아바타 자동 생성)
-  내용      — 메시지 텍스트
-  시간      — 시각 표시
-  읽음수    — 안 읽은 사람 수 (0이면 미표시)
-  me        — 마지막에 쓰면 내 메시지 (분홍 말풍선)</pre>
-<hr class="divider">
-<div class="label label-use">텍스트 대체 (마크다운용)</div>
+        id:'t-2-2', title:'💛 카카오톡 (마크다운)',
+        body:`<div class="label label-use">텍스트 대체 (마크다운용)</div>
+<div class="desc">HTML UI는 카테고리 07 참조. 텍스트로 카톡 느낌을 낼 때:</div>
 <pre>\`\`\`CHAT
 ── 코랄뷰 동창 (5) ──────
 ── 1월 15일 수요일 ──
@@ -438,7 +377,7 @@ m 파라미터 (|로 구분):
                 응 갈듯  오후 2:15  나
 블레어  ㄹㅇ? 기대돼        오후 2:15
 \`\`\`</pre>
-<a class="demo-btn" href="kakao.html?r=코랄뷰 동창,1월 15일 수요일,5&m=블레어,야 파티 가?,오후 2:14,1|나,응 갈듯,오후 2:15,0,me|블레어,ㄹㅇ? 기대돼,오후 2:15,2" target="_blank">▶ 예시 열어보기</a>`
+`
       },
       {
         id:'t-2-3', title:'📧 이메일 클라이언트 (텍스트)',
@@ -705,80 +644,135 @@ EXP ████████████░░ 85%
     ]
   },
   {
-    id:'cat-6', icon:'📱', title:'HTML UI 출력', sub:'16종 UI — SNS / 메신저 / 문서 / 게시판 / 디스코드 / 방송 등',
+    id:'cat-6', icon:'📱', title:'HTML UI 출력', sub:'18종 UI — SNS / 메신저 / 문서 / 게시판 / 디스코드 / 방송 / 편지 / 메뉴판',
     items:[
       {
         id:'t-6-0', title:'인스타그램 피드',
         body:`<div class="label label-use">URL 파라미터 형식</div>
-<pre>/?t=insta&p=@유저명,팔로워수,댓글수,시간,이미지설명,캡션,[번역],해시태그
-&c=닉네임,댓글,[번역],좋아요수|닉네임,댓글,[번역],좋아요수</pre>
+<pre>/?t=insta&p=@유저명§팔로워수§댓글수§시간§이미지설명§캡션§[번역]§해시태그
+&c=닉네임§댓글§[번역]§좋아요수|닉네임§댓글§[번역]§좋아요수</pre>
 <hr class="divider">
 <div class="label label-example">예시</div>
-<pre>/?t=insta&p=@jaymccoy,2847,312,3시간%20전,석양 배경 역광 풋볼,Last one before the grind 🏈,[시즌 시작 전 마지막],#football #coralview
-&c=blairkingsley,obsessed 😍,[집착 😍],89|marcusc_04,dawg u look crazy,[야 미쳤다],67|noxym,mid,[별로],42</pre>
+<pre>/?t=insta&p=@jaymccoy§2847§312§3시간+전§석양+배경+역광+풋볼§Last+one+before+the+grind+🏈§[시즌+시작+전+마지막]§%23football+%23coralview
+&c=blairkingsley§obsessed+😍§[집착+😍]§89|marcusc_04§dawg+u+look+crazy§[야+미쳤다]§67|noxym§mid§[별로]§42</pre>
 <hr class="divider">
 <div class="desc"><strong>파라미터 설명:</strong><br>
 • <strong>[번역]</strong>은 대괄호로 시작하면 번역으로 인식, 없으면 생략 가능<br>
 • <strong>&c=</strong> 댓글 파트에서 <strong>|</strong>로 각 댓글 구분<br>
-• 좋아요 버튼 토글 가능 (인터랙티브)</div>`
+• 좋아요 버튼 토글 가능 (인터랙티브)</div>
+<hr class="divider">
+<div class="label label-example">필드 설명</div>
+<pre>@유저명     — @포함 계정명
+팔로워수    — 숫자 (자동 콤마 포맷, 좋아요 수로 표시)
+댓글수      — "댓글 N개 모두 보기"에 표시
+시간        — "2일 전", "방금" 등 자유 형식
+이미지설명  — 이미지 자리에 표시될 텍스트
+캡션        — 게시물 본문
+[번역]      — 대괄호로 감싸면 번역 표시 (선택)
+해시태그    — %23태그1 %23태그2 형태
+
+&c= 댓글:
+  닉네임    — 댓글 작성자
+  댓글      — 댓글 내용
+  [번역]    — 대괄호로 감싸면 번역 (선택)
+  좋아요수  — 하트 아이콘 옆 숫자</pre>`
       },
       {
         id:'t-6-1', title:'트위터 (X) 포스트',
         body:`<div class="label label-use">URL 파라미터 형식</div>
-<pre>/?t=twitter&p=@handle,표시이름,시간,본문,[번역],[이미지설명],답글수,리트윗수,인용수,좋아요수,북마크수,[verified]
-&r=표시이름,@handle,시간,내용,좋아요수|표시이름,@handle,시간,내용,좋아요수</pre>
+<pre>/?t=twitter&p=@handle§표시이름§시간§본문§[번역]§[이미지설명]§답글수§리트윗수§인용수§좋아요수§북마크수§[verified]
+&r=표시이름§@handle§시간§내용§좋아요수|표시이름§@handle§시간§내용§좋아요수</pre>
 <hr class="divider">
 <div class="label label-example">예시</div>
-<pre>/?t=twitter&p=@jaymccoy,Jay McCoy,오후 3:14,시즌 시작 전 마지막 해변 🏈,[Last beach day],해변 풋볼 역광,24,187,12,2847,341,verified
-&r=Blair,@blairkingsley,3분 전,나도 해변 가고 싶다 😭,89|Noxym,@noxymc,5분 전,시즌 화이팅 🏈,234</pre>
+<pre>/?t=twitter&p=@jaymccoy§Jay+McCoy§오후+3:14§시즌+시작+전+마지막+해변+🏈§[Last+beach+day]§해변+풋볼+역광§24§187§12§2847§341§verified
+&r=Blair§@blairkingsley§3분+전§나도+해변+가고+싶다+😭§89|Noxym§@noxymc§5분+전§시즌+화이팅+🏈§234</pre>
 <hr class="divider">
 <div class="desc"><strong>파라미터 설명:</strong><br>
 • <strong>[번역]</strong>과 <strong>[이미지설명]</strong>은 선택사항<br>
 • 마지막에 <strong>verified</strong> 추가하면 파란 인증 배지 표시<br>
 • 번역은 대괄호 <strong>[ ]</strong>로 시작해야 인식됨<br>
-• <strong>&r=</strong> 답글 트윗 (선택) — 표시이름,@핸들,시간,내용,좋아요<br>
-• 답글은 <strong>|</strong>로 구분, 스레드 연결선으로 이어짐<br>
-• <strong>&r=</strong> 없으면 답글 섹션 미표시</div>`
+• <strong>&r=</strong> 답글은 <strong>|</strong>로 구분, 스레드 연결선으로 이어짐<br>
+• <strong>&r=</strong> 없으면 답글 섹션 미표시</div>
+<hr class="divider">
+<div class="label label-example">필드 설명</div>
+<pre>@핸들       — @포함 아이디
+표시이름    — 프로필에 보이는 이름
+시간        — 트윗 시각 ("오후 3:14" 등)
+본문        — 트윗 내용
+[번역]      — 대괄호 감싸면 번역 표시 (선택)
+[이미지설명] — 있으면 이미지 영역 표시 (선택)
+답글/RT/인용/좋아요/북마크 — 각각 숫자
+verified    — 마지막에 쓰면 인증배지 표시 (선택)
+
+&r= 답글:
+  표시이름§@핸들§시간§내용§좋아요
+  |로 구분하여 여러 답글 가능</pre>`
       },
       {
         id:'t-6-2', title:'카카오톡 채팅',
         body:`<div class="label label-use">URL 파라미터 형식</div>
-<pre>/?t=kakao&r=방이름,날짜,[인원수]
-&m=발신자,내용,시간,읽음수|발신자,내용,시간,읽음수,me</pre>
+<pre>/?t=kakao&r=방이름§날짜§[인원수]
+&m=발신자§내용§시간§읽음수|발신자§내용§시간§읽음수§me</pre>
 <hr class="divider">
 <div class="label label-example">예시</div>
-<pre>/?t=kakao&r=코랄뷰 동창,1월 15일 수요일,5
-&m=블레어,야 파티 가?,오후 2:14,1|나,응 갈듯,오후 2:15,0,me|블레어,ㄹㅇ? 기대돼,오후 2:15,2</pre>
+<pre>/?t=kakao&r=코랄뷰+동창§1월+15일+수요일§5
+&m=블레어§야+파티+가?§오후+2:14§1|나§응+갈듯§오후+2:15§0§me|블레어§ㄹㅇ?+기대돼§오후+2:15§2</pre>
 <hr class="divider">
 <div class="desc"><strong>파라미터 설명:</strong><br>
 • 마지막에 <strong>me</strong> 붙이면 → 내 메시지 (핑크 말풍선)<br>
 • <strong>읽음수 0</strong>이면 숫자 안 보임<br>
 • 같은 발신자 연속 메시지면 아바타/이름 자동 숨김<br>
-• 아바타 색상은 이름 기반으로 자동 생성</div>`
+• 아바타 색상은 이름 기반으로 자동 생성</div>
+<hr class="divider">
+<div class="label label-example">필드 설명</div>
+<pre>r 파라미터:
+  방이름    — 채팅방 제목
+  날짜      — 날짜 구분선에 표시
+  인원수    — 방 제목 옆 표시 (선택)
+
+m 파라미터 (|로 구분):
+  발신자    — 이름 (아바타 자동 생성)
+  내용      — 메시지 텍스트
+  시간      — 시각 표시
+  읽음수    — 안 읽은 사람 수 (0이면 미표시)
+  me        — 마지막에 쓰면 내 메시지 (분홍 말풍선)</pre>`
       },
       {
         id:'t-6-3', title:'레딧 스레드',
         body:`<div class="label label-use">URL 파라미터 형식</div>
-<pre>/?t=reddit&p=서브레딧,유저,시간,제목,본문,업보트,댓글수
-&c=유저,내용,시간,업보트|유저,내용,시간,업보트</pre>
+<pre>/?t=reddit&p=서브레딧§유저§시간§제목§본문§업보트§댓글수
+&c=유저§내용§시간§업보트|유저§내용§시간§업보트</pre>
 <hr class="divider">
 <div class="label label-example">예시</div>
-<pre>/?t=reddit&p=NoStupidQuestions,throwaway_beach99,30분전,파티 초대장을 받았는데 아는 사람이 한 명도 없으면 가도 됨?,라커에 초대장이 들어있었는데 솔직히 나 이 학교에서 친한 사람이 없거든,445,312
-&c=party_veteran_21,무조건 가. 최악의 경우 술이라도 공짜로 마시고 오는거임,28분전,1200|social_anxiety_irl,나도 이런 상황이었는데 가서 한 명이라도 말 걸어봐,25분전,876</pre>
+<pre>/?t=reddit&p=NoStupidQuestions§throwaway_beach99§30분전§파티+초대장을+받았는데+아는+사람이+한+명도+없으면+가도+됨?§라커에+초대장이+들어있었는데+솔직히+나+이+학교에서+친한+사람이+없거든§445§312
+&c=party_veteran_21§무조건+가.+최악의+경우+술이라도+공짜로+마시고+오는거임§28분전§1200|social_anxiety_irl§나도+이런+상황이었는데+가서+한+명이라도+말+걸어봐§25분전§876</pre>
 <hr class="divider">
 <div class="desc"><strong>파라미터 설명:</strong><br>
 • 업보트 1000 이상이면 자동으로 <strong>1.2k</strong> 형식으로 표시<br>
-• 댓글은 <strong>|</strong>로 구분, 각각 유저/내용/시간/업보트</div>`
+• 댓글은 <strong>|</strong>로 구분</div>
+<hr class="divider">
+<div class="label label-example">필드 설명</div>
+<pre>p 파라미터:
+  서브레딧  — 커뮤니티 이름 (r/ 자동 붙음)
+  유저      — 작성자 (u/ 자동 붙음)
+  시간      — "30분전", "3시간전" 등
+  제목      — 글 제목
+  본문      — 글 내용
+  업보트    — 추천 수
+  댓글수    — 댓글 개수
+
+&c= 댓글 (|로 구분):
+  유저§내용§시간§업보트</pre>`
       },
       {
         id:'t-6-4', title:'잠금화면 알림',
         body:`<div class="label label-use">URL 파라미터 형식</div>
-<pre>/?t=lock&time=시간,날짜
-&n=타입,앱이름,제목,내용,시간|타입,앱이름,제목,내용,시간</pre>
+<pre>/?t=lock&time=시간§날짜
+&n=타입§앱이름§제목§내용§시간|타입§앱이름§제목§내용§시간</pre>
 <hr class="divider">
 <div class="label label-example">예시</div>
-<pre>/?t=lock&time=23:47,1월 15일 수요일
-&n=call,전화,부재중 전화,엄마 (2),23:45|msg,메시지,블레어,야 어디야? 파티 시작했어,23:40|insta,Instagram,jaymccoy님이 스토리에 회원님을 언급했습니다,,23:32</pre>
+<pre>/?t=lock&time=23:47§1월+15일+수요일
+&n=call§전화§부재중+전화§엄마+(2)§23:45|msg§메시지§블레어§야+어디야?+파티+시작했어§23:40|insta§Instagram§jaymccoy님이+스토리에+회원님을+언급했습니다§§23:32</pre>
 <hr class="divider">
 <div class="desc"><strong>타입 종류:</strong><br>
 • <strong>msg</strong> — 문자 메시지 (초록)<br>
@@ -786,295 +780,486 @@ EXP ████████████░░ 85%
 • <strong>insta</strong> — 인스타그램 (로즈→인디고 그라데이션)<br>
 • <strong>sns</strong> — 트위터 등 SNS (인디고→핑크)<br>
 • <strong>mail</strong> — 이메일 (파랑)<br>
-• <strong>app</strong> — 기타 앱 알림 (샌드→로즈)</div>`
+• <strong>app</strong> — 기타 앱 알림 (샌드→로즈)</div>
+<hr class="divider">
+<div class="label label-example">필드 설명</div>
+<pre>time 파라미터 (§로 구분):
+  시간      — 상단 시계 ("9:41" 등)
+  날짜      — 시계 아래 ("5월 10일 토요일")
+
+n 파라미터 (|로 알림 구분, §로 필드 구분):
+  타입      — msg/call/insta/sns/mail/app
+  앱이름    — 알림 헤더
+  제목      — 알림 제목 (굵게)
+  내용      — 알림 본문 (2줄까지)
+  시간      — 알림 시각 ("1분 전" 등)</pre>`
       },
       {
         id:'t-6-5', title:'이메일',
         body:`<div class="label label-use">URL 파라미터 형식</div>
-<pre>/?t=email&p=보낸사람이름,이메일주소,받는사람,제목,날짜,본문</pre>
+<pre>/?t=email&p=보낸사람이름§이메일주소§받는사람§제목§날짜§본문</pre>
 <hr class="divider">
 <div class="label label-example">예시</div>
-<pre>/?t=email&p=코랄뷰 고등학교,admin@coralview.edu,학생 전체,[긴급] 금요일 체육대회 일정 변경 안내,2025년 1월 14일 오전 9:00,안녕하세요%20코랄뷰 고등학교입니다.%0A%0A금요일 예정이었던 체육대회가 우천으로 인해 다음 주 월요일로 연기되었습니다.%0A%0A감사합니다.</pre>
+<pre>/?t=email&p=코랄뷰+고등학교§admin@coralview.edu§학생+전체§[긴급]+금요일+체육대회+일정+변경+안내§2025년+1월+14일+오전+9:00§안녕하세요+코랄뷰 고등학교입니다.%0A%0A금요일 예정이었던 체육대회가 우천으로 인해 다음 주 월요일로 연기되었습니다.%0A%0A감사합니다.</pre>
 <hr class="divider">
 <div class="desc"><strong>파라미터 설명:</strong><br>
 • 본문에서 줄바꿈은 <strong>%0A</strong> 사용<br>
 • 공백은 <strong>%20</strong> 사용<br>
 • 아바타는 보낸사람 이름 첫 글자로 자동 생성<br>
-• 답장/전체답장/전달 버튼 포함</div>`
+• 답장/전체답장/전달 버튼 포함</div>
+<hr class="divider">
+<div class="label label-example">필드 설명</div>
+<pre>p 파라미터 (§로 구분):
+  보낸사람이름  — 발신자 (아바타 자동 생성)
+  이메일주소    — &lt;주소&gt; 형태로 표시
+  받는사람      — "받는 사람:" 필드
+  제목          — 이메일 제목 (굵게)
+  날짜          — 발송 일시
+  본문          — 이메일 내용 (줄바꿈 %0A)</pre>`
       },
       {
         id:'t-6-6', title:'인스타 스토리',
         body:`<div class="label label-use">URL 파라미터 형식</div>
-<pre>/?t=story&p=@유저,시간,이미지설명,[캡션]</pre>
+<pre>/?t=story&p=@유저§시간§이미지설명§[캡션]</pre>
 <hr class="divider">
 <div class="label label-example">예시</div>
-<pre>/?t=story&p=@jaymccoy,14분%20전,파티 초대장 사진. Saturday라고 적혀있음. 배경은 라커룸 벤치,내일 보자 🎉</pre>
+<pre>/?t=story&p=@jaymccoy§14분+전§파티+초대장+사진.+Saturday라고+적혀있음.+배경은+라커룸+벤치§내일+보자+🎉</pre>
 <hr class="divider">
 <div class="desc"><strong>파라미터 설명:</strong><br>
 • 캡션은 선택사항 (없으면 이미지만 표시)<br>
 • 프로그레스 바, 닫기 버튼, 메시지 입력창 포함<br>
-• 전체 화면 스토리 레이아웃</div>`
+• 전체 화면 스토리 레이아웃</div>
+<hr class="divider">
+<div class="label label-example">필드 설명</div>
+<pre>p 파라미터 (§로 구분):
+  @유저       — @포함 계정명
+  시간        — "14분 전" 등
+  이미지설명  — 이미지 영역 텍스트
+  [캡션]      — 하단 오버레이 텍스트 (선택)</pre>`
       },
       {
         id:'t-6-7', title:'검색 결과 페이지',
         body:`<div class="label label-use">URL 파라미터 형식</div>
-<pre>/?t=search&q=검색어,결과수
-&r=제목,URL,스니펫|제목,URL,스니펫
+<pre>/?t=search&q=검색어§결과수
+&r=제목§URL§스니펫|제목§URL§스니펫
 &a=관련검색1|관련검색2|관련검색3</pre>
 <hr class="divider">
 <div class="label label-example">예시</div>
-<pre>/?t=search&q=코랄뷰 고등학교 사건,12400
-&r=코랄뷰고 풋볼부 폭행 사건 전말,coralview-news.com,코랄뷰 고등학교 풋볼부에서 발생한 폭행 사건의 전말이 밝혀졌다|코랄뷰 고등학교 - 나무위키,namu.wiki,코랄뷰 고등학교는 플로리다주에 위치한 공립 고등학교
-&a=코랄뷰 고등학교 위치|코랄뷰 풋볼부 명단|코랄뷰 사건 후속</pre>
+<pre>/?t=search&q=코랄뷰+고등학교+사건§12400
+&r=코랄뷰고+풋볼부+폭행+사건+전말§coralview-news.com§코랄뷰+고등학교+풋볼부에서+발생한+폭행+사건의+전말이+밝혀졌다|코랄뷰+고등학교+-+나무위키§namu.wiki§코랄뷰+고등학교는+플로리다주에+위치한+공립+고등학교
+&a=코랄뷰+고등학교+위치|코랄뷰+풋볼부+명단|코랄뷰+사건+후속</pre>
 <hr class="divider">
 <div class="desc"><strong>파라미터 설명:</strong><br>
 • <strong>&r=</strong> 검색 결과 (제목,URL,스니펫을 <strong>|</strong>로 구분)<br>
 • <strong>&a=</strong> 관련 검색어 (선택사항, <strong>|</strong>로 구분)<br>
-• 파비콘은 URL 첫 글자로 자동 생성</div>`
+• 파비콘은 URL 첫 글자로 자동 생성</div>
+<hr class="divider">
+<div class="label label-example">필드 설명</div>
+<pre>q 파라미터 (§로 구분):
+  검색어    — 검색창에 표시
+  결과수    — "검색결과 약 N개"
+
+&r= 검색 결과 (|로 구분):
+  제목§URL§스니펫
+
+&a= 관련 검색어 (선택, |로 구분)</pre>`
       },
       {
         id:'t-6-8', title:'뉴스 기사',
         body:`<div class="label label-use">URL 파라미터 형식</div>
-<pre>/?t=news&p=매체명,카테고리,제목,부제,기자,날짜,이미지설명,본문</pre>
+<pre>/?t=news&p=매체명§카테고리§제목§부제§기자§날짜§이미지설명§본문</pre>
 <hr class="divider">
 <div class="label label-example">예시</div>
-<pre>/?t=news&p=Coral View Herald,사건사고,체육관 천장 붕괴로 3명 부상,금요일 오후 체육 수업 중 발생,김수현 기자,2025년 1월 15일,무너진 체육관 천장 잔해 사진,15일 오후 2시경 코랄뷰 고등학교 체육관에서 천장 일부가 붕괴되는 사고가 발생했다.%0A%0A이 사고로 학생 2명과 교사 1명이 경상을 입고 인근 병원으로 이송되었다.</pre>
+<pre>/?t=news&p=Coral+View+Herald§사건사고§체육관+천장+붕괴로+3명+부상§금요일+오후+체육+수업+중+발생§김수현+기자§2025년+1월+15일§무너진+체육관+천장+잔해+사진§15일 오후 2시경 코랄뷰 고등학교 체육관에서 천장 일부가 붕괴되는 사고가 발생했다.%0A%0A이 사고로 학생 2명과 교사 1명이 경상을 입고 인근 병원으로 이송되었다.</pre>
 <hr class="divider">
 <div class="desc"><strong>파라미터 설명:</strong><br>
 • 부제는 선택사항 (없으면 빈칸 가능)<br>
 • 본문 줄바꿈은 <strong>%0A</strong> 사용<br>
 • 매체명 + 카테고리가 상단 바에 표시됨<br>
-• 공유/저장/댓글 버튼 포함</div>`
+• 공유/저장/댓글 버튼 포함</div>
+<hr class="divider">
+<div class="label label-example">필드 설명</div>
+<pre>p 파라미터 (§로 구분):
+  매체명      — 상단 바 로고
+  카테고리    — 상단 태그 + 본문 위 라벨
+  제목        — 기사 제목 (굵게)
+  부제        — 부제목 (선택)
+  기자        — 기자명 (인디고 색)
+  날짜        — 발행일
+  이미지설명  — 이미지 영역 텍스트
+  본문        — 기사 내용 (줄바꿈 %0A)</pre>`
       },
       {
         id:'t-6-9', title:'공문서 / 서식',
         body:`<div class="label label-use">URL 파라미터 형식</div>
-<pre>/?t=doc&p=기관명,문서유형,제목,스탬프라벨
+<pre>/?t=doc&p=기관명§문서유형§제목§스탬프라벨
 &i=라벨:값|라벨:값|라벨:값
 &b=본문내용
-&t=헤더1:헤더2:헤더3|값1:값2:값3|값1:값2:값3
-&f=푸터텍스트,직인텍스트</pre>
+&t2=헤더1:헤더2:헤더3|값1:값2:값3|값1:값2:값3
+&f=푸터텍스트§직인텍스트</pre>
 <hr class="divider">
 <div class="label label-example">예시 — 성적표</div>
-<pre>/?t=doc&p=코랄뷰 고등학교,성적 통지서,2024학년도 2학기 성적표,OFFICIAL
-&i=학생명:Alex Carter|학번:2024-0312|학년/반:2학년 3반|담임:Ms. Thompson
-&t=과목:점수:등급:석차|영어:92:A:12/240|수학:78:B+:45/240|체육:98:A+:3/240|역사:85:B+:28/240
-&f=2025년 1월 20일 발행,코랄뷰 고등학교장</pre>
+<pre>/?t=doc&p=코랄뷰+고등학교§성적+통지서§2024학년도+2학기+성적표§OFFICIAL
+&i=학생명:Alex+Carter|학번:2024-0312|학년/반:2학년+3반|담임:Ms.+Thompson
+&t2=과목:점수:등급:석차|영어:92:A:12/240|수학:78:B+:45/240|체육:98:A+:3/240|역사:85:B+:28/240
+&f=2025년+1월+20일+발행§코랄뷰+고등학교장</pre>
 <hr class="divider">
 <div class="desc"><strong>파라미터 설명:</strong><br>
 • <strong>&i=</strong> 정보 그리드 (라벨:값을 <strong>|</strong>로 구분)<br>
-• <strong>&t=</strong> 표 데이터 (선택사항, 첫 줄이 헤더)<br>
+• <strong>&t2=</strong> 표 데이터 (선택사항, 첫 줄이 헤더 — t와 URL 충돌 방지를 위해 t2 사용)<br>
 • <strong>&f=</strong> 푸터 + 직인 텍스트 (직인 없으면 생략 가능)<br>
-• 성적표, 정학 통보, 계약서, 진단서 등 범용</div>`
+• 성적표, 정학 통보, 계약서, 진단서 등 범용</div>
+<hr class="divider">
+<div class="label label-example">필드 설명</div>
+<pre>p 파라미터 (§로 구분):
+  기관명      — 상단 밴드 로고
+  문서유형    — 라벨 ("성적 증명서" 등)
+  제목        — 문서 제목
+  스탬프라벨  — 우측 뱃지 (OFFICIAL 등)
+
+&i= 정보 그리드 (|로 구분, :로 라벨/값 구분)
+&b= 본문 텍스트
+&t2= 표 데이터 (|로 행, :로 셀 구분)
+     ⚠️ &t= 아닌 &t2= 사용 (URL ?t=doc 충돌 방지)
+&f= 푸터§직인텍스트 (§로 구분)</pre>`
       },
       {
         id:'t-6-10', title:'게시판',
         body:`<div class="label label-use">URL 파라미터 형식</div>
-<pre>/?t=board&b=게시판이름,[총게시글수]
+<pre>/?t=board&b=게시판이름§[총게시글수]
 &tabs=전체|인기|공지|자유
-&p=태그,제목,작성자,시간,조회,좋아요,[댓글수]|태그,제목,...</pre>
+&p=태그§제목§작성자§시간§조회§좋아요§[댓글수]|태그§제목§...</pre>
 <hr class="divider">
 <div class="label label-example">예시</div>
-<pre>/?t=board&b=코랄뷰 대나무숲,1842
+<pre>/?t=board&b=코랄뷰+대나무숲§1842
 &tabs=전체|인기|제보|자유
-&p=hot,체육관에서 고백하다 차인 사람 누구임 ㅋㅋ,ㅇㅇ,2시간전,3420,89,47|notice,금요일 체육대회 공지,학생회,오늘,1204,12,3|new,새로 전학온 애 봄?,익명,32분전,892,34,21|normal,급식 왜 이래,배고파,1시간전,445,8,6</pre>
+&p=hot§체육관에서+고백하다+차인+사람+누구임+ㅋㅋ§ㅇㅇ§2시간전§3420§89§47|notice§금요일+체육대회+공지§학생회§오늘§1204§12§3|new§새로+전학온+애+봄?§익명§32분전§892§34§21|normal§급식+왜+이래§배고파§1시간전§445§8§6</pre>
 <hr class="divider">
 <div class="desc"><strong>태그 종류:</strong><br>
 • <strong>notice</strong> — 공지 (로즈)<br>
 • <strong>hot</strong> — HOT (샌드)<br>
 • <strong>new</strong> — NEW (핑크)<br>
 • <strong>normal</strong> — 일반 (인디고)<br>
-• 커스텀 텍스트도 가능 (예: 제보, 익명 등)</div>`
+• 커스텀 텍스트도 가능 (예: 제보, 익명 등)</div>
+<hr class="divider">
+<div class="label label-example">필드 설명</div>
+<pre>b 파라미터 (§로 구분):
+  게시판이름  — 헤더에 표시
+  총게시글수  — "총 N개" (선택)
+
+&tabs= 탭 (|로 구분, 첫번째 활성)
+
+p 파라미터 (|로 아이템, §로 필드 구분):
+  태그§제목§작성자§시간§조회§좋아요§[댓글수]</pre>`
       },
       {
         id:'t-6-10a', title:'게시판 글 상세 (post)',
         body:`<div class="label label-use">URL 파라미터 형식</div>
-<pre>/?t=post&p=게시판명,태그,제목,작성자,시간,조회,추천,본문
-&c=닉,시간,내용,[op]|닉,시간,내용|>닉,시간,내용(대댓글)</pre>
+<pre>/?t=post&p=게시판명§태그§제목§작성자§시간§조회§추천§본문
+&c=닉§시간§내용§[op]|닉§시간§내용|>닉§시간§내용(대댓글)</pre>
 <hr class="divider">
 <div class="label label-example">예시</div>
-<pre>/?t=post&p=대나무숲,hot,체육관에서 고백하다 차인 사람 누구임,ㅇㅇ,2시간전,3420,89,아까 체육관에서 큰 소리로 고백하다가 차이는 거 봄 ㅋㅋ 누군지 아는 사람?
-&c=익명1,1시간전,ㅋㅋㅋ 나도 봤음 존나 민망했겠다|익명2,58분전,그거 2반 걔 아님?|>ㅇㅇ,55분전,맞음 ㅋㅋ 어떻게 알았냐,op|익명3,30분전,용기 있네 솔직히 대단함</pre>
+<pre>/?t=post&p=대나무숲§hot§체육관에서+고백하다+차인+사람+누구임§ㅇㅇ§2시간전§3420§89§아까+체육관에서+큰+소리로+고백하다가+차이는+거+봄+ㅋㅋ+누군지+아는+사람?
+&c=익명1§1시간전§ㅋㅋㅋ+나도+봤음+민망했겠다|익명2§58분전§그거+2반+걔+아님?|>ㅇㅇ§55분전§맞음+ㅋㅋ+어떻게+알았냐§op|익명3§30분전§용기+있네+솔직히+대단함</pre>
 <hr class="divider">
 <div class="desc"><strong>파라미터 설명:</strong><br>
 • <strong>태그:</strong> notice / hot / new / normal (게시판과 동일)<br>
 • <strong>op</strong> 붙이면 글쓴이 뱃지 표시<br>
 • <strong>></strong>로 시작하면 대댓글 (들여쓰기)<br>
 • 추천 투표 박스, 공유/저장 버튼 포함<br>
-• 게시판(board)과 같은 디자인 톤으로 자연스럽게 연결됨</div>`
+• 게시판(board)과 같은 디자인 톤으로 자연스럽게 연결됨</div>
+<hr class="divider">
+<div class="label label-example">필드 설명</div>
+<pre>p 파라미터 (§로 구분):
+  게시판명§태그§제목§작성자§시간§조회§추천§본문
+
+&c= 댓글 (|로 구분, §로 필드 구분):
+  닉§시간§내용§[op]
+  op → 글쓴이 뱃지
+  > 로 시작 → 대댓글 (들여쓰기)</pre>`
       },
       {
         id:'t-6-11', title:'디스코드',
         body:`<div class="label label-use">URL 파라미터 형식</div>
-<pre>/?t=discord&ch=채널이름,[토픽]
-&m=닉네임,역할색,역할태그,시간,내용,[리액션]|닉네임,...</pre>
+<pre>/?t=discord&ch=채널이름§[토픽]
+&m=닉네임§역할색§역할태그§시간§내용§[리액션]|닉네임§...</pre>
 <hr class="divider">
 <div class="label label-example">예시</div>
-<pre>/?t=discord&ch=일반,코랄뷰 비공식 서버
-&m=BlairK,핑크,치어리더,오후 3:22,야 오늘 파티 진짜 가는거지?,👍3 🔥2|JayMcCoy,인디고,QB,오후 3:23,당연하지,|BlairK,핑크,치어리더,오후 3:23,늦으면 죽는다 진짜로,😂5|NoxymX,샌드,,오후 3:25,나도 가도 됨?</pre>
+<pre>/?t=discord&ch=일반§코랄뷰+비공식+서버
+&m=BlairK§핑크§치어리더§오후+3:22§야+오늘+파티+진짜+가는거지?§👍3+🔥2|JayMcCoy§인디고§QB§오후+3:23§당연하지§|BlairK§핑크§치어리더§오후+3:23§늦으면+죽는다+진짜로§😂5|NoxymX§샌드§§오후+3:25§나도+가도+됨?</pre>
 <hr class="divider">
 <div class="desc"><strong>파라미터 설명:</strong><br>
 • <strong>역할색:</strong> 인디고/핑크/샌드/로즈/빨강/초록/파랑/노랑<br>
 • <strong>역할태그:</strong> 닉 옆에 뱃지로 표시 (빈칸이면 생략)<br>
 • <strong>리액션:</strong> 이모지+숫자 공백으로 구분 (예: 👍3 🔥5)<br>
-• 같은 닉네임 연속이면 자동으로 이어붙임</div>`
+• 같은 닉네임 연속이면 자동으로 이어붙임</div>
+<hr class="divider">
+<div class="label label-example">필드 설명</div>
+<pre>ch 파라미터 (§로 구분):
+  채널이름§[토픽]
+
+m 파라미터 (|로 메시지, §로 필드 구분):
+  닉네임§역할색§역할태그§시간§내용§[리액션]
+  역할색: 인디고/핑크/샌드/로즈 등
+  리액션: 이모지+숫자 (예: 👍3 🔥5)</pre>`
       },
       {
         id:'t-6-12a', title:'디스코드 음성채널',
         body:`<div class="label label-use">URL 파라미터 형식</div>
-<pre>/?t=voice&s=서버이름,[내닉네임]
+<pre>/?t=voice&s=서버이름§[내닉네임]
 &tc=텍채1|텍채2|텍채3
-&v=음성채널이름,멤버1:역할색:상태:아이콘|멤버2:역할색:상태:아이콘;음성채널2,멤버...
+&v=음성채널이름§멤버1:역할색:상태:아이콘|멤버2:역할색:상태:아이콘;음성채널2§멤버...
 &active=현재접속중인채널이름</pre>
 <hr class="divider">
 <div class="label label-example">예시</div>
-<pre>/?t=voice&s=코랄뷰 비공식,Alex
+<pre>/?t=voice&s=코랄뷰+비공식§Alex
 &tc=일반|공지|잡담
-&v=파티 준비,BlairK:핑크:online:|JayMcCoy:인디고:online:stream|NoxymX:샌드:idle:mute;스터디,Lisa:로즈:online:|Mark:흰색:dnd:deaf
-&active=파티 준비</pre>
+&v=파티+준비§BlairK:핑크:online:|JayMcCoy:인디고:online:stream|NoxymX:샌드:idle:mute;스터디§Lisa:로즈:online:|Mark:흰색:dnd:deaf
+&active=파티+준비</pre>
 <hr class="divider">
 <div class="desc"><strong>파라미터 설명:</strong><br>
 • <strong>상태:</strong> online(초록) / idle(노랑) / dnd(빨강) / streaming(보라)<br>
 • <strong>아이콘:</strong> mute / deaf / stream / video (공백으로 복수 가능)<br>
 • 음성채널 여러 개는 <strong>;</strong>으로 구분<br>
 • <strong>&active=</strong> 설정하면 하단에 '음성 연결됨' 바 표시<br>
-• 텍스트 채널 목록, 유저 패널, 연결 해제 버튼 포함</div>`
+• 텍스트 채널 목록, 유저 패널, 연결 해제 버튼 포함</div>
+<hr class="divider">
+<div class="label label-example">필드 설명</div>
+<pre>s 파라미터 (§로 구분):
+  서버이름§[내닉네임]
+
+&tc= 텍스트 채널 (|로 구분)
+&v= 음성채널 (;로 채널 구분):
+  채널이름§멤버:역할색:상태:아이콘|멤버...
+  상태: online/idle/dnd/streaming
+  아이콘: mute/deaf/stream/video
+&active= 접속 중인 채널 (연결바 표시)</pre>`
       },
       {
         id:'t-6-12b', title:'디스코드 풀 레이아웃',
         body:`<div class="label label-use">URL 파라미터 형식</div>
-<pre>/?t=discord-full&s=서버이름,내닉네임
+<pre>/?t=discord-full&s=서버이름§내닉네임
 &sv=서버약자1:색|서버약자2:색
 &tc=텍채1|텍채2|텍채3
-&vc=음챗이름,멤버1|멤버2;음챗2,멤버...
-&ch=현재채널이름,[토픽]
+&vc=음챗이름§멤버1|멤버2;음챗2§멤버...
+&ch=현재채널이름§[토픽]
 &d=날짜구분텍스트
-&m=닉네임,역할색,시간,내용|닉네임,...</pre>
+&m=닉네임§역할색§시간§내용|닉네임§...</pre>
 <hr class="divider">
 <div class="label label-example">예시</div>
-<pre>/?t=discord-full&s=코랄뷰 비공식,Alex
-&sv=코:인디고|게:빨강|스:초록
+<pre>/?t=discord-full&s=코랄뷰+비공식§Alex
+&sv=코:8889CD|게:ed4245|스:57f287
 &tc=일반|공지|잡담
-&vc=파티 준비,Blair|Jay;스터디,Lisa
-&ch=일반,자유롭게 대화하세요
-&d=2025년 1월 15일
-&m=Blair,핑크,오후 3:22,야 파티 진짜 가?|Jay,인디고,오후 3:23,당연하지|Blair,핑크,오후 3:23,늦으면 죽는다</pre>
+&vc=파티+준비§Blair|Jay;스터디§Lisa
+&ch=일반§자유롭게+대화하세요
+&d=2025년+1월+15일
+&m=Blair§핑크§오후+3:22§야+파티+진짜+가?|Jay§인디고§오후+3:23§당연하지|Blair§핑크§오후+3:23§늦으면+죽는다</pre>
 <hr class="divider">
 <div class="desc"><strong>포함 요소:</strong><br>
 • 왼쪽 서버 아이콘 바 + 채널 사이드바 + 오른쪽 채팅<br>
 • 텍채 + 음챗 멤버 + 날짜 구분선<br>
 • 같은 닉 연속이면 이어붙임<br>
 • sv 색상은 색상명(인디고/핑크/샌드/로즈/빨강/초록/파랑/노랑) 권장<br>
-• hex 사용 시 반드시 # → %23 인코딩 (예: %23ed4245)</div>`
+• ⚠️ hex 사용 시 # 빼고 숫자만 (예: 8889CD, ed4245)</div>
+<hr class="divider">
+<div class="label label-example">필드 설명</div>
+<pre>s 파라미터 (§로 구분):
+  서버이름§내닉네임
+
+&sv= 서버 아이콘 (|로 구분):
+  약자:색코드 (hex는 # 제외!)
+&tc= 텍스트 채널 (|로 구분)
+&vc= 음성채널 (;로 채널, §로 이름/멤버):
+  채널이름§멤버1|멤버2
+&ch= 현재 채널 (§로 구분): 채널이름§[토픽]
+&d= 날짜 구분선 텍스트
+&m= 메시지 (|로 구분): 닉§역할색§시간§내용</pre>`
       },
       {
         id:'t-6-12c', title:'인터넷 방송 (스트림)',
         body:`<div class="label label-use">URL 파라미터 형식</div>
-<pre>/?t=stream&p=스트리머닉,방송제목,시청자수,화면설명,[태그1 태그2]
+<pre>/?t=stream&p=스트리머닉§방송제목§시청자수§화면설명§[태그1+태그2]
 &c=닉:색:내용|닉:색:내용|system:시스템메시지</pre>
 <hr class="divider">
 <div class="label label-example">예시</div>
-<pre>/?t=stream&p=JayMcCoy_TV,파티 전 워밍업 배그,1247,FPS 게임 플레이 화면,배그 파티 코랄뷰
-&c=system:JayMcCoy_TV님의 방송에 오신 걸 환영합니다|BlairK:핑크:오빠 화이팅!!|xNoxym:샌드:ㅋㅋ 또 죽음|fan_boy99:인디고:캐리 가자|JayMcCoy_TV:로즈:ㅋㅋㅋ 기다려봐</pre>
+<pre>/?t=stream&p=JayMcCoy_TV§파티+전+워밍업+배그§1247§FPS+게임+플레이+화면§배그+파티+코랄뷰
+&c=system:JayMcCoy_TV님의+방송에+오신+걸+환영합니다|BlairK:핑크:오빠+화이팅!!|xNoxym:샌드:ㅋㅋ+또+죽음|fan_boy99:인디고:캐리+가자|JayMcCoy_TV:로즈:ㅋㅋㅋ+기다려봐</pre>
 <hr class="divider">
 <div class="desc"><strong>파라미터 설명:</strong><br>
 • <strong>system:</strong> 으로 시작하면 시스템 메시지 (가운데 회색)<br>
 • 닉 색상: 인디고/핑크/샌드/로즈/구독자/매니저 등<br>
 • 영상 영역은 플레이스홀더 + LIVE 배지 + 시청자 수<br>
-• 팔로우 버튼, 태그, 채팅 입력창 포함</div>`
+• 팔로우 버튼, 태그, 채팅 입력창 포함</div>
+<hr class="divider">
+<div class="label label-example">필드 설명</div>
+<pre>p 파라미터 (§로 구분):
+  스트리머닉§방송제목§시청자수§화면설명§[태그]
+  태그: 공백으로 구분 (게임 코딩 라이브)
+
+&c= 채팅 (|로 구분, :로 필드 구분):
+  닉:색:내용
+  system:시스템메시지 (가운데 회색)
+  색: 인디고/핑크/샌드/로즈/구독자/매니저</pre>`
+      },
+      {
+        id:'t-6-12d', title:'✉️ 편지 (letter)',
+        body:`<div class="label label-use">URL 파라미터 형식</div>
+<pre>/?t=letter&p=보내는사람§받는사람§날짜§맺음말§우표라벨
+&b=본문내용
+&ps=추신 (선택)
+&w=워터마크이모지 (선택, 기본 ♥)</pre>
+<hr class="divider">
+<div class="label label-example">예시</div>
+<pre>/?t=letter&p=여름이가§소중한+겨울에게§2026.+5.+10.§언제나+네+편인§LOVE
+&b=안녕,+잘+지내고+있어?%0A%0A벌써+봄이+다+지나가고+여름이+오려나+봐.+다음에+또+같이+걷자.
+&ps=이번엔+진짜+네가+쏘는+거다!&w=✉</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명:</strong><br>
+• <strong>&b=</strong> 본문은 별도 파라미터라 쉼표, 특수문자 자유롭게 사용 가능<br>
+• <strong>&ps=</strong> 추신 (P.S.) — 선택사항<br>
+• <strong>&w=</strong> 워터마크 이모지 — 기본 ♥, ✉ 🌸 등으로 변경 가능<br>
+• 우표라벨: LETTER, LOVE, MAIL 등 자유 텍스트<br>
+• 봉투 플랩 + 줄 쳐진 편지지 + 우표 + 서명란 포함</div>
+<hr class="divider">
+<div class="label label-example">필드 설명</div>
+<pre>p 파라미터 (§로 구분):
+  보내는사람§받는사람§날짜§맺음말§우표라벨
+
+&b= 본문 (별도 파라미터, 특수문자 자유)
+&ps= 추신 P.S. (선택)
+&w= 워터마크 이모지 (선택, 기본 ♥)</pre>`
+      },
+      {
+        id:'t-6-12e', title:'🍽️ 메뉴판 (menu)',
+        body:`<div class="label label-use">URL 파라미터 형식</div>
+<pre>/?t=menu&p=가게이름§부제§공지문구§영업시간
+&s=카테고리§아이콘|메뉴명§설명§가격§뱃지|메뉴명§설명§가격;;카테고리2§아이콘|...</pre>
+<hr class="divider">
+<div class="label label-example">예시</div>
+<pre>/?t=menu&p=달빛+다방§—+MOONLIGHT+CAFÉ+—§모든+음료는+ICE,+HOT+선택+가능§10:00-22:00+매주+월요일+휴무
+&s=COFFEE§☕|달빛+블렌드§시그니처+원두§5,500§best|아메리카노§깊고+진한§4,500;;DESSERT§🍰|치즈케이크§매일+소량+제작§7,500§best|크로플§바삭하고+달콤한§5,000</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명:</strong><br>
+• <strong>카테고리 구분:</strong> ;; (세미콜론 두 개)<br>
+• <strong>아이템 구분:</strong> | (파이프)<br>
+• <strong>필드 구분:</strong> § (이름§설명§가격§뱃지)<br>
+• <strong>뱃지:</strong> best / new / hot (선택사항)<br>
+• 설명 없는 아이템은 설명 필드를 비우면 됨 (이름§§가격)<br>
+• 가격에 쉼표 사용 가능 (5,500 등) — 구분자가 §이라 안 깨짐<br>
+• 다크 톤 고급 메뉴판 디자인, 카페/레스토랑 범용</div>
+<hr class="divider">
+<div class="label label-example">필드 설명</div>
+<pre>p 파라미터 (§로 구분):
+  가게이름§부제§공지문구§영업시간
+
+&s= 메뉴 데이터:
+  카테고리§아이콘|메뉴§설명§가격§뱃지|...
+  카테고리 구분: ;;  아이템 구분: |
+  뱃지: best/new/hot (선택)</pre>`
       },
       {
         id:'t-6-13', title:'바베챗 프롬프트 (복사용)',
         body:`<div class="label label-use">캐릭터 상세설정에 붙여넣기</div>
 <div class="desc">아래 전체를 프롬프트에 삽입하면 AI가 장면에 맞는 SNS UI를 자동 생성합니다.<br>
 <strong>도메인</strong> 부분을 본인 Workers 주소로 교체하세요.</div>
-<pre>## SNS UI 출력 규칙
+<pre>## SNS UI 출력 규칙 (v13 — 구분자 § 통일)
 
 스토리 진행 중 SNS/메시지/문서 장면이 필요할 때 아래 형식으로 출력한다.
-URL은 반드시 한 줄로 작성하고, 공백은 + 로, #은 %23으로 변환한다.
+필드 구분자는 반드시 § (섹션 기호)를 사용한다.
+URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
 
 ### 인스타그램 피드
-![](https://도메인/?t=insta&p=@유저,팔로워수,댓글수,시간,이미지설명,캡션,[번역],해시태그&c=닉,댓글,[번역],좋아요|닉,댓글,[번역],좋아요)
+![](https://도메인/?t=insta&p=@유저§팔로워수§댓글수§시간§이미지설명§캡션§[번역]§해시태그&c=닉§댓글§[번역]§좋아요|닉§댓글§[번역]§좋아요)
 
 ### 인스타그램 스토리
-![](https://도메인/?t=story&p=@유저,시간,이미지설명,[캡션])
+![](https://도메인/?t=story&p=@유저§시간§이미지설명§[캡션])
 
 ### 트위터
-![](https://도메인/?t=twitter&p=@handle,표시이름,시간,본문,[번역],[이미지설명],답글수,RT수,인용수,좋아요수,북마크수,[verified]&r=표시이름,@handle,시간,내용,좋아요|표시이름,@handle,시간,내용,좋아요)
+![](https://도메인/?t=twitter&p=@handle§표시이름§시간§본문§[번역]§[이미지설명]§답글수§RT수§인용수§좋아요수§북마크수§[verified]&r=표시이름§@handle§시간§내용§좋아요|표시이름§@handle§시간§내용§좋아요)
 - &r= 없으면 답글 미표시
-- 답글은 스레드 연결선으로 이어짐
 
 ### 카카오톡
-![](https://도메인/?t=kakao&r=방이름,날짜,인원수&m=이름,내용,시간,읽음수|이름,내용,시간,읽음수,me)
+![](https://도메인/?t=kakao&r=방이름§날짜§인원수&m=이름§내용§시간§읽음수|이름§내용§시간§읽음수§me)
 - me 붙이면 내 메시지 (핑크 말풍선)
 - 읽음수 0이면 표시 안 함
 
 ### 레딧
-![](https://도메인/?t=reddit&p=서브레딧,유저,시간,제목,본문,업보트,댓글수&c=유저,내용,시간,업보트|유저,내용,시간,업보트)
+![](https://도메인/?t=reddit&p=서브레딧§유저§시간§제목§본문§업보트§댓글수&c=유저§내용§시간§업보트|유저§내용§시간§업보트)
 
 ### 잠금화면
-![](https://도메인/?t=lock&time=시간,날짜&n=타입,앱이름,제목,내용,시간|타입,앱이름,제목,내용,시간)
+![](https://도메인/?t=lock&time=시간§날짜&n=타입§앱이름§제목§내용§시간|타입§앱이름§제목§내용§시간)
 - 타입: msg / call / insta / sns / mail / app
 
 ### 이메일
-![](https://도메인/?t=email&p=보낸사람,이메일주소,받는사람,제목,날짜,본문)
+![](https://도메인/?t=email&p=보낸사람§이메일주소§받는사람§제목§날짜§본문)
 
 ### 검색 결과
-![](https://도메인/?t=search&q=검색어,결과수&r=제목,URL,스니펫|제목,URL,스니펫&a=관련검색1|관련검색2)
+![](https://도메인/?t=search&q=검색어§결과수&r=제목§URL§스니펫|제목§URL§스니펫&a=관련검색1|관련검색2)
 
 ### 뉴스 기사
-![](https://도메인/?t=news&p=매체명,카테고리,제목,부제,기자,날짜,이미지설명,본문)
+![](https://도메인/?t=news&p=매체명§카테고리§제목§부제§기자§날짜§이미지설명§본문)
 
 ### 공문서/서식
-![](https://도메인/?t=doc&p=기관,유형,제목,스탬프&i=라벨:값|라벨:값&b=본문&t2=헤더1:헤더2|값1:값2&f=푸터,직인)
-- 표 파라미터는 t2 사용 (t와 충돌 방지)
-- 성적표, 정학통보, 계약서 등 범용
+![](https://도메인/?t=doc&p=기관§유형§제목§스탬프&i=라벨:값|라벨:값&b=본문&t2=헤더1:헤더2|값1:값2&f=푸터§직인)
+- 표 파라미터는 t2 사용 (t와 URL 충돌 방지)
 
 ### 게시판
-![](https://도메인/?t=board&b=이름,총수&tabs=탭1|탭2&p=태그,제목,작성자,시간,조회,좋아요,댓글수|태그,제목,...)
+![](https://도메인/?t=board&b=이름§총수&tabs=탭1|탭2&p=태그§제목§작성자§시간§조회§좋아요§댓글수|태그§제목§...))
 - 태그: notice / hot / new / normal
 
 ### 게시판 글 상세
-![](https://도메인/?t=post&p=게시판명,태그,제목,작성자,시간,조회,추천,본문&c=닉,시간,내용,[op]|>닉,시간,내용(대댓글))
+![](https://도메인/?t=post&p=게시판명§태그§제목§작성자§시간§조회§추천§본문&c=닉§시간§내용§[op]|>닉§시간§내용(대댓글))
 - op 붙이면 글쓴이 뱃지, > 붙이면 대댓글
 
 ### 디스코드 채팅
-![](https://도메인/?t=discord&ch=채널,토픽&m=닉,역할색,역할태그,시간,내용,리액션|닉,...)
+![](https://도메인/?t=discord&ch=채널§토픽&m=닉§역할색§역할태그§시간§내용§리액션|닉§...))
 - 역할색: 인디고/핑크/샌드/로즈/빨강/초록/파랑/노랑
-- 리액션: 이모지+숫자 (예: 👍3 🔥5)
 
 ### 디스코드 음성
-![](https://도메인/?t=voice&s=서버,내닉&tc=텍채1|텍채2&v=음챗,멤버:색:상태|멤버:색:상태;음챗2,멤버&active=채널)
+![](https://도메인/?t=voice&s=서버§내닉&tc=텍채1|텍채2&v=음챗§멤버:색:상태|멤버:색:상태;음챗2§멤버&active=채널)
 - 상태: online / idle / dnd / streaming
 
 ### 디스코드 풀 레이아웃
-![](https://도메인/?t=discord-full&s=서버,닉&sv=약자:색|약자:색&tc=텍채1|텍채2&vc=음챗,멤버1|멤버2&ch=채널,토픽&d=날짜&m=닉,색,시간,내용|닉,색,시간,내용)
+![](https://도메인/?t=discord-full&s=서버§닉&sv=약자:색코드|약자:색코드&tc=텍채1|텍채2&vc=음챗§멤버1|멤버2&ch=채널§토픽&d=날짜&m=닉§색§시간§내용|닉§색§시간§내용)
+- sv 색상은 hex값에서 # 제외 (예: 8889CD, BB6688)
 
 ### 인터넷 방송
-![](https://도메인/?t=stream&p=스트리머,제목,시청자수,화면설명,태그1+태그2&c=닉:색:내용|system:시스템메시지)
+![](https://도메인/?t=stream&p=스트리머§제목§시청자수§화면설명§태그1+태그2&c=닉:색:내용|system:시스템메시지)
 
-### 공통 인코딩 규칙
+### ✉️ 편지
+![](https://도메인/?t=letter&p=보내는사람§받는사람§날짜§맺음말§우표라벨&b=본문내용&ps=추신&w=워터마크이모지)
+
+### 🍽️ 메뉴판
+![](https://도메인/?t=menu&p=가게이름§부제§공지문구§영업시간&s=카테고리§아이콘|메뉴명§설명§가격§뱃지|메뉴명§설명§가격;;카테고리2§아이콘|...)
+
+### 공통 규칙
+- 필드 구분자: § (섹션 기호)
+- 아이템 구분자: | (파이프)
+- 카테고리 구분자: ;; (메뉴판), ; (음성채널)
+- 콜론 구분 (:) 은 변경 없음 (문서 info, 테이블, 채팅, 음성멤버)
 - 공백 → +
-- # → %23
 - 줄바꿈 → %0A
+- # → URL에서 사용 금지 (fragment로 인식됨). hex 색상은 # 제외하고 입력
 - URL은 절대 줄바꿈하지 않는다
 
-### 길이 제한 (바베챗 이미지 높이 제한)
+### 길이 제한 (이미지 높이 제한 — 실측 기반 v14)
 이미지가 잘리지 않도록 아래 제한을 지킨다:
-- insta: 댓글 최대 5개
-- twitter: 답글 최대 4개 (이미지 포함 시 3개)
-- kakao: 메시지 최대 13개
-- reddit: 본문 400자 이내, 댓글 최대 5개
-- lock: 알림 최대 5개
-- email: 본문 300자 이내
-- search: 검색결과 최대 5개, 관련검색 최대 6개
-- news: 본문 950자 이내
-- doc: 표 행 최대 8개, 본문 450자 이내
-- board: 글 목록 최대 13개
-- post: 본문 400자 이내, 댓글 최대 6개
-- discord / discord-full: 메시지 최대 10개
-- voice: 음성채널 멤버 합계 최대 13명
-- stream: 채팅 최대 24개
+- insta: 댓글 최대 10개 (댓글에 번역 포함시 최대 8개)
+- twitter: 답글 최대 8개 (이미지 포함 가능)
+- kakao: 메시지 최대 13개 (고정 사이즈)
+- reddit: 본문 400자 이내, 댓글 최대 8개
+- lock: 알림 최대 7개 (고정 사이즈)
+- email: 본문 2200자 이내
+- search: 검색결과 최대 6개, 관련검색 최대 8개
+- news: 본문 2000자 이내
+- doc: 표 행 최대 8개, 본문 1500자 이내
+- board: 글 목록 최대 15개
+- post: 본문 400자 이내, 댓글 최대 8개
+- discord / discord-full: 메시지 최대 14개 (고정 사이즈)
+- voice: 음성채널 멤버 합계 최대 14명 (고정 사이즈)
+- stream: 채팅 최대 30개 (고정 사이즈)
+- letter: 본문 약 1300자 이내 (PS 포함시 동일)
+- menu: 카테고리 4개 기준 아이템 16개 (설명 포함)
 - 위 제한 초과 시 여러 이미지로 분리하여 출력</pre>`
       }
     ]
@@ -1104,11 +1289,11 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로, #은 %23으로 변환
 3. "Save and Deploy" 클릭
 4. 완료! URL로 접속 가능</pre>
 <hr class="divider">
-<div class="label label-example">worker.js 구조 (v12)</div>
+<div class="label label-example">worker.js 구조 (v13)</div>
 <pre>const TEMPLATES = {
   'insta':   \`인스타 HTML 전체\`,
   'twitter': \`트위터 HTML 전체\`,
-  // 15종 등록
+  // 18종 등록 (구분자 § 통일)
 };
 
 // 타입별 서버사이드 렌더러
@@ -1145,7 +1330,7 @@ export default {
         id:'t-7-2', title:'새 UI 추가하기',
         body:`<div class="label label-use">확장 방법</div>
 <div class="desc">새로운 UI (레딧, 이메일, 잠금화면 등)를 추가할 때마다 worker.js에 경로 한 줄 + HTML 함수 추가.</div>
-<pre># URL 형식 (16종) — 모두 /?t=타입&파라미터 형식
+<pre># URL 형식 (18종) — 모두 /?t=타입&파라미터 형식
 /?t=insta         인스타 피드        /?t=email         이메일
 /?t=story         인스타 스토리      /?t=search        검색 결과
 /?t=twitter       트위터            /?t=news          뉴스 기사
@@ -1153,7 +1338,8 @@ export default {
 /?t=reddit        레딧 스레드       /?t=board         게시판
 /?t=lock          잠금화면          /?t=post          게시판 글 상세
 /?t=voice         디스코드 음성      /?t=discord       디스코드 채팅
-/?t=discord-full  디스코드 풀       /?t=stream        인터넷 방송</pre>
+/?t=discord-full  디스코드 풀       /?t=stream        인터넷 방송
+/?t=letter        편지 ✉️           /?t=menu          메뉴판 🍽️</pre>
 <hr class="divider">
 <div class="desc"><strong>무료 한도:</strong> 하루 10만 건 요청까지 무료. 롤플레이용으로는 충분.</div>`
       }
@@ -1187,7 +1373,28 @@ export default {
 • <strong>디스코드:</strong> 역할색(4색), 멘션(인디고), 리액션 테두리(인디고), 아바타(자동색상)<br>
 • <strong>디스코드 음성:</strong> 역할색(4색+기본), 접속 상태 점(초/노/빨/보), 하단 연결바(초록)<br>
 • <strong>디스코드 풀:</strong> 서버 아이콘(커스텀색), 역할색(4색), 날짜구분선, 유저 패널<br>
-• <strong>방송:</strong> 로고(인디고), 스트리머 테두리(로즈), 태그(핑크), 채팅닉(역할색), 전송버튼(인디고)</div>`
+• <strong>방송:</strong> 로고(인디고), 스트리머 테두리(로즈), 태그(핑크), 채팅닉(역할색), 전송버튼(인디고)<br>
+• <strong>편지:</strong> 봉투(샌드계열), 편지지 줄(인디고), 서명선(핑크), P.S.(로즈), 우표 테두리(인디고)<br>
+• <strong>메뉴판:</strong> 가게이름(핑크), 카테고리 헤더(인디고), 가격 필(샌드), BEST뱃지(로즈), NEW뱃지(인디고), HOT뱃지(샌드)</div>
+<hr class="divider">
+<div class="label label-example">아바타 자동 색상 (14색)</div>
+<div class="desc">
+닉네임 해시 기반으로 자동 생성되는 아바타 배경색 14개:<br>
+<span style="color:#5865f2">■</span> #5865f2 &nbsp;
+<span style="color:#FF6699">■</span> #FF6699 &nbsp;
+<span style="color:#57f287">■</span> #57f287 &nbsp;
+<span style="color:#fee75c">■</span> #fee75c &nbsp;
+<span style="color:#ed4245">■</span> #ed4245 &nbsp;
+<span style="color:#8889CD">■</span> #8889CD &nbsp;
+<span style="color:#BB6688">■</span> #BB6688 &nbsp;
+<span style="color:#CCAA88">■</span> #CCAA88 &nbsp;
+<span style="color:#3ba55c">■</span> #3ba55c &nbsp;
+<span style="color:#FF7722">■</span> #FF7722 &nbsp;
+<span style="color:#0077DD">■</span> #0077DD &nbsp;
+<span style="color:#e8a44d">■</span> #e8a44d &nbsp;
+<span style="color:#9b84ec">■</span> #9b84ec &nbsp;
+<span style="color:#00BBDD">■</span> #00BBDD<br>
+<em>기본 팔레트 4색 + 겨울 선호 4색 + 디스코드 기본색 포함</em></div>`
       }
     ]
   }

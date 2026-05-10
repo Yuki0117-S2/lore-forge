@@ -193,7 +193,7 @@ function parseParams() {
   const n = params.get('n');
 
   if (timeParam) {
-    const tp = timeParam.split(',');
+    const tp = timeParam.split('§');
     const time = tp[0] || '12:00';
     const date = tp[1] || '';
     document.getElementById('lock-time').textContent = time;
@@ -210,7 +210,7 @@ function parseParams() {
   };
 
   n.split('|').forEach(raw => {
-    const seg = raw.split(',');
+    const seg = raw.split('§');
     const type    = seg[0] || 'app';
     const app     = seg[1] || '';
     const title   = seg[2] || '';

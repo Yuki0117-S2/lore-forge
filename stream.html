@@ -338,7 +338,7 @@ function parseParams() {
   const c = params.get('c');
 
   if (p) {
-    const pp = p.split(',');
+    const pp = p.split('§');
     const streamer = pp[0] || '스트리머';
     const title    = pp[1] || '';
     const viewers  = pp[2] || '0';

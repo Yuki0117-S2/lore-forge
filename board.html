@@ -164,7 +164,7 @@ function parseParams() {
   const p = params.get('p');
 
   if (b) {
-    const bp = b.split(',');
+    const bp = b.split('§');
     document.getElementById('board-name').textContent = bp[0] || '게시판';
     if (bp[1]) document.getElementById('board-count').textContent = `총 ${Number(bp[1]).toLocaleString()}개`;
   }
@@ -182,7 +182,7 @@ function parseParams() {
   if (p) {
     const list = document.getElementById('board-list');
     p.split('|').forEach(raw => {
-      const seg = raw.split(',');
+      const seg = raw.split('§');
       const tag     = seg[0] || 'normal';
       const title   = seg[1] || '';
       const author  = seg[2] || '';

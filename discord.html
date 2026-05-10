@@ -206,8 +206,8 @@
 </div>
 
 <script>
-// ?ch=채널이름,[토픽]
-// &m=닉네임,역할색,역할태그,시간,내용,[리액션]|닉네임,...
+// ?ch=채널이름§[토픽]
+// &m=닉네임§역할색§역할태그§시간§내용§[리액션]|닉네임,...
 // 역할색: 인디고/핑크/샌드/로즈/기본(흰색)
 // 리액션: 이모지+숫자 (예: 👍3 🔥5)
 // 같은 닉네임 연속이면 자동으로 이어붙이기
@@ -234,7 +234,7 @@ function parseParams() {
   const m = params.get('m');
 
   if (ch) {
-    const cp = ch.split(',');
+    const cp = ch.split('§');
     document.getElementById('channel-name').textContent = cp[0] || '일반';
     document.getElementById('input-placeholder').textContent = `#${cp[0] || '일반'}에 메시지 보내기`;
     if (cp[1]) document.getElementById('channel-topic').textContent = cp[1];
@@ -247,7 +247,7 @@ function parseParams() {
   let lastAuthor = '';
 
   msgList.forEach(raw => {
-    const seg = raw.split(',');
+    const seg = raw.split('§');
     const nick      = seg[0] || '';
     const rColor    = seg[1] || '';
     const rTag      = seg[2] || '';

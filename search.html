@@ -186,7 +186,7 @@ function parseParams() {
   const a = params.get('a');
 
   if (q) {
-    const qp = q.split(',');
+    const qp = q.split('§');
     document.getElementById('search-query').textContent = qp[0] || '';
     const count = qp[1] || '0';
     document.getElementById('result-info').textContent =
@@ -196,10 +196,10 @@ function parseParams() {
   if (r) {
     const container = document.getElementById('results');
     r.split('|').forEach(raw => {
-      const seg = raw.split(',');
+      const seg = raw.split('§');
       const title   = seg[0] || '';
       const url     = seg[1] || '';
-      const snippet = seg.slice(2).join(',') || '';
+      const snippet = seg.slice(2).join('§') || '';
       const favicon = url.charAt(0).toUpperCase();
 
       const div = document.createElement('div');

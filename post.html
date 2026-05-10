@@ -242,7 +242,7 @@ function parseParams() {
   const c = params.get('c');
   if (!p) return;
 
-  const parts = p.split(',');
+  const parts = p.split('§');
   const board = parts[0] || '게시판';
   const tag = parts[1] || '';
   const title = parts[2] || '';
@@ -250,7 +250,7 @@ function parseParams() {
   const time = parts[4] || '';
   const views = parts[5] || '0';
   const votes = parts[6] || '0';
-  const body = parts.slice(7).join(',') || '';
+  const body = parts.slice(7).join('§') || '';
 
   document.getElementById('board-name').textContent = board;
   document.getElementById('post-title').textContent = title;
@@ -273,7 +273,7 @@ function parseParams() {
     commentList.forEach(raw => {
       const isReply = raw.startsWith('>');
       const clean = isReply ? raw.substring(1) : raw;
-      const seg = clean.split(',');
+      const seg = clean.split('§');
       const cNick = seg[0] || '';
       const cTime = seg[1] || '';
       const cBody = seg[2] || '';

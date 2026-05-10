@@ -376,7 +376,7 @@ function parseParams() {
 
   let myName = '나';
   if (s) {
-    const sp = s.split(',');
+    const sp = s.split('§');
     document.getElementById('server-name').textContent = sp[0] || '서버';
     if (sp[1]) {
       myName = sp[1];
@@ -409,9 +409,9 @@ function parseParams() {
     list.appendChild(catDiv);
 
     v.split(';').forEach(vcRaw => {
-      const [vcInfo, ...rest] = vcRaw.split(',');
+      const [vcInfo, ...rest] = vcRaw.split('§');
       const vcName = vcInfo || '음성';
-      const membersRaw = rest.join(',');
+      const membersRaw = rest.join('§');
 
       // Parse members
       const members = [];

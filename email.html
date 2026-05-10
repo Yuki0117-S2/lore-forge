@@ -161,19 +161,19 @@
 </div>
 
 <script>
-// ?p=보낸사람이름,이메일주소,받는사람,제목,날짜,본문
+// ?p=보낸사람이름§이메일주소§받는사람§제목§날짜§본문
 function parseParams() {
   const params = new URLSearchParams(window.location.search);
   const p = params.get('p');
   if (!p) return;
 
-  const parts = p.split(',');
+  const parts = p.split('§');
   const fromName  = parts[0] || '';
   const fromEmail = parts[1] || '';
   const toAddr    = parts[2] || '';
   const subject   = parts[3] || '';
   const date      = parts[4] || '';
-  const body      = parts.slice(5).join(',') || '';
+  const body      = parts.slice(5).join('§') || '';
 
   const initial = fromName.charAt(0).toUpperCase();
 

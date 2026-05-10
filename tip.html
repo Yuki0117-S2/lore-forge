@@ -680,7 +680,7 @@ EXP ████████████░░ 85%
       {
         id:'t-6-1', title:'트위터 (X) 포스트',
         body:`<div class="label label-use">URL 파라미터 형식</div>
-<pre>/?t=twitter&p=@handle§표시이름§시간§본문§[번역]§[이미지설명]§답글수§리트윗수§인용수§좋아요수§북마크수§[verified]
+<pre>/?t=twitter&p=@handle§표시이름§시간§본문§[번역]§이미지설명§답글수§리트윗수§인용수§좋아요수§북마크수§[verified]
 &r=표시이름§@handle§시간§내용§좋아요수|표시이름§@handle§시간§내용§좋아요수</pre>
 <hr class="divider">
 <div class="label label-example">예시</div>
@@ -688,9 +688,11 @@ EXP ████████████░░ 85%
 &r=Blair§@blairkingsley§3분+전§나도+해변+가고+싶다+😭§89|Noxym§@noxymc§5분+전§시즌+화이팅+🏈§234</pre>
 <hr class="divider">
 <div class="desc"><strong>파라미터 설명:</strong><br>
-• <strong>[번역]</strong>과 <strong>[이미지설명]</strong>은 선택사항<br>
+• <strong>[번역]</strong>과 <strong>이미지설명</strong>은 선택사항<br>
 • 마지막에 <strong>verified</strong> 추가하면 파란 인증 배지 표시<br>
-• 번역은 대괄호 <strong>[ ]</strong>로 시작해야 인식됨<br>
+• 번역은 대괄호 <strong>[ ]</strong>로 감싸야 인식됨<br>
+• 이미지설명은 대괄호 <strong>없이</strong> 작성 (대괄호 쓰면 번역으로 인식됨)<br>
+• ⚠️ 번역·이미지설명이 없으면 해당 필드를 <strong>빈칸(§§)으로 넣지 말고 아예 생략</strong> — 빈칸은 파서가 무시하여 숫자 매핑이 어긋남<br>
 • <strong>&r=</strong> 답글은 <strong>|</strong>로 구분, 스레드 연결선으로 이어짐<br>
 • <strong>&r=</strong> 없으면 답글 섹션 미표시</div>
 <hr class="divider">
@@ -699,8 +701,8 @@ EXP ████████████░░ 85%
 표시이름    — 프로필에 보이는 이름
 시간        — 트윗 시각 ("오후 3:14" 등)
 본문        — 트윗 내용
-[번역]      — 대괄호 감싸면 번역 표시 (선택)
-[이미지설명] — 있으면 이미지 영역 표시 (선택)
+[번역]      — 대괄호 감싸면 번역 표시 (선택, 없으면 생략)
+이미지설명  — 대괄호 없이 작성, 있으면 이미지 영역 표시 (선택, 없으면 생략)
 답글/RT/인용/좋아요/북마크 — 각각 숫자
 verified    — 마지막에 쓰면 인증배지 표시 (선택)
 
@@ -1175,8 +1177,10 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
 ![](https://도메인/?t=story&p=@유저§시간§이미지설명§[캡션])
 
 ### 트위터
-![](https://도메인/?t=twitter&p=@handle§표시이름§시간§본문§[번역]§[이미지설명]§답글수§RT수§인용수§좋아요수§북마크수§[verified]&r=표시이름§@handle§시간§내용§좋아요|표시이름§@handle§시간§내용§좋아요)
+![](https://도메인/?t=twitter&p=@handle§표시이름§시간§본문§[번역]§이미지설명§답글수§RT수§인용수§좋아요수§북마크수§[verified]&r=표시이름§@handle§시간§내용§좋아요|표시이름§@handle§시간§내용§좋아요)
 - &r= 없으면 답글 미표시
+- 번역은 [대괄호] 필수, 이미지설명은 대괄호 없이 작성
+- 번역·이미지설명이 없으면 빈칸(§§) 넣지 말고 해당 필드 자체를 생략
 
 ### 카카오톡
 ![](https://도메인/?t=kakao&r=방이름§날짜§인원수&m=이름§내용§시간§읽음수|이름§내용§시간§읽음수§me)

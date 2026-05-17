@@ -1,4 +1,4 @@
-// 겨울의 SNS UI Workers v13 — 18종 UI (구분자 § 통일 + letter/menu 추가)
+// 겨울의 SNS UI Workers v13 — 19종 UI (구분자 § 통일 + letter/menu/dm 추가)
 const TEMPLATES = {
   'insta': `<!DOCTYPE html>
 <html lang="ko">
@@ -5435,6 +5435,306 @@ parseParams();
 </body>
 </html>
 `,
+  'dm': `<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Instagram DM</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --col-indigo: #8889CD;
+    --col-pink:   #DDAACC;
+    --col-sand:   #CCAA88;
+    --col-rose:   #BB6688;
+  }
+
+  body {
+    background: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 900px;
+  }
+
+  .chat-wrap {
+    width: 100%;
+    max-width: 420px;
+    min-height: 900px;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Header */
+  .chat-header {
+    background: #fff;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid #efefef;
+  }
+
+  .back-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #262626;
+    font-size: 22px;
+    line-height: 1;
+    padding: 4px;
+  }
+
+  .header-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #ccc;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .header-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .header-username {
+    font-size: 14px;
+    font-weight: 600;
+    color: #262626;
+    line-height: 1.2;
+  }
+
+  .header-status {
+    font-size: 12px;
+    color: #8e8e8e;
+    line-height: 1.2;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 14px;
+    color: #262626;
+  }
+
+  .header-actions svg {
+    width: 24px; height: 24px;
+    fill: none; stroke: #262626;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    cursor: pointer;
+  }
+
+  /* Messages */
+  .messages {
+    flex: 1;
+    padding: 14px 14px 70px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow-y: auto;
+  }
+
+  .msg-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    max-width: 100%;
+  }
+
+  /* 상대방 메시지 */
+  .msg-row.other { flex-direction: row; }
+
+  .msg-row.other .bubble {
+    background: #efefef;
+    color: #262626;
+    border-radius: 18px;
+  }
+
+  /* 내 메시지 */
+  .msg-row.me {
+    flex-direction: row-reverse;
+  }
+
+  .msg-row.me .bubble {
+    background: var(--col-indigo);
+    color: #fff;
+    border-radius: 18px;
+  }
+
+  .msg-row.me .meta {
+    align-items: flex-end;
+  }
+
+  /* 아바타 — DM에서는 1:1이므로 숨김 처리 */
+  .msg-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #ccc;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    align-self: flex-start;
+  }
+
+  /* 이름 + 말풍선 묶음 */
+  .msg-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-width: 72%;
+  }
+
+  .msg-name {
+    font-size: 12px;
+    color: #8e8e8e;
+    margin-bottom: 1px;
+    padding-left: 4px;
+    display: none;
+  }
+
+  .bubble {
+    padding: 8px 14px;
+    font-size: 14px;
+    line-height: 1.4;
+    word-break: break-word;
+    max-width: 100%;
+    display: inline-block;
+  }
+
+  .meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-bottom: 2px;
+    min-width: 32px;
+  }
+
+  .msg-time {
+    font-size: 11px;
+    color: #8e8e8e;
+    white-space: nowrap;
+  }
+
+  /* 발신자 변경 시 간격 */
+  .msg-row:not(.cont) { margin-top: 10px; }
+  .msg-row:not(.cont):first-child { margin-top: 0; }
+
+  /* 연속 메시지 */
+  .msg-row.cont { margin-top: 3px; }
+  .msg-row.cont .msg-avatar { opacity: 0; }
+
+  /* 읽음 표시 */
+  .seen-label {
+    text-align: right;
+    font-size: 11px;
+    color: #8e8e8e;
+    padding: 2px 4px 0;
+  }
+
+  /* Input bar */
+  .input-bar {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 420px;
+    background: #fff;
+    border-top: 1px solid #efefef;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .input-btn {
+    background: none; border: none;
+    cursor: pointer; color: #262626;
+    padding: 4px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .input-btn svg {
+    width: 24px; height: 24px;
+    fill: none; stroke: #262626;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .input-field {
+    flex: 1;
+    background: transparent;
+    border: 1px solid #dbdbdb;
+    border-radius: 22px;
+    padding: 8px 14px;
+    font-size: 14px;
+    color: #262626;
+    font-family: inherit;
+    outline: none;
+  }
+
+  .input-right {
+    display: flex;
+    gap: 10px;
+  }
+</style>
+</head>
+<body>
+<div class="chat-wrap">
+  <div class="chat-header">
+    <button class="back-btn">‹</button>
+    <div class="header-avatar" id="header-avatar">U</div>
+    <div class="header-info">
+      <div class="header-username" id="header-username">username</div>
+      <div class="header-status" id="header-status"></div>
+    </div>
+    <div class="header-actions">
+      <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.86 19.86 0 01-8.63-3.07 19.5 19.5 0 01-6-6A19.86 19.86 0 012.12 4.18 2 2 0 014.11 2h3a2 2 0 012 1.72c.13.81.37 1.61.7 2.36a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.75.33 1.55.57 2.36.7a2 2 0 011.72 2.01z"/></svg>
+      <svg viewBox="0 0 24 24"><path d="M15.1 1.81a2 2 0 012.28-.47l4.5 2A2 2 0 0123 5.18v13.64a2 2 0 01-1.12 1.8l-4.5 2a2 2 0 01-2.28-.47L12 18.5V5.5l3.1-3.69z"/><rect x="1" y="5" width="11" height="14" rx="2"/></svg>
+    </div>
+  </div>
+
+  <div class="messages" id="messages">
+  </div>
+
+  <div class="input-bar">
+    <button class="input-btn">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+    </button>
+    <input class="input-field" placeholder="메시지 보내기..." readonly="readonly"/>
+    <div class="input-right">
+      <button class="input-btn">
+        <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+      </button>
+      <button class="input-btn">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+</body>
+</html>
+`,
 };
 
 const SIZES = {
@@ -5447,6 +5747,7 @@ const SIZES = {
   'post': [600, 1200],
   'letter': [480, 700],
   'menu': [480, 850],
+  'dm': [420, 900],
 };
 
 
@@ -5604,6 +5905,54 @@ function renderKakao(html, url) {
     });
     html = html.replace('id="messages">\n    <div class="date-divider"', 'id="messages"><div class="date-divider"');
     html = html.replace('</div>\n  </div>\n\n  <div class="input-bar">', '</div>'+msgs+'</div><div class="input-bar">');
+  }
+  return html;
+}
+
+// ── DM (Instagram DM) ──
+function renderDm(html, url) {
+  const r = url.searchParams.get('r');
+  const m = url.searchParams.get('m');
+  if (r) {
+    const rp = r.split('§');
+    const username = rp[0] || 'username';
+    const status = rp[1] || '';
+    html = html.replace('>username<', '>'+username+'<');
+    html = html.replace('id="header-avatar">U<', 'id="header-avatar" style="background:'+avatarColor(username)+'">'+username.charAt(0).toUpperCase()+'<');
+    if (status) html = html.replace('id="header-status"></div>', 'id="header-status">'+status+'</div>');
+  }
+  if (m) {
+    let msgs = '';
+    const msgList = m.split('|');
+    msgList.forEach((raw,i) => {
+      const seg=raw.split('§');
+      const sender=seg[0]||'',content=seg[1]||'',time=seg[2]||'';
+      const isMe=seg[seg.length-1]==='me';
+      const prev=i>0?msgList[i-1].split('§')[0]:null;
+      const next=i<msgList.length-1?msgList[i+1].split('§')[0]:null;
+      const isCont=sender===prev, isLast=sender!==next;
+      const cls = isMe?'msg-row me':'msg-row other';
+      const ac = avatarColor(sender);
+      let row = '<div class="'+cls+(isCont?' cont':'')+'">';
+      if (!isMe) {
+        row += '<div class="msg-avatar" style="background:'+ac+'">'+sender.charAt(0)+'</div>';
+        row += '<div class="msg-content"><div class="bubble">'+content+'</div></div>';
+      } else {
+        row += '<div class="msg-content"><div class="bubble">'+content+'</div></div>';
+      }
+      if (isLast && time) {
+        row += '<div class="meta"><div class="msg-time">'+time+'</div></div>';
+      }
+      row += '</div>';
+      msgs += row;
+    });
+    // 마지막 me 메시지 뒤에 '읽음' 표시
+    const lastMe = msgList.map((raw,i)=>({raw,i})).filter(x=>x.raw.split('§')[x.raw.split('§').length-1]==='me').pop();
+    if (lastMe) {
+      msgs += '<div class="seen-label">읽음</div>';
+    }
+    html = html.replace('id="messages">\n  </div>', 'id="messages">'+msgs+'</div>');
+    html = html.replace('id="messages"></div>', 'id="messages">'+msgs+'</div>');
   }
   return html;
 }
@@ -6122,7 +6471,7 @@ const RENDERERS = {
   'story': renderStory, 'search': renderSearch, 'news': renderNews,
   'doc': renderDoc, 'board': renderBoard, 'discord': renderDiscord,
   'voice': renderVoice, 'discord-full': renderDiscordFull, 'stream': renderStream, 'post': renderPost,
-  'letter': renderLetter, 'menu': renderMenu,
+  'letter': renderLetter, 'menu': renderMenu, 'dm': renderDm,
 };
 
 
@@ -6166,7 +6515,7 @@ export default {
       return new Response(
         '<html><body style="font-family:sans-serif;padding:40px;background:#1a1a2e;color:#e0e0e0;">'
         + '<h1 style="color:#8889CD;">겨울의 SNS UI v13</h1>'
-        + '<p>사용 가능한 타입 (18종):</p><ul>' + links + '</ul>'
+        + '<p>사용 가능한 타입 (19종):</p><ul>' + links + '</ul>'
         + '</body></html>',
         { headers: { 'content-type': 'text/html;charset=UTF-8' } }
       );
@@ -6200,6 +6549,7 @@ export default {
 
       // ── 🔒 고정 높이 ──
       if (t === 'kakao') { h = 900; }
+      if (t === 'dm') { h = 900; }
       if (t === 'lock')  { h = 844; }
       if (t === 'stream') { h = 900; }
       if (t === 'discord') { h = 900; }
@@ -6549,7 +6899,7 @@ export default {
         h = Math.max(h, 350); h = Math.min(h, MAX_H);
       }
 
-      const FIXED_TYPES = ['kakao', 'lock', 'stream', 'story', 'discord', 'discord-full', 'voice'];
+      const FIXED_TYPES = ['kakao', 'lock', 'stream', 'story', 'discord', 'discord-full', 'voice', 'dm'];
       const isFixed = FIXED_TYPES.includes(t);
       const svg = wrapInSVG(html, w, h, isFixed);
       return new Response(svg, {

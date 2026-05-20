@@ -708,6 +708,132 @@ ${svg}
 }
 
 // ════════════════════════════════════════════
+//  ENDING
+//  &type=bad/normal/good/true
+//  &num=숫자
+//  &name=엔딩이름
+//  &text=플레이버텍스트
+//  &cond=조건1§조건2
+//  &char=캐릭터1|캐릭터2
+// ════════════════════════════════════════════
+
+function renderEnding(params) {
+  const W = 600, PAD = 32;
+  const type  = (params.get('type') || 'normal').toLowerCase();
+  const num   = esc(params.get('num') || '');
+  const name  = esc(params.get('name') || '???');
+  const rawText = params.get('text') || '';
+  const textLines = rawText ? rawText.split('§').map(esc) : [];
+  const conds = params.get('cond') ? params.get('cond').split('§').map(esc) : [];
+  const chars = params.get('char') ? params.get('char').split('|').map(esc) : [];
+
+  const themes = {
+    bad:    { bg:'#110a0a', border:'#4a2020', accent:'#BB6688', accentDim:'#9a5060', textMain:'#f0c8c8', textSub:'#a87878', label:'BAD ENDING',    deco:'BAD'  },
+    normal: { bg:'#0d0d18', border:'#3a3060', accent:'#8889CD', accentDim:'#6668AA', textMain:'#d8d6f0', textSub:'#9898b8', label:'NORMAL ENDING', deco:'END'  },
+    good:   { bg:'#0a100d', border:'#285038', accent:'#6ab87a', accentDim:'#4a8858', textMain:'#c0e8c8', textSub:'#78a880', label:'GOOD ENDING',   deco:'END'  },
+    true:   { bg:'#0d0a14', border:'#4a3868', accent:'#CCAA88', accentDim:'#aa8858', textMain:'#f0e0c0', textSub:'#c0a878', label:'TRUE ENDING',   deco:'TRUE' },
+  };
+  const th = themes[type] || themes.normal;
+
+  // 패턴 (타입별 고유)
+  const patDefs = {
+    bad:    { w:48, h:48, inner:`<polyline points="0,12 6,8 10,16 18,6 24,14 30,4 36,10 42,2 48,9" fill="none" stroke="rgba(187,102,136,0.16)" stroke-width="0.8"/><polyline points="8,30 14,26 20,34 28,24 32,32 38,22 44,28 48,20" fill="none" stroke="rgba(187,102,136,0.10)" stroke-width="0.7"/><polyline points="0,42 5,38 12,46 18,36 22,44 30,38 36,46 42,40 48,44" fill="none" stroke="rgba(187,102,136,0.12)" stroke-width="0.6"/><polyline points="2,0 8,4 14,0 20,6 26,0 32,5 38,0 44,4 48,0" fill="none" stroke="rgba(187,102,136,0.06)" stroke-width="0.5"/>` },
+    normal: { w:20, h:8,  inner:`<line x1="0" y1="4" x2="6" y2="4" stroke="rgba(136,137,205,0.15)" stroke-width="0.8"/>` },
+    good:   { w:18, h:18, inner:`<polygon points="9,1 17,9 9,17 1,9" fill="none" stroke="rgba(106,184,122,0.14)" stroke-width="0.8"/>` },
+    true:   { w:16, h:16, inner:`<circle cx="8" cy="8" r="1" fill="rgba(204,170,136,0.18)"/>` },
+  };
+  const pat = patDefs[type] || patDefs.normal;
+
+  // 높이 계산
+  const HAS_META = conds.length > 0 || chars.length > 0;
+  const META_H = HAS_META ? 16 + 16 + Math.max(conds.length * 20, 28) + 16 : 0;
+  const TOTAL_H = PAD + 16 + (num ? 22 : 0) + 30 + 20 + (textLines.length * 22 + 10) + META_H + PAD;
+
+  let y = 0, svg = '';
+
+  // defs — 패턴 + 디바이더 그라데이션
+  const defs = `<defs>
+  <pattern id="ep" width="${pat.w}" height="${pat.h}" patternUnits="userSpaceOnUse">${pat.inner}</pattern>
+  <linearGradient id="div-grad" x1="0" y1="0" x2="1" y2="0" gradientUnits="objectBoundingBox">
+    <stop offset="0%" stop-color="${th.accent}" stop-opacity="0.9"/>
+    <stop offset="55%" stop-color="${th.accent}" stop-opacity="0.4"/>
+    <stop offset="100%" stop-color="${th.accent}" stop-opacity="0"/>
+  </linearGradient>
+</defs>`;
+
+  // 배경
+  svg += `<rect width="${W}" height="${TOTAL_H}" fill="${th.bg}"/>
+<rect width="${W}" height="${TOTAL_H}" fill="url(#ep)"/>
+<rect x="1" y="1" width="${W-2}" height="${TOTAL_H-2}" fill="none" stroke="${th.border}" stroke-width="1.5" rx="6"/>`;
+
+  // 워터마크
+  svg += `<text x="${W-PAD}" y="${PAD+44}" font-family="monospace" font-size="64" font-weight="bold" fill="${th.accent}" opacity="0.05" text-anchor="end">${th.deco}</text>`;
+
+  y = PAD;
+
+  // 태그 라벨
+  svg += `<text x="${PAD}" y="${y+13}" font-family="monospace" font-size="10" font-weight="bold" fill="${th.accent}" letter-spacing="3">${th.label}</text>`;
+  y += 22;
+
+  // ED 번호
+  if (num) {
+    svg += `<text x="${PAD}" y="${y+13}" font-family="monospace" font-size="11" fill="${th.accentDim}" letter-spacing="2">ED · ${num}</text>`;
+    y += 22;
+  }
+
+  // 엔딩 이름
+  svg += `<text x="${PAD}" y="${y+26}" font-family="Georgia,'Noto Serif KR',serif" font-size="22" font-weight="bold" fill="${th.textMain}" letter-spacing="1">${name}</text>`;
+  y += 36;
+
+  // 디바이더
+  svg += `<rect x="${PAD}" y="${y}" width="${W - PAD*2}" height="1" fill="url(#div-grad)"/>`;
+  y += 18;
+
+  // 플레이버 텍스트
+  textLines.forEach(line => {
+    svg += `<text x="${PAD}" y="${y+14}" font-family="Georgia,'Noto Serif KR',serif" font-size="13" fill="${th.textSub}">${line}</text>`;
+    y += 22;
+  });
+  y += 10;
+
+  // 메타
+  if (HAS_META) {
+    svg += `<rect x="${PAD}" y="${y}" width="${W-PAD*2}" height="1" fill="${th.border}" opacity="0.6"/>`;
+    y += 16;
+
+    // cond 왼쪽, char 오른쪽
+    const midX = Math.floor(W / 2);
+
+    if (conds.length > 0) {
+      svg += `<text x="${PAD}" y="${y+11}" font-family="monospace" font-size="9" fill="${th.accent}" letter-spacing="2" opacity="0.8">CONDITION</text>`;
+      let cy = y + 22;
+      conds.forEach(cond => {
+        svg += `<text x="${PAD}" y="${cy+11}" font-family="Georgia,'Noto Serif KR',serif" font-size="12" fill="${th.textSub}">· ${cond}</text>`;
+        cy += 20;
+      });
+    }
+
+    if (chars.length > 0) {
+      const cx0 = conds.length > 0 ? midX : PAD;
+      svg += `<text x="${cx0}" y="${y+11}" font-family="monospace" font-size="9" fill="${th.accent}" letter-spacing="2" opacity="0.8">CHARACTER</text>`;
+      let cx = cx0;
+      const pillY = y + 26;
+      chars.forEach(char => {
+        const pw2 = char.length * 10 + 24;
+        svg += `<rect x="${cx}" y="${pillY-13}" width="${pw2}" height="22" rx="11" fill="${th.accent}22" stroke="${th.accent}66" stroke-width="1"/>
+<text x="${cx+pw2/2}" y="${pillY+4}" font-family="Georgia,'Noto Serif KR',serif" font-size="12" fill="${th.accent}" text-anchor="middle">${char}</text>`;
+        cx += pw2 + 8;
+      });
+    }
+  }
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${TOTAL_H}" viewBox="0 0 ${W} ${TOTAL_H}">
+${defs}
+${svg}
+</svg>`;
+}
+
+// ════════════════════════════════════════════
 //  FETCH
 // ════════════════════════════════════════════
 export default {
@@ -720,8 +846,9 @@ export default {
     if (t === 'vn') svg = renderVN(params);
     else if (t === 'dark') svg = renderDark(params);
     else if (t === 'pixel') svg = renderPixel(params);
+    else if (t === 'ending') svg = renderEnding(params);
     else {
-      return new Response('사용 가능: ?t=vn / ?t=dark / ?t=pixel', {
+      return new Response('사용 가능: ?t=vn / ?t=dark / ?t=pixel / ?t=ending', {
         status: 400, headers: { 'Content-Type': 'text/plain; charset=utf-8' }
       });
     }

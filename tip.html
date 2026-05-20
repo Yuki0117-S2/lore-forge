@@ -1305,6 +1305,179 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
     ]
   },
   {
+    id:'cat-st', icon:'⚔️', title:'RPG / VN 상태창 UI', sub:'st.winter0.workers.dev — 미연시 · 다크판타지 · 픽셀RPG 상태창',
+    items:[
+      {
+        id:'t-st-0', title:'미연시 상태창 (?t=vn)',
+        body:`<div class="label label-use">URL 파라미터 형식</div>
+<pre>/?t=vn&chars=이름§호감도§속마음§기억|이름§호감도§속마음§기억
+&my=체력§스트레스§정신력§피로도§발정도
+&date=날짜텍스트&title=제목</pre>
+<hr class="divider">
+<div class="label label-example">예시</div>
+<pre>/?t=vn&chars=소라§75§두근거려§첫만남|블레어§40§재밌는+애네§카페|???§0§§
+&my=80§30§70§20§10&date=3월+15일&title=RELATIONSHIP+STATUS</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명:</strong><br>
+• <strong>chars</strong> — 캐릭터 카드 (|로 구분, 최대 6명)<br>
+• 이름이 <strong>???</strong>이면 미해금 상태로 표시 (블러+잠금 아이콘)<br>
+• <strong>호감도</strong> — 0~100 (하트 게이지 자동 변환)<br>
+• <strong>속마음</strong> — 이탤릭 인용 형태로 표시 (16자 초과 시 자동 말줄임)<br>
+• <strong>기억</strong> — 📎 아이콘과 함께 표시 (12자 초과 시 자동 말줄임)<br>
+• <strong>my</strong> — 내 상태 5개 (각 0~100, 기본값 100§0§100§0§0)<br>
+• <strong>date</strong> — 상단 날짜 (기본: ○월 ○일)<br>
+• <strong>title</strong> — 상단 타이틀 (기본: RELATIONSHIP STATUS)</div>
+<hr class="divider">
+<div class="label label-example">필드 설명</div>
+<pre>chars (|로 캐릭터 구분, §로 필드 구분):
+  이름      — 캐릭터 이름 (???이면 미해금)
+  호감도    — 0~100 수치
+  속마음    — 현재 감정/생각 (이탤릭)
+  기억      — 주요 기억/플래그
+
+my (§로 구분):
+  체력§스트레스§정신력§피로도§발정도
+  각 0~100 (색상 자동 변환 — 위험 시 빨강)
+
+date — 날짜 표시 (자유 형식)
+title — 상단 제목 (선택, 기본값 있음)</pre>`
+      },
+      {
+        id:'t-st-1', title:'다크판타지 상태창 (?t=dark)',
+        body:`<div class="label label-use">URL 파라미터 형식</div>
+<pre>/?t=dark&p=이름§칭호§직업§성향§레벨
+&s=hp§hpmax§mp§mpmax§sp§spmax§exp
+&stat=str§def§agi§int§luk§wis
+&eq=무기§등급§방어구§등급§악세서리§등급
+&buf=버프1§!디버프1</pre>
+<hr class="divider">
+<div class="label label-example">예시</div>
+<pre>/?t=dark&p=아르테미스§황혼의+사냥꾼§레인저§혼돈중립§47
+&s=340§500§120§200§80§100§73
+&stat=82§55§91§40§68§45
+&eq=달빛+장궁§에픽§그림자+외투§희귀§늑대+이빨§일반
+&buf=암시야§!출혈</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명:</strong><br>
+• <strong>p</strong> — 프로필 (이름, 칭호, 직업, 성향, 레벨)<br>
+• <strong>s</strong> — 바이탈 (HP/MP/SP 현재§최대, EXP%)<br>
+• <strong>stat</strong> — 능력치 6개 (STR/DEF/AGI/INT/LUK/WIS, 각 0~99)<br>
+• <strong>eq</strong> — 장비 3슬롯 (무기§등급§방어구§등급§악세서리§등급)<br>
+• <strong>등급</strong> — 일반/희귀/에픽/전설 (색상 자동 변환)<br>
+• <strong>buf</strong> — 상태 효과 (!로 시작하면 디버프=로즈색, 아니면 버프=인디고색)</div>
+<hr class="divider">
+<div class="label label-example">필드 설명</div>
+<pre>p (§로 구분):
+  이름§칭호§직업§성향§레벨
+
+s (§로 구분):
+  hp§hpmax§mp§mpmax§sp§spmax§exp(%)
+
+stat (§로 구분):
+  STR§DEF§AGI§INT§LUK§WIS (각 0~99)
+
+eq (§로 구분):
+  무기명§등급§방어구명§등급§악세서리명§등급
+  등급: 일반(회) / 희귀(인디고) / 에픽(퍼플) / 전설(샌드)
+
+buf (§로 구분):
+  버프명   → 인디고 테두리
+  !디버프명 → 로즈 테두리 (느낌표로 시작)</pre>`
+      },
+      {
+        id:'t-st-2', title:'픽셀 RPG 상태창 (?t=pixel)',
+        body:`<div class="label label-use">URL 파라미터 형식</div>
+<pre>/?t=pixel&p=이름§직업§레벨§exp
+&s=hp§hpmax§mp§mpmax§sp§spmax
+&stat=atk§def§agi§mag§luk
+&eq=무기§방어구§악세서리
+&buf=버프1§!디버프1
+&av=직업아이콘</pre>
+<hr class="divider">
+<div class="label label-example">예시</div>
+<pre>/?t=pixel&p=겨울§검사§24§65
+&s=180§250§90§120§70§100
+&stat=82§55§91§40§68
+&eq=흑요석+검§미스릴+갑옷§늑대+반지
+&buf=집중§!독&av=swordsman</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명:</strong><br>
+• <strong>p</strong> — 프로필 (이름, 직업명, 레벨, 경험치%)<br>
+• <strong>s</strong> — HP/MP/SP 현재§최대<br>
+• <strong>stat</strong> — 능력치 5개 (ATK/DEF/AGI/MAG/LUK, 각 0~99)<br>
+• <strong>eq</strong> — 장비 3슬롯 (무기§방어구§악세서리)<br>
+• <strong>buf</strong> — 상태 효과 (!로 시작하면 디버프)<br>
+• <strong>av</strong> — 직업 아이콘 (영어 키, 아래 표 참고)</div>
+<hr class="divider">
+<div class="label label-example">av 직업 아이콘 매핑 (20종)</div>
+<div class="desc">
+<strong>근접:</strong> warrior(전사) · knight(기사) · berserker(버서커/광전사) · swordsman(검사) · monk(격투가)<br>
+<strong>민첩:</strong> rogue(도적) · archer(궁수) · assassin(암살자) · hunter(사냥꾼)<br>
+<strong>마법:</strong> mage(마법사/위저드) · warlock(흑마법사/워락) · summoner(소환사) · necromancer(강령술사) · sorcerer(소서러)<br>
+<strong>성직:</strong> cleric(성직자/클레릭) · druid(드루이드) · shaman(주술사) · paladin(팔라딘)<br>
+<strong>기타:</strong> bard(음유시인/바드) · alchemist(연금술사)<br><br>
+<em>한글 직업명을 말하면 AI가 영어 키로 변환하여 URL에 넣는다. av 미지정 시 기본값 warrior. (D&amp;D 5판 클래스 호환)</em></div>
+<hr class="divider">
+<div class="label label-example">필드 설명</div>
+<pre>p (§로 구분):
+  이름§직업§레벨§exp(%)
+
+s (§로 구분):
+  hp§hpmax§mp§mpmax§sp§spmax
+
+stat (§로 구분):
+  ATK§DEF§AGI§MAG§LUK (각 0~99)
+
+eq (§로 구분):
+  무기§방어구§악세서리
+
+buf (§로 구분):
+  버프명 / !디버프명
+
+av — 직업 아이콘 키 (영어 소문자)</pre>`
+      },
+      {
+        id:'t-st-3', title:'바베챗 프롬프트 (복사용)',
+        body:`<div class="label label-use">RPG/VN 상태창 프롬프트</div>
+<div class="desc">바베챗에 복사하여 사용. 도메인은 <strong>st.winter0.workers.dev</strong></div>
+<pre>## RPG / VN 상태창 이미지 출력 규칙
+
+아래 URL 형식을 사용하여 상태창을 이미지로 출력한다.
+도메인: https://st.winter0.workers.dev
+
+### 미연시 상태창
+![](https://st.winter0.workers.dev/?t=vn&chars=이름§호감도§속마음§기억|이름§호감도§속마음§기억&my=체력§스트레스§정신력§피로도§발정도&date=날짜&title=제목)
+- chars: 캐릭터 카드 (|로 구분, 최대 6명)
+- 이름 ???이면 미해금 (블러+잠금)
+- 호감도 0~100, 속마음 16자 이내, 기억 12자 이내
+- my: 내 상태 5개 (각 0~100)
+- date, title: 선택사항
+
+### 다크판타지 상태창
+![](https://st.winter0.workers.dev/?t=dark&p=이름§칭호§직업§성향§레벨&s=hp§hpmax§mp§mpmax§sp§spmax§exp&stat=str§def§agi§int§luk§wis&eq=무기§등급§방어구§등급§악세서리§등급&buf=버프§!디버프)
+- 등급: 일반/희귀/에픽/전설
+- !로 시작하면 디버프 (로즈색)
+
+### 픽셀 RPG 상태창
+![](https://st.winter0.workers.dev/?t=pixel&p=이름§직업§레벨§exp&s=hp§hpmax§mp§mpmax§sp§spmax&stat=atk§def§agi§mag§luk&eq=무기§방어구§악세서리&buf=버프§!디버프&av=직업아이콘)
+- av 직업 아이콘 (영어 키):
+  근접: warrior(전사) knight(기사) berserker(광전사) swordsman(검사) monk(격투가)
+  민첩: rogue(도적) archer(궁수) assassin(암살자) hunter(사냥꾼)
+  마법: mage(마법사/위저드) warlock(흑마법사/워락) summoner(소환사) necromancer(강령술사) sorcerer(소서러)
+  성직: cleric(성직자/클레릭) druid(드루이드) shaman(주술사) paladin(팔라딘)
+  기타: bard(음유시인/바드) alchemist(연금술사)
+- 한글 직업명은 영어 키로 변환하여 URL에 넣는다
+
+### 공통 규칙
+- 필드 구분자: § / 아이템 구분자: |
+- 공백 → + / 줄바꿈 → %0A
+- ( → %28, ) → %29 (마크다운 파서 충돌 방지)
+- URL은 절대 줄바꿈하지 않는다
+- 수치 범위를 벗어나면 자동 클램프 (0~100 또는 0~9999)</pre>`
+      }
+    ]
+  },
+  {
     id:'cat-7', icon:'☁️', title:'Cloudflare Workers 배포', sub:'HTML UI를 URL로 서빙하는 방법',
     items:[
       {
@@ -1369,8 +1542,10 @@ export default {
       {
         id:'t-7-2', title:'새 UI 추가하기',
         body:`<div class="label label-use">확장 방법</div>
-<div class="desc">새로운 UI (레딧, 이메일, 잠금화면 등)를 추가할 때마다 worker.js에 경로 한 줄 + HTML 함수 추가.</div>
-<pre># URL 형식 (18종) — 모두 /?t=타입&파라미터 형식
+<div class="desc">새로운 UI를 추가할 때마다 해당 Worker에 경로 한 줄 + HTML 함수 추가. Worker가 2개로 분리되어 있으므로 용도에 맞는 쪽에 추가.</div>
+<hr class="divider">
+<div class="label label-example">i.winter0.workers.dev — SNS / 메신저 / 문서 UI (19종)</div>
+<pre># URL 형식 — 모두 /?t=타입&파라미터 형식
 /?t=insta         인스타 피드        /?t=email         이메일
 /?t=story         인스타 스토리      /?t=search        검색 결과
 /?t=twitter       트위터            /?t=news          뉴스 기사
@@ -1379,9 +1554,16 @@ export default {
 /?t=lock          잠금화면          /?t=post          게시판 글 상세
 /?t=voice         디스코드 음성      /?t=discord       디스코드 채팅
 /?t=discord-full  디스코드 풀       /?t=stream        인터넷 방송
-/?t=letter        편지 ✉️           /?t=menu          메뉴판 🍽️</pre>
+/?t=letter        편지 ✉️           /?t=menu          메뉴판 🍽️
+/?t=dm            인스타 DM</pre>
 <hr class="divider">
-<div class="desc"><strong>무료 한도:</strong> 하루 10만 건 요청까지 무료. 롤플레이용으로는 충분.</div>`
+<div class="label label-example">st.winter0.workers.dev — RPG / VN 상태창 (3종)</div>
+<pre># URL 형식 — 모두 /?t=타입&파라미터 형식
+/?t=vn            미연시 상태창
+/?t=dark          다크판타지 상태창
+/?t=pixel         픽셀 RPG 상태창</pre>
+<hr class="divider">
+<div class="desc"><strong>무료 한도:</strong> 하루 10만 건 요청까지 무료 (Worker 당). 롤플레이용으로는 충분.</div>`
       }
     ]
   },

@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RPG Pixel Status</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+* { margin:0; padding:0; box-sizing:border-box; image-rendering:pixelated; }
+
+:root {
+  --bg:      #1a1a2e;
+  --panel:   #16213e;
+  --border:  #8889CD;
+  --accent:  #DDAACC;
+  --gold:    #CCAA88;
+  --red:     #BB6688;
+  --text:    #e8e0f0;
+  --dim:     #6a6080;
+  --hp-col:  #BB6688;
+  --mp-col:  #8889CD;
+  --sp-col:  #CCAA88;
+}
+
+body {
+  background: var(--bg);
+  font-family: 'Press Start 2P', monospace;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  min-height: 100vh;
+}
+
+/* ── 메인 패널 ── */
+.status-card {
+  width: 480px;
+  background: var(--panel);
+  border: 4px solid var(--border);
+  box-shadow: 4px 4px 0 #000, inset 0 0 0 2px #000;
+  position: relative;
+}
+
+/* 픽셀 타이틀바 */
+.titlebar {
+  background: var(--border);
+  color: #000;
+  font-size: 10px;
+  padding: 6px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 4px solid #000;
+}
+.titlebar-dots { display:flex; gap:4px; }
+.titlebar-dots span {
+  width:10px; height:10px;
+  background:#000;
+  display:inline-block;
+  box-shadow: inset 2px 2px 0 #fff2;
+}
+
+/* 캐릭터 헤더 */
+.char-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  border-bottom: 3px solid #000;
+  background: #0d1020;
+}
+
+.char-sprite {
+  width: 64px; height: 64px;
+  border: 3px solid var(--border);
+  background: #0a0a18;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+.char-sprite svg { width:48px; height:48px; }
+
+.char-info { flex:1; }
+.char-name {
+  font-size: 13px;
+  color: var(--gold);
+  text-shadow: 2px 2px 0 #000;
+  margin-bottom: 6px;
+  letter-spacing: 0.05em;
+}
+.char-sub {
+  font-size: 8px;
+  color: var(--dim);
+  margin-bottom: 8px;
+  letter-spacing: 0.08em;
+}
+.char-lv {
+  font-size: 9px;
+  color: var(--accent);
+}
+
+/* EXP 바 */
+.exp-wrap { padding: 0 14px 10px; background:#0d1020; border-bottom:3px solid #000; }
+.exp-label { font-size:7px; color:var(--dim); margin-bottom:4px; }
+.bar-track {
+  height: 10px;
+  background: #000;
+  border: 2px solid #333;
+  position: relative;
+  overflow: hidden;
+}
+.bar-fill {
+  height: 100%;
+  transition: width 0.4s steps(10);
+  position: relative;
+}
+.bar-fill::after {
+  content:'';
+  position:absolute; top:0; left:0; right:0; bottom:0;
+  background: repeating-linear-gradient(90deg, transparent, transparent 6px, rgba(0,0,0,0.3) 6px, rgba(0,0,0,0.3) 8px);
+}
+.bar-hp { background: var(--hp-col); }
+.bar-mp { background: var(--mp-col); }
+.bar-sp { background: var(--sp-col); }
+.bar-exp { background: #884499; }
+.bar-af { background: var(--accent); }
+
+/* HP/MP/SP 섹션 */
+.vitals { padding: 12px 14px; border-bottom: 3px solid #000; display:flex; flex-direction:column; gap:10px; }
+.vital-row { display:flex; align-items:center; gap:8px; }
+.vital-icon { font-size:11px; width:20px; text-align:center; }
+.vital-label { font-size:8px; color:var(--dim); width:28px; flex-shrink:0; }
+.vital-bar { flex:1; }
+.vital-bar .bar-track { height:12px; }
+.vital-nums { font-size:8px; color:var(--text); width:70px; text-align:right; flex-shrink:0; }
+
+/* 스탯 섹션 */
+.stats-section { padding: 12px 14px; border-bottom: 3px solid #000; }
+.section-title { font-size:8px; color:var(--accent); margin-bottom:10px; letter-spacing:0.1em; }
+.stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.stat-item { display:flex; align-items:center; gap:6px; }
+.stat-label { font-size:8px; color:var(--dim); width:32px; }
+.stat-bar { flex:1; }
+.stat-bar .bar-track { height:8px; }
+.stat-val { font-size:8px; color:var(--gold); width:24px; text-align:right; }
+
+/* 장비 섹션 */
+.equip-section { padding: 12px 14px; border-bottom: 3px solid #000; }
+.equip-slots { display:flex; gap:8px; flex-wrap:wrap; }
+.equip-slot {
+  flex:1; min-width:120px;
+  border: 2px solid #333;
+  background: #0a0a18;
+  padding: 6px 8px;
+  display:flex; align-items:center; gap:6px;
+}
+.equip-icon { font-size:14px; }
+.equip-info { flex:1; overflow:hidden; }
+.equip-type { font-size:6px; color:var(--dim); margin-bottom:2px; }
+.equip-name { font-size:8px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+/* 버프 섹션 */
+.buff-section { padding: 12px 14px; }
+.buff-list { display:flex; gap:6px; flex-wrap:wrap; }
+.buff-chip {
+  border: 2px solid var(--border);
+  background: #0d0d20;
+  padding: 4px 8px;
+  font-size:7px;
+  color: var(--accent);
+  display:flex; align-items:center; gap:4px;
+}
+.buff-chip.debuff { border-color:var(--red); color:var(--red); }
+
+/* 컨트롤 패널 */
+.controls {
+  width:480px;
+  background: #0d0d18;
+  border: 4px solid var(--border);
+  border-top: none;
+  padding: 14px;
+  display:flex; flex-direction:column; gap:10px;
+}
+.ctrl-title { font-size:8px; color:var(--accent); margin-bottom:4px; }
+.ctrl-row { display:flex; align-items:center; gap:10px; }
+.ctrl-label { font-size:7px; color:var(--dim); width:56px; flex-shrink:0; }
+input[type=range] {
+  flex:1; height:4px; -webkit-appearance:none;
+  background:#333; outline:none; cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance:none; width:12px; height:12px;
+  background:var(--border); border:2px solid #000; cursor:pointer;
+}
+.ctrl-val { font-size:7px; color:var(--gold); width:50px; text-align:right; }
+input[type=text] {
+  flex:1; background:#0a0a18; border:2px solid #444; color:var(--text);
+  font-family:'Press Start 2P',monospace; font-size:8px; padding:4px 6px; outline:none;
+}
+input[type=text]:focus { border-color:var(--border); }
+select {
+  flex:1; background:#0a0a18; border:2px solid #444; color:var(--text);
+  font-family:'Press Start 2P',monospace; font-size:7px; padding:4px; outline:none; cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<div class="status-card">
+  <div class="titlebar">
+    <span>STATUS</span>
+    <div class="titlebar-dots"><span></span><span></span><span></span></div>
+  </div>
+
+  <!-- 캐릭터 헤더 -->
+  <div class="char-header">
+    <div class="char-sprite">
+      <!-- 픽셀 캐릭터 SVG -->
+      <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" id="sprite-svg">
+        <!-- 머리 -->
+        <rect x="5" y="1" width="6" height="5" fill="#DDAACC"/>
+        <!-- 눈 -->
+        <rect x="6" y="3" width="1" height="1" fill="#1a1a2e"/>
+        <rect x="9" y="3" width="1" height="1" fill="#1a1a2e"/>
+        <!-- 몸 -->
+        <rect x="4" y="6" width="8" height="5" fill="#8889CD"/>
+        <!-- 팔 -->
+        <rect x="2" y="6" width="2" height="4" fill="#8889CD"/>
+        <rect x="12" y="6" width="2" height="4" fill="#8889CD"/>
+        <!-- 다리 -->
+        <rect x="5" y="11" width="2" height="3" fill="#CCAA88"/>
+        <rect x="9" y="11" width="2" height="3" fill="#CCAA88"/>
+      </svg>
+    </div>
+    <div class="char-info">
+      <div class="char-name" id="disp-name">겨울</div>
+      <div class="char-sub" id="disp-class">마법검사 / 혼돈</div>
+      <div class="char-lv">LV.<span id="disp-lv">42</span> &nbsp; EXP <span id="disp-exp">73</span>%</div>
+    </div>
+  </div>
+
+  <!-- EXP 바 -->
+  <div class="exp-wrap">
+    <div class="exp-label">EXPERIENCE</div>
+    <div class="bar-track"><div class="bar-fill bar-exp" id="bar-exp" style="width:73%"></div></div>
+  </div>
+
+  <!-- HP / MP / SP -->
+  <div class="vitals">
+    <div class="vital-row">
+      <span class="vital-icon">❤</span>
+      <span class="vital-label">HP</span>
+      <div class="vital-bar"><div class="bar-track"><div class="bar-fill bar-hp" id="bar-hp" style="width:78%"></div></div></div>
+      <span class="vital-nums"><span id="disp-hp">78</span>/<span id="disp-hpmax">100</span></span>
+    </div>
+    <div class="vital-row">
+      <span class="vital-icon">✦</span>
+      <span class="vital-label">MP</span>
+      <div class="vital-bar"><div class="bar-track"><div class="bar-fill bar-mp" id="bar-mp" style="width:55%"></div></div></div>
+      <span class="vital-nums"><span id="disp-mp">55</span>/<span id="disp-mpmax">100</span></span>
+    </div>
+    <div class="vital-row">
+      <span class="vital-icon">⚡</span>
+      <span class="vital-label">SP</span>
+      <div class="vital-bar"><div class="bar-track"><div class="bar-fill bar-sp" id="bar-sp" style="width:90%"></div></div></div>
+      <span class="vital-nums"><span id="disp-sp">90</span>/<span id="disp-spmax">100</span></span>
+    </div>
+  </div>
+
+  <!-- 스탯 -->
+  <div class="stats-section">
+    <div class="section-title">▸ STATS</div>
+    <div class="stats-grid">
+      <div class="stat-item">
+        <span class="stat-label">ATK</span>
+        <div class="stat-bar"><div class="bar-track"><div class="bar-fill bar-hp" id="bar-atk" style="width:72%"></div></div></div>
+        <span class="stat-val" id="disp-atk">72</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">DEF</span>
+        <div class="stat-bar"><div class="bar-track"><div class="bar-fill bar-mp" id="bar-def" style="width:58%"></div></div></div>
+        <span class="stat-val" id="disp-def">58</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">AGI</span>
+        <div class="stat-bar"><div class="bar-track"><div class="bar-fill bar-sp" id="bar-agi" style="width:85%"></div></div></div>
+        <span class="stat-val" id="disp-agi">85</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">MAG</span>
+        <div class="stat-bar"><div class="bar-track"><div class="bar-fill bar-exp" id="bar-mag" style="width:66%"></div></div></div>
+        <span class="stat-val" id="disp-mag">66</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">LUK</span>
+        <div class="stat-bar"><div class="bar-track"><div class="bar-fill bar-af" id="bar-luk" style="width:40%"></div></div></div>
+        <span class="stat-val" id="disp-luk">40</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 장비 -->
+  <div class="equip-section">
+    <div class="section-title">▸ EQUIPMENT</div>
+    <div class="equip-slots">
+      <div class="equip-slot">
+        <span class="equip-icon">⚔</span>
+        <div class="equip-info">
+          <div class="equip-type">WEAPON</div>
+          <div class="equip-name" id="disp-eq1">달빛검</div>
+        </div>
+      </div>
+      <div class="equip-slot">
+        <span class="equip-icon">🛡</span>
+        <div class="equip-info">
+          <div class="equip-type">ARMOR</div>
+          <div class="equip-name" id="disp-eq2">마력외투</div>
+        </div>
+      </div>
+      <div class="equip-slot">
+        <span class="equip-icon">💍</span>
+        <div class="equip-info">
+          <div class="equip-type">ACCESSORY</div>
+          <div class="equip-name" id="disp-eq3">별의반지</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 버프 -->
+  <div class="buff-section">
+    <div class="section-title">▸ STATUS EFFECTS</div>
+    <div class="buff-list" id="buff-list">
+      <div class="buff-chip">✨ 축복</div>
+      <div class="buff-chip">⚡ 가속</div>
+      <div class="buff-chip debuff">🔥 화상</div>
+    </div>
+  </div>
+</div>
+
+<!-- 컨트롤 패널 -->
+<div class="controls">
+  <div class="ctrl-title">◈ PARAMETERS</div>
+
+  <div class="ctrl-row">
+    <span class="ctrl-label">이름</span>
+    <input type="text" id="in-name" value="겨울" oninput="document.getElementById('disp-name').textContent=this.value">
+  </div>
+  <div class="ctrl-row">
+    <span class="ctrl-label">직업</span>
+    <input type="text" id="in-class" value="마법검사 / 혼돈" oninput="document.getElementById('disp-class').textContent=this.value">
+  </div>
+  <div class="ctrl-row">
+    <span class="ctrl-label">레벨</span>
+    <input type="range" min="1" max="99" value="42" oninput="document.getElementById('disp-lv').textContent=this.value">
+    <span class="ctrl-val" id="v-lv">LV.42</span>
+  </div>
+  <div class="ctrl-row">
+    <span class="ctrl-label">EXP</span>
+    <input type="range" min="0" max="100" value="73" oninput="setBar('exp',this.value,'%'); document.getElementById('disp-exp').textContent=this.value">
+    <span class="ctrl-val" id="v-exp">73%</span>
+  </div>
+  <div class="ctrl-row">
+    <span class="ctrl-label">HP</span>
+    <input type="range" min="0" max="100" value="78" oninput="setVital('hp',this.value)">
+    <span class="ctrl-val" id="v-hp">78/100</span>
+  </div>
+  <div class="ctrl-row">
+    <span class="ctrl-label">MP</span>
+    <input type="range" min="0" max="100" value="55" oninput="setVital('mp',this.value)">
+    <span class="ctrl-val" id="v-mp">55/100</span>
+  </div>
+  <div class="ctrl-row">
+    <span class="ctrl-label">SP</span>
+    <input type="range" min="0" max="100" value="90" oninput="setVital('sp',this.value)">
+    <span class="ctrl-val" id="v-sp">90/100</span>
+  </div>
+  <div class="ctrl-row">
+    <span class="ctrl-label">ATK</span>
+    <input type="range" min="0" max="99" value="72" oninput="setStat('atk',this.value)">
+    <span class="ctrl-val" id="v-atk">72</span>
+  </div>
+  <div class="ctrl-row">
+    <span class="ctrl-label">DEF</span>
+    <input type="range" min="0" max="99" value="58" oninput="setStat('def',this.value)">
+    <span class="ctrl-val" id="v-def">58</span>
+  </div>
+  <div class="ctrl-row">
+    <span class="ctrl-label">AGI</span>
+    <input type="range" min="0" max="99" value="85" oninput="setStat('agi',this.value)">
+    <span class="ctrl-val" id="v-agi">85</span>
+  </div>
+  <div class="ctrl-row">
+    <span class="ctrl-label">MAG</span>
+    <input type="range" min="0" max="99" value="66" oninput="setStat('mag',this.value)">
+    <span class="ctrl-val" id="v-mag">66</span>
+  </div>
+  <div class="ctrl-row">
+    <span class="ctrl-label">LUK</span>
+    <input type="range" min="0" max="99" value="40" oninput="setStat('luk',this.value)">
+    <span class="ctrl-val" id="v-luk">40</span>
+  </div>
+  <div class="ctrl-row">
+    <span class="ctrl-label">무기</span>
+    <input type="text" id="in-eq1" value="달빛검" oninput="document.getElementById('disp-eq1').textContent=this.value">
+  </div>
+  <div class="ctrl-row">
+    <span class="ctrl-label">방어구</span>
+    <input type="text" id="in-eq2" value="마력외투" oninput="document.getElementById('disp-eq2').textContent=this.value">
+  </div>
+  <div class="ctrl-row">
+    <span class="ctrl-label">악세서리</span>
+    <input type="text" id="in-eq3" value="별의반지" oninput="document.getElementById('disp-eq3').textContent=this.value">
+  </div>
+  <div class="ctrl-row">
+    <span class="ctrl-label">스프라이트색</span>
+    <select onchange="changeSprite(this.value)">
+      <option value="#8889CD">인디고</option>
+      <option value="#DDAACC">핑크</option>
+      <option value="#CCAA88">샌드</option>
+      <option value="#BB6688">로즈</option>
+      <option value="#884499">퍼플</option>
+    </select>
+    <span class="ctrl-val" id="v-sprite">인디고</span>
+  </div>
+  <div class="ctrl-row">
+    <span class="ctrl-label">테마색</span>
+    <select onchange="changeTheme(this.value)">
+      <option value="#8889CD">인디고</option>
+      <option value="#DDAACC">핑크</option>
+      <option value="#CCAA88">샌드</option>
+      <option value="#BB6688">로즈</option>
+      <option value="#884499">퍼플</option>
+      <option value="#00BBDD">시안</option>
+    </select>
+    <span class="ctrl-val">border</span>
+  </div>
+</div>
+
+<script>
+function setBar(id, val, suffix='') {
+  document.getElementById('bar-'+id).style.width = val+'%';
+  const vEl = document.getElementById('v-'+id);
+  if(vEl) vEl.textContent = val + suffix;
+}
+function setVital(id, val) {
+  document.getElementById('bar-'+id).style.width = val+'%';
+  document.getElementById('disp-'+id).textContent = val;
+  document.getElementById('v-'+id).textContent = val+'/100';
+  // HP 낮으면 색 경고
+  if(id==='hp') {
+    document.getElementById('bar-hp').style.background = val<30 ? '#ff4444' : val<50 ? '#FF7722' : 'var(--hp-col)';
+  }
+}
+function setStat(id, val) {
+  document.getElementById('bar-'+id).style.width = val+'%';
+  document.getElementById('disp-'+id).textContent = val;
+  document.getElementById('v-'+id).textContent = val;
+}
+function changeSprite(color) {
+  document.querySelectorAll('#sprite-svg rect').forEach((r,i)=>{
+    if(i===3||i===5||i===6) r.setAttribute('fill', color);
+  });
+}
+function changeTheme(color) {
+  document.documentElement.style.setProperty('--border', color);
+  document.querySelector('.titlebar').style.background = color;
+}
+
+// 레벨 슬라이더 val 표시
+document.querySelectorAll('input[type=range]').forEach(sl => {
+  sl.addEventListener('input', function() {
+    const vId = 'v-' + this.previousElementSibling?.className?.match(/ctrl-label/)
+      ? null : null;
+  });
+});
+// 레벨만 별도
+document.querySelector('input[oninput*="disp-lv"]')?.addEventListener('input', function(){
+  document.getElementById('v-lv').textContent = 'LV.'+this.value;
+});
+</script>
+</body>
+</html>

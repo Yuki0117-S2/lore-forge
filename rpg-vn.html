@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VN Status</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600&family=Shippori+Mincho:wght@400;600&display=swap');
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --bg:     #faf5f8;
+  --panel:  #fff8fc;
+  --border: #DDAACC;
+  --accent: #BB6688;
+  --soft:   #8889CD;
+  --gold:   #CCAA88;
+  --text:   #3a2a35;
+  --dim:    #9a8090;
+  --af-col: #DDAACC;
+  --stress-col: #BB6688;
+  --mental-col: #8889CD;
+  --trust-col:  #CCAA88;
+}
+
+body {
+  background: linear-gradient(135deg, #fdf0f5 0%, #f5f0fa 100%);
+  font-family: 'Noto Serif KR', serif;
+  display:flex; flex-direction:column;
+  align-items:center; padding:20px; min-height:100vh;
+}
+
+.status-card {
+  width:480px;
+  background:var(--panel);
+  border:1px solid var(--border);
+  box-shadow:0 4px 24px rgba(187,102,136,0.1), 0 1px 4px rgba(187,102,136,0.08);
+  position:relative;
+  overflow:hidden;
+}
+
+/* 상단 장식 패턴 */
+.deco-top {
+  height:6px;
+  background: repeating-linear-gradient(90deg, var(--border) 0px, var(--border) 8px, var(--accent) 8px, var(--accent) 10px, transparent 10px, transparent 18px);
+  opacity:0.4;
+}
+
+/* 헤더 */
+.header {
+  text-align:center;
+  padding:18px 20px 14px;
+  border-bottom:1px solid #f0e0ea;
+  position:relative;
+}
+.header-label {
+  font-size:11px;
+  letter-spacing:0.3em;
+  color:var(--dim);
+  margin-bottom:6px;
+}
+.header-date {
+  font-size:13px;
+  color:var(--accent);
+  font-style:italic;
+}
+
+/* 상대방 섹션 */
+.target-section {
+  padding:18px 20px;
+  border-bottom:1px solid #f0e0ea;
+  display:flex; gap:16px; align-items:flex-start;
+}
+
+.target-avatar {
+  width:80px; height:80px;
+  border:2px solid var(--border);
+  border-radius:50%;
+  background: radial-gradient(circle at 40% 35%, #f8e8f0, #e8d0e0);
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+  position:relative;
+  overflow:hidden;
+}
+.target-avatar svg { width:64px; height:64px; }
+
+.target-info { flex:1; }
+.target-relation {
+  font-size:11px; letter-spacing:0.15em;
+  color:var(--dim); margin-bottom:4px;
+}
+.target-name {
+  font-size:22px; font-weight:600;
+  color:var(--text);
+  margin-bottom:6px;
+}
+.target-mood {
+  display:inline-flex; align-items:center; gap:5px;
+  border:1px solid var(--border);
+  background:#fef8fc;
+  padding:3px 10px;
+  font-size:12px; color:var(--accent);
+  border-radius:20px;
+}
+
+/* 호감도 */
+.affection-section {
+  padding:14px 20px;
+  border-bottom:1px solid #f0e0ea;
+}
+.af-header {
+  display:flex; justify-content:space-between; align-items:center;
+  margin-bottom:8px;
+}
+.af-label { font-size:12px; letter-spacing:0.1em; color:var(--dim); }
+.af-value { font-size:16px; font-weight:600; color:var(--accent); }
+.af-hearts { letter-spacing:2px; }
+
+.bar-track {
+  height:10px;
+  background:#f0e8ec;
+  border-radius:5px;
+  overflow:hidden;
+  position:relative;
+}
+.bar-fill {
+  height:100%;
+  border-radius:5px;
+  transition:width 0.5s ease;
+  position:relative;
+  overflow:hidden;
+}
+.bar-fill::after {
+  content:'';
+  position:absolute; top:0; left:0; right:0;
+  height:40%;
+  background:rgba(255,255,255,0.3);
+  border-radius:5px 5px 0 0;
+}
+.bar-af    { background:linear-gradient(90deg, #DDAACC, #BB6688); }
+.bar-trust { background:linear-gradient(90deg, #CCAA88, #BB8844); }
+.bar-flags-positive { background:linear-gradient(90deg, #8889CD, #6677BB); }
+
+/* 내 몸상태 */
+.my-section {
+  padding:14px 20px;
+  border-bottom:1px solid #f0e0ea;
+}
+.section-title {
+  font-size:11px; letter-spacing:0.2em;
+  color:var(--dim); margin-bottom:12px;
+}
+.vitals-grid { display:flex; flex-direction:column; gap:9px; }
+.vital-row { display:flex; align-items:center; gap:10px; }
+.vital-icon { font-size:14px; width:20px; text-align:center; }
+.vital-label { font-size:12px; color:var(--dim); width:44px; flex-shrink:0; }
+.vital-bar { flex:1; }
+.vital-num { font-size:13px; color:var(--text); width:40px; text-align:right; }
+.bar-hp-my { background:linear-gradient(90deg, #DDAACC, #BB6688); }
+.bar-stress { background:linear-gradient(90deg, #cc8899, #EE1166); }
+.bar-mental { background:linear-gradient(90deg, #8889CD, #6655AA); }
+
+/* 플래그/기억 */
+.flags-section {
+  padding:14px 20px;
+  border-bottom:1px solid #f0e0ea;
+}
+.flags-list { display:flex; flex-direction:column; gap:6px; }
+.flag-item {
+  display:flex; align-items:center; gap:8px;
+  padding:6px 10px;
+  background:#fef5f8;
+  border-left:3px solid var(--border);
+  font-size:13px; color:var(--text);
+}
+.flag-item.locked { opacity:0.4; filter:blur(0.5px); }
+.flag-icon { font-size:14px; }
+
+/* 신뢰도/특수관계 */
+.trust-section {
+  padding:14px 20px;
+}
+.trust-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.trust-label { font-size:12px; color:var(--dim); width:60px; flex-shrink:0; }
+.trust-bar { flex:1; }
+.trust-val { font-size:13px; color:var(--gold); width:40px; text-align:right; font-weight:600; }
+
+/* 컨트롤 */
+.controls {
+  width:480px;
+  background:#fff8fc;
+  border:1px solid var(--border);
+  border-top:none;
+  padding:16px 20px;
+  display:flex; flex-direction:column; gap:10px;
+}
+.ctrl-title { font-size:11px; letter-spacing:0.2em; color:var(--dim); margin-bottom:4px; }
+.ctrl-row { display:flex; align-items:center; gap:10px; }
+.ctrl-label { font-size:12px; color:var(--dim); width:66px; flex-shrink:0; }
+input[type=range] {
+  flex:1; height:3px; -webkit-appearance:none;
+  background:#e8d8e4; outline:none; cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance:none; width:14px; height:14px;
+  background:var(--border); border-radius:50%; cursor:pointer;
+  box-shadow:0 0 4px rgba(187,102,136,0.4);
+}
+.ctrl-val { font-size:12px; color:var(--accent); width:50px; text-align:right; }
+input[type=text] {
+  flex:1; background:#fef8fc; border:1px solid #e8d0e0; color:var(--text);
+  font-family:'Noto Serif KR',serif; font-size:13px; padding:4px 8px; outline:none;
+  border-radius:2px;
+}
+input[type=text]:focus { border-color:var(--border); }
+select {
+  flex:1; background:#fef8fc; border:1px solid #e8d0e0; color:var(--text);
+  font-family:'Noto Serif KR',serif; font-size:12px; padding:4px; outline:none; cursor:pointer;
+  border-radius:2px;
+}
+</style>
+</head>
+<body>
+
+<div class="status-card">
+  <div class="deco-top"></div>
+
+  <div class="header">
+    <div class="header-label">RELATIONSHIP STATUS</div>
+    <div class="header-date" id="disp-date">○월 ○일 · 맑음</div>
+  </div>
+
+  <!-- 상대방 -->
+  <div class="target-section">
+    <div class="target-avatar">
+      <!-- 일러스트풍 실루엣 (인물사진 없이) -->
+      <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+        <!-- 머리카락 -->
+        <ellipse cx="32" cy="20" rx="14" ry="16" fill="#CCAA88" opacity="0.7"/>
+        <ellipse cx="22" cy="28" rx="5" ry="8" fill="#CCAA88" opacity="0.6"/>
+        <ellipse cx="42" cy="28" rx="5" ry="8" fill="#CCAA88" opacity="0.6"/>
+        <!-- 얼굴 -->
+        <ellipse cx="32" cy="23" rx="11" ry="12" fill="#f8e8f0"/>
+        <!-- 눈 -->
+        <ellipse cx="27" cy="22" rx="2.5" ry="3" fill="#8889CD" opacity="0.8"/>
+        <ellipse cx="37" cy="22" rx="2.5" ry="3" fill="#8889CD" opacity="0.8"/>
+        <circle cx="27" cy="22" r="1.2" fill="#2a1a2a"/>
+        <circle cx="37" cy="22" r="1.2" fill="#2a1a2a"/>
+        <!-- 볼터치 -->
+        <ellipse cx="23" cy="26" rx="3" ry="1.5" fill="#DDAACC" opacity="0.4"/>
+        <ellipse cx="41" cy="26" rx="3" ry="1.5" fill="#DDAACC" opacity="0.4"/>
+        <!-- 입 -->
+        <path d="M28 29 Q32 32 36 29" fill="none" stroke="#BB6688" stroke-width="1.2" stroke-linecap="round"/>
+        <!-- 몸 (옷) -->
+        <path d="M18 42 Q20 36 32 36 Q44 36 46 42 L48 58 L16 58Z" fill="#8889CD" opacity="0.6"/>
+        <!-- 옷 장식 -->
+        <path d="M28 36 L32 42 L36 36" fill="none" stroke="#DDAACC" stroke-width="1" opacity="0.7"/>
+      </svg>
+    </div>
+    <div class="target-info">
+      <div class="target-relation" id="disp-relation">소꿉친구 · 같은 반</div>
+      <div class="target-name" id="disp-target">???</div>
+      <div class="target-mood">
+        <span id="disp-mood-icon">😊</span>
+        <span id="disp-mood">설레는 중</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 호감도 -->
+  <div class="affection-section">
+    <div class="af-header">
+      <span class="af-label">❤ 호감도</span>
+      <span class="af-value"><span id="disp-af">72</span> / 100 &nbsp;<span class="af-hearts" id="disp-hearts">♥♥♥♡♡</span></span>
+    </div>
+    <div class="bar-track"><div class="bar-fill bar-af" id="bar-af" style="width:72%"></div></div>
+  </div>
+
+  <!-- 내 몸상태 -->
+  <div class="my-section">
+    <div class="section-title">나의 상태</div>
+    <div class="vitals-grid">
+      <div class="vital-row">
+        <span class="vital-icon">💗</span>
+        <span class="vital-label">체력</span>
+        <div class="vital-bar"><div class="bar-track"><div class="bar-fill bar-hp-my" id="bar-myhp" style="width:80%"></div></div></div>
+        <span class="vital-num" id="disp-myhp">80</span>
+      </div>
+      <div class="vital-row">
+        <span class="vital-icon">😰</span>
+        <span class="vital-label">스트레스</span>
+        <div class="vital-bar"><div class="bar-track"><div class="bar-fill bar-stress" id="bar-stress" style="width:35%"></div></div></div>
+        <span class="vital-num" id="disp-stress">35</span>
+      </div>
+      <div class="vital-row">
+        <span class="vital-icon">🌸</span>
+        <span class="vital-label">정신력</span>
+        <div class="vital-bar"><div class="bar-track"><div class="bar-fill bar-mental" id="bar-mental" style="width:88%"></div></div></div>
+        <span class="vital-num" id="disp-mental">88</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 신뢰도 -->
+  <div class="trust-section">
+    <div class="section-title">관계 지표</div>
+    <div class="trust-row">
+      <span class="trust-label">🔑 신뢰도</span>
+      <div class="trust-bar"><div class="bar-track"><div class="bar-fill bar-trust" id="bar-trust" style="width:65%"></div></div></div>
+      <span class="trust-val" id="disp-trust">65</span>
+    </div>
+    <div class="trust-row">
+      <span class="trust-label">🔮 인연</span>
+      <div class="trust-bar"><div class="bar-track"><div class="bar-fill bar-flags-positive" id="bar-fate" style="width:48%"></div></div></div>
+      <span class="trust-val" id="disp-fate">48</span>
+    </div>
+  </div>
+
+  <!-- 플래그/기억 -->
+  <div class="flags-section">
+    <div class="section-title">기억된 순간</div>
+    <div class="flags-list" id="flags-list">
+      <div class="flag-item"><span class="flag-icon">🌸</span><span id="flag1">처음 만난 날 우산을 빌려줬다</span></div>
+      <div class="flag-item"><span class="flag-icon">☕</span><span id="flag2">방과 후 같이 카페에 갔다</span></div>
+      <div class="flag-item locked"><span class="flag-icon">🔒</span><span>??? (미해금)</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- 컨트롤 -->
+<div class="controls">
+  <div class="ctrl-title">PARAMETERS</div>
+
+  <div class="ctrl-row">
+    <span class="ctrl-label">상대 이름</span>
+    <input type="text" value="???" oninput="document.getElementById('disp-target').textContent=this.value">
+  </div>
+  <div class="ctrl-row">
+    <span class="ctrl-label">관계</span>
+    <input type="text" value="소꿉친구 · 같은 반" oninput="document.getElementById('disp-relation').textContent=this.value">
+  </div>
+  <div class="ctrl-row">
+    <span class="ctrl-label">날짜</span>
+    <input type="text" value="○월 ○일 · 맑음" oninput="document.getElementById('disp-date').textContent=this.value">
+  </div>
+  <div class="ctrl-row">
+    <span class="ctrl-label">상대 기분</span>
+    <select onchange="setMood(this.value)">
+      <option value="😊|설레는 중">😊 설레는 중</option>
+      <option value="😳|부끄러운 중">😳 부끄러운 중</option>
+      <option value="😠|화난 중">😠 화난 중</option>
+      <option value="😢|슬픈 중">😢 슬픈 중</option>
+      <option value="🥰|두근두근">🥰 두근두근</option>
+      <option value="😐|보통">😐 보통</option>
+      <option value="💤|피곤한 중">💤 피곤한 중</option>
+    </select>
+  </div>
+  <div class="ctrl-row">
+    <span class="ctrl-label">호감도</span>
+    <input type="range" min="0" max="100" value="72" oninput="setAf(this.value)">
+    <span class="ctrl-val" id="v-af">72</span>
+  </div>
+  <div class="ctrl-row">
+    <span class="ctrl-label">체력</span>
+    <input type="range" min="0" max="100" value="80" oninput="setMyVital('myhp','체력',this.value)">
+    <span class="ctrl-val" id="v-myhp">80</span>
+  </div>
+  <div class="ctrl-row">
+    <span class="ctrl-label">스트레스</span>
+    <input type="range" min="0" max="100" value="35" oninput="setMyVital('stress','스트레스',this.value)">
+    <span class="ctrl-val" id="v-stress">35</span>
+  </div>
+  <div class="ctrl-row">
+    <span class="ctrl-label">정신력</span>
+    <input type="range" min="0" max="100" value="88" oninput="setMyVital('mental','정신력',this.value)">
+    <span class="ctrl-val" id="v-mental">88</span>
+  </div>
+  <div class="ctrl-row">
+    <span class="ctrl-label">신뢰도</span>
+    <input type="range" min="0" max="100" value="65" oninput="document.getElementById('bar-trust').style.width=this.value+'%'; document.getElementById('disp-trust').textContent=this.value; document.getElementById('v-trust').textContent=this.value">
+    <span class="ctrl-val" id="v-trust">65</span>
+  </div>
+  <div class="ctrl-row">
+    <span class="ctrl-label">인연</span>
+    <input type="range" min="0" max="100" value="48" oninput="document.getElementById('bar-fate').style.width=this.value+'%'; document.getElementById('disp-fate').textContent=this.value; document.getElementById('v-fate').textContent=this.value">
+    <span class="ctrl-val" id="v-fate">48</span>
+  </div>
+  <div class="ctrl-row">
+    <span class="ctrl-label">기억 1</span>
+    <input type="text" value="처음 만난 날 우산을 빌려줬다" oninput="document.getElementById('flag1').textContent=this.value">
+  </div>
+  <div class="ctrl-row">
+    <span class="ctrl-label">기억 2</span>
+    <input type="text" value="방과 후 같이 카페에 갔다" oninput="document.getElementById('flag2').textContent=this.value">
+  </div>
+  <div class="ctrl-row">
+    <span class="ctrl-label">아바타색</span>
+    <select onchange="changeAvatarColor(this.value)">
+      <option value="#8889CD|#CCAA88">인디고+샌드</option>
+      <option value="#DDAACC|#BB6688">핑크+로즈</option>
+      <option value="#CCAA88|#884499">샌드+퍼플</option>
+      <option value="#00BBDD|#8889CD">시안+인디고</option>
+    </select>
+  </div>
+  <div class="ctrl-row">
+    <span class="ctrl-label">테마색</span>
+    <select onchange="changeVNTheme(this.value)">
+      <option value="#DDAACC|#BB6688">핑크 (기본)</option>
+      <option value="#8889CD|#6655AA">인디고</option>
+      <option value="#CCAA88|#996644">샌드</option>
+      <option value="#00BBDD|#0077DD">시안</option>
+    </select>
+  </div>
+</div>
+
+<script>
+function setMood(val) {
+  const [icon, text] = val.split('|');
+  document.getElementById('disp-mood-icon').textContent = icon;
+  document.getElementById('disp-mood').textContent = text;
+}
+function setAf(val) {
+  document.getElementById('bar-af').style.width = val+'%';
+  document.getElementById('disp-af').textContent = val;
+  document.getElementById('v-af').textContent = val;
+  // 하트 표시
+  const h = Math.round(val/20);
+  document.getElementById('disp-hearts').textContent = '♥'.repeat(h) + '♡'.repeat(5-h);
+  // 색 경고
+  if(val < 20) document.getElementById('bar-af').style.background = 'linear-gradient(90deg,#cc8899,#cc3355)';
+  else document.getElementById('bar-af').style.background = '';
+}
+function setMyVital(id, label, val) {
+  document.getElementById('bar-'+id).style.width = val+'%';
+  document.getElementById('disp-'+id).textContent = val;
+  document.getElementById('v-'+id).textContent = val;
+  // 스트레스 높으면 빨갛게
+  if(id==='stress' && val > 70) {
+    document.getElementById('bar-stress').style.background = 'linear-gradient(90deg,#aa2244,#ff1144)';
+  } else if(id==='stress') {
+    document.getElementById('bar-stress').style.background = '';
+  }
+}
+function changeAvatarColor(val) {
+  const [c1, c2] = val.split('|');
+  // 옷 색 변경
+  const paths = document.querySelectorAll('.target-avatar svg path, .target-avatar svg ellipse');
+  paths.forEach((el,i) => {
+    if(i===4) el.setAttribute('fill', c1); // 옷
+    if(i===0||i===1||i===2) el.setAttribute('fill', c2); // 머리카락
+  });
+}
+function changeVNTheme(val) {
+  const [c1, c2] = val.split('|');
+  document.documentElement.style.setProperty('--border', c1);
+  document.documentElement.style.setProperty('--accent', c2);
+  document.documentElement.style.setProperty('--af-col', c1);
+}
+</script>
+</body>
+</html>

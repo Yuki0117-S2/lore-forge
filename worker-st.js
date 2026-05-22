@@ -834,6 +834,215 @@ ${svg}
 }
 
 // ════════════════════════════════════════════
+//  RPG2K (쯔꾸르 호러/어드벤처)
+//  &p=이름§부제목§위치§장
+//  &hp=현재§최대§모드     (모드: heart/rose/moon/eye/spark, 기본 heart)
+//  &items=아이템1§아이템2§...   (최대 12개)
+//  &log=일지1§일지2§...          (최대 4줄)
+//  &say=하단 대사
+// ════════════════════════════════════════════
+
+function rpg2kIconColor(mode) {
+  if (mode === 'heart') return '#BB6688';
+  if (mode === 'rose')  return '#BB6688';
+  if (mode === 'moon')  return '#CCAA88';
+  if (mode === 'eye')   return '#DDAACC';
+  if (mode === 'spark') return '#CCAA88';
+  return '#BB6688';
+}
+
+function rpg2kAliveIcon(mode, phase, hpCur) {
+  if (mode === 'heart') {
+    return `<path d="M14 24 C8 18, 2 14, 2 8 C2 4, 6 2, 10 4 C12 5, 14 8, 14 8 C14 8, 16 5, 18 4 C22 2, 26 4, 26 8 C26 14, 20 18, 14 24 Z" fill="#BB6688"/>`;
+  }
+  if (mode === 'rose') {
+    // 꽃잎 수 = hpCur (살아있는 꽃은 다 같은 꽃잎 수)
+    // hpCur가 1이면 한 잎짜리 꽃, 7이면 일곱 잎. 0은 안 들어옴(살아있는 케이스만).
+    const petals = Math.max(1, Math.min(hpCur || 5, 12));
+    const cx = 14, cy = 14;
+    // 꽃잎 많을수록 살짝 작게
+    const ry = petals >= 6 ? 4 : 5;
+    const rx = petals >= 6 ? 2 : 2.5;
+    const dist = petals >= 6 ? 5.5 : 5;
+    let out = '';
+    for (let i = 0; i < petals; i++) {
+      const angle = (360 / petals) * i - 90;
+      const rad = angle * Math.PI / 180;
+      const px = cx + Math.cos(rad) * dist;
+      const py = cy + Math.sin(rad) * dist;
+      const rot = (angle + 90).toFixed(0);
+      out += `<ellipse cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" rx="${rx}" ry="${ry}" fill="#BB6688" transform="rotate(${rot} ${px.toFixed(1)} ${py.toFixed(1)})"/>`;
+    }
+    out += `<circle cx="${cx}" cy="${cy}" r="2.5" fill="#8a3a55"/>`;
+    out += `<circle cx="${cx}" cy="${cy}" r="1.2" fill="#DDAACC"/>`;
+    return out;
+  }
+  if (mode === 'moon') {
+    const C = '#CCAA88', D = '#2a2030';
+    if (phase >= 0.98) {
+      // 보름달
+      return `<circle cx="14" cy="14" r="11" fill="${C}"/>
+<circle cx="17" cy="11" r="2" fill="#DDAACC" opacity="0.5"/>`;
+    }
+    // 연속 보간:
+    // phase=0.5 → 안쪽 호 rx=0 (반달)
+    // phase=1.0 → rx=11, sweep=1 (왼쪽으로 볼록 = 거의 보름)
+    // phase=0   → rx=11, sweep=0 (오른쪽으로 오목 = 거의 신월)
+    const rx = Math.abs(phase - 0.5) * 22;
+    const sweep = phase >= 0.5 ? 1 : 0;
+    return `<circle cx="14" cy="14" r="11" fill="${D}"/>
+<path d="M14 3 A11 11 0 0 1 14 25 A${rx.toFixed(1)} 11 0 0 ${sweep} 14 3 Z" fill="${C}"/>`;
+  }
+  if (mode === 'eye') {
+    return `<ellipse cx="14" cy="14" rx="12" ry="6" fill="none" stroke="#DDAACC" stroke-width="1.5"/>
+<circle cx="14" cy="14" r="4" fill="#BB6688"/>
+<circle cx="14" cy="14" r="2" fill="#110d18"/>`;
+  }
+  if (mode === 'spark') {
+    return `<path d="M14 26 C5 22, 3 14, 9 9 C10 13, 12 11, 11 6 C13 9, 16 4, 17 2 C18 8, 20 12, 21 9 C24 14, 23 22, 14 26 Z" fill="#CCAA88"/>
+<path d="M14 24 C10 21, 9 17, 12 13 C13 15, 14 13, 13 10 C15 12, 17 8, 17 6 C18 12, 17 17, 16 20 Z" fill="#DDAACC"/>`;
+  }
+  return '';
+}
+
+function rpg2kDeadIcon(mode) {
+  if (mode === 'heart') {
+    return `<path d="M14 24 C8 18, 2 14, 2 8 C2 4, 6 2, 10 4 C12 5, 14 8, 14 8 C14 8, 16 5, 18 4 C22 2, 26 4, 26 8 C26 14, 20 18, 14 24 Z" fill="none" stroke="#4a3a45" stroke-width="1.2"/>`;
+  }
+  if (mode === 'rose') {
+    // 시든 줄기 — 회색 막대만 남음
+    return `<rect x="13" y="6" width="2" height="18" fill="#4a3a45" opacity="0.7"/>
+<rect x="11" y="22" width="6" height="2" fill="#4a3a45" opacity="0.7"/>`;
+  }
+  if (mode === 'moon') {
+    return `<circle cx="14" cy="14" r="10" fill="#2a2030" stroke="#4a3a45" stroke-width="0.8"/>`;
+  }
+  if (mode === 'eye') {
+    return `<path d="M2 14 Q14 8, 26 14" fill="none" stroke="#4a3a45" stroke-width="1.5"/>`;
+  }
+  if (mode === 'spark') {
+    return `<g opacity="0.45"><path d="M14 26 C9 22, 8 16, 12 13 Q14 12, 14 9" fill="none" stroke="#6a5a70" stroke-width="1.2"/>
+<path d="M14 9 Q11 5, 14 3 Q17 0, 13 0" fill="none" stroke="#6a5a70" stroke-width="0.8"/></g>`;
+  }
+  return '';
+}
+
+function renderRpg2k(params) {
+  const W = 600, PAD = 32;
+
+  const pp = (params.get('p') || '이름§§§').split('§');
+  const name    = esc(pp[0] || '???');
+  const subtitle= esc(pp[1] || '');
+  const loc     = esc(pp[2] || '');
+  const chapter = esc(pp[3] || '');
+
+  const hpStr = (params.get('hp') || '5§5§heart').split('§');
+  const hp    = safeInt(hpStr[0], 5, 0, 999);
+  const hpMax = safeInt(hpStr[1], 5, 1, 999);
+  const modeRaw = (hpStr[2] || 'heart').toLowerCase();
+  const validModes = ['heart','rose','moon','eye','spark'];
+  const mode = validModes.includes(modeRaw) ? modeRaw : 'heart';
+  const hpCur = Math.min(hp, hpMax);
+  const count = Math.min(hpMax, 12);
+
+  const iconSize = count <= 8 ? 28 : 24;
+  const step = count <= 8 ? (iconSize + 12) : (iconSize + 6);
+
+  const items = params.get('items') ? params.get('items').split('§').slice(0, 12).map(esc) : [];
+  const logs  = params.get('log')   ? params.get('log').split('§').slice(0, 4).map(esc)  : [];
+  const note  = esc(params.get('say') || '');
+
+  const hpRatio = hpMax > 0 ? hpCur / hpMax : 0;
+
+  const HEADER_H = 92;
+  const HP_H = 90;
+  const itemRows = items.length > 0 ? Math.ceil(items.length / 3) : 0;
+  const ITEM_H = itemRows > 0 ? (28 + itemRows * 22 + 14) : 0;
+  const LOG_H  = logs.length > 0 ? (28 + logs.length * 20 + 10) : 0;
+  const NOTE_H = note ? 38 : 0;
+  const TOTAL_H = HEADER_H + HP_H + ITEM_H + LOG_H + NOTE_H + 8;
+
+  let y = 0;
+  let body = '';
+
+  body += `<text x="${PAD}" y="52" font-family="Georgia,'Noto Serif KR',serif" font-size="24" font-weight="bold" fill="#DDAACC">${name}</text>`;
+  if (subtitle) {
+    body += `<text x="${PAD}" y="74" font-family="Georgia,serif" font-size="13" fill="#BB6688" font-style="italic">${subtitle}</text>`;
+  }
+  if (chapter) {
+    body += `<text x="${W-PAD}" y="52" font-family="monospace" font-size="11" font-weight="bold" fill="#8889CD" text-anchor="end" letter-spacing="2">${chapter}</text>`;
+  }
+  if (loc) {
+    body += `<text x="${W-PAD}" y="72" font-family="monospace" font-size="11" fill="#8a7a90" text-anchor="end">▸ ${loc}</text>`;
+  }
+  body += `<line x1="${PAD}" y1="92" x2="${W-PAD}" y2="92" stroke="#2a2030" stroke-width="0.8"/>`;
+  y = HEADER_H;
+
+  const modeLabel = mode.toUpperCase();
+  const hpColor = rpg2kIconColor(mode);
+  body += `<text x="${PAD}" y="${y+24}" font-family="monospace" font-size="12" font-weight="bold" fill="#8a7a90" letter-spacing="2">VITALITY · ${modeLabel}</text>`;
+  body += `<text x="${W-PAD}" y="${y+24}" font-family="monospace" font-size="13" font-weight="bold" fill="${hpColor}" text-anchor="end">${hpCur} / ${hpMax}</text>`;
+
+  const iconStartX = PAD + 8;
+  for (let i = 0; i < count; i++) {
+    const ix = iconStartX + i * step;
+    const iy = y + 38;
+    if (i < hpCur) {
+      const phase = mode === 'moon' ? hpRatio : 1;
+      body += `<g transform="translate(${ix}, ${iy})">${rpg2kAliveIcon(mode, phase, hpCur)}</g>`;
+    } else {
+      body += `<g transform="translate(${ix}, ${iy})">${rpg2kDeadIcon(mode)}</g>`;
+    }
+  }
+  body += `<line x1="${PAD}" y1="${y+HP_H-2}" x2="${W-PAD}" y2="${y+HP_H-2}" stroke="#2a2030" stroke-width="0.8"/>`;
+  y += HP_H;
+
+  if (items.length > 0) {
+    body += `<text x="${PAD}" y="${y+22}" font-family="monospace" font-size="12" font-weight="bold" fill="#8a7a90" letter-spacing="2">ITEMS</text>`;
+    body += `<text x="${W-PAD}" y="${y+22}" font-family="monospace" font-size="10" fill="#8a7a90" text-anchor="end">${items.length} / 12</text>`;
+    const colX = [PAD + 12, PAD + 188, PAD + 364];
+    items.forEach((item, i) => {
+      const col = i % 3;
+      const row = Math.floor(i / 3);
+      const ix = colX[col];
+      const iy = y + 46 + row * 22;
+      const display = item.length > 9 ? item.slice(0, 9) + '…' : item;
+      body += `<text x="${ix}" y="${iy}" font-family="Georgia,'Noto Serif KR',serif" font-size="13" fill="#CCAA88">◆ ${display}</text>`;
+    });
+    body += `<line x1="${PAD}" y1="${y+ITEM_H-2}" x2="${W-PAD}" y2="${y+ITEM_H-2}" stroke="#2a2030" stroke-width="0.8"/>`;
+    y += ITEM_H;
+  }
+
+  if (logs.length > 0) {
+    body += `<text x="${PAD}" y="${y+22}" font-family="monospace" font-size="12" font-weight="bold" fill="#8a7a90" letter-spacing="2">JOURNAL</text>`;
+    logs.forEach((line, i) => {
+      const ly = y + 44 + i * 20;
+      const display = line.length > 36 ? line.slice(0, 36) + '…' : line;
+      body += `<text x="${PAD+12}" y="${ly}" font-family="Georgia,serif" font-size="13" fill="#d8c8b0" font-style="italic">· ${display}</text>`;
+    });
+    body += `<line x1="${PAD}" y1="${y+LOG_H-2}" x2="${W-PAD}" y2="${y+LOG_H-2}" stroke="#2a2030" stroke-width="0.8"/>`;
+    y += LOG_H;
+  }
+
+  if (note) {
+    body += `<text x="${W/2}" y="${y+24}" font-family="Georgia,serif" font-size="13" fill="#8889CD" font-style="italic" text-anchor="middle">" ${note} "</text>`;
+    y += NOTE_H;
+  }
+
+  const corners = `<path d="M${PAD+8} 20 L20 20 L20 ${PAD+8}" fill="none" stroke="#DDAACC" stroke-width="1" opacity="0.6"/>
+<path d="M${W-PAD-8} 20 L${W-20} 20 L${W-20} ${PAD+8}" fill="none" stroke="#DDAACC" stroke-width="1" opacity="0.6"/>
+<path d="M${PAD+8} ${TOTAL_H-20} L20 ${TOTAL_H-20} L20 ${TOTAL_H-PAD-8}" fill="none" stroke="#DDAACC" stroke-width="1" opacity="0.6"/>
+<path d="M${W-PAD-8} ${TOTAL_H-20} L${W-20} ${TOTAL_H-20} L${W-20} ${TOTAL_H-PAD-8}" fill="none" stroke="#DDAACC" stroke-width="1" opacity="0.6"/>`;
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${TOTAL_H}" viewBox="0 0 ${W} ${TOTAL_H}">
+<rect width="${W}" height="${TOTAL_H}" fill="#110d18"/>
+<rect x="2" y="2" width="${W-4}" height="${TOTAL_H-4}" rx="3" fill="none" stroke="#8889CD" stroke-width="1" opacity="0.4"/>
+${corners}
+${body}
+</svg>`;
+}
+
+// ════════════════════════════════════════════
 //  FETCH
 // ════════════════════════════════════════════
 export default {
@@ -847,8 +1056,9 @@ export default {
     else if (t === 'dark') svg = renderDark(params);
     else if (t === 'pixel') svg = renderPixel(params);
     else if (t === 'ending') svg = renderEnding(params);
+    else if (t === 'rpg2k') svg = renderRpg2k(params);
     else {
-      return new Response('사용 가능: ?t=vn / ?t=dark / ?t=pixel / ?t=ending', {
+      return new Response('사용 가능: ?t=vn / ?t=dark / ?t=pixel / ?t=ending / ?t=rpg2k', {
         status: 400, headers: { 'Content-Type': 'text/plain; charset=utf-8' }
       });
     }

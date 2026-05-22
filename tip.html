@@ -1305,7 +1305,7 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
     ]
   },
   {
-    id:'cat-st', icon:'⚔️', title:'RPG / VN 상태창 UI', sub:'st.winter0.workers.dev — 미연시 · 다크판타지 · 픽셀RPG · 엔딩 카드',
+    id:'cat-st', icon:'⚔️', title:'RPG / VN 상태창 UI', sub:'st.winter0.workers.dev — 미연시 · 다크판타지 · 픽셀RPG · 쯔꾸르 · 엔딩 카드',
     items:[
       {
         id:'t-st-0', title:'미연시 상태창 (?t=vn)',
@@ -1437,7 +1437,58 @@ buf (§로 구분):
 av — 직업 아이콘 키 (영어 소문자)</pre>`
       },
       {
-        id:'t-st-3', title:'엔딩 카드 (?t=ending)',
+        id:'t-st-3', title:'쯔꾸르 상태창 (?t=rpg2k)',
+        body:`<div class="label label-use">URL 파라미터 형식</div>
+<pre>/?t=rpg2k&p=이름§부제목§위치§장
+&hp=현재§최대§모드
+&items=아이템1§아이템2§...
+&log=일지1§일지2§...
+&say=하단 대사</pre>
+<hr class="divider">
+<div class="label label-example">예시</div>
+<pre>/?t=rpg2k&p=겨울§미술관에+갇힌+소녀§푸른+복도§CHAPTER+02
+&hp=4§6§heart
+&items=작은+열쇠§손수건§비스킷§사탕§푸른+인형§종이쪽지
+&log=게르트루드의+그림+앞을+지나갔다§푸른+인형이+자꾸+따라오는+것+같다§가리의+라이터를+빌렸다
+&say=이+미술관,+출구가+있긴+한+걸까…</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명:</strong><br>
+• <strong>p</strong> — 이름§부제목§위치§장(章). 부제목·위치·장은 비워둘 수 있음 (§로 자리 유지)<br>
+• <strong>hp</strong> — 현재§최대§모드. 모드 생략 시 heart 기본값<br>
+• <strong>items</strong> — 아이템 목록 (§로 구분, 최대 12개, 9자 넘으면 자동 …)<br>
+• <strong>log</strong> — 일지/메모 (§로 줄바꿈, 최대 4줄, 36자 넘으면 자동 …)<br>
+• <strong>say</strong> — 하단 대사/독백 (선택, 가운데 정렬)</div>
+<hr class="divider">
+<div class="label label-example">HP 모드 5종</div>
+<div class="desc">
+• <strong>heart</strong> — 하트 (기본). 살아있는 칸 = 채워진 하트, 죽은 칸 = 빈 하트 외곽선<br>
+• <strong>rose</strong> — 꽃잎 N장 꽃 (꽃점 방식). hp=3/5면 세 잎 꽃 3송이 + 시든 줄기 2개. <em>잃을수록 꽃잎 자체가 줄어듦</em><br>
+• <strong>moon</strong> — 달 위상 (연속 변화). 보름달→하현→반달→초승달→신월로 살아있는 모든 달이 같이 이지러짐<br>
+• <strong>eye</strong> — 눈. 뜬 눈(살아있음) / 감은 눈(죽음). 호러 분위기<br>
+• <strong>spark</strong> — 비대칭 불꽃. 살아있는 자리 = 불꽃, 죽은 자리 = 연기</div>
+<hr class="divider">
+<div class="label label-example">참고 사항</div>
+<div class="desc">
+• <strong>최대 개수:</strong> hp 최대값은 권장 5~10, 시스템상 12까지. 9개 이상이면 아이콘 자동 축소<br>
+• <strong>높이 동적:</strong> items/log/say 비우면 해당 섹션 통째로 사라짐 (높이 자동 조정)<br>
+• <strong>가로폭:</strong> 600px (엔딩 카드와 동일)<br>
+• <strong>장르:</strong> Ib · 마녀의 집 · 푸른 광인 · Mad Father 등 쯔꾸르 호러/어드벤처 통용</div>
+<hr class="divider">
+<div class="label label-example">필드 설명</div>
+<pre>p (§로 구분):
+  이름§부제목§위치§장
+
+hp (§로 구분):
+  현재§최대§모드
+
+items (§로 구분, 최대 12개)
+log   (§로 구분, 최대 4줄)
+say   — 하단 대사 (선택)
+
+mode  — heart / rose / moon / eye / spark</pre>`
+      },
+      {
+        id:'t-st-4', title:'엔딩 카드 (?t=ending)',
         body:`<div class="label label-use">URL 파라미터 형식</div>
 <pre>/?t=ending&type=엔딩타입&num=번호&name=엔딩이름&text=텍스트§줄바꿈
 &cond=조건1§조건2&char=캐릭터1|캐릭터2</pre>
@@ -1469,7 +1520,7 @@ cond — 해금 조건 (§로 여러 줄, 선택)
 char — 관련 캐릭터 (|로 구분, 선택)</pre>`
       },
       {
-        id:'t-st-4', title:'바베챗 프롬프트 (복사용)',
+        id:'t-st-5', title:'바베챗 프롬프트 (복사용)',
         body:`<div class="label label-use">RPG/VN 상태창 + 엔딩 프롬프트</div>
 <div class="desc">바베챗에 복사하여 사용. 도메인은 <strong>st.winter0.workers.dev</strong></div>
 <pre>## RPG / VN 상태창 이미지 출력 규칙
@@ -1499,6 +1550,15 @@ char — 관련 캐릭터 (|로 구분, 선택)</pre>`
   성직: cleric(성직자/클레릭) druid(드루이드) shaman(주술사) paladin(팔라딘)
   기타: bard(음유시인/바드) alchemist(연금술사)
 - 한글 직업명은 영어 키로 변환하여 URL에 넣는다
+
+### 쯔꾸르 상태창
+![](https://st.winter0.workers.dev/?t=rpg2k&p=이름§부제목§위치§장&hp=현재§최대§모드&items=아이템1§아이템2&log=일지1§일지2&say=하단+대사)
+- hp 모드: heart(기본) / rose / moon / eye / spark
+- rose는 꽃점 방식 — hp=3/5면 세 잎 꽃 3송이 + 시든 줄기 2개
+- moon은 연속 위상 변화 (보름→반달→초승달)
+- items 최대 12개, log 최대 4줄, say는 하단 대사 (선택)
+- p의 부제목/위치/장은 비워도 됨 (§로 자리만 유지)
+- 일지/메모/독백을 분위기에 맞게 1~3인칭 자유롭게 작성
 
 ### 엔딩 카드
 ![](https://st.winter0.workers.dev/?t=ending&type=엔딩타입&num=번호&name=엔딩이름&text=텍스트§줄바꿈&cond=조건1§조건2&char=캐릭터1|캐릭터2)
@@ -1597,11 +1657,12 @@ export default {
 /?t=letter        편지 ✉️           /?t=menu          메뉴판 🍽️
 /?t=dm            인스타 DM</pre>
 <hr class="divider">
-<div class="label label-example">st.winter0.workers.dev — RPG / VN 상태창 + 엔딩 (4종)</div>
+<div class="label label-example">st.winter0.workers.dev — RPG / VN 상태창 + 엔딩 (5종)</div>
 <pre># URL 형식 — 모두 /?t=타입&파라미터 형식
 /?t=vn            미연시 상태창
 /?t=dark          다크판타지 상태창
 /?t=pixel         픽셀 RPG 상태창
+/?t=rpg2k         쯔꾸르 상태창 (호러/어드벤처)
 /?t=ending        엔딩 카드 (bad/normal/good/true)</pre>
 <hr class="divider">
 <div class="desc"><strong>무료 한도:</strong> 하루 10만 건 요청까지 무료 (Worker 당). 롤플레이용으로는 충분.</div>`

@@ -84,10 +84,11 @@
   /* 입력 */
   .field-label{font-size:10px;color:var(--muted);letter-spacing:1px;font-family:'JetBrains Mono',monospace;margin-bottom:5px;display:flex;align-items:center;gap:5px;}
   .field-label .required{color:var(--accent2);font-size:12px;}
-  input[type="text"],textarea,select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:13px;padding:7px 10px;transition:border-color 0.2s;outline:none;resize:none;}
+  input[type="text"],textarea,select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:13px;padding:7px 10px;transition:border-color 0.2s, box-shadow 0.2s, min-height 0.2s ease, height 0.2s ease;outline:none;resize:none;}
   input[type="text"]:focus,textarea:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(136,137,205,0.1);}
   select option{background:var(--surface2);}
-  textarea{min-height:72px;line-height:1.6;}
+  textarea{min-height:72px;line-height:1.6;overflow:hidden;}
+  textarea:focus{min-height:300px;overflow-y:auto;}
   .tag-input-container{display:flex;flex-wrap:wrap;gap:4px;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:5px 8px;min-height:34px;cursor:text;transition:border-color 0.2s;}
   .tag-input-container:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(136,137,205,0.1);}
   .tag{background:rgba(136,137,205,0.15);border:1px solid rgba(136,137,205,0.3);color:var(--accent);padding:2px 7px;border-radius:20px;font-size:11px;display:flex;align-items:center;gap:4px;}
@@ -1936,7 +1937,34 @@ function executeCopyChar(targetId){
   showToast('✅ '+projects[targetId].name+'에 복사됐어!');
 }
 
+// ── Textarea Auto-Grow (포커스 시 확장 + 내용에 맞춰 자동 늘어남) ─────────
+function setupTextareaAutoGrow(){
+  // 포커스/입력 시 내용 높이에 맞춰 늘리기 (event delegation)
+  const grow=(ta)=>{
+    if(!ta||ta.tagName!=='TEXTAREA')return;
+    // 일시적으로 height 리셋해야 정확한 scrollHeight 측정 가능
+    ta.style.height='auto';
+    // 포커스 상태에서만 확장, 최소 300px 유지(CSS focus rule과 동기화)
+    const minH=document.activeElement===ta?300:72;
+    const newH=Math.max(minH,ta.scrollHeight+2);
+    ta.style.height=newH+'px';
+  };
+  document.addEventListener('focusin',(e)=>{
+    if(e.target.tagName==='TEXTAREA')grow(e.target);
+  });
+  document.addEventListener('input',(e)=>{
+    if(e.target.tagName==='TEXTAREA'&&document.activeElement===e.target)grow(e.target);
+  });
+  document.addEventListener('focusout',(e)=>{
+    if(e.target.tagName==='TEXTAREA'){
+      // 포커스 빠지면 inline height 제거 → CSS의 min-height(72px)로 복귀
+      e.target.style.height='';
+    }
+  });
+}
+
 init();
+setupTextareaAutoGrow();
 </script>
 
 <!-- 탭 복사 모달 -->

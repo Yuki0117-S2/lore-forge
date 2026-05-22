@@ -837,7 +837,7 @@ ${svg}
 //  RPG2K (쯔꾸르 호러/어드벤처)
 //  &p=이름§부제목§위치§장
 //  &hp=현재§최대§모드     (모드: heart/rose/moon/eye/spark, 기본 heart)
-//  &items=아이템1§아이템2§...   (최대 12개)
+//  &items=아이템1|아이템2|...   (최대 12개)
 //  &log=일지1§일지2§...          (최대 4줄)
 //  &say=하단 대사
 // ════════════════════════════════════════════
@@ -948,7 +948,7 @@ function renderRpg2k(params) {
   const iconSize = count <= 8 ? 28 : 24;
   const step = count <= 8 ? (iconSize + 12) : (iconSize + 6);
 
-  const items = params.get('items') ? params.get('items').split('§').slice(0, 12).map(esc) : [];
+  const items = params.get('items') ? params.get('items').split('|').slice(0, 12).map(esc) : [];
   const logs  = params.get('log')   ? params.get('log').split('§').slice(0, 4).map(esc)  : [];
   const note  = esc(params.get('say') || '');
 

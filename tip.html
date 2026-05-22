@@ -1441,23 +1441,29 @@ av — 직업 아이콘 키 (영어 소문자)</pre>`
         body:`<div class="label label-use">URL 파라미터 형식</div>
 <pre>/?t=rpg2k&p=이름§부제목§위치§장
 &hp=현재§최대§모드
-&items=아이템1§아이템2§...
+&items=아이템1|아이템2|...
 &log=일지1§일지2§...
 &say=하단 대사</pre>
 <hr class="divider">
 <div class="label label-example">예시</div>
 <pre>/?t=rpg2k&p=겨울§미술관에+갇힌+소녀§푸른+복도§CHAPTER+02
 &hp=4§6§heart
-&items=작은+열쇠§손수건§비스킷§사탕§푸른+인형§종이쪽지
+&items=작은+열쇠|손수건|비스킷|사탕|푸른+인형|종이쪽지
 &log=게르트루드의+그림+앞을+지나갔다§푸른+인형이+자꾸+따라오는+것+같다§가리의+라이터를+빌렸다
 &say=이+미술관,+출구가+있긴+한+걸까…</pre>
+<hr class="divider">
+<div class="label label-example">p 자리 비우기</div>
+<pre># 부제목·위치·장 일부만 채우기 — §로 자리만 유지
+&p=Ib§§갤러리§          ← 이름 + 위치만
+&p=달의+마녀§§§          ← 이름만
+&p=관찰자§§§CHAPTER+03   ← 이름 + 장만</pre>
 <hr class="divider">
 <div class="desc"><strong>파라미터 설명:</strong><br>
 • <strong>p</strong> — 이름§부제목§위치§장(章). 부제목·위치·장은 비워둘 수 있음 (§로 자리 유지)<br>
 • <strong>hp</strong> — 현재§최대§모드. 모드 생략 시 heart 기본값<br>
-• <strong>items</strong> — 아이템 목록 (§로 구분, 최대 12개, 9자 넘으면 자동 …)<br>
-• <strong>log</strong> — 일지/메모 (§로 줄바꿈, 최대 4줄, 36자 넘으면 자동 …)<br>
-• <strong>say</strong> — 하단 대사/독백 (선택, 가운데 정렬)</div>
+• <strong>items</strong> — 아이템 목록 (|로 구분, 최대 12개). 자동으로 <strong>◆ 아이콘</strong>이 앞에 붙고 <strong>3열 그리드</strong>로 정렬됨. 9자 초과 시 자동 말줄임(…)<br>
+• <strong>log</strong> — 일지/메모 (§로 줄바꿈, 최대 4줄). 자동으로 <strong>· 점</strong>이 앞에 붙고 이탤릭으로 표시됨. 36자 초과 시 자동 말줄임<br>
+• <strong>say</strong> — 하단 대사/독백 (선택, 가운데 정렬, 이탤릭). 양쪽에 <strong>" " 큰따옴표가 자동으로 추가</strong>되므로 따옴표를 또 쓰지 말 것</div>
 <hr class="divider">
 <div class="label label-example">HP 모드 5종</div>
 <div class="desc">
@@ -1481,7 +1487,7 @@ av — 직업 아이콘 키 (영어 소문자)</pre>`
 hp (§로 구분):
   현재§최대§모드
 
-items (§로 구분, 최대 12개)
+items (|로 구분, 최대 12개)
 log   (§로 구분, 최대 4줄)
 say   — 하단 대사 (선택)
 
@@ -1552,11 +1558,13 @@ char — 관련 캐릭터 (|로 구분, 선택)</pre>`
 - 한글 직업명은 영어 키로 변환하여 URL에 넣는다
 
 ### 쯔꾸르 상태창
-![](https://st.winter0.workers.dev/?t=rpg2k&p=이름§부제목§위치§장&hp=현재§최대§모드&items=아이템1§아이템2&log=일지1§일지2&say=하단+대사)
+![](https://st.winter0.workers.dev/?t=rpg2k&p=이름§부제목§위치§장&hp=현재§최대§모드&items=아이템1|아이템2&log=일지1§일지2&say=하단+대사)
 - hp 모드: heart(기본) / rose / moon / eye / spark
 - rose는 꽃점 방식 — hp=3/5면 세 잎 꽃 3송이 + 시든 줄기 2개
 - moon은 연속 위상 변화 (보름→반달→초승달)
-- items 최대 12개, log 최대 4줄, say는 하단 대사 (선택)
+- items: 아이템 목록 (|로 구분, 최대 12개). ◆ 아이콘 자동 추가, 3열 그리드 정렬
+- log: 일지/메모 (§로 줄바꿈, 최대 4줄). · 점 자동 추가, 이탤릭
+- say: 하단 대사/독백 (선택). 양쪽에 " " 따옴표 자동 추가됨 — 따옴표를 또 쓰지 말 것
 - p의 부제목/위치/장은 비워도 됨 (§로 자리만 유지)
 - 일지/메모/독백을 분위기에 맞게 1~3인칭 자유롭게 작성
 

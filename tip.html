@@ -1327,11 +1327,11 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
         body:`<div class="label label-use">URL 파라미터 형식</div>
 <pre>/?t=vn&chars=이름§호감도§속마음§기억|이름§호감도§속마음§기억
 &my=체력§스트레스§정신력§피로도§발정도
-&date=날짜텍스트&title=제목</pre>
+&date=YYYY-MM-DD&time=HH:MM&title=제목</pre>
 <hr class="divider">
 <div class="label label-example">예시</div>
 <pre>/?t=vn&chars=소라§75§두근거려§첫만남|블레어§40§재밌는+애네§카페|???§0§§
-&my=80§30§70§20§10&date=3월+15일&title=RELATIONSHIP+STATUS</pre>
+&my=80§30§70§20§10&date=2026-03-15&time=14:30&title=RELATIONSHIP+STATUS</pre>
 <hr class="divider">
 <div class="desc"><strong>파라미터 설명:</strong><br>
 • <strong>chars</strong> — 캐릭터 카드 (|로 구분, 최대 6명)<br>
@@ -1340,7 +1340,8 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
 • <strong>속마음</strong> — 이탤릭 인용 형태로 표시 (16자 초과 시 자동 말줄임)<br>
 • <strong>기억</strong> — 📎 아이콘과 함께 표시 (12자 초과 시 자동 말줄임)<br>
 • <strong>my</strong> — 내 상태 5개 (각 0~100, 기본값 100§0§100§0§0)<br>
-• <strong>date</strong> — 상단 날짜 (기본: ○월 ○일)<br>
+• <strong>date</strong> — 날짜. <code>YYYY-MM-DD</code> 형식이면 요일 자동 계산 (예: <code>2026-03-15</code> → <code>2026.03.15 (일)</code>). 자유 텍스트도 가능 (기본: ○월 ○일)<br>
+• <strong>time</strong> — 시각 <code>HH:MM</code> (선택, 입력 시 날짜 뒤에 <code>· 14:30</code> 형태로 표시)<br>
 • <strong>title</strong> — 상단 타이틀 (기본: RELATIONSHIP STATUS)</div>
 <hr class="divider">
 <div class="label label-example">필드 설명</div>
@@ -1354,7 +1355,8 @@ my (§로 구분):
   체력§스트레스§정신력§피로도§발정도
   각 0~100 (색상 자동 변환 — 위험 시 빨강)
 
-date — 날짜 표시 (자유 형식)
+date — 날짜 (YYYY-MM-DD면 요일 자동, 그 외엔 자유 텍스트)
+time — 시각 HH:MM (선택, 24시간제)
 title — 상단 제목 (선택, 기본값 있음)</pre>`
       },
       {
@@ -1550,12 +1552,14 @@ char — 관련 캐릭터 (|로 구분, 선택)</pre>`
 도메인: https://st.winter0.workers.dev
 
 ### 미연시 상태창
-![](https://st.winter0.workers.dev/?t=vn&chars=이름§호감도§속마음§기억|이름§호감도§속마음§기억&my=체력§스트레스§정신력§피로도§발정도&date=날짜&title=제목)
+![](https://st.winter0.workers.dev/?t=vn&chars=이름§호감도§속마음§기억|이름§호감도§속마음§기억&my=체력§스트레스§정신력§피로도§발정도&date=YYYY-MM-DD&time=HH:MM&title=제목)
 - chars: 캐릭터 카드 (|로 구분, 최대 6명)
 - 이름 ???이면 미해금 (블러+잠금)
 - 호감도 0~100, 속마음 16자 이내, 기억 12자 이내
 - my: 내 상태 5개 (각 0~100)
-- date, title: 선택사항
+- date: YYYY-MM-DD 형식 권장 (예: 2026-03-15 → 자동으로 "2026.03.15 (일)" 표시). 자유 텍스트도 가능
+- time: HH:MM 24시간제 (선택, 예: 14:30). 입력 시 날짜 뒤에 표시
+- title: 선택사항
 
 ### 다크판타지 상태창
 ![](https://st.winter0.workers.dev/?t=dark&p=이름§칭호§직업§성향§레벨&s=hp§hpmax§mp§mpmax§sp§spmax§exp&stat=str§def§agi§int§luk§wis&eq=무기§등급§방어구§등급§악세서리§등급&buf=버프§!디버프)

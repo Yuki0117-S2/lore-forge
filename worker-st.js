@@ -21,12 +21,45 @@ function safeInt(v, fallback = 0, min = 0, max = 100) {
 //  VN (미연시)
 //  &chars=이름§호감도§속마음§기억|...
 //  &my=체력§스트레스§정신력§피로도§발정도
-//  &date=날짜  &title=제목
+//  &date=날짜(YYYY-MM-DD면 요일자동) &time=HH:MM(선택) &title=제목
 // ════════════════════════════════════════════
 
 function hearts(val) {
   const h = Math.round(val / 20);
   return '♥'.repeat(h) + '♡'.repeat(5 - h);
+}
+
+// 날짜 포맷: YYYY-MM-DD 패턴이면 자동으로 요일 붙임. 아니면 원문 유지.
+// time이 HH:MM 패턴이면 " · HH:MM"으로 뒤에 붙임.
+function formatVNDate(rawDate, rawTime) {
+  const DOW = ['일', '월', '화', '수', '목', '금', '토'];
+  let out;
+  const dateStr = rawDate || '';
+  const m = dateStr.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (m) {
+    const y = parseInt(m[1]), mo = parseInt(m[2]), d = parseInt(m[3]);
+    const dt = new Date(Date.UTC(y, mo - 1, d));
+    // 유효 날짜 검증 (예: 2026-02-31 같은 거 걸러냄)
+    if (dt.getUTCFullYear() === y && dt.getUTCMonth() === mo - 1 && dt.getUTCDate() === d) {
+      const mm = String(mo).padStart(2, '0');
+      const dd = String(d).padStart(2, '0');
+      out = `${y}.${mm}.${dd} (${DOW[dt.getUTCDay()]})`;
+    } else {
+      out = dateStr; // 잘못된 날짜면 원문 그대로
+    }
+  } else {
+    out = dateStr || '○월 ○일';
+  }
+  if (rawTime) {
+    const t = rawTime.match(/^(\d{1,2}):(\d{2})$/);
+    if (t) {
+      const hour = parseInt(t[1]), min = parseInt(t[2]);
+      if (hour >= 0 && hour <= 23 && min >= 0 && min <= 59) {
+        out += ` · ${String(hour).padStart(2, '0')}:${t[2]}`;
+      }
+    }
+  }
+  return out;
 }
 
 function barColor(type, val) {
@@ -134,7 +167,7 @@ function renderVN(params) {
   const PAD = 18;
   const rawChars = params.get('chars') || '???§0§§';
   const rawMy = params.get('my') || '100§0§100§0§0';
-  const date = esc(params.get('date') || '○월 ○일');
+  const date = esc(formatVNDate(params.get('date'), params.get('time')));
   const title = esc(params.get('title') || 'RELATIONSHIP STATUS');
   const chars = rawChars.split('|').slice(0, 6);
 

@@ -147,8 +147,17 @@ const CATEGORIES = [
 | 이름   | 남궁괄         |
 | 직위   | 가주           |
 | 경지   | 화경           |</pre>
+<div class="label label-example">열 정렬 (헤더 구분선에 : 추가)</div>
+<pre>| 이름   | 호감도 | 상태   |
+|:-------|:------:|-------:|
+| Harry  |   64   |   생존 |
+| Fin    |  100   |   생존 |</pre>
+<div class="desc">
+• <strong>:---</strong> — 왼쪽 정렬 (기본)<br>
+• <strong>:---:</strong> — 가운데 정렬<br>
+• <strong>---:</strong> — 오른쪽 정렬</div>
 <div class="label label-example">활용 예시</div>
-<div class="desc">캐릭터 테이블, 금지/허용 어휘 대조표, 호감도 구간별 행동 변화 등</div>`
+<div class="desc">캐릭터 테이블, 금지/허용 어휘 대조표, 호감도 구간별 행동 변화 등. 숫자 컬럼은 가운데/오른쪽 정렬하면 가독성↑</div>`
       },
       {
         id:'t-0-1', title:'목록 (리스트)',
@@ -219,7 +228,13 @@ const CATEGORIES = [
 ### 기본 정보
 ### 성격 & 행동 원칙
 ---
-## 세계관 규칙</pre>`
+## 세계관 규칙</pre>
+<div class="label label-example">이미지 URL 안정성 팁</div>
+<div class="desc">AI 응답 끝에 <code>![](URL)</code>이 오면 일부 파서가 URL을 *불완전 블록*으로 보고 안 띄우는 경우가 있음. <strong>URL 다음 줄에 <code>---</code>(수평선) 한 줄</strong> 두면 *명확한 블록 종료* 신호로 작용해서 안정적으로 렌더링됨. 응답 마지막에 엔딩 카드/스탯 카드 박을 때 특히 유용.</div>
+<pre>...{{user}}는 마침내 박물관을 빠져나왔다.
+
+![](https://st.winter0.workers.dev/?t=ending&...)
+---</pre>`
       }
     ]
   },

@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>던전 크기 비교</title>
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #1a1a24;
+    color: #e0e0e8;
+    padding: 24px;
+    margin: 0;
+  }
+  h1 { color: #DDAACC; font-size: 20px; margin-bottom: 4px; }
+  h2 { color: #8889CD; font-size: 16px; margin-top: 32px; margin-bottom: 8px; }
+  .desc { color: #888; font-size: 13px; margin-bottom: 12px; }
+  .row {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    margin-bottom: 32px;
+  }
+  .map-wrap {
+    background: #0f0f18;
+    border-radius: 12px;
+    padding: 12px;
+  }
+  .map-wrap h3 {
+    color: #CCAA88;
+    font-size: 13px;
+    margin: 0 0 8px 0;
+    font-weight: normal;
+  }
+  .size-info {
+    color: #888;
+    font-size: 11px;
+    margin-bottom: 8px;
+  }
+  .note {
+    background: #2a1818;
+    border-left: 3px solid #BB6688;
+    padding: 12px 16px;
+    margin-top: 16px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #ddc;
+  }
+</style>
+</head>
+<body>
+
+<h1>던전 크기 비교 — 점진적 증가 방식</h1>
+<p class="desc">실제 SVG 출력 크기로 그려놨어. 챗봇 채팅창에 들어갈 때 어떻게 보일지 가늠해봐.</p>
+
+<h2>방식 A: 점진적 증가 (10층마다 +1)</h2>
+<p class="desc">아인크라드 컨셉 — 위층 갈수록 넓어짐</p>
+
+<div class="row">
+  <!-- 1층: 6x5 -->
+  <div class="map-wrap">
+    <h3>1층</h3>
+    <div class="size-info">6×5 그리드 · SVG 320×280px</div>
+    <svg width="320" height="280" viewBox="0 0 320 280" xmlns="http://www.w3.org/2000/svg">
+      <rect width="320" height="280" fill="#0f0f18"/>
+      <text x="160" y="24" fill="#DDAACC" font-family="monospace" font-size="11" text-anchor="middle">아인크라드 1층</text>
+      <g transform="translate(40, 40)">
+        <!-- 6x5 그리드, 셀 40px -->
+        <g>
+          <!-- 행 0 -->
+          <rect x="0"   y="0" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+          <rect x="40"  y="0" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+          <rect x="80"  y="0" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+          <rect x="120" y="0" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+          <rect x="160" y="0" width="40" height="40" fill="#15151c"/>
+          <rect x="200" y="0" width="40" height="40" fill="#8889CD"/>
+          <text x="220" y="27" fill="#0f0f18" font-family="monospace" font-size="16" text-anchor="middle" font-weight="bold">▼</text>
+          <!-- 행 1 -->
+          <rect x="0"   y="40" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+          <rect x="40"  y="40" width="40" height="40" fill="#3d3548" stroke="#1a1a24"/>
+          <rect x="80"  y="40" width="40" height="40" fill="#3d3548" stroke="#1a1a24"/>
+          <rect x="120" y="40" width="40" height="40" fill="#3d3548" stroke="#1a1a24"/>
+          <rect x="160" y="40" width="40" height="40" fill="#15151c"/>
+          <rect x="200" y="40" width="40" height="40" fill="#15151c"/>
+          <!-- 행 2 (보스방) -->
+          <rect x="0"   y="80" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+          <rect x="40"  y="80" width="40" height="40" fill="#3d3548" stroke="#1a1a24"/>
+          <rect x="80"  y="80" width="40" height="40" fill="#3d3548" stroke="#1a1a24"/>
+          <rect x="120" y="80" width="40" height="40" fill="#3d3548" stroke="#1a1a24"/>
+          <rect x="160" y="80" width="40" height="40" fill="#BB6688"/>
+          <text x="180" y="108" fill="#fff" font-family="monospace" font-size="14" text-anchor="middle" font-weight="bold">B</text>
+          <rect x="200" y="80" width="40" height="40" fill="#15151c"/>
+          <!-- 행 3 -->
+          <rect x="0"   y="120" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+          <rect x="40"  y="120" width="40" height="40" fill="#15151c"/>
+          <rect x="80"  y="120" width="40" height="40" fill="#15151c"/>
+          <rect x="120" y="120" width="40" height="40" fill="#15151c"/>
+          <rect x="160" y="120" width="40" height="40" fill="#15151c"/>
+          <rect x="200" y="120" width="40" height="40" fill="#15151c"/>
+          <!-- 행 4 (입구) -->
+          <rect x="0"   y="160" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+          <rect x="40"  y="160" width="40" height="40" fill="#CCAA88"/>
+          <text x="60" y="187" fill="#0f0f18" font-family="monospace" font-size="14" text-anchor="middle" font-weight="bold">E</text>
+          <rect x="80"  y="160" width="40" height="40" fill="#15151c"/>
+          <rect x="120" y="160" width="40" height="40" fill="#15151c"/>
+          <rect x="160" y="160" width="40" height="40" fill="#15151c"/>
+          <rect x="200" y="160" width="40" height="40" fill="#15151c"/>
+          <!-- 플레이어 (1, 4) -->
+          <circle cx="60" cy="180" r="11" fill="#EE1166" stroke="#fff" stroke-width="2"/>
+          <path d="M 71 180 L 79 177 L 79 183 Z" fill="#fff"/>
+        </g>
+      </g>
+      <text x="20" y="270" fill="#666" font-family="monospace" font-size="10">E=입구  B=보스  ▼=계단</text>
+    </svg>
+  </div>
+
+  <!-- 25층: 9x7 -->
+  <div class="map-wrap">
+    <h3>25층 (중간)</h3>
+    <div class="size-info">9×7 그리드 · SVG 470×400px</div>
+    <svg width="470" height="400" viewBox="0 0 470 400" xmlns="http://www.w3.org/2000/svg">
+      <rect width="470" height="400" fill="#0f0f18"/>
+      <text x="235" y="24" fill="#DDAACC" font-family="monospace" font-size="11" text-anchor="middle">아인크라드 25층 · 정예</text>
+      <g transform="translate(40, 40)">
+        <!-- 9x7 그리드, 셀 40px -->
+        <!-- 단순하게 그리기 위해 패턴만 -->
+        <g>
+          <!-- 행 0 -->
+          <rect x="0" y="0" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+          <rect x="40" y="0" width="40" height="40" fill="#15151c"/>
+          <rect x="80" y="0" width="40" height="40" fill="#15151c"/>
+          <rect x="120" y="0" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+          <rect x="160" y="0" width="40" height="40" fill="#3d3548" stroke="#1a1a24"/>
+          <rect x="200" y="0" width="40" height="40" fill="#3d3548" stroke="#1a1a24"/>
+          <rect x="240" y="0" width="40" height="40" fill="#884499"/>
+          <text x="260" y="27" fill="#fff" font-family="monospace" font-size="14" text-anchor="middle" font-weight="bold">B</text>
+          <rect x="280" y="0" width="40" height="40" fill="#3d3548" stroke="#1a1a24"/>
+          <rect x="320" y="0" width="40" height="40" fill="#15151c"/>
+          <!-- 행 1 -->
+          <rect x="0" y="40" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+          <rect x="40" y="40" width="40" height="40" fill="#15151c"/>
+          <rect x="80" y="40" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+          <rect x="120" y="40" width="40" height="40" fill="#15151c"/>
+          <rect x="160" y="40" width="40" height="40" fill="#3d3548" stroke="#1a1a24"/>
+          <rect x="200" y="40" width="40" height="40" fill="#3d3548" stroke="#1a1a24"/>
+          <rect x="240" y="40" width="40" height="40" fill="#3d3548" stroke="#1a1a24"/>
+          <rect x="280" y="40" width="40" height="40" fill="#3d3548" stroke="#1a1a24"/>
+          <rect x="320" y="40" width="40" height="40" fill="#15151c"/>
+          <!-- 행 2 -->
+          <rect x="0" y="80" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+          <rect x="40" y="80" width="40" height="40" fill="#15151c"/>
+          <rect x="80" y="80" width="40" height="40" fill="#15151c"/>
+          <rect x="120" y="80" width="40" height="40" fill="#15151c"/>
+          <rect x="160" y="80" width="40" height="40" fill="#15151c"/>
+          <rect x="200" y="80" width="40" height="40" fill="#15151c"/>
+          <rect x="240" y="80" width="40" height="40" fill="#15151c"/>
+          <rect x="280" y="80" width="40" height="40" fill="#15151c"/>
+          <rect x="320" y="80" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+          <!-- 행 3 (함정) -->
+          <rect x="0" y="120" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+          <rect x="40" y="120" width="40" height="40" fill="#15151c"/>
+          <rect x="80" y="120" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+          <text x="100" y="147" fill="#BB6688" font-family="monospace" font-size="16" text-anchor="middle" font-weight="bold">✦</text>
+          <rect x="120" y="120" width="40" height="40" fill="#15151c"/>
+          <rect x="160" y="120" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+          <rect x="200" y="120" width="40" height="40" fill="#15151c"/>
+          <rect x="240" y="120" width="40" height="40" fill="#15151c"/>
+          <rect x="280" y="120" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+          <text x="300" y="147" fill="#BB6688" font-family="monospace" font-size="16" text-anchor="middle" font-weight="bold">✦</text>
+          <rect x="320" y="120" width="40" height="40" fill="#15151c"/>
+          <!-- 행 4 (플레이어) -->
+          <rect x="0" y="160" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+          <rect x="40" y="160" width="40" height="40" fill="#3d3548" stroke="#1a1a24"/>
+          <rect x="80" y="160" width="40" height="40" fill="#3d3548" stroke="#1a1a24"/>
+          <rect x="120" y="160" width="40" height="40" fill="#3d3548" stroke="#1a1a24"/>
+          <rect x="160" y="160" width="40" height="40" fill="#3d3548" stroke="#1a1a24"/>
+          <rect x="200" y="160" width="40" height="40" fill="#3d3548" stroke="#1a1a24"/>
+          <rect x="240" y="160" width="40" height="40" fill="#15151c"/>
+          <rect x="280" y="160" width="40" height="40" fill="#15151c"/>
+          <rect x="320" y="160" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+          <!-- 행 5 -->
+          <rect x="0" y="200" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+          <rect x="40" y="200" width="40" height="40" fill="#3d3548" stroke="#1a1a24"/>
+          <rect x="80" y="200" width="40" height="40" fill="#3d3548" stroke="#1a1a24"/>
+          <rect x="120" y="200" width="40" height="40" fill="#3d3548" stroke="#1a1a24"/>
+          <rect x="160" y="200" width="40" height="40" fill="#3d3548" stroke="#1a1a24"/>
+          <rect x="200" y="200" width="40" height="40" fill="#3d3548" stroke="#1a1a24"/>
+          <rect x="240" y="200" width="40" height="40" fill="#15151c"/>
+          <rect x="280" y="200" width="40" height="40" fill="#8889CD"/>
+          <text x="300" y="227" fill="#0f0f18" font-family="monospace" font-size="14" text-anchor="middle" font-weight="bold">▼</text>
+          <rect x="320" y="200" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+          <!-- 행 6 (입구) -->
+          <rect x="0" y="240" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+          <rect x="40" y="240" width="40" height="40" fill="#CCAA88"/>
+          <text x="60" y="267" fill="#0f0f18" font-family="monospace" font-size="14" text-anchor="middle" font-weight="bold">E</text>
+          <rect x="80" y="240" width="40" height="40" fill="#15151c"/>
+          <rect x="120" y="240" width="40" height="40" fill="#15151c"/>
+          <rect x="160" y="240" width="40" height="40" fill="#15151c"/>
+          <rect x="200" y="240" width="40" height="40" fill="#15151c"/>
+          <rect x="240" y="240" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+          <rect x="280" y="240" width="40" height="40" fill="#15151c"/>
+          <rect x="320" y="240" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+          <!-- 플레이어 (3, 4) -->
+          <circle cx="140" cy="180" r="11" fill="#EE1166" stroke="#fff" stroke-width="2"/>
+          <path d="M 151 180 L 159 177 L 159 183 Z" fill="#fff"/>
+        </g>
+      </g>
+      <text x="20" y="390" fill="#666" font-family="monospace" font-size="10">E=입구  B=정예보스  ▼=계단  ✦=함정</text>
+    </svg>
+  </div>
+</div>
+
+<!-- 50층 별도 행 -->
+<div class="row">
+  <div class="map-wrap">
+    <h3>50층 (최종 보스 / 최대 크기)</h3>
+    <div class="size-info">11×10 그리드 · SVG 560×520px</div>
+    <svg width="560" height="520" viewBox="0 0 560 520" xmlns="http://www.w3.org/2000/svg">
+      <rect width="560" height="520" fill="#0f0f18"/>
+      <text x="280" y="24" fill="#EE1166" font-family="monospace" font-size="13" text-anchor="middle" font-weight="bold">아인크라드 50층 · 최종</text>
+      <g transform="translate(40, 40)">
+        <!-- 11x10 그리드, 셀 40px -->
+        <!-- 단순 패턴으로 미궁 느낌 -->
+        <g>
+          <!-- 행 0 -->
+          <g>
+            <rect x="0" y="0" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+            <rect x="40" y="0" width="40" height="40" fill="#15151c"/>
+            <rect x="80" y="0" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+            <rect x="120" y="0" width="40" height="40" fill="#15151c"/>
+            <rect x="160" y="0" width="40" height="40" fill="#15151c"/>
+            <rect x="200" y="0" width="40" height="40" fill="#15151c"/>
+            <rect x="240" y="0" width="40" height="40" fill="#15151c"/>
+            <rect x="280" y="0" width="40" height="40" fill="#15151c"/>
+            <rect x="320" y="0" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+            <rect x="360" y="0" width="40" height="40" fill="#15151c"/>
+            <rect x="400" y="0" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+          </g>
+          <!-- 행 1 -->
+          <g>
+            <rect x="0" y="40" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+            <rect x="40" y="40" width="40" height="40" fill="#15151c"/>
+            <rect x="80" y="40" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+            <rect x="120" y="40" width="40" height="40" fill="#15151c"/>
+            <rect x="160" y="40" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+            <rect x="200" y="40" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+            <rect x="240" y="40" width="40" height="40" fill="#15151c"/>
+            <rect x="280" y="40" width="40" height="40" fill="#15151c"/>
+            <rect x="320" y="40" width="40" height="40" fill="#15151c"/>
+            <rect x="360" y="40" width="40" height="40" fill="#15151c"/>
+            <rect x="400" y="40" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+          </g>
+          <!-- 행 2 -->
+          <g>
+            <rect x="0" y="80" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+            <rect x="40" y="80" width="40" height="40" fill="#15151c"/>
+            <rect x="80" y="80" width="40" height="40" fill="#15151c"/>
+            <rect x="120" y="80" width="40" height="40" fill="#15151c"/>
+            <rect x="160" y="80" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+            <rect x="200" y="80" width="40" height="40" fill="#15151c"/>
+            <rect x="240" y="80" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+            <rect x="280" y="80" width="40" height="40" fill="#15151c"/>
+            <rect x="320" y="80" width="40" height="40" fill="#15151c"/>
+            <rect x="360" y="80" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+            <rect x="400" y="80" width="40" height="40" fill="#15151c"/>
+          </g>
+          <!-- 행 3 (보스방) -->
+          <g>
+            <rect x="0" y="120" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+            <rect x="40" y="120" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+            <rect x="80" y="120" width="40" height="40" fill="#15151c"/>
+            <rect x="120" y="120" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+            <!-- 최종 보스방 (3x3) -->
+            <rect x="160" y="120" width="120" height="120" fill="#EE1166" opacity="0.3"/>
+            <rect x="160" y="120" width="120" height="120" fill="none" stroke="#EE1166" stroke-width="2"/>
+            <text x="220" y="195" fill="#fff" font-family="monospace" font-size="24" text-anchor="middle" font-weight="bold">F</text>
+            <text x="220" y="215" fill="#EE1166" font-family="monospace" font-size="9" text-anchor="middle">FINAL</text>
+            <rect x="280" y="120" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+            <rect x="320" y="120" width="40" height="40" fill="#15151c"/>
+            <rect x="360" y="120" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+            <rect x="400" y="120" width="40" height="40" fill="#15151c"/>
+          </g>
+          <!-- 행 4 -->
+          <g>
+            <rect x="0" y="160" width="40" height="40" fill="#15151c"/>
+            <rect x="40" y="160" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+            <rect x="80" y="160" width="40" height="40" fill="#15151c"/>
+            <rect x="120" y="160" width="40" height="40" fill="#15151c"/>
+            <!-- 보스방 영역 -->
+            <rect x="280" y="160" width="40" height="40" fill="#15151c"/>
+            <rect x="320" y="160" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+            <rect x="360" y="160" width="40" height="40" fill="#15151c"/>
+            <rect x="400" y="160" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+          </g>
+          <!-- 행 5 -->
+          <g>
+            <rect x="0" y="200" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+            <rect x="40" y="200" width="40" height="40" fill="#15151c"/>
+            <rect x="80" y="200" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+            <rect x="120" y="200" width="40" height="40" fill="#15151c"/>
+            <!-- 보스방 영역 끝 -->
+            <rect x="280" y="200" width="40" height="40" fill="#15151c"/>
+            <rect x="320" y="200" width="40" height="40" fill="#15151c"/>
+            <rect x="360" y="200" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+            <rect x="400" y="200" width="40" height="40" fill="#15151c"/>
+          </g>
+          <!-- 행 6 (함정 행) -->
+          <g>
+            <rect x="0" y="240" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+            <rect x="40" y="240" width="40" height="40" fill="#15151c"/>
+            <rect x="80" y="240" width="40" height="40" fill="#15151c"/>
+            <rect x="120" y="240" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+            <text x="140" y="268" fill="#BB6688" font-family="monospace" font-size="18" text-anchor="middle" font-weight="bold">✦</text>
+            <rect x="160" y="240" width="40" height="40" fill="#15151c"/>
+            <rect x="200" y="240" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+            <rect x="240" y="240" width="40" height="40" fill="#15151c"/>
+            <rect x="280" y="240" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+            <text x="300" y="268" fill="#BB6688" font-family="monospace" font-size="18" text-anchor="middle" font-weight="bold">✦</text>
+            <rect x="320" y="240" width="40" height="40" fill="#15151c"/>
+            <rect x="360" y="240" width="40" height="40" fill="#15151c"/>
+            <rect x="400" y="240" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+            <text x="420" y="268" fill="#BB6688" font-family="monospace" font-size="18" text-anchor="middle" font-weight="bold">✦</text>
+          </g>
+          <!-- 행 7 -->
+          <g>
+            <rect x="0" y="280" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+            <rect x="40" y="280" width="40" height="40" fill="#15151c"/>
+            <rect x="80" y="280" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+            <rect x="120" y="280" width="40" height="40" fill="#15151c"/>
+            <rect x="160" y="280" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+            <rect x="200" y="280" width="40" height="40" fill="#15151c"/>
+            <rect x="240" y="280" width="40" height="40" fill="#15151c"/>
+            <rect x="280" y="280" width="40" height="40" fill="#15151c"/>
+            <rect x="320" y="280" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+            <rect x="360" y="280" width="40" height="40" fill="#15151c"/>
+            <rect x="400" y="280" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+          </g>
+          <!-- 행 8 -->
+          <g>
+            <rect x="0" y="320" width="40" height="40" fill="#15151c"/>
+            <rect x="40" y="320" width="40" height="40" fill="#15151c"/>
+            <rect x="80" y="320" width="40" height="40" fill="#15151c"/>
+            <rect x="120" y="320" width="40" height="40" fill="#15151c"/>
+            <rect x="160" y="320" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+            <rect x="200" y="320" width="40" height="40" fill="#15151c"/>
+            <rect x="240" y="320" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+            <rect x="280" y="320" width="40" height="40" fill="#15151c"/>
+            <rect x="320" y="320" width="40" height="40" fill="#15151c"/>
+            <rect x="360" y="320" width="40" height="40" fill="#15151c"/>
+            <rect x="400" y="320" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+          </g>
+          <!-- 행 9 (입구) -->
+          <g>
+            <rect x="0" y="360" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+            <rect x="40" y="360" width="40" height="40" fill="#CCAA88"/>
+            <text x="60" y="388" fill="#0f0f18" font-family="monospace" font-size="14" text-anchor="middle" font-weight="bold">E</text>
+            <rect x="80" y="360" width="40" height="40" fill="#15151c"/>
+            <rect x="120" y="360" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+            <rect x="160" y="360" width="40" height="40" fill="#15151c"/>
+            <rect x="200" y="360" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+            <rect x="240" y="360" width="40" height="40" fill="#15151c"/>
+            <rect x="280" y="360" width="40" height="40" fill="#15151c"/>
+            <rect x="320" y="360" width="40" height="40" fill="#15151c"/>
+            <rect x="360" y="360" width="40" height="40" fill="#2a2a3a" stroke="#1a1a24"/>
+            <rect x="400" y="360" width="40" height="40" fill="#15151c"/>
+          </g>
+          <!-- 플레이어 (1, 9) -->
+          <circle cx="60" cy="380" r="11" fill="#EE1166" stroke="#fff" stroke-width="2"/>
+          <path d="M 60 369 L 57 377 L 63 377 Z" fill="#fff"/>
+        </g>
+      </g>
+      <text x="20" y="510" fill="#666" font-family="monospace" font-size="10">E=입구  F=최종보스(3×3)  ✦=함정</text>
+    </svg>
+  </div>
+</div>
+
+<div class="note">
+<b>⚠ 챗봇 환경 고려사항:</b><br>
+바베챗 같은 메신저는 이미지 높이 한계가 있어 (대략 750~850px 정도, <i>확인 불가</i>).<br>
+• 1층 (320×280): 여유 ✅<br>
+• 25층 (470×400): 여유 ✅<br>
+• 50층 (560×520): 여유 ✅<br>
+<br>
+즉 점진적 증가(11×10까지)는 <b>채팅창 안전 범위 안</b>이야. 만약 더 키우고 싶다면(15×12 같은) 그땐 한계 넘을 수 있어.
+</div>
+
+<h2>방식 B: 더 단순한 두 단계</h2>
+<p class="desc">A안이 복잡하면 이렇게 단순화도 가능</p>
+<div class="row">
+  <div class="map-wrap" style="padding:20px;">
+    <h3>단순 2단계</h3>
+    <div class="size-info" style="line-height:1.8;">
+      • 1~25층: 7×6 그리드 (작음)<br>
+      • 26~50층: 10×8 그리드 (큼)<br>
+      <br>
+      <span style="color:#888;">→ 코드 단순, 변화는 한 번만</span>
+    </div>
+  </div>
+  <div class="map-wrap" style="padding:20px;">
+    <h3>고정 크기</h3>
+    <div class="size-info" style="line-height:1.8;">
+      • 전 층 8×6 그리드 (중간)<br>
+      <br>
+      <span style="color:#888;">→ 가장 단순, 시각적 통일감</span><br>
+      <span style="color:#888;">→ 단점: 50층이라는 스케일감 없음</span>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

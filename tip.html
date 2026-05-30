@@ -1319,7 +1319,7 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
     ]
   },
   {
-    id:'cat-st', icon:'⚔️', title:'RPG / VN 상태창 UI', sub:'st.winter0.workers.dev — 미연시 · 다크판타지 · 픽셀RPG · 쯔꾸르 · 엔딩 카드',
+    id:'cat-st', icon:'⚔️', title:'RPG / VN 상태창 UI', sub:'st.winter0.workers.dev — 미연시 · 다크판타지 · 픽셀RPG · 쯔꾸르 · 엔딩 · 선택지 · 던전',
     items:[
       {
         id:'t-st-0', title:'미연시 상태창 (?t=vn)',
@@ -1542,7 +1542,159 @@ cond — 해금 조건 (§로 여러 줄, 선택)
 char — 관련 캐릭터 (|로 구분, 선택)</pre>`
       },
       {
-        id:'t-st-5', title:'바베챗 프롬프트 (복사용)',
+        id:'t-st-5', title:'선택지 박스 (?t=choice)',
+        body:`<div class="label label-use">URL 파라미터 형식</div>
+<pre>/?t=choice&c=보기1|보기2|보기3|보기4&title=제목&st=스타일</pre>
+<hr class="divider">
+<div class="label label-example">예시</div>
+<pre>/?t=choice&c=오른쪽+숲길로+간다|왼쪽+동굴로+간다|돌아간다|야영한다
+&title=어디로+갈까&st=vn</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명:</strong><br>
+• <strong>c</strong> — 선택지 (<code>|</code>로 구분, 최대 4개). 숫자 prefix(1. 2. 3. 4.)는 자동 부여<br>
+• <strong>title</strong> — 박스 위 작은 라벨 (선택, 생략 가능)<br>
+• <strong>st</strong> — 스타일 (생략 시 <code>vn</code>):<br>
+&nbsp;&nbsp;– <code>vn</code> 미연시 (반투명 보라 박스 + 핑크 숫자 원)<br>
+&nbsp;&nbsp;– <code>rpg</code> 클래식 RPG (검정 + 흰 이중 테두리)<br>
+&nbsp;&nbsp;– <code>modern</code> 모던 카드 (좌측 컬러바)<br>
+&nbsp;&nbsp;– <code>dot</code> 도트 RPG (8-bit 픽셀 그림자)<br>
+• 본문 텍스트는 박스에 들어가지 않음 — 위쪽 챗봇 메시지로 따로 출력<br>
+• 4개 초과 입력 시 앞 4개만 사용, 빈 항목은 자동 제거</div>
+<hr class="divider">
+<div class="label label-example">필드 설명</div>
+<pre>c (|로 보기 구분, 최대 4개):
+  보기1|보기2|보기3|보기4
+  각 보기는 28~30자 이내 권장 (초과 시 자동 말줄임)
+
+title — 박스 상단 라벨 (선택, 없으면 생략)
+
+st — 스타일 키 (생략 시 vn)
+  vn     → 미연시 풍 (기본값)
+  rpg    → 드퀘/쯔꾸르 풍 클래식
+  modern → 모던 미니멀 카드
+  dot    → 8-bit 도트 게임 풍</pre>`
+      },
+      {
+        id:'t-st-6', title:'던전 맵 (?t=dungeon)',
+        body:`<div class="label label-use">URL 파라미터 형식</div>
+<pre>/?t=dungeon&seed=시드&floor=층&type=깊이&label=라벨
+&enter=on&coords=on
+&px=숫자&py=숫자&dir=방향
+&traps=좌표&events=좌표&treasures=좌표&saves=좌표
+&doors=좌표&secrets=좌표&auto_secrets=숫자
+&size=폭,높이&labyrinth=on</pre>
+<hr class="divider">
+<div class="label label-example">예시 — 가장 단순한 입장</div>
+<pre>/?t=dungeon&seed=tx7f&floor=1&enter=on&label=초보자의+동굴</pre>
+<hr class="divider">
+<div class="label label-example">예시 — 탐색 중 (좌표 헤더 + 함정·보물)</div>
+<pre>/?t=dungeon&seed=tx7f&floor=2&coords=on&px=3&py=3&dir=e
+&traps=D3&events=F5&treasures=H6&saves=B2&label=잊혀진+유적</pre>
+<hr class="divider">
+<div class="desc"><strong>핵심 파라미터:</strong><br>
+• <strong>seed</strong> — 던전 형태 고정 키 (16자). 같은 seed+floor면 항상 같은 던전<br>
+• <strong>floor</strong> — 현재 층 (1~999). 자동으로 크기·보스 등급 조정<br>
+• <strong>type</strong> — short=10층 / medium=25층 / long=50층 (기본 short)<br>
+• <strong>enter=on</strong> — 입구방 중앙에 플레이어 자동 배치 + 보스 방향 자동 회전<br>
+• <strong>coords=on</strong> — 그리드 위/왼쪽에 좌표 헤더(A·B·C / 1·2·3) 표시<br>
+• <strong>px, py</strong> — 플레이어 좌표 (1부터, 숫자). enter=on보다 우선<br>
+• <strong>dir</strong> — 플레이어 방향 (n/s/e/w)<br>
+• <strong>auto_secrets</strong> — 자동 비밀공간 (1~5, 시드 고정)</div>
+<hr class="divider">
+<div class="label label-example">좌표 표기 — 두 체계 (주의!)</div>
+<pre>플레이어:    숫자-숫자  → px=4&py=3
+오브젝트:    알파벳-숫자 → traps=D3,B2,F5
+            (A=1열, B=2열, C=3열 ... y는 그대로 숫자)
+
+오브젝트 종류 (모두 콤마로 구분):
+  traps / events / treasures / saves
+  doors / secrets
+
+▶ 같은 좌표 (4, 3) 두 방식으로 표현:
+  플레이어 → px=4&py=3
+  오브젝트 → D3  (D = 4번째 알파벳)</pre>
+<hr class="divider">
+<div class="label label-example">좌표 그리드 시각화 (8×6 예시)</div>
+<pre>     A   B   C   D   E   F   G   H    ← 가로 (px / 알파벳)
+   ┌───┬───┬───┬───┬───┬───┬───┬───┐
+ 1 │ ▣ │ ▣ │   │   │   │   │   │   │
+ 2 │ ▣ │ ▣ │   │   │   │   │   │   │
+ 3 │   │   │   │ ⊙ │   │   │   │   │   ← 세로 (py)
+ 4 │   │   │   │   │   │   │ █ │ █ │
+ 5 │   │   │   │   │   │   │ █ │ █ │
+ 6 │   │   │   │   │   │   │ █ │ █ │
+   └───┴───┴───┴───┴───┴───┴───┴───┘
+▣ 입구방 (좌상단 고정)  █ 보스방 (우하단 고정)  ⊙ 플레이어 예시
+
+위 그림에서 ⊙ 좌표:
+• 플레이어로 표기  → px=4&py=3
+• 함정으로 표기    → traps=D3</pre>
+<hr class="divider">
+<div class="label label-example">보스 등급 (floor에 따라 자동)</div>
+<pre>final  — 마지막 층 (테두리 빨강 #EE1166, 두꺼움)
+elite  — maxFloor의 1/5 배수 층 (테두리 보라 #884499)
+normal — 그 외 모든 층 (꽉찬 로즈 #BB6688)</pre>
+<hr class="divider">
+<div class="label label-example">게임플레이 흐름 예시</div>
+<pre>[Turn 1] 입장
+![](.../?t=dungeon&seed=tx7f&floor=1&enter=on)
+
+[Turn 2] 동쪽 한 칸 진행
+![](.../?t=dungeon&seed=tx7f&floor=1&px=4&py=3&dir=e)
+
+[Turn 3] 함정 발견 (BFS 4칸 안에 있어야 표시)
+![](.../?t=dungeon&seed=tx7f&floor=1&px=5&py=3&dir=e&traps=F3)
+
+[Turn 4] 다음 층 — seed 유지, floor +1
+![](.../?t=dungeon&seed=tx7f&floor=2&enter=on)</pre>
+<hr class="divider">
+<div class="desc"><strong>주요 규칙:</strong><br>
+• 같은 seed+floor → 항상 같은 던전 (좌표 일관성 보장)<br>
+• 입구는 항상 좌상단, 보스는 항상 우하단 (시드 무관)<br>
+• 함정·이벤트는 플레이어 BFS 거리 4칸 이내만 표시 (탐험감)<br>
+• 보스방 진입 시 왕관 자동 숨김 + 헤더에 '⚔ 전투' 표시<br>
+• 잘못된 좌표(벽, 그리드 밖) → 자동 보정 또는 무시<br>
+• size 범위: 폭 5~20, 높이 4~16<br>
+• labyrinth=on — 방+복도 대신 좁은 통로 미궁 모드</div>
+<hr class="divider">
+<div class="label label-example">필드 설명</div>
+<pre>seed (문자열, 16자):
+  던전 형태 고정 키
+
+floor (1~999):
+  현재 층 (보스 등급 자동 결정)
+
+type (선택):
+  short=10 / medium=25 / long=50
+  max=N으로 직접 지정도 가능
+
+enter=on (선택):
+  px/py 없을 때 입구방 중앙 배치
+  + dir 미지정 시 보스 방향 자동
+
+coords=on (선택):
+  그리드 좌표 헤더 표시 (디버그/탐색용)
+
+px, py (숫자):
+  플레이어 좌표 (1부터 시작)
+
+dir:
+  n / s / e / w  (enter=on이면 자동)
+
+traps, events, treasures, saves, doors, secrets:
+  알파벳-숫자, 콤마 구분 (예: B2,D3,F5)
+
+auto_secrets (1~5):
+  시드 기반 자동 비밀공간
+
+size (w,h):
+  최대층 크기 강제 (1층은 50%부터)
+
+labyrinth=on:
+  미궁 모드 (방 없이 좁은 통로)</pre>`
+      },
+      {
+        id:'t-st-7', title:'바베챗 프롬프트 (복사용)',
         body:`<div class="label label-use">RPG/VN 상태창 + 엔딩 프롬프트</div>
 <div class="desc">바베챗에 복사하여 사용. 도메인은 <strong>st.winter0.workers.dev</strong></div>
 <pre>## RPG / VN 상태창 이미지 출력 규칙
@@ -1593,6 +1745,31 @@ char — 관련 캐릭터 (|로 구분, 선택)</pre>`
 - text: §로 줄바꿈
 - cond: 해금 조건 (§로 줄바꿈, 선택)
 - char: 관련 캐릭터 (|로 구분, 선택)
+
+### 선택지 박스
+![](https://st.winter0.workers.dev/?t=choice&c=보기1|보기2|보기3|보기4&title=제목&st=스타일)
+- c: 선택지 (|로 구분, 최대 4개). 숫자 prefix는 자동 부여
+- title: 박스 상단 라벨 (선택, 생략 가능)
+- st: vn(기본) / rpg / modern / dot
+- 본문은 박스에 넣지 않는다 — 위쪽 메시지로 따로 출력
+- 사용자가 "1", "2"처럼 숫자만 답해도 인식 가능
+
+### 던전 맵
+![](https://st.winter0.workers.dev/?t=dungeon&seed=시드&floor=층&enter=on&label=라벨)
+- seed: 던전 고정 키 (16자 이내). 같은 시드+층이면 항상 같은 던전
+- floor: 1~999, 자동으로 크기·보스 등급 결정
+- type: short(10)/medium(25)/long(50) — maxFloor 결정
+- enter=on: 입구방 중앙에 플레이어 자동 배치 (입장 컷)
+- coords=on: 좌표 헤더 표시 (디버그/탐색 시)
+- 플레이어 이동: px=숫자&py=숫자&dir=n/s/e/w
+- 오브젝트: traps=B2 events=D3 treasures=F5 saves=A1 doors=C2 secrets=H4
+  (알파벳-숫자 좌표, 콤마 구분. A=1열, B=2열...)
+- auto_secrets=1~5: 자동 비밀공간 (시드 고정)
+- labyrinth=on: 미궁 모드 / size=폭,높이: 던전 크기 강제
+- 같은 seed로 floor만 증가시키면 자동으로 다음 층
+- 함정·이벤트는 플레이어 4칸 이내만 표시 (탐색감)
+- 보스방 진입 시 왕관 숨김 + '⚔ 전투' 헤더
+- 입구는 항상 좌상단, 보스는 항상 우하단 (시드 무관)
 
 ### 공통 규칙
 - 필드 구분자: § / 아이템 구분자: |
@@ -1683,13 +1860,15 @@ export default {
 /?t=letter        편지 ✉️           /?t=menu          메뉴판 🍽️
 /?t=dm            인스타 DM</pre>
 <hr class="divider">
-<div class="label label-example">st.winter0.workers.dev — RPG / VN 상태창 + 엔딩 (5종)</div>
+<div class="label label-example">st.winter0.workers.dev — RPG / VN 상태창 + 엔딩 + 선택지 + 던전 (7종)</div>
 <pre># URL 형식 — 모두 /?t=타입&파라미터 형식
 /?t=vn            미연시 상태창
 /?t=dark          다크판타지 상태창
 /?t=pixel         픽셀 RPG 상태창
 /?t=rpg2k         쯔꾸르 상태창 (호러/어드벤처)
-/?t=ending        엔딩 카드 (bad/normal/good/true)</pre>
+/?t=ending        엔딩 카드 (bad/normal/good/true)
+/?t=choice        선택지 박스 (vn/rpg/modern/dot)
+/?t=dungeon       던전 맵 (시드 기반, enter=on/coords=on)</pre>
 <hr class="divider">
 <div class="desc"><strong>무료 한도:</strong> 하루 10만 건 요청까지 무료 (Worker 당). 롤플레이용으로는 충분.</div>`
       }

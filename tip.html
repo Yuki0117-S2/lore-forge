@@ -1319,7 +1319,7 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
     ]
   },
   {
-    id:'cat-st', icon:'⚔️', title:'RPG / VN 상태창 UI', sub:'st.winter0.workers.dev — 미연시 · 다크판타지 · 픽셀RPG · 쯔꾸르 · 엔딩 · 선택지 · 던전',
+    id:'cat-st', icon:'⚔️', title:'RPG / VN 상태창 UI', sub:'st.winter0.workers.dev — 미연시 · 미연시2 · 다크판타지 · 픽셀RPG · 쯔꾸르 · 엔딩 · 선택지 · 던전 · MMO',
     items:[
       {
         id:'t-st-0', title:'미연시 상태창 (?t=vn)',
@@ -1359,7 +1359,61 @@ time — 시각 HH:MM (선택, 24시간제)
 title — 상단 제목 (선택, 기본값 있음)</pre>`
       },
       {
-        id:'t-st-1', title:'다크판타지 상태창 (?t=dark)',
+        id:'t-st-1', title:'미연시 상태창 v2 (?t=vn2)',
+        body:`<div class="label label-use">URL 파라미터 형식</div>
+<pre>/?t=vn2&chars=이름§호감도§기분§체력§정신력§발정도§진척도§관계횟수§속마음§기억|...
+&date=YYYY-MM-DD&time=HH:MM&title=제목</pre>
+<hr class="divider">
+<div class="label label-example">예시</div>
+<pre>/?t=vn2&chars=소라§75§긴장§60§80§85§썸+단계§0§두근거려§옥상에서+눈+마주침|블레어§15§평온§90§70§10§경계+단계§0§재밌는+애네§복도에서+인사
+&date=2026-05-23&time=14:30&title=ROUTE+STATUS</pre>
+<hr class="divider">
+<div class="desc"><strong>vn과의 차이점:</strong><br>
+캐릭터 카드당 정보가 더 풍부함 (기분/체력/정신력/발정도/진척도/관계횟수 추가).<br>
+내 상태(my) 없음 — 상대 중심.<br>
+인원수에 따라 레이아웃 자동 조절 (1명 와이드 / 2~6명 그리드).</div>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명:</strong><br>
+• <strong>chars</strong> — 캐릭터 카드 (<code>|</code>로 구분, 최대 6명)<br>
+• 이름이 <strong>???</strong>이면 미해금 상태로 표시 (블러+잠금 아이콘)<br>
+• <strong>호감도</strong> — 0~100 (≤20 회색, ≥80 진핑크로 색 변화)<br>
+• <strong>기분</strong> — 2~4자 텍스트 (예: 긴장, 초조, 기대, 평온)<br>
+• <strong>체력</strong> — 0~100 (≤20 빨강으로 위험 표시)<br>
+• <strong>정신력</strong> — 0~100 (≤20 진파랑)<br>
+• <strong>발정도</strong> — 0~100 (≥80 강렬핑크)<br>
+• <strong>진척도</strong> — 관계 단계 텍스트 (예: 썸 단계, 친구 단계, 연인)<br>
+• <strong>관계횟수</strong> — 숫자 (예: 0, 3) — "× N회" 형태로 표시<br>
+• <strong>속마음</strong> — 이탤릭 인용 (16자 초과 시 자동 말줄임)<br>
+• <strong>기억</strong> — 📎 아이콘과 함께 (12자 초과 시 말줄임)<br>
+• <strong>date / time / title</strong> — vn과 동일</div>
+<hr class="divider">
+<div class="label label-example">레이아웃 자동 조절</div>
+<pre>1명 → 가로 와이드 카드 (페이트 스타일)
+2명 → 좌우 2등분
+3명 → 좌우 3등분
+4명 → 2x2 그리드
+5명 → 윗줄 3 + 아랫줄 2 (중앙 정렬)
+6명 → 3x2 그리드</pre>
+<hr class="divider">
+<div class="label label-example">필드 설명</div>
+<pre>chars (|로 캐릭터 구분, §로 필드 구분, 10필드):
+  이름      — 캐릭터 이름 (???이면 미해금)
+  호감도    — 0~100
+  기분      — 짧은 감정 텍스트 (예: 긴장)
+  체력      — 0~100
+  정신력    — 0~100
+  발정도    — 0~100
+  진척도    — 관계 단계 (예: 썸 단계)
+  관계횟수  — 숫자 (예: 0)
+  속마음    — 이탤릭 인용
+  기억      — 📎 표시
+
+date — 날짜 (YYYY-MM-DD면 요일 자동)
+time — 시각 HH:MM (선택, 24시간제)
+title — 상단 제목 (선택, 기본: ROUTE STATUS)</pre>`
+      },
+      {
+        id:'t-st-2', title:'다크판타지 상태창 (?t=dark)',
         body:`<div class="label label-use">URL 파라미터 형식</div>
 <pre>/?t=dark&p=이름§칭호§직업§성향§레벨
 &s=hp§hpmax§mp§mpmax§sp§spmax§exp
@@ -1401,7 +1455,7 @@ buf (§로 구분):
   !디버프명 → 로즈 테두리 (느낌표로 시작)</pre>`
       },
       {
-        id:'t-st-2', title:'픽셀 RPG 상태창 (?t=pixel)',
+        id:'t-st-3', title:'픽셀 RPG 상태창 (?t=pixel)',
         body:`<div class="label label-use">URL 파라미터 형식</div>
 <pre>/?t=pixel&p=이름§직업§레벨§exp
 &s=hp§hpmax§mp§mpmax§sp§spmax
@@ -1453,7 +1507,7 @@ buf (§로 구분):
 av — 직업 아이콘 키 (영어 소문자)</pre>`
       },
       {
-        id:'t-st-3', title:'쯔꾸르 상태창 (?t=rpg2k)',
+        id:'t-st-4', title:'쯔꾸르 상태창 (?t=rpg2k)',
         body:`<div class="label label-use">URL 파라미터 형식</div>
 <pre>/?t=rpg2k&p=이름§부제목§위치§장
 &hp=현재§최대§모드
@@ -1510,7 +1564,7 @@ say   — 하단 대사 (선택)
 mode  — heart / rose / moon / eye / spark</pre>`
       },
       {
-        id:'t-st-4', title:'엔딩 카드 (?t=ending)',
+        id:'t-st-5', title:'엔딩 카드 (?t=ending)',
         body:`<div class="label label-use">URL 파라미터 형식</div>
 <pre>/?t=ending&type=엔딩타입&num=번호&name=엔딩이름&text=텍스트§줄바꿈
 &cond=조건1§조건2&char=캐릭터1|캐릭터2</pre>
@@ -1542,7 +1596,7 @@ cond — 해금 조건 (§로 여러 줄, 선택)
 char — 관련 캐릭터 (|로 구분, 선택)</pre>`
       },
       {
-        id:'t-st-5', title:'선택지 박스 (?t=choice)',
+        id:'t-st-6', title:'선택지 박스 (?t=choice)',
         body:`<div class="label label-use">URL 파라미터 형식</div>
 <pre>/?t=choice&c=보기1|보기2|보기3|보기4&title=제목&st=스타일</pre>
 <hr class="divider">
@@ -1575,7 +1629,7 @@ st — 스타일 키 (생략 시 vn)
   dot    → 8-bit 도트 게임 풍</pre>`
       },
       {
-        id:'t-st-6', title:'던전 맵 (?t=dungeon)',
+        id:'t-st-7', title:'던전 맵 (?t=dungeon)',
         body:`<div class="label label-use">URL 파라미터 형식</div>
 <pre>/?t=dungeon&seed=시드&floor=층&type=깊이&label=라벨
 &enter=on&coords=on
@@ -1694,7 +1748,74 @@ labyrinth=on:
   미궁 모드 (방 없이 좁은 통로)</pre>`
       },
       {
-        id:'t-st-7', title:'바베챗 프롬프트 (복사용)',
+        id:'t-st-mmo', title:'MMORPG 상태창 (?t=mmo)',
+        body:`<div class="label label-use">URL 파라미터 형식</div>
+<pre>/?t=mmo&p=이름§칭호§직업§레벨
+&s=HP§HPmax§MP§MPmax§EXP§COL
+&tm=날짜§요일§시각§누적시간
+&sk=스킬§숙련도§상태|...
+&eq=무기§등급§...|방어구§등급§...|장신구§등급§...
+&pt=파티원§HP%§직업|...
+&gd=길드명§계급
+&buf=상태이상§남은초|...
+&lo=1</pre>
+<hr class="divider">
+<div class="label label-example">예시</div>
+<pre>/?t=mmo&p=겨울§월광+검사§듀얼+블레이드§42
+&s=420§980§280§600§67§14580
+&tm=2024.03.15§FRI§22:18§3day+55hr
+&sk=버티컬§892§ready|소닉+리프§745§cd:28|듀얼+워시§680§active|성스러운+검§0§lock:LV.50|봉인된+마법§820§seal:침묵|체술§510§ready
+&eq=엘루시데이터§유니크§다크리펄서§레어|코트+오브+미드나잇§레어|결정의+펜던트§매직§월광+반지§일반
+&pt=아스나§88§세검사|크라딜§62§경전사|에길§95§양손도끼
+&gd=월광의+검§부길드장
+&buf=침묵§12|축복§120|집중§45
+&lo=1</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명:</strong><br>
+• <strong>p</strong> — 이름§칭호§직업§레벨 (레벨 1~999)<br>
+• <strong>s</strong> — HP§HPmax§MP§MPmax§EXP(0~100)§COL(보유 화폐). HP/MP는 비율에 따라 색상 자동 변화 — 20%/50% 임계값<br>
+• <strong>tm</strong> — 게임 내 날짜§요일§시각§누적 플레이타임 (모두 자유 텍스트, 영문 섞기 권장. 예: <code>3day 55hr</code>, <code>FRI</code>)<br>
+• <strong>sk</strong> — 스킬§숙련도(0~1000)§상태 (|로 구분, 최대 6개)<br>
+• <strong>eq</strong> — 슬롯 3개 (무기§방어구§장신구, |로 구분). 한 슬롯 안에서 § 짝수 단위로 (이름§등급) 다중 — 이도류·다중 장신구 표현용<br>
+• <strong>pt</strong> — 파티원§HP%§직업 (|로 구분, 최대 4명). HP%에 따라 색 자동 변화<br>
+• <strong>gd</strong> — 길드명§계급 (선택)<br>
+• <strong>buf</strong> — 상태이상§남은초 (|로 구분, 최대 8개)<br>
+• <strong>lo</strong> — 1이면 로그아웃 버튼 표시, 0이거나 생략하면 슬롯 자체 사라짐 (SAO 1화 오마주)</div>
+<hr class="divider">
+<div class="label label-example">스킬 상태 (state)</div>
+<div class="desc">
+• <strong>ready</strong> — 정상, 사용 가능 (인디고 READY)<br>
+• <strong>active</strong> — 사용 중 (핑크 ACTIVE)<br>
+• <strong>cd:N</strong> — 쿨다운 N초 (오렌지 부채꼴 + 숫자, 예: <code>cd:28</code>)<br>
+• <strong>lock:사유</strong> — 미해금/조건 미충족 (자물쇠, 회색 <code>LOCKED [사유]</code>. 예: <code>lock:LV.50</code>, <code>lock:퀘스트</code>)<br>
+• <strong>seal:사유</strong> — 침묵/봉인 등 디버프 (빨강 ✕, <code>SEALED [사유]</code>. 예: <code>seal:침묵</code>)<br>
+• <strong>empty</strong> — 슬롯 자체가 렌더링되지 않음 (높이 차지 X). 예: <code>empty§§empty</code></div>
+<hr class="divider">
+<div class="label label-example">장비 등급 (eq 두 번째 필드)</div>
+<div class="desc">
+• <strong>전설</strong> (샌드) — 최상위 등급<br>
+• <strong>유니크</strong> (퍼플) — 유일 장비<br>
+• <strong>레어</strong> (시안) — 희귀 장비<br>
+• <strong>매직</strong> (인디고) — 마법 장비<br>
+• <strong>일반</strong> (회색) — 기본 장비<br>
+• <strong>저주</strong> (빨강) — 저주받은 장비</div>
+<hr class="divider">
+<div class="label label-example">상태이상 목록 (buf 첫 번째 필드)</div>
+<div class="desc">
+• <strong>디버프</strong>: 독 ☠ / 혼란 ? / 실명 ◐ / 출혈 ✚ / 마비 ⚡ / 저주 ✠ / 침묵 ✕<br>
+• <strong>버프</strong>: 축복 ✦ / 가속 » / 방어 ◈ / 회복 ❤ / 집중 ◎<br>
+• 등록되지 않은 이름은 회색 · 아이콘으로 표시</div>
+<hr class="divider">
+<div class="label label-example">활용 팁</div>
+<div class="desc">
+• 아이템명은 11자 이내 권장 (초과 시 자동 말줄임 …)<br>
+• 칭호·길드명·사유는 짧을수록 가독성↑<br>
+• 이도류 표현: <code>엘루시데이터§유니크§다크리펄서§레어</code> (한 슬롯에 두 무기 가로 배치)<br>
+• 위급한 분위기엔 HP 20% 미만 + 디버프 다수로 시각적 긴장감 연출 가능<br>
+• 평화로운 분위기엔 ready 스킬 + 버프만 + 로그아웃 버튼 표시</div>`
+      },
+      {
+        id:'t-st-8', title:'바베챗 프롬프트 (복사용)',
         body:`<div class="label label-use">RPG/VN 상태창 + 엔딩 프롬프트</div>
 <div class="desc">바베챗에 복사하여 사용. 도메인은 <strong>st.winter0.workers.dev</strong></div>
 <pre>## RPG / VN 상태창 이미지 출력 규칙
@@ -1711,6 +1832,19 @@ labyrinth=on:
 - date: YYYY-MM-DD 형식 권장 (예: 2026-03-15 → 자동으로 "2026.03.15 (일)" 표시). 자유 텍스트도 가능
 - time: HH:MM 24시간제 (선택, 예: 14:30). 입력 시 날짜 뒤에 표시
 - title: 선택사항
+
+### 미연시 상태창 v2 (상대 정보 풍부형)
+![](https://st.winter0.workers.dev/?t=vn2&chars=이름§호감도§기분§체력§정신력§발정도§진척도§관계횟수§속마음§기억|...&date=YYYY-MM-DD&time=HH:MM&title=제목)
+- vn보다 정보 풍부, 내 상태(my) 없음, 상대 중심
+- 필드 10개 §로 구분: 이름§호감도§기분§체력§정신력§발정도§진척도§관계횟수§속마음§기억
+- chars: 최대 6명, |로 구분
+- 이름 ???이면 미해금 (블러+잠금)
+- 호감도/체력/정신력/발정도: 0~100 (임계값 도달 시 색 자동 변화 — 20/80)
+- 기분: 2~4자 짧은 텍스트 (예: 긴장, 초조, 기대, 평온)
+- 진척도: 관계 단계 텍스트 (예: 썸 단계, 친구 단계, 연인)
+- 관계횟수: 숫자 (× N회로 표시)
+- 속마음 16자 이내, 기억 12자 이내
+- date/time/title: vn과 동일
 
 ### 다크판타지 상태창
 ![](https://st.winter0.workers.dev/?t=dark&p=이름§칭호§직업§성향§레벨&s=hp§hpmax§mp§mpmax§sp§spmax§exp&stat=str§def§agi§int§luk§wis&eq=무기§등급§방어구§등급§악세서리§등급&buf=버프§!디버프)
@@ -1770,6 +1904,27 @@ labyrinth=on:
 - 함정·이벤트는 플레이어 4칸 이내만 표시 (탐색감)
 - 보스방 진입 시 왕관 숨김 + '⚔ 전투' 헤더
 - 입구는 항상 좌상단, 보스는 항상 우하단 (시드 무관)
+
+### MMORPG 상태창
+![](https://st.winter0.workers.dev/?t=mmo&p=이름§칭호§직업§레벨&s=HP§HPmax§MP§MPmax§EXP§COL&tm=날짜§요일§시각§누적시간&sk=스킬§숙련도§상태|...&eq=무기§등급§...|방어구§등급§...|장신구§등급§...&pt=파티원§HP%§직업|...&gd=길드명§계급&buf=상태이상§남은초|...&lo=1)
+- p: 이름§칭호§직업§레벨 (레벨 1~999)
+- s: HP§HPmax§MP§MPmax§EXP(0~100)§COL. HP/MP는 비율 따라 색 자동 변화 (20%/50%)
+- tm: 게임 내 날짜§요일§시각§누적 플레이타임 (자유 텍스트, 영문 권장. 예: 3day 55hr, FRI)
+- sk: 스킬§숙련도(0~1000)§상태 (|로 구분, 최대 6개)
+  상태: ready / active / cd:N(N초) / lock:사유 / seal:사유 / empty
+  empty는 슬롯 자체 사라짐 (높이 차지 X)
+  lock/seal의 사유는 짧게 (예: lock:LV.50, seal:침묵)
+- eq: 슬롯 3개 (무기|방어구|장신구, |로 구분). 한 슬롯 안에서 § 짝수 단위로 (이름§등급) 다중 — 이도류·다중 장신구 표현
+  등급: 전설(샌드) / 유니크(퍼플) / 레어(시안) / 매직(인디고) / 일반 / 저주(빨강)
+- pt: 파티원§HP%§직업 (최대 4명). HP% 비율 따라 색 자동 변화
+- gd: 길드명§계급 (선택)
+- buf: 상태이상§남은초 (|로 구분, 최대 8개)
+  디버프: 독/혼란/실명/출혈/마비/저주/침묵
+  버프: 축복/가속/방어/회복/집중
+- lo=1: 로그아웃 버튼 표시. 0이거나 생략하면 슬롯 통째로 사라짐
+- 아이템명은 11자 이내 권장 (초과 시 자동 말줄임 …)
+- 위급 분위기: HP 20% 미만 + 디버프 다수
+- 평화 분위기: ready 스킬 + 버프 + 로그아웃 버튼 표시
 
 ### 공통 규칙
 - 필드 구분자: § / 아이템 구분자: |
@@ -1860,15 +2015,17 @@ export default {
 /?t=letter        편지 ✉️           /?t=menu          메뉴판 🍽️
 /?t=dm            인스타 DM</pre>
 <hr class="divider">
-<div class="label label-example">st.winter0.workers.dev — RPG / VN 상태창 + 엔딩 + 선택지 + 던전 (7종)</div>
+<div class="label label-example">st.winter0.workers.dev — RPG / VN 상태창 + 엔딩 + 선택지 + 던전 + MMO (8종)</div>
 <pre># URL 형식 — 모두 /?t=타입&파라미터 형식
 /?t=vn            미연시 상태창
+/?t=vn2           미연시 상태창 v2 (상대 정보 풍부형, 1~6명 자동 레이아웃)
 /?t=dark          다크판타지 상태창
 /?t=pixel         픽셀 RPG 상태창
 /?t=rpg2k         쯔꾸르 상태창 (호러/어드벤처)
 /?t=ending        엔딩 카드 (bad/normal/good/true)
 /?t=choice        선택지 박스 (vn/rpg/modern/dot)
-/?t=dungeon       던전 맵 (시드 기반, enter=on/coords=on)</pre>
+/?t=dungeon       던전 맵 (시드 기반, enter=on/coords=on)
+/?t=mmo           MMORPG 상태창 (SAO 아인크라드 톤)</pre>
 <hr class="divider">
 <div class="desc"><strong>무료 한도:</strong> 하루 10만 건 요청까지 무료 (Worker 당). 롤플레이용으로는 충분.</div>`
       }

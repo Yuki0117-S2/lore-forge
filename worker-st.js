@@ -1,5 +1,5 @@
 // st.winter0.workers.dev — RPG/VN 상태창 (SVG 이미지 출력)
-// ?t=vn / ?t=dark / ?t=pixel / ?t=ending / ?t=rpg2k / ?t=choice / ?t=dungeon
+// ?t=vn / ?t=vn2 / ?t=dark / ?t=pixel / ?t=ending / ?t=rpg2k / ?t=choice / ?t=dungeon / ?t=mmo
 
 function esc(s) {
   return String(s ?? '')
@@ -204,6 +204,227 @@ function renderVN(params) {
 ${cardsSVG}
 <text x="${PAD}" y="${myY - 8}" font-family="monospace" font-size="10" font-weight="bold" fill="#5a4068" letter-spacing="2">— MY STATUS —</text>
 ${mySVG}
+</svg>`;
+}
+
+// ════════════════════════════════════════════
+//  VN2 (미연시 — 풍부한 정보 카드, 1~6명 자동 레이아웃)
+//  &chars=이름§호감도§기분§체력§정신력§발정도§진척도§관계횟수§속마음§기억|...
+//  &date=YYYY-MM-DD &time=HH:MM &title=제목
+//  레이아웃: 1명→와이드 / 2명→2등분 / 3명→3등분 / 4명→2x2 / 5명→3+2 중앙 / 6명→3x2
+//  색 변화: 호감도 ≤20 회색·≥80 진핑크 / 체력 ≤20 빨강 / 정신력 ≤20 진파랑 / 발정도 ≥80 강렬핑크
+// ════════════════════════════════════════════
+
+function vn2BarColor(type, val) {
+  if (type === 'af') {
+    if (val <= 20) return '#888888';
+    if (val >= 80) return '#EE1166';
+    return '#FF6699';
+  }
+  if (type === 'hp')      { if (val <= 20) return '#EE1166'; return '#BB6688'; }
+  if (type === 'mental')  { if (val <= 20) return '#0077DD'; return '#8889CD'; }
+  if (type === 'arousal') { if (val >= 80) return '#EE1166'; return '#884499'; }
+  return '#CCAA88';
+}
+
+function vn2Bar(x, y, w, h, val, type) {
+  const filled = Math.round((val / 100) * w);
+  const col = vn2BarColor(type, val);
+  const r = Math.min(h / 2, 3);
+  return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="#1a1018"/>
+<rect x="${x}" y="${y}" width="${filled}" height="${h}" rx="${r}" fill="${col}"/>
+<rect x="${x}" y="${y}" width="${filled}" height="${Math.floor(h/2)}" rx="${r}" fill="rgba(255,255,255,0.08)"/>`;
+}
+
+function vn2ParseChar(char) {
+  const parts = char.split('§');
+  const rawName = parts[0];
+  const name = rawName?.trim() || '???';
+  return {
+    name, isLocked: name === '???' || !rawName?.trim(),
+    af:       safeInt(parts[1], 0),
+    mood:     esc((parts[2] || '').trim()),
+    hp:       safeInt(parts[3], 100),
+    mental:   safeInt(parts[4], 100),
+    arousal:  safeInt(parts[5], 0),
+    progress: esc((parts[6] || '').trim()),
+    count:    safeInt(parts[7], 0, 0, 9999),
+    heart:    esc((parts[8] || '').trim()),
+    mem:      esc((parts[9] || '').trim()),
+  };
+}
+
+// 작은 카드 (143px 폭) — 3명 이상일 때
+function vn2CardSmall(char, x, y, w) {
+  const c = vn2ParseChar(char);
+  const cardH = 235, PAD = 10;
+  if (c.isLocked) {
+    return `<rect x="${x}" y="${y}" width="${w}" height="${cardH}" rx="5" fill="#150f18" stroke="#2a2030" stroke-width="1"/>
+<text x="${x + w/2}" y="${y + cardH/2 - 5}" font-family="'Noto Serif KR'" font-size="38" font-weight="bold" fill="#3a2a45" text-anchor="middle" filter="url(#vn2blur)">???</text>
+<text x="${x + w/2}" y="${y + cardH/2 + 30}" font-family="monospace" font-size="11" font-weight="bold" fill="#3a2a45" text-anchor="middle">🔒 미해금</text>`;
+  }
+  const barX = x + PAD, barW = w - PAD*2;
+  let svg = `<rect x="${x}" y="${y}" width="${w}" height="${cardH}" rx="5" fill="#1e1525" stroke="#3a2a48" stroke-width="1"/>`;
+  svg += `<text x="${x + PAD}" y="${y + 20}" font-family="'Noto Serif KR'" font-size="14" font-weight="bold" fill="#f0e0f5">${esc(c.name)}</text>`;
+  if (c.mood) svg += `<text x="${x + w - PAD}" y="${y + 20}" font-family="monospace" font-size="9" fill="#b090c8" text-anchor="end">${c.mood.length > 4 ? c.mood.slice(0,4) : c.mood}</text>`;
+  if (c.progress) svg += `<text x="${x + PAD}" y="${y + 36}" font-family="'Noto Serif KR'" font-size="10" fill="#FF6699" font-style="italic">${c.progress.length > 8 ? c.progress.slice(0,8) + '…' : c.progress}</text>`;
+  svg += `<text x="${x + w - PAD}" y="${y + 36}" font-family="monospace" font-size="9" fill="#8070a0" text-anchor="end">× ${c.count}회</text>`;
+  svg += `<text x="${x + PAD}" y="${y + 58}" font-family="monospace" font-size="9" fill="#8070a0" font-weight="600" letter-spacing="1">호감도</text>`;
+  svg += `<text x="${x + w - PAD}" y="${y + 58}" font-family="monospace" font-size="10" font-weight="bold" fill="${vn2BarColor('af', c.af)}" text-anchor="end">${c.af}</text>`;
+  svg += vn2Bar(barX, y + 62, barW, 7, c.af, 'af');
+  svg += `<text x="${x + PAD}" y="${y + 84}" font-family="monospace" font-size="9" fill="#8070a0" font-weight="600">체력</text>`;
+  svg += `<text x="${x + w - PAD}" y="${y + 84}" font-family="monospace" font-size="9" font-weight="bold" fill="${vn2BarColor('hp', c.hp)}" text-anchor="end">${c.hp}</text>`;
+  svg += vn2Bar(barX, y + 88, barW, 5, c.hp, 'hp');
+  svg += `<text x="${x + PAD}" y="${y + 106}" font-family="monospace" font-size="9" fill="#8070a0" font-weight="600">정신력</text>`;
+  svg += `<text x="${x + w - PAD}" y="${y + 106}" font-family="monospace" font-size="9" font-weight="bold" fill="${vn2BarColor('mental', c.mental)}" text-anchor="end">${c.mental}</text>`;
+  svg += vn2Bar(barX, y + 110, barW, 5, c.mental, 'mental');
+  svg += `<text x="${x + PAD}" y="${y + 128}" font-family="monospace" font-size="9" fill="#8070a0" font-weight="600">발정도</text>`;
+  svg += `<text x="${x + w - PAD}" y="${y + 128}" font-family="monospace" font-size="9" font-weight="bold" fill="${vn2BarColor('arousal', c.arousal)}" text-anchor="end">${c.arousal}</text>`;
+  svg += vn2Bar(barX, y + 132, barW, 5, c.arousal, 'arousal');
+  if (c.heart) svg += `<text x="${x + PAD}" y="${y + 165}" font-family="'Noto Serif KR'" font-size="11" fill="#b090c8" font-style="italic">" ${c.heart.length > 12 ? c.heart.slice(0,12) + '…' : c.heart} "</text>`;
+  if (c.mem) svg += `<text x="${x + PAD}" y="${y + 200}" font-family="'Noto Serif KR'" font-size="10" fill="#8070a0">📎 ${c.mem.length > 12 ? c.mem.slice(0,12) + '…' : c.mem}</text>`;
+  return svg;
+}
+
+// 중간 카드 (220px 폭) — 2명/4명일 때
+function vn2CardMedium(char, x, y, w) {
+  const c = vn2ParseChar(char);
+  const cardH = 205, PAD = 12;
+  if (c.isLocked) {
+    return `<rect x="${x}" y="${y}" width="${w}" height="${cardH}" rx="5" fill="#150f18" stroke="#2a2030" stroke-width="1"/>
+<text x="${x + w/2}" y="${y + cardH/2}" font-family="'Noto Serif KR'" font-size="50" font-weight="bold" fill="#3a2a45" text-anchor="middle" filter="url(#vn2blur)">???</text>
+<text x="${x + w/2}" y="${y + cardH/2 + 35}" font-family="monospace" font-size="12" font-weight="bold" fill="#3a2a45" text-anchor="middle">🔒 미해금</text>`;
+  }
+  const barX = x + PAD, barW = w - PAD*2;
+  let svg = `<rect x="${x}" y="${y}" width="${w}" height="${cardH}" rx="5" fill="#1e1525" stroke="#3a2a48" stroke-width="1"/>`;
+  svg += `<text x="${x + PAD}" y="${y + 24}" font-family="'Noto Serif KR'" font-size="16" font-weight="bold" fill="#f0e0f5">${esc(c.name)}</text>`;
+  if (c.mood) svg += `<text x="${x + w - PAD}" y="${y + 24}" font-family="monospace" font-size="10" fill="#b090c8" text-anchor="end">${c.mood.length > 6 ? c.mood.slice(0,6) : c.mood}</text>`;
+  if (c.progress) svg += `<text x="${x + PAD}" y="${y + 42}" font-family="'Noto Serif KR'" font-size="11" fill="#FF6699" font-style="italic">${c.progress.length > 10 ? c.progress.slice(0,10) + '…' : c.progress}</text>`;
+  svg += `<text x="${x + w - PAD}" y="${y + 42}" font-family="monospace" font-size="10" fill="#8070a0" text-anchor="end">× ${c.count}회</text>`;
+  svg += `<text x="${x + PAD}" y="${y + 66}" font-family="monospace" font-size="10" fill="#8070a0" font-weight="600" letter-spacing="1">호감도</text>`;
+  svg += `<text x="${x + w - PAD}" y="${y + 66}" font-family="monospace" font-size="12" font-weight="bold" fill="${vn2BarColor('af', c.af)}" text-anchor="end">${c.af}</text>`;
+  svg += vn2Bar(barX, y + 70, barW, 8, c.af, 'af');
+  svg += `<text x="${x + PAD}" y="${y + 94}" font-family="monospace" font-size="9" fill="#8070a0" font-weight="600">체력</text>`;
+  svg += `<text x="${x + w - PAD}" y="${y + 94}" font-family="monospace" font-size="10" font-weight="bold" fill="${vn2BarColor('hp', c.hp)}" text-anchor="end">${c.hp}</text>`;
+  svg += vn2Bar(barX, y + 98, barW, 6, c.hp, 'hp');
+  svg += `<text x="${x + PAD}" y="${y + 116}" font-family="monospace" font-size="9" fill="#8070a0" font-weight="600">정신력</text>`;
+  svg += `<text x="${x + w - PAD}" y="${y + 116}" font-family="monospace" font-size="10" font-weight="bold" fill="${vn2BarColor('mental', c.mental)}" text-anchor="end">${c.mental}</text>`;
+  svg += vn2Bar(barX, y + 120, barW, 6, c.mental, 'mental');
+  svg += `<text x="${x + PAD}" y="${y + 138}" font-family="monospace" font-size="9" fill="#8070a0" font-weight="600">발정도</text>`;
+  svg += `<text x="${x + w - PAD}" y="${y + 138}" font-family="monospace" font-size="10" font-weight="bold" fill="${vn2BarColor('arousal', c.arousal)}" text-anchor="end">${c.arousal}</text>`;
+  svg += vn2Bar(barX, y + 142, barW, 6, c.arousal, 'arousal');
+  if (c.heart) svg += `<text x="${x + PAD}" y="${y + 170}" font-family="'Noto Serif KR'" font-size="12" fill="#b090c8" font-style="italic">" ${c.heart.length > 16 ? c.heart.slice(0,16) + '…' : c.heart} "</text>`;
+  if (c.mem) svg += `<text x="${x + w - PAD}" y="${y + 192}" font-family="'Noto Serif KR'" font-size="10" fill="#8070a0" text-anchor="end">📎 ${c.mem.length > 16 ? c.mem.slice(0,16) + '…' : c.mem}</text>`;
+  return svg;
+}
+
+// 와이드 카드 (446px 폭) — 1명 전용
+function vn2CardWide(char, x, y, w) {
+  const c = vn2ParseChar(char);
+  const cardH = 245, PAD = 16;
+  if (c.isLocked) {
+    return `<rect x="${x}" y="${y}" width="${w}" height="${cardH}" rx="5" fill="#150f18" stroke="#2a2030" stroke-width="1"/>
+<text x="${x + w/2}" y="${y + cardH/2 + 10}" font-family="'Noto Serif KR'" font-size="70" font-weight="bold" fill="#3a2a45" text-anchor="middle" filter="url(#vn2blur)">???</text>
+<text x="${x + w/2}" y="${y + cardH/2 + 60}" font-family="monospace" font-size="14" font-weight="bold" fill="#3a2a45" text-anchor="middle">🔒 미해금</text>`;
+  }
+  const fullBarX = x + PAD, fullBarW = w - PAD*2;
+  let svg = `<rect x="${x}" y="${y}" width="${w}" height="${cardH}" rx="5" fill="#1e1525" stroke="#3a2a48" stroke-width="1"/>`;
+  svg += `<text x="${x + PAD}" y="${y + 30}" font-family="'Noto Serif KR'" font-size="20" font-weight="bold" fill="#f0e0f5">${esc(c.name)}</text>`;
+  if (c.mood) svg += `<text x="${x + w - PAD}" y="${y + 28}" font-family="monospace" font-size="12" fill="#b090c8" text-anchor="end">${c.mood.length > 8 ? c.mood.slice(0,8) : c.mood}</text>`;
+  if (c.progress) svg += `<text x="${x + PAD}" y="${y + 52}" font-family="'Noto Serif KR'" font-size="12" fill="#FF6699" font-style="italic">${c.progress.length > 18 ? c.progress.slice(0,18) + '…' : c.progress}</text>`;
+  svg += `<text x="${x + w - PAD}" y="${y + 50}" font-family="monospace" font-size="11" fill="#8070a0" text-anchor="end">× ${c.count}회</text>`;
+  svg += `<text x="${x + PAD}" y="${y + 76}" font-family="monospace" font-size="11" fill="#8070a0" font-weight="600" letter-spacing="2">호감도</text>`;
+  svg += `<text x="${x + w - PAD}" y="${y + 76}" font-family="monospace" font-size="14" font-weight="bold" fill="${vn2BarColor('af', c.af)}" text-anchor="end">${c.af}</text>`;
+  svg += vn2Bar(fullBarX, y + 82, fullBarW, 10, c.af, 'af');
+  svg += `<text x="${x + PAD}" y="${y + 110}" font-family="monospace" font-size="11" fill="#8070a0" font-weight="600">체력</text>`;
+  svg += `<text x="${x + w - PAD}" y="${y + 110}" font-family="monospace" font-size="12" font-weight="bold" fill="${vn2BarColor('hp', c.hp)}" text-anchor="end">${c.hp}</text>`;
+  svg += vn2Bar(fullBarX, y + 114, fullBarW, 8, c.hp, 'hp');
+  svg += `<text x="${x + PAD}" y="${y + 138}" font-family="monospace" font-size="11" fill="#8070a0" font-weight="600">정신력</text>`;
+  svg += `<text x="${x + w - PAD}" y="${y + 138}" font-family="monospace" font-size="12" font-weight="bold" fill="${vn2BarColor('mental', c.mental)}" text-anchor="end">${c.mental}</text>`;
+  svg += vn2Bar(fullBarX, y + 142, fullBarW, 8, c.mental, 'mental');
+  svg += `<text x="${x + PAD}" y="${y + 166}" font-family="monospace" font-size="11" fill="#8070a0" font-weight="600">발정도</text>`;
+  svg += `<text x="${x + w - PAD}" y="${y + 166}" font-family="monospace" font-size="12" font-weight="bold" fill="${vn2BarColor('arousal', c.arousal)}" text-anchor="end">${c.arousal}</text>`;
+  svg += vn2Bar(fullBarX, y + 170, fullBarW, 8, c.arousal, 'arousal');
+  if (c.heart) svg += `<text x="${x + PAD}" y="${y + 200}" font-family="'Noto Serif KR'" font-size="13" fill="#b090c8" font-style="italic">" ${c.heart.length > 24 ? c.heart.slice(0,24) + '…' : c.heart} "</text>`;
+  if (c.mem) svg += `<text x="${x + PAD}" y="${y + 226}" font-family="'Noto Serif KR'" font-size="11" fill="#8070a0">📎 ${c.mem.length > 30 ? c.mem.slice(0,30) + '…' : c.mem}</text>`;
+  return svg;
+}
+
+function renderVN2(params) {
+  const W = 470, PAD = 12;
+  const rawChars = params.get('chars') || '???§0§§§§§§0§§';
+  const date = esc(formatVNDate(params.get('date'), params.get('time')));
+  const title = esc(params.get('title') || 'ROUTE STATUS');
+  const chars = rawChars.split('|').slice(0, 6);
+  const n = chars.length;
+  const HEADER_H = 64, FOOTER_H = 16;
+  const startY = HEADER_H + 4;
+  let cardsSVG = '', bodyH = 0;
+
+  if (n === 1) {
+    const cardW = W - PAD*2;
+    cardsSVG = vn2CardWide(chars[0], PAD, startY, cardW);
+    bodyH = 245;
+  } else if (n === 2) {
+    const cardW = (W - PAD*3) / 2;
+    cardsSVG += vn2CardMedium(chars[0], PAD, startY, cardW);
+    cardsSVG += vn2CardMedium(chars[1], PAD*2 + cardW, startY, cardW);
+    bodyH = 205;
+  } else if (n === 3) {
+    const cardW = (W - PAD*4) / 3;
+    cardsSVG += vn2CardSmall(chars[0], PAD, startY, cardW);
+    cardsSVG += vn2CardSmall(chars[1], PAD*2 + cardW, startY, cardW);
+    cardsSVG += vn2CardSmall(chars[2], PAD*3 + cardW*2, startY, cardW);
+    bodyH = 235;
+  } else if (n === 4) {
+    const cardW = (W - PAD*3) / 2;
+    cardsSVG += vn2CardMedium(chars[0], PAD, startY, cardW);
+    cardsSVG += vn2CardMedium(chars[1], PAD*2 + cardW, startY, cardW);
+    cardsSVG += vn2CardMedium(chars[2], PAD, startY + 205 + PAD, cardW);
+    cardsSVG += vn2CardMedium(chars[3], PAD*2 + cardW, startY + 205 + PAD, cardW);
+    bodyH = 205*2 + PAD;
+  } else if (n === 5) {
+    const cardW = (W - PAD*4) / 3;
+    cardsSVG += vn2CardSmall(chars[0], PAD, startY, cardW);
+    cardsSVG += vn2CardSmall(chars[1], PAD*2 + cardW, startY, cardW);
+    cardsSVG += vn2CardSmall(chars[2], PAD*3 + cardW*2, startY, cardW);
+    const row2X = (W - (cardW*2 + PAD)) / 2;
+    cardsSVG += vn2CardSmall(chars[3], row2X, startY + 235 + PAD, cardW);
+    cardsSVG += vn2CardSmall(chars[4], row2X + cardW + PAD, startY + 235 + PAD, cardW);
+    bodyH = 235*2 + PAD;
+  } else {
+    const cardW = (W - PAD*4) / 3;
+    cardsSVG += vn2CardSmall(chars[0], PAD, startY, cardW);
+    cardsSVG += vn2CardSmall(chars[1], PAD*2 + cardW, startY, cardW);
+    cardsSVG += vn2CardSmall(chars[2], PAD*3 + cardW*2, startY, cardW);
+    cardsSVG += vn2CardSmall(chars[3], PAD, startY + 235 + PAD, cardW);
+    cardsSVG += vn2CardSmall(chars[4], PAD*2 + cardW, startY + 235 + PAD, cardW);
+    cardsSVG += vn2CardSmall(chars[5], PAD*3 + cardW*2, startY + 235 + PAD, cardW);
+    bodyH = 235*2 + PAD;
+  }
+  const TOTAL_H = startY + bodyH + FOOTER_H;
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${TOTAL_H}" viewBox="0 0 ${W} ${TOTAL_H}">
+<defs>
+  <filter id="vn2blur"><feGaussianBlur stdDeviation="3"/></filter>
+  <pattern id="vn2deco" width="18" height="6" patternUnits="userSpaceOnUse">
+    <rect width="8" height="6" fill="#DDAACC" opacity="0.35"/>
+    <rect x="8" width="2" height="6" fill="#BB6688" opacity="0.3"/>
+  </pattern>
+</defs>
+<rect width="${W}" height="${TOTAL_H}" fill="#110d16"/>
+<rect width="${W}" height="${TOTAL_H}" fill="url(#vn2deco)" opacity="0.06"/>
+<rect x="1" y="1" width="${W-2}" height="${TOTAL_H-2}" rx="6" fill="none" stroke="#3a2a48" stroke-width="1"/>
+<path d="M1 20 L1 6 Q1 1 6 1 L20 1" fill="none" stroke="#DDAACC" stroke-width="1.5" opacity="0.6"/>
+<path d="M${W-1} 20 L${W-1} 6 Q${W-1} 1 ${W-6} 1 L${W-20} 1" fill="none" stroke="#DDAACC" stroke-width="1.5" opacity="0.6"/>
+<path d="M1 ${TOTAL_H-20} L1 ${TOTAL_H-6} Q1 ${TOTAL_H-1} 6 ${TOTAL_H-1} L20 ${TOTAL_H-1}" fill="none" stroke="#DDAACC" stroke-width="1.5" opacity="0.6"/>
+<path d="M${W-1} ${TOTAL_H-20} L${W-1} ${TOTAL_H-6} Q${W-1} ${TOTAL_H-1} ${W-6} ${TOTAL_H-1} L${W-20} ${TOTAL_H-1}" fill="none" stroke="#DDAACC" stroke-width="1.5" opacity="0.6"/>
+<rect x="0" y="0" width="${W}" height="${HEADER_H}" rx="6" fill="#160e1e"/>
+<rect x="0" y="${HEADER_H - 1}" width="${W}" height="1" fill="#2a2035"/>
+<text x="${W/2}" y="24" font-family="monospace" font-size="10" font-weight="bold" fill="#8070a0" letter-spacing="3" text-anchor="middle">✦ ${title} ✦</text>
+<text x="${W/2}" y="48" font-family="'Noto Serif KR',Georgia,serif" font-size="15" font-weight="bold" fill="#BB6688" text-anchor="middle" font-style="italic">${date}</text>
+<line x1="${PAD*2}" y1="56" x2="${W - PAD*2}" y2="56" stroke="#2a1a30" stroke-width="0.5"/>
+${cardsSVG}
 </svg>`;
 }
 
@@ -1810,6 +2031,380 @@ function renderDungeon(params) {
 
 
 // ════════════════════════════════════════════
+//  MMO (MMORPG 상태창 — SAO 아인크라드 톤)
+//  &p=이름§칭호§직업§레벨
+//  &s=HP§HPmax§MP§MPmax§EXP(0-100)§COL
+//  &tm=날짜§요일§시각§누적시간      (예: 2024.03.15§FRI§14:32§3day 47hr)
+//  &sk=스킬§숙련도(0-1000)§상태|...
+//      상태: ready / active / cd:N / lock:사유 / seal:사유 / empty
+//  &eq=무기들§등급들§...|방어구...|장신구...
+//      한 슬롯 안에서 (이름§등급) 짝으로 다중 (이도류 등)
+//  &pt=파티원§HP%§직업|... (최대 4명)
+//  &gd=길드명§계급
+//  &buf=상태이상§남은초|... (최대 8개)
+//      디버프: 독/혼란/실명/출혈/마비/저주/침묵
+//      버프:   축복/가속/방어/회복/집중
+//  &lo=1 (로그아웃 버튼 표시; 0이거나 생략시 슬롯 자체 사라짐)
+// ════════════════════════════════════════════
+function renderMmo(params) {
+  const W = 480, PAD = 18;
+  const INNER_W = W - PAD*2;
+
+  const pp = (params.get('p') || '겨울§월광 검사§듀얼 블레이드§42').split('§');
+  const ss = (params.get('s') || '780§980§420§600§67§14580').split('§');
+  const skRaw = params.get('sk') ? params.get('sk').split('|') : [];
+  const eq = params.get('eq') ? params.get('eq').split('|') : [];
+  const pt = params.get('pt') ? params.get('pt').split('|') : [];
+  const gd = (params.get('gd') || '§').split('§');
+  const tm = (params.get('tm') || '§§§').split('§');
+  const buf = params.get('buf') ? params.get('buf').split('|') : [];
+  const lo = params.get('lo') === '1';
+
+  const name = esc(pp[0]||'???'), title = esc(pp[1]||''), job = esc(pp[2]||'');
+  const lv = safeInt(pp[3], 1, 1, 999);
+  const hp = safeInt(ss[0], 100, 0, 999999), hpMax = safeInt(ss[1], 100, 1, 999999);
+  const mp = safeInt(ss[2], 50, 0, 999999),  mpMax = safeInt(ss[3], 100, 1, 999999);
+  const exp = safeInt(ss[4], 0, 0, 100);
+  const col = safeInt(ss[5], 0, 0, 99999999);
+  const guildName = esc(gd[0]||''), guildRank = esc(gd[1]||'');
+  const tDate = esc(tm[0]||''), tDay = esc(tm[1]||''), tNow = esc(tm[2]||''), tPlay = esc(tm[3]||'');
+
+  // 색상 팔레트 (네 가지 메인 + 비비드 보조)
+  const C = {
+    bg:'#0d0f1f', panel:'#13162a', panelHi:'#1a1f38', border:'#2a3050',
+    indigo:'#8889CD', indigoSoft:'#5a5e9a',
+    rose:'#BB6688', sand:'#CCAA88', pink:'#DDAACC',
+    cyan:'#00BBDD', purple:'#884499', orange:'#FF7722',
+    hot:'#FF6699', danger:'#EE1166', blue:'#0077DD',
+    dim:'#5a5e7a', text:'#d8d6f0', textDim:'#9a9bc0',
+  };
+
+  // 텍스트 길이 제한 (ellipsis)
+  const truncate = (str, maxChars) => {
+    if (str.length <= maxChars) return str;
+    return str.slice(0, maxChars - 1) + '…';
+  };
+
+  // 스킬 파싱 + empty 필터
+  const skills = skRaw
+    .map(s => {
+      const parts = s.split('§');
+      const state = (parts[2] || 'ready').trim();
+      return {
+        name: esc(parts[0]||''),
+        prof: safeInt(parts[1], 0, 0, 1000),
+        baseState: state.split(':')[0],
+        reason: state.includes(':') ? state.slice(state.indexOf(':')+1) : ''
+      };
+    })
+    .filter(s => s.baseState !== 'empty')
+    .slice(0, 6);
+
+  // HP/MP 비율 따라 색상 변동
+  const hpPct = hp / hpMax;
+  const hpColor = hpPct < 0.2 ? C.danger : (hpPct < 0.5 ? C.orange : C.rose);
+  const hpColor2 = hpPct < 0.2 ? C.hot : (hpPct < 0.5 ? C.sand : C.pink);
+  const mpPct = mp / mpMax;
+  const mpColor = mpPct < 0.2 ? C.purple : C.indigoSoft;
+  const mpColor2 = mpPct < 0.2 ? '#5a3a6a' : C.indigo;
+
+  // EQUIP 파싱 — § 짝수 단위로 (이름,등급) 쌍
+  const eqRows = eq.slice(0,3).map(slot => {
+    const tokens = slot.split('§');
+    const pairs = [];
+    for (let i = 0; i < tokens.length; i += 2) {
+      const n = (tokens[i] || '').trim();
+      const g = (tokens[i+1] || '일반').trim();
+      if (n) pairs.push({name: n, grade: g});
+    }
+    if (pairs.length === 0) pairs.push({name:'—', grade:'일반'});
+    return pairs;
+  });
+  // 좌측: 무기+방어구 / 우측: 장신구
+  const leftSlots  = [];
+  const rightSlots = [];
+  if (eqRows[0]) leftSlots.push({label:'무기',   pairs:eqRows[0]});
+  if (eqRows[1]) leftSlots.push({label:'방어구', pairs:eqRows[1]});
+  if (eqRows[2]) rightSlots.push({label:'장신구',pairs:eqRows[2]});
+
+  const EQ_ROW = 20;
+  const leftLines  = leftSlots.reduce((acc, s) => acc + s.pairs.length, 0);
+  const rightLines = rightSlots.reduce((acc, s) => acc + s.pairs.length, 0);
+  const leftHeight  = leftLines * EQ_ROW + Math.max(0, leftSlots.length - 1) * 4;
+  const rightHeight = rightLines * EQ_ROW + Math.max(0, rightSlots.length - 1) * 4;
+  const maxEqHeight = Math.max(leftHeight, rightHeight, 0);
+
+  // 섹션 높이 계산
+  const H_HEADER = 78;
+  const H_TIME   = (tDate || tNow) ? 26 : 0;
+  const H_VITAL  = 70;
+  const H_BUFF   = buf.length > 0 ? 58 : 0;
+  const H_EXP    = 34;
+  const SK_ROW   = 32;
+  const H_SKILL  = skills.length > 0 ? (26 + skills.length * SK_ROW + 10) : 0;
+  const H_EQUIP  = eq.length > 0 ? (26 + maxEqHeight + 10) : 0;
+  const PT_ROW   = 28;
+  const H_PARTY  = pt.length > 0 ? (26 + Math.min(pt.length, 4) * PT_ROW + 10) : 0;
+  const H_GUILD  = guildName ? 32 : 0;
+  const H_LOGOUT = lo ? 48 : 0;
+  const H_FOOT   = 14;
+
+  const TOTAL_H = H_HEADER + H_TIME + H_VITAL + H_BUFF + H_EXP + H_SKILL + H_EQUIP + H_PARTY + H_GUILD + H_LOGOUT + H_FOOT;
+
+  let y = 0;
+  let svg = '';
+
+  // 배경 + 격자
+  svg += `<defs>
+    <pattern id="mmoGrid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="${C.border}" stroke-width="0.3" opacity="0.4"/>
+    </pattern>
+    <linearGradient id="mmoHp" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="${hpColor}"/><stop offset="100%" stop-color="${hpColor2}"/>
+    </linearGradient>
+    <linearGradient id="mmoMp" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="${mpColor}"/><stop offset="100%" stop-color="${mpColor2}"/>
+    </linearGradient>
+    <linearGradient id="mmoExp" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="${C.purple}"/><stop offset="100%" stop-color="${C.indigo}"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="${W}" height="${TOTAL_H}" fill="${C.bg}"/>
+  <rect x="0" y="0" width="${W}" height="${TOTAL_H}" fill="url(#mmoGrid)"/>`;
+  svg += `<line x1="0" y1="0" x2="0" y2="${TOTAL_H}" stroke="${C.indigo}" stroke-width="2" opacity="0.6"/>`;
+  svg += `<line x1="${W}" y1="0" x2="${W}" y2="${TOTAL_H}" stroke="${C.indigo}" stroke-width="2" opacity="0.6"/>`;
+
+  // HEADER
+  svg += `<rect x="0" y="${y}" width="${W}" height="${H_HEADER}" fill="${C.panel}"/>`;
+  svg += `<path d="M${PAD-4} ${y+8} L${PAD-4} ${y+18} M${PAD-4} ${y+8} L${PAD+6} ${y+8}" stroke="${C.indigo}" stroke-width="2" fill="none"/>`;
+  svg += `<path d="M${W-PAD+4} ${y+8} L${W-PAD+4} ${y+18} M${W-PAD+4} ${y+8} L${W-PAD-6} ${y+8}" stroke="${C.indigo}" stroke-width="2" fill="none"/>`;
+  svg += `<text x="${PAD}" y="${y+30}" font-family="'Noto Sans KR',sans-serif" font-size="20" font-weight="bold" fill="${C.text}">${name}</text>`;
+  if (title) svg += `<text x="${PAD}" y="${y+48}" font-family="'Noto Sans KR',sans-serif" font-size="11" fill="${C.pink}" font-style="italic">― ${title} ―</text>`;
+  if (job)   svg += `<text x="${PAD}" y="${y+64}" font-family="monospace" font-size="10" font-weight="bold" fill="${C.textDim}" letter-spacing="1">${job}</text>`;
+  svg += `<rect x="${W-PAD-58}" y="${y+18}" width="58" height="36" fill="${C.bg}" stroke="${C.indigo}" stroke-width="1"/>`;
+  svg += `<text x="${W-PAD-29}" y="${y+31}" font-family="monospace" font-size="8" fill="${C.textDim}" text-anchor="middle" letter-spacing="2">LEVEL</text>`;
+  svg += `<text x="${W-PAD-29}" y="${y+49}" font-family="monospace" font-size="18" font-weight="bold" fill="${C.indigo}" text-anchor="middle">${lv}</text>`;
+  y += H_HEADER;
+
+  // TIME
+  if (H_TIME > 0) {
+    svg += `<rect x="0" y="${y}" width="${W}" height="${H_TIME}" fill="${C.panelHi}"/>`;
+    let leftStr = '';
+    if (tDate) leftStr += tDate;
+    if (tDay) leftStr += ` ${tDay}`;
+    if (tNow) leftStr += `  ${tNow}`;
+    svg += `<text x="${PAD}" y="${y+17}" font-family="monospace" font-size="11" font-weight="bold" fill="${C.cyan}" letter-spacing="1">⏱ ${leftStr}</text>`;
+    if (tPlay) svg += `<text x="${W-PAD}" y="${y+17}" font-family="monospace" font-size="10" fill="${C.textDim}" text-anchor="end" letter-spacing="1">PLAY ${tPlay}</text>`;
+    y += H_TIME;
+  }
+
+  // HP/MP
+  svg += `<rect x="0" y="${y}" width="${W}" height="${H_VITAL}" fill="${C.panelHi}"/>`;
+  const drawVitalBar = (label, val, max, gradId, yy, valColor) => {
+    const pct = Math.max(0, Math.min(1, val / max));
+    const barX = PAD + 36, barW = INNER_W - 36 - 90;
+    let out = `<text x="${PAD}" y="${yy+13}" font-family="monospace" font-size="12" font-weight="bold" fill="${C.textDim}" letter-spacing="1">${label}</text>`;
+    out += `<rect x="${barX}" y="${yy+3}" width="${barW}" height="13" fill="${C.bg}" stroke="${C.border}" stroke-width="0.5"/>`;
+    out += `<rect x="${barX}" y="${yy+3}" width="${Math.round(barW*pct)}" height="13" fill="url(#${gradId})"/>`;
+    out += `<rect x="${barX}" y="${yy+3}" width="${Math.round(barW*pct)}" height="6" fill="rgba(255,255,255,0.18)"/>`;
+    for (let i = 1; i < 4; i++) {
+      const tx = barX + Math.round(barW * i / 4);
+      out += `<line x1="${tx}" y1="${yy+3}" x2="${tx}" y2="${yy+16}" stroke="${C.bg}" stroke-width="1" opacity="0.6"/>`;
+    }
+    out += `<text x="${W-PAD}" y="${yy+14}" font-family="monospace" font-size="12" font-weight="bold" fill="${valColor}" text-anchor="end">${val} / ${max}</text>`;
+    return out;
+  };
+  svg += drawVitalBar('HP', hp, hpMax, 'mmoHp', y + 12, hpPct < 0.2 ? C.danger : C.text);
+  svg += drawVitalBar('MP', mp, mpMax, 'mmoMp', y + 40, mpPct < 0.2 ? C.purple : C.text);
+  y += H_VITAL;
+
+  // BUFF/DEBUFF
+  if (H_BUFF > 0) {
+    svg += `<rect x="0" y="${y}" width="${W}" height="${H_BUFF}" fill="${C.panel}"/>`;
+    svg += `<text x="${PAD}" y="${y+14}" font-family="monospace" font-size="9" fill="${C.textDim}" letter-spacing="2">STATUS</text>`;
+    const debuffSet = {'독':[C.purple,'☠'], '혼란':[C.hot,'?'], '실명':[C.dim,'◐'], '출혈':[C.danger,'✚'], '마비':[C.orange,'⚡'], '저주':[C.purple,'✠'], '침묵':[C.dim,'✕']};
+    const buffSet   = {'축복':[C.sand,'✦'], '가속':[C.cyan,'»'], '방어':[C.indigo,'◈'], '회복':[C.pink,'❤'], '집중':[C.blue,'◎']};
+    const BOX_W = 54, BOX_H = 34, GAP = 4;
+    buf.slice(0, 8).forEach((b, i) => {
+      const parts = b.split('§');
+      const bname = (parts[0] || '').trim();
+      const btime = (parts[1] || '').trim();
+      const def = debuffSet[bname] || buffSet[bname] || [C.textDim, '•'];
+      const bx = PAD + i * (BOX_W + GAP);
+      const by = y + 20;
+      svg += `<rect x="${bx}" y="${by}" width="${BOX_W}" height="${BOX_H}" fill="${C.bg}" stroke="${def[0]}" stroke-width="1"/>`;
+      svg += `<text x="${bx+9}" y="${by+14}" font-family="monospace" font-size="11" fill="${def[0]}" text-anchor="middle">${def[1]}</text>`;
+      svg += `<text x="${bx+32}" y="${by+13}" font-family="'Noto Sans KR',sans-serif" font-size="10" font-weight="bold" fill="${C.text}" text-anchor="middle">${esc(bname)}</text>`;
+      svg += `<line x1="${bx+3}" y1="${by+19}" x2="${bx+BOX_W-3}" y2="${by+19}" stroke="${def[0]}" stroke-width="0.4" opacity="0.5"/>`;
+      if (btime) svg += `<text x="${bx+BOX_W/2}" y="${by+30}" font-family="monospace" font-size="10" font-weight="bold" fill="${def[0]}" text-anchor="middle">${esc(btime)}s</text>`;
+    });
+    y += H_BUFF;
+  }
+
+  // EXP / COL
+  svg += `<rect x="0" y="${y}" width="${W}" height="${H_EXP}" fill="${C.panel}"/>`;
+  svg += `<text x="${PAD}" y="${y+13}" font-family="monospace" font-size="9" fill="${C.textDim}" letter-spacing="2">EXP</text>`;
+  svg += `<rect x="${PAD+36}" y="${y+6}" width="${INNER_W-36-90}" height="8" fill="${C.bg}" stroke="${C.border}" stroke-width="0.5"/>`;
+  svg += `<rect x="${PAD+36}" y="${y+6}" width="${Math.round((INNER_W-36-90)*exp/100)}" height="8" fill="url(#mmoExp)"/>`;
+  svg += `<text x="${W-PAD}" y="${y+13}" font-family="monospace" font-size="10" font-weight="bold" fill="${C.indigo}" text-anchor="end">${exp}.00%</text>`;
+  svg += `<text x="${PAD}" y="${y+27}" font-family="monospace" font-size="9" fill="${C.textDim}" letter-spacing="2">COL</text>`;
+  svg += `<text x="${W-PAD}" y="${y+27}" font-family="monospace" font-size="11" font-weight="bold" fill="${C.sand}" text-anchor="end">${col.toLocaleString()}</text>`;
+  y += H_EXP;
+
+  // SKILL
+  if (H_SKILL > 0) {
+    svg += `<rect x="0" y="${y}" width="${W}" height="${H_SKILL}" fill="${C.panel}"/>`;
+    svg += `<text x="${PAD}" y="${y+16}" font-family="monospace" font-size="10" font-weight="bold" fill="${C.indigo}" letter-spacing="2">― SKILL ―</text>`;
+    svg += `<line x1="${PAD+60}" y1="${y+12}" x2="${W-PAD}" y2="${y+12}" stroke="${C.border}" stroke-width="0.5"/>`;
+    const ICON_SIZE = 24;
+    skills.forEach((s, i) => {
+      const sy = y + 26 + i * SK_ROW;
+      const iconX = PAD;
+      let iconBorder = C.indigo, iconFill = C.bg, glyph = '✦', glyphColor = C.indigo, opacity = 1;
+      let overlay = '';
+
+      if (s.baseState === 'lock') {
+        iconBorder = C.dim; glyph = '🔒'; glyphColor = C.dim; opacity = 0.4;
+      } else if (s.baseState === 'seal') {
+        iconBorder = C.danger; glyph = '✕'; glyphColor = C.danger; opacity = 0.8;
+      } else if (s.baseState === 'active') {
+        iconBorder = C.pink; glyphColor = C.pink;
+      } else if (s.baseState === 'cd') {
+        const cdSec = parseInt(s.reason) || 0;
+        iconBorder = C.indigoSoft; opacity = 0.7;
+        overlay = `<rect x="${iconX}" y="${sy}" width="${ICON_SIZE}" height="${ICON_SIZE}" fill="rgba(0,0,0,0.65)"/>`;
+        const pct = Math.min(1, cdSec / 60);
+        const angle = pct * 360;
+        const rad = (angle - 90) * Math.PI / 180;
+        const cx = iconX + ICON_SIZE/2, cy = sy + ICON_SIZE/2, r = ICON_SIZE/2 - 2;
+        const ex = cx + r * Math.cos(rad), ey = cy + r * Math.sin(rad);
+        const large = angle > 180 ? 1 : 0;
+        if (angle > 0 && angle < 360) {
+          overlay += `<path d="M ${cx} ${cy} L ${cx} ${cy-r} A ${r} ${r} 0 ${large} 1 ${ex} ${ey} Z" fill="rgba(255,119,34,0.25)" stroke="${C.orange}" stroke-width="0.5"/>`;
+        }
+        overlay += `<text x="${cx}" y="${cy+5}" font-family="monospace" font-size="12" font-weight="bold" fill="${C.orange}" text-anchor="middle" stroke="${C.bg}" stroke-width="0.3">${cdSec}</text>`;
+        glyph = '';
+      }
+
+      svg += `<rect x="${iconX}" y="${sy}" width="${ICON_SIZE}" height="${ICON_SIZE}" fill="${iconFill}" stroke="${iconBorder}" stroke-width="1" opacity="${opacity}"/>`;
+      if (glyph) svg += `<text x="${iconX+ICON_SIZE/2}" y="${sy+ICON_SIZE/2+5}" font-family="monospace" font-size="14" fill="${glyphColor}" text-anchor="middle" opacity="${opacity}">${glyph}</text>`;
+      svg += overlay;
+
+      const nameColor = (s.baseState === 'lock' || s.baseState === 'seal') ? C.dim : (s.baseState === 'active' ? C.pink : C.text);
+      svg += `<text x="${PAD+34}" y="${sy+11}" font-family="'Noto Sans KR',sans-serif" font-size="12" font-weight="bold" fill="${nameColor}">${s.name || '???'}</text>`;
+
+      let stateLabel = '', stateColor = C.textDim;
+      if (s.baseState === 'ready')       { stateLabel = 'READY';    stateColor = C.indigo; }
+      else if (s.baseState === 'active') { stateLabel = 'ACTIVE';   stateColor = C.pink; }
+      else if (s.baseState === 'lock')   { stateLabel = 'LOCKED';   stateColor = C.dim; }
+      else if (s.baseState === 'seal')   { stateLabel = 'SEALED';   stateColor = C.danger; }
+      else if (s.baseState === 'cd')     { stateLabel = 'COOLDOWN'; stateColor = C.orange; }
+      if (s.reason && (s.baseState === 'lock' || s.baseState === 'seal')) stateLabel += ` [${esc(s.reason)}]`;
+      svg += `<text x="${W-PAD}" y="${sy+11}" font-family="monospace" font-size="10" font-weight="bold" fill="${stateColor}" text-anchor="end" letter-spacing="1">${stateLabel}</text>`;
+
+      const profBarW = INNER_W - 34;
+      svg += `<rect x="${PAD+34}" y="${sy+15}" width="${profBarW}" height="4" fill="${C.bg}" stroke="${C.border}" stroke-width="0.3"/>`;
+      if (s.baseState !== 'lock' && s.baseState !== 'seal') {
+        svg += `<rect x="${PAD+34}" y="${sy+15}" width="${Math.round(profBarW*s.prof/1000)}" height="4" fill="${C.indigo}" opacity="${s.baseState==='active'?1:0.7}"/>`;
+      }
+      const profText = (s.baseState === 'lock' || s.baseState === 'seal') ? '---' : s.prof + ' / 1000';
+      svg += `<text x="${W-PAD}" y="${sy+27}" font-family="monospace" font-size="9" fill="${C.textDim}" text-anchor="end">${profText}</text>`;
+    });
+    y += H_SKILL;
+  }
+
+  // EQUIP - 2칼럼 (좌: 무기+방어구, 우: 장신구)
+  if (H_EQUIP > 0) {
+    svg += `<rect x="0" y="${y}" width="${W}" height="${H_EQUIP}" fill="${C.panelHi}"/>`;
+    svg += `<text x="${PAD}" y="${y+16}" font-family="monospace" font-size="10" font-weight="bold" fill="${C.indigo}" letter-spacing="2">― EQUIP ―</text>`;
+    svg += `<line x1="${PAD+60}" y1="${y+12}" x2="${W-PAD}" y2="${y+12}" stroke="${C.border}" stroke-width="0.5"/>`;
+    const gradeColor = (g) => {
+      const m = {'전설':C.sand,'유니크':C.purple,'레어':C.cyan,'매직':C.indigo,'일반':C.textDim,'저주':C.danger};
+      return m[g] || C.textDim;
+    };
+    const COL_W = (INNER_W - 12) / 2;
+    const LEFT_X  = PAD;
+    const RIGHT_X = PAD + COL_W + 12;
+    const dividerX = PAD + COL_W + 6;
+    svg += `<line x1="${dividerX}" y1="${y+22}" x2="${dividerX}" y2="${y+H_EQUIP-6}" stroke="${C.border}" stroke-width="0.5" opacity="0.6"/>`;
+
+    const drawColumn = (slots, colX, colW) => {
+      let cy = y + 26;
+      slots.forEach((slot, si) => {
+        slot.pairs.forEach((it, j) => {
+          if (j === 0) {
+            svg += `<text x="${colX}" y="${cy+12}" font-family="monospace" font-size="9" fill="${C.textDim}" letter-spacing="1">${slot.label}</text>`;
+          } else {
+            svg += `<text x="${colX+34}" y="${cy+12}" font-family="monospace" font-size="9" fill="${C.dim}">└</text>`;
+          }
+          const itemName = truncate(it.name, 11);
+          const nameX = (j === 0) ? colX + 38 : colX + 44;
+          svg += `<text x="${nameX}" y="${cy+12}" font-family="'Noto Sans KR',sans-serif" font-size="11" fill="${C.text}">${esc(itemName)}</text>`;
+          svg += `<text x="${colX+colW}" y="${cy+12}" font-family="monospace" font-size="9" font-weight="bold" fill="${gradeColor(it.grade)}" text-anchor="end" letter-spacing="1">[${esc(it.grade)}]</text>`;
+          cy += EQ_ROW;
+        });
+        if (si < slots.length - 1) cy += 4;
+      });
+    };
+    drawColumn(leftSlots, LEFT_X, COL_W);
+    drawColumn(rightSlots, RIGHT_X, COL_W);
+    y += H_EQUIP;
+  }
+
+  // PARTY
+  if (H_PARTY > 0) {
+    svg += `<rect x="0" y="${y}" width="${W}" height="${H_PARTY}" fill="${C.panel}"/>`;
+    svg += `<text x="${PAD}" y="${y+16}" font-family="monospace" font-size="10" font-weight="bold" fill="${C.indigo}" letter-spacing="2">― PARTY ―</text>`;
+    svg += `<line x1="${PAD+60}" y1="${y+12}" x2="${W-PAD}" y2="${y+12}" stroke="${C.border}" stroke-width="0.5"/>`;
+    pt.slice(0, 4).forEach((p, i) => {
+      const parts = p.split('§');
+      const pname = esc(parts[0]||'—');
+      const phpPct = safeInt(parts[1], 100, 0, 100);
+      const pjob = esc(parts[2]||'');
+      const py = y + 26 + i * PT_ROW;
+      svg += `<rect x="${PAD}" y="${py}" width="20" height="20" fill="${C.bg}" stroke="${C.indigo}" stroke-width="1"/>`;
+      svg += `<text x="${PAD+10}" y="${py+15}" font-family="monospace" font-size="12" fill="${C.indigo}" text-anchor="middle">●</text>`;
+      svg += `<text x="${PAD+28}" y="${py+10}" font-family="'Noto Sans KR',sans-serif" font-size="11" font-weight="bold" fill="${C.text}">${pname}</text>`;
+      svg += `<text x="${PAD+28}" y="${py+21}" font-family="monospace" font-size="9" fill="${C.textDim}">${pjob}</text>`;
+      const pbarX = PAD + 140, pbarW = INNER_W - 140 - 40;
+      const pColor = phpPct < 20 ? C.danger : (phpPct < 50 ? C.orange : C.rose);
+      svg += `<rect x="${pbarX}" y="${py+7}" width="${pbarW}" height="7" fill="${C.bg}" stroke="${C.border}" stroke-width="0.3"/>`;
+      svg += `<rect x="${pbarX}" y="${py+7}" width="${Math.round(pbarW*phpPct/100)}" height="7" fill="${pColor}"/>`;
+      svg += `<text x="${W-PAD}" y="${py+13}" font-family="monospace" font-size="10" font-weight="bold" fill="${pColor}" text-anchor="end">${phpPct}%</text>`;
+    });
+    y += H_PARTY;
+  }
+
+  // GUILD
+  if (H_GUILD > 0) {
+    svg += `<rect x="0" y="${y}" width="${W}" height="${H_GUILD}" fill="${C.panelHi}"/>`;
+    svg += `<text x="${PAD}" y="${y+20}" font-family="monospace" font-size="10" fill="${C.textDim}" letter-spacing="2">GUILD</text>`;
+    svg += `<text x="${PAD+58}" y="${y+20}" font-family="'Noto Sans KR',sans-serif" font-size="13" font-weight="bold" fill="${C.pink}">⚜ ${guildName}</text>`;
+    if (guildRank) svg += `<text x="${W-PAD}" y="${y+20}" font-family="monospace" font-size="11" font-weight="bold" fill="${C.sand}" text-anchor="end">[${guildRank}]</text>`;
+    y += H_GUILD;
+  }
+
+  // LOGOUT (lo=1일 때만)
+  if (lo) {
+    svg += `<rect x="0" y="${y}" width="${W}" height="${H_LOGOUT}" fill="${C.panel}"/>`;
+    const btnW = 180, btnH = 32;
+    const btnX = (W - btnW) / 2, btnY = y + 8;
+    svg += `<rect x="${btnX}" y="${btnY}" width="${btnW}" height="${btnH}" fill="${C.bg}" stroke="${C.danger}" stroke-width="1.5"/>`;
+    svg += `<rect x="${btnX+3}" y="${btnY+3}" width="${btnW-6}" height="${btnH-6}" fill="none" stroke="${C.danger}" stroke-width="0.3" opacity="0.6"/>`;
+    svg += `<text x="${W/2}" y="${btnY+22}" font-family="monospace" font-size="13" font-weight="bold" fill="${C.danger}" text-anchor="middle" letter-spacing="3">LOG OUT</text>`;
+    y += H_LOGOUT;
+  }
+
+  // FOOTER
+  svg += `<text x="${PAD}" y="${y+9}" font-family="monospace" font-size="8" fill="${C.dim}" letter-spacing="1">[ SYSTEM ]</text>`;
+  svg += `<text x="${W-PAD}" y="${y+9}" font-family="monospace" font-size="8" fill="${C.dim}" text-anchor="end" letter-spacing="1">v2.04</text>`;
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${TOTAL_H}" viewBox="0 0 ${W} ${TOTAL_H}">${svg}</svg>`;
+}
+
+
+
+// ════════════════════════════════════════════
 //  FETCH
 // ════════════════════════════════════════════
 export default {
@@ -1820,14 +2415,16 @@ export default {
 
     let svg;
     if (t === 'vn') svg = renderVN(params);
+    else if (t === 'vn2') svg = renderVN2(params);
     else if (t === 'dark') svg = renderDark(params);
     else if (t === 'pixel') svg = renderPixel(params);
     else if (t === 'ending') svg = renderEnding(params);
     else if (t === 'rpg2k') svg = renderRpg2k(params);
     else if (t === 'choice') svg = renderChoice(params);
     else if (t === 'dungeon') svg = renderDungeon(params);
+    else if (t === 'mmo') svg = renderMmo(params);
     else {
-      return new Response('사용 가능: ?t=vn / ?t=dark / ?t=pixel / ?t=ending / ?t=rpg2k / ?t=choice / ?t=dungeon', {
+      return new Response('사용 가능: ?t=vn / ?t=vn2 / ?t=dark / ?t=pixel / ?t=ending / ?t=rpg2k / ?t=choice / ?t=dungeon / ?t=mmo', {
         status: 400, headers: { 'Content-Type': 'text/plain; charset=utf-8' }
       });
     }

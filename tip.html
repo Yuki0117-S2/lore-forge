@@ -1433,7 +1433,7 @@ title — 상단 제목 (선택, 기본: ROUTE STATUS)</pre>`
 • <strong>s</strong> — 바이탈 (HP/MP/SP 현재§최대, EXP%)<br>
 • <strong>stat</strong> — 능력치 6개 (STR/DEF/AGI/INT/LUK/WIS, 각 0~99)<br>
 • <strong>eq</strong> — 장비 3슬롯 (무기§등급§방어구§등급§악세서리§등급)<br>
-• <strong>등급</strong> — 일반/희귀/에픽/전설 (색상 자동 변환)<br>
+• <strong>등급</strong> — LEGEND / EPIC / RARE / UNCOMMON / COMMON / CURSED (한글 alias 자동 매핑, 색은 통일된 6단계)<br>
 • <strong>buf</strong> — 상태 효과 (!로 시작하면 디버프=로즈색, 아니면 버프=인디고색)</div>
 <hr class="divider">
 <div class="label label-example">필드 설명</div>
@@ -1448,7 +1448,8 @@ stat (§로 구분):
 
 eq (§로 구분):
   무기명§등급§방어구명§등급§악세서리명§등급
-  등급: 일반(회) / 희귀(인디고) / 에픽(퍼플) / 전설(샌드)
+  등급(영문 대문자 표준, 한글 alias 자동 매핑):
+    LEGEND(샌드) / EPIC(퍼플) / RARE(인디고) / UNCOMMON(로즈) / COMMON(회색) / CURSED(빨강)
 
 buf (§로 구분):
   버프명   → 인디고 테두리
@@ -1791,14 +1792,15 @@ labyrinth=on:
 • <strong>seal:사유</strong> — 침묵/봉인 등 디버프 (빨강 ✕, <code>SEALED [사유]</code>. 예: <code>seal:침묵</code>)<br>
 • <strong>empty</strong> — 슬롯 자체가 렌더링되지 않음 (높이 차지 X). 예: <code>empty§§empty</code></div>
 <hr class="divider">
-<div class="label label-example">장비 등급 (eq 두 번째 필드)</div>
+<div class="label label-example">장비 등급 (eq 두 번째 필드) — 모든 라우트 공통</div>
 <div class="desc">
-• <strong>전설</strong> (샌드) — 최상위 등급<br>
-• <strong>유니크</strong> (퍼플) — 유일 장비<br>
-• <strong>레어</strong> (시안) — 희귀 장비<br>
-• <strong>매직</strong> (인디고) — 마법 장비<br>
-• <strong>일반</strong> (회색) — 기본 장비<br>
-• <strong>저주</strong> (빨강) — 저주받은 장비</div>
+표준 표기는 영문 대문자. 한글 alias도 같은 색으로 자동 매핑됨 (입력한 표기는 그대로 화면에 표시).<br>
+• <strong>LEGEND</strong> <code>#CCAA88</code> 샌드 — alias: 전설<br>
+• <strong>EPIC</strong> <code>#884499</code> 퍼플 — alias: 에픽 · 유니크 · 영웅<br>
+• <strong>RARE</strong> <code>#8889CD</code> 인디고 — alias: 레어 · 희귀<br>
+• <strong>UNCOMMON</strong> <code>#BB6688</code> 로즈 — alias: 언커먼 · 매직 · 고급<br>
+• <strong>COMMON</strong> <code>#7a7a90</code> 회색 — alias: 일반 · 노멀<br>
+• <strong>CURSED</strong> <code>#EE1166</code> 빨강 — alias: 저주 · 저주받은 (좋은 성능 + 디버프 있는 아이템용)</div>
 <hr class="divider">
 <div class="label label-example">상태이상 목록 (buf 첫 번째 필드)</div>
 <div class="desc">
@@ -1836,20 +1838,22 @@ labyrinth=on:
 • <strong>p</strong> — 출처명§[헤더라벨]. 라벨 생략 시 <code>REWARD</code> 자동 적용. 라벨은 영문 대문자로 표시됨 (예: <code>BOSS+DROP</code>, <code>TREASURE+CHEST</code>, <code>QUEST+REWARD</code>)<br>
 • <strong>items</strong> — 아이템 목록 (|로 구분, 최대 6개). 각 아이템은 6필드: 이름§등급§타입§스탯§플레이버§수량<br>
 &nbsp;&nbsp;- <strong>이름</strong> (필수): 아이템명<br>
-&nbsp;&nbsp;- <strong>등급</strong> (필수, 영문 소문자): legend / epic / rare / uncommon / common<br>
+&nbsp;&nbsp;- <strong>등급</strong> (필수): LEGEND / EPIC / RARE / UNCOMMON / COMMON / CURSED (한글 alias 자동 매핑, 아래 등급 표 참고)<br>
 &nbsp;&nbsp;- <strong>타입</strong> (선택): 분류 라벨 (예: <code>TWO-HANDED+SWORD</code>, <code>CONSUMABLE</code>, <code>방어구</code>)<br>
 &nbsp;&nbsp;- <strong>스탯</strong> (선택): 자유 텍스트 (예: <code>ATK+%2B184+·+CRIT+%2B12%25</code>)<br>
 &nbsp;&nbsp;- <strong>플레이버</strong> (선택): 한 줄 묘사 (따옴표 자동 추가됨 — 직접 쓰지 말 것)<br>
 &nbsp;&nbsp;- <strong>수량</strong> (선택, 기본 1): 1이면 미표시, 2 이상부터 표기됨<br>
 • 빈 필드는 <code>§§</code>로 자리만 유지하면 자동 생략</div>
 <hr class="divider">
-<div class="label label-example">등급 (grade)</div>
+<div class="label label-example">등급 (grade) — 모든 라우트 공통</div>
 <div class="desc">
-• <strong>legend</strong> (샌드 #CCAA88) — 전설<br>
-• <strong>epic</strong> (퍼플 #884499) — 영웅<br>
-• <strong>rare</strong> (인디고 #8889CD) — 희귀<br>
-• <strong>uncommon</strong> (로즈 #BB6688) — 고급<br>
-• <strong>common</strong> (회색 #7a7a90) — 일반</div>
+표준 표기는 영문 대문자. 한글 alias도 같은 색으로 자동 매핑됨 (입력한 표기는 그대로 화면에 표시).<br>
+• <strong>LEGEND</strong> <code>#CCAA88</code> 샌드 — alias: 전설<br>
+• <strong>EPIC</strong> <code>#884499</code> 퍼플 — alias: 에픽 · 유니크 · 영웅<br>
+• <strong>RARE</strong> <code>#8889CD</code> 인디고 — alias: 레어 · 희귀<br>
+• <strong>UNCOMMON</strong> <code>#BB6688</code> 로즈 — alias: 언커먼 · 매직 · 고급<br>
+• <strong>COMMON</strong> <code>#7a7a90</code> 회색 — alias: 일반 · 노멀<br>
+• <strong>CURSED</strong> <code>#EE1166</code> 빨강 — alias: 저주 · 저주받은 (좋은 성능 + 디버프 있는 아이템용)</div>
 <hr class="divider">
 <div class="label label-example">활용 팁</div>
 <div class="desc">
@@ -1924,7 +1928,7 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
 
 ### 다크판타지 상태창
 ![](https://st.winter0.workers.dev/?t=dark&p=이름§칭호§직업§성향§레벨&s=hp§hpmax§mp§mpmax§sp§spmax§exp&stat=str§def§agi§int§luk§wis&eq=무기§등급§방어구§등급§악세서리§등급&buf=버프§!디버프)
-- 등급: 일반/희귀/에픽/전설
+- 등급(rarity): 「장비 등급 공통」 섹션 참고 (LEGEND/EPIC/RARE/UNCOMMON/COMMON/CURSED, 한글 alias 자동 매핑)
 - !로 시작하면 디버프 (로즈색)
 
 ### 픽셀 RPG 상태창
@@ -1991,7 +1995,7 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
   empty는 슬롯 자체 사라짐 (높이 차지 X)
   lock/seal의 사유는 짧게 (예: lock:LV.50, seal:침묵)
 - eq: 슬롯 3개 (무기|방어구|장신구, |로 구분). 한 슬롯 안에서 § 짝수 단위로 (이름§등급) 다중 — 이도류·다중 장신구 표현
-  등급: 전설(샌드) / 유니크(퍼플) / 레어(시안) / 매직(인디고) / 일반 / 저주(빨강)
+  등급(rarity): 「장비 등급 공통」 섹션 참고
 - pt: 파티원§HP%§직업 (최대 4명). HP% 비율 따라 색 자동 변화
 - gd: 길드명§계급 (선택)
 - buf: 상태이상§시간 (|로 구분, 최대 8개). 시간은 단위 포함 자유 표기 (예: 30s, 1m, 2h, ∞)
@@ -2007,7 +2011,7 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
 - st: mmo(기본, 다크 판타지) / pixel(16비트 RPG)
 - p: 출처명§헤더라벨. 라벨 생략 시 REWARD 자동. 라벨은 영문 대문자로 표시 (예: BOSS+DROP, TREASURE+CHEST, QUEST+REWARD, DUNGEON+CLEAR)
 - items: 6필드 (이름§등급§타입§스탯§플레이버§수량). |로 구분, 최대 6개
-  등급(영문 소문자 필수): legend(샌드) / epic(퍼플) / rare(인디고) / uncommon(로즈) / common(회색)
+  등급(rarity): 「장비 등급 공통」 섹션 참고 (입력 표기 그대로 표시됨)
   타입/스탯/플레이버/수량은 선택 — 빈 필드는 §§로 자리만 유지
   수량 1이면 자동 미표시, 2 이상부터 × N 표기
 - 플레이버 텍스트는 따옴표 자동 추가됨 — 직접 쓰지 말 것
@@ -2025,6 +2029,15 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
 - 아이콘 키 (16종): trophy / star / heart / skull / crown / sword / shield / flame / key / book / hourglass / coin / potion / note / eye / mask
 - count: 사망/도전 횟수 (선택)
 - 죽음의 비극성·실패의 회한·재도전의 의지 등을 캐릭터 성격에 맞춰 대사로 작성
+
+### 장비 등급 공통 (rarity)
+영문 대문자 표준, 한글 alias 자동 매핑, 입력 표기 그대로 표시
+- LEGEND #CCAA88 (alias: 전설)
+- EPIC #884499 (alias: 에픽 · 유니크 · 영웅)
+- RARE #8889CD (alias: 레어 · 희귀)
+- UNCOMMON #BB6688 (alias: 언커먼 · 매직 · 고급)
+- COMMON #7a7a90 (alias: 일반 · 노멀)
+- CURSED #EE1166 (alias: 저주 · 저주받은, 좋은 성능 + 디버프 있는 아이템용)
 
 ### 공통 규칙
 - 필드 구분자: § / 아이템 구분자: |

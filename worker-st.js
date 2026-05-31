@@ -27,6 +27,63 @@ function hearts(val) {
   return '♥'.repeat(h) + '♡'.repeat(5 - h);
 }
 
+// ════════════════════════════════════════════
+//  통일 등급 시스템 (rarity) — 모든 라우트 공용
+//  6단계: legend / epic / rare / uncommon / common / cursed
+//  한글/영문 alias 자동 매핑
+// ════════════════════════════════════════════
+function normalizeRarity(g) {
+  const s = (g || '').toString().trim().toLowerCase();
+  if (['legend', '전설'].includes(s)) return 'legend';
+  if (['epic', '에픽', '유니크', '영웅'].includes(s)) return 'epic';
+  if (['rare', '레어', '희귀'].includes(s)) return 'rare';
+  if (['uncommon', '언커먼', '매직', '고급'].includes(s)) return 'uncommon';
+  if (['common', '일반', '노멀'].includes(s)) return 'common';
+  if (['cursed', '저주', '저주받은'].includes(s)) return 'cursed';
+  return 'common';
+}
+const RARITY_COLOR = {
+  legend:   '#CCAA88',
+  epic:     '#884499',
+  rare:     '#8889CD',
+  uncommon: '#BB6688',
+  common:   '#7a7a90',
+  cursed:   '#EE1166',
+};
+function rarityColor(g) {
+  return RARITY_COLOR[normalizeRarity(g)];
+}
+
+// ════════════════════════════════════════════
+//  장비 슬롯 아이콘 (검/갑옷/반지) — SVG path
+//  슬롯 종류 자동 인식 (WEAPON/ARMOR/ACC* 또는 한글)
+//  scale로 사이즈 조정 (stroke 두께 자동 보정)
+// ════════════════════════════════════════════
+function equipIcon(slot, color, x, y, scale) {
+  scale = scale || 1;
+  const t = `translate(${x},${y}) scale(${scale})`;
+  const sw = (2 / scale).toFixed(2);
+  const s = (slot || '').toString().toUpperCase();
+  if (s.includes('WEAPON') || s === '무기') {
+    return `<g transform="${t}" stroke="${color}" stroke-width="${sw}" stroke-linecap="round" fill="none">`
+      + `<line x1="11" y1="5" x2="11" y2="14"/>`
+      + `<line x1="7" y1="14" x2="15" y2="14"/>`
+      + `<line x1="11" y1="14" x2="11" y2="20"/>`
+      + `<circle cx="11" cy="21" r="1.5" fill="${color}"/>`
+      + `</g>`;
+  }
+  if (s.includes('ARMOR') || s === '방어구') {
+    return `<path transform="${t}" d="M11 5 L18 8 L18 14 Q18 19 11 22 Q4 19 4 14 L4 8 Z" stroke="${color}" stroke-width="${sw}" stroke-linejoin="round" fill="none"/>`;
+  }
+  if (s.includes('ACC') || s === '장신구' || s === '악세서리') {
+    return `<g transform="${t}" stroke="${color}" stroke-width="${sw}" fill="none">`
+      + `<circle cx="11" cy="16" r="4"/>`
+      + `<polygon points="11,6 14,10 11,13 8,10" fill="${color}"/>`
+      + `</g>`;
+  }
+  return '';
+}
+
 // 날짜 포맷: YYYY-MM-DD 패턴이면 자동으로 요일 붙임. 아니면 원문 유지.
 // time이 HH:MM 패턴이면 " · HH:MM"으로 뒤에 붙임.
 function formatVNDate(rawDate, rawTime) {
@@ -449,9 +506,14 @@ function darkBar(x, y, w, h, val, max, type) {
   const pct = Math.min(100, Math.round((val / max) * 100));
   const filled = Math.round((pct / 100) * w);
   const col = darkBarColor(type, pct);
-  return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="2" fill="#0a0805"/>
-<rect x="${x}" y="${y}" width="${filled}" height="${h}" rx="2" fill="${col}"/>
-<rect x="${x}" y="${y}" width="${filled}" height="${Math.ceil(h/2)}" rx="2" fill="rgba(255,255,255,0.06)"/>`;
+  const pulse = (type === 'hp' || type === 'mp') && pct < 20;
+  const bg = `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="2" fill="#0a0805"/>`;
+  const fill = `<rect x="${x}" y="${y}" width="${filled}" height="${h}" rx="2" fill="${col}"/>`;
+  const hi = `<rect x="${x}" y="${y}" width="${filled}" height="${Math.ceil(h/2)}" rx="2" fill="rgba(255,255,255,0.06)"/>`;
+  if (pulse) {
+    return `${bg}<g>${fill}${hi}<animate attributeName="opacity" values="1;0.4;1" dur="0.9s" repeatCount="indefinite"/></g>`;
+  }
+  return bg + fill + hi;
 }
 
 function darkStatBar(x, y, w, h, val) {
@@ -461,9 +523,7 @@ function darkStatBar(x, y, w, h, val) {
 <rect x="${x}" y="${y}" width="${filled}" height="${h}" rx="2" fill="${col}" opacity="0.85"/>`;
 }
 
-function gradeColor(g) {
-  return { '전설': '#CCAA88', '에픽': '#884499', '희귀': '#8889CD', '일반': '#6a5a48' }[g] || '#6a5a48';
-}
+// (gradeColor 제거 — 통일 rarityColor 헬퍼 사용)
 
 function renderDark(params) {
   const W = 470, PAD = 18;
@@ -539,13 +599,13 @@ ${darkStatBar(bx, sy+4, SBAW, 10, s.val)}
   y += STAT_H;
 
   // EQUIPMENT
-  const eqItems = [{icon:'🗡',type:'WEAPON',name:wpnName,grade:wpnGrade},{icon:'🧥',type:'ARMOR',name:armName,grade:armGrade},{icon:'💍',type:'ACCESSORY',name:accName,grade:accGrade}];
+  const eqItems = [{type:'WEAPON',name:wpnName,grade:wpnGrade},{type:'ARMOR',name:armName,grade:armGrade},{type:'ACCESSORY',name:accName,grade:accGrade}];
   svg += `<rect x="0" y="${y}" width="${W}" height="${EQ_H}" fill="#0c0a07"/>
 <text x="${PAD}" y="${y+16}" font-family="monospace" font-size="10" font-weight="bold" fill="#6a5a40" letter-spacing="2">EQUIPMENT</text>`;
   eqItems.forEach((e,i) => {
-    const ey = y+22+i*30; const gcol = gradeColor(e.grade);
+    const ey = y+22+i*30; const gcol = rarityColor(e.grade);
     svg += `<rect x="${PAD}" y="${ey}" width="${INNER_W}" height="26" rx="3" fill="#0a0805" stroke="#1e1810" stroke-width="1"/>
-<text x="${PAD+10}" y="${ey+18}" font-size="14">${e.icon}</text>
+${equipIcon(e.type, gcol, PAD+4, ey+2, 1)}
 <text x="${PAD+30}" y="${ey+10}" font-family="monospace" font-size="9" font-weight="bold" fill="#6a5a40" letter-spacing="1">${e.type}</text>
 <text x="${PAD+30}" y="${ey+22}" font-family="Georgia,'Noto Serif KR',serif" font-size="14" font-weight="bold" fill="#d8c8b0">${e.name}</text>
 <text x="${W-PAD-6}" y="${ey+18}" font-family="monospace" font-size="12" font-weight="bold" fill="${gcol}" text-anchor="end">◆ ${e.grade}</text>`;
@@ -589,7 +649,7 @@ ${svg}
 function pixelBarColor(type, pct) {
   if (type==='hp') { if(pct<20) return '#EE1166'; if(pct<40) return '#FF7722'; return '#BB6688'; }
   if (type==='mp') { if(pct<20) return '#884499'; return '#8889CD'; }
-  if (type==='sp') return '#CCAA88';
+  if (type==='sp') { if(pct<20) return '#FF7722'; return '#CCAA88'; }
   if (type==='exp') return '#884499';
   if (type==='atk') return '#BB6688';
   if (type==='def') return '#8889CD';
@@ -605,9 +665,21 @@ function pixelBar(x, y, w, h, val, max, type) {
   const BLOCK = 4, GAP = 1;
   const totalBlocks = Math.floor(w / (BLOCK + GAP));
   const filledBlocks = Math.round((pct / 100) * totalBlocks);
+  const pulse = (type === 'hp' || type === 'mp') && pct < 20;
   let out = `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#000"/>`;
+  // 빈 블록은 바로 그리고, 채워진 블록은 모았다가 그룹으로 (펄스용)
+  let filledOut = '';
   for (let i = 0; i < totalBlocks; i++) {
-    out += `<rect x="${x + i*(BLOCK+GAP)}" y="${y}" width="${BLOCK}" height="${h}" fill="${i < filledBlocks ? col : '#1a1a2e'}" opacity="${i < filledBlocks ? 1 : 0.5}"/>`;
+    if (i < filledBlocks) {
+      filledOut += `<rect x="${x + i*(BLOCK+GAP)}" y="${y}" width="${BLOCK}" height="${h}" fill="${col}" opacity="1"/>`;
+    } else {
+      out += `<rect x="${x + i*(BLOCK+GAP)}" y="${y}" width="${BLOCK}" height="${h}" fill="#1a1a2e" opacity="0.5"/>`;
+    }
+  }
+  if (pulse && filledBlocks > 0) {
+    out += `<g>${filledOut}<animate attributeName="opacity" values="1;0.4;1" dur="0.9s" repeatCount="indefinite"/></g>`;
+  } else {
+    out += filledOut;
   }
   return out;
 }
@@ -920,15 +992,22 @@ ${pixelStatBar(bx, sy+4, SBAW, 10, s.val, s.type)}
   y += STAT_H;
 
   // EQUIPMENT
-  const eqItems = [{icon:'🗡',label:'WEAPON',name:wpn},{icon:'🛡',label:'ARMOR',name:arm},{icon:'💍',label:'ACC',name:acc}];
+  const eqItems = [{type:'WEAPON',name:wpn},{type:'ARMOR',name:arm},{type:'ACC',name:acc}];
   svg += `<rect x="0" y="${y}" width="${W}" height="${EQ_H}" fill="#0a0a1a"/>
 <text x="${PAD}" y="${y+14}" font-family="monospace" font-size="9" font-weight="bold" fill="#5a5078" letter-spacing="2">▸ EQUIPMENT</text>`;
   eqItems.forEach((e,i) => {
     const ex = PAD+i*Math.floor(INNER_W/3), ey = y+20, slotW = Math.floor(INNER_W/3)-4;
+    // pixel은 등급 입력 없음 — 인디고 통일색 사용
+    const iconColor = '#8889CD';
+    // 가운데 정렬: 아이콘 24px 기준 scale 1.2 → 28.8px. iconY를 살짝 위로 올려 라벨 가림 방지
+    const iconScale = 1.2;
+    const iconSize = 24 * iconScale;
+    const iconX = ex + slotW/2 - iconSize/2;
+    const iconY = ey - 1;
     svg += `<rect x="${ex}" y="${ey}" width="${slotW}" height="54" fill="#000" stroke="#2a2040" stroke-width="2"/>
-<text x="${ex+slotW/2}" y="${ey+20}" font-size="18" text-anchor="middle">${e.icon}</text>
-<text x="${ex+slotW/2}" y="${ey+33}" font-family="monospace" font-size="8" font-weight="bold" fill="#5a5078" text-anchor="middle" letter-spacing="1">${e.label}</text>
-<text x="${ex+slotW/2}" y="${ey+47}" font-family="monospace" font-size="10" font-weight="bold" fill="#8889CD" text-anchor="middle">${e.name.length>7?e.name.slice(0,7)+'…':e.name}</text>`;
+${equipIcon(e.type, iconColor, iconX, iconY, iconScale)}
+<text x="${ex+slotW/2}" y="${ey+38}" font-family="monospace" font-size="8" font-weight="bold" fill="#5a5078" text-anchor="middle" letter-spacing="1">${e.type}</text>
+<text x="${ex+slotW/2}" y="${ey+50}" font-family="monospace" font-size="10" font-weight="bold" fill="#8889CD" text-anchor="middle">${e.name.length>7?e.name.slice(0,7)+'…':e.name}</text>`;
   });
   svg += pdiv(y + EQ_H);
   y += EQ_H;
@@ -2337,10 +2416,7 @@ function renderMmo(params) {
     svg += `<rect x="0" y="${y}" width="${W}" height="${H_EQUIP}" fill="${C.panelHi}"/>`;
     svg += `<text x="${PAD}" y="${y+16}" font-family="monospace" font-size="10" font-weight="bold" fill="${C.indigo}" letter-spacing="2">― EQUIP ―</text>`;
     svg += `<line x1="${PAD+60}" y1="${y+12}" x2="${W-PAD}" y2="${y+12}" stroke="${C.border}" stroke-width="0.5"/>`;
-    const gradeColor = (g) => {
-      const m = {'전설':C.sand,'유니크':C.purple,'레어':C.cyan,'매직':C.indigo,'일반':C.textDim,'저주':C.danger};
-      return m[g] || C.textDim;
-    };
+    const gradeColor = (g) => rarityColor(g);
     const COL_W = (INNER_W - 12) / 2;
     const LEFT_X  = PAD;
     const RIGHT_X = PAD + COL_W + 12;
@@ -2431,41 +2507,28 @@ function renderMmo(params) {
 //      등급: legend / epic / rare / uncommon / common
 //      수량 1이면 미표시
 // ════════════════════════════════════════════
-const REWARD_GRADES = ['legend', 'epic', 'rare', 'uncommon', 'common'];
+const REWARD_GRADES = ['legend', 'epic', 'rare', 'uncommon', 'common', 'cursed'];
 
 function rewardGradeColor(g) {
-  return ({
-    legend:   '#CCAA88',
-    epic:     '#884499',
-    rare:     '#8889CD',
-    uncommon: '#BB6688',
-    common:   '#7a7a90',
-  })[g] || '#7a7a90';
+  // 통일 rarityColor 사용 (한글/영문 자동 매핑)
+  return rarityColor(g);
 }
 
-function rewardGradeLabel(g) {
-  return ({
-    legend:   'LEGENDARY',
-    epic:     'EPIC',
-    rare:     'RARE',
-    uncommon: 'UNCOMMON',
-    common:   'COMMON',
-  })[g] || 'COMMON';
-}
+// (rewardGradeLabel 제거 — 표시는 입력 그대로 gradeRaw 사용)
 
 function parseRewardItems(raw) {
   if (!raw) return [];
   return raw.split('|').slice(0, 6).map(s => {
     const parts = s.split('§');
-    const gradeRaw = (parts[1] || 'common').trim().toLowerCase();
-    const grade = REWARD_GRADES.includes(gradeRaw) ? gradeRaw : 'common';
+    const rawGrade = (parts[1] || 'common').trim();
     return {
-      name:   (parts[0] || '???').trim() || '???',
-      grade,
-      type:   (parts[2] || '').trim(),
-      stats:  (parts[3] || '').trim(),
-      flavor: (parts[4] || '').trim(),
-      qty:    safeInt(parts[5], 1, 1, 999),
+      name:     (parts[0] || '???').trim() || '???',
+      grade:    normalizeRarity(rawGrade), // 정규화 (색/gradient ID용)
+      gradeRaw: rawGrade,                  // 원본 (표시용 — 입력 그대로 보존)
+      type:     (parts[2] || '').trim(),
+      stats:    (parts[3] || '').trim(),
+      flavor:   (parts[4] || '').trim(),
+      qty:      safeInt(parts[5], 1, 1, 999),
     };
   });
 }
@@ -2538,7 +2601,7 @@ ${defs}
   <polygon points="0,-13 13,0 0,13 -13,0" fill="${gcol}" opacity="0.32"/>
 </g>
 
-<text x="${tx}" y="${y + 22}" font-family="monospace" font-size="9" font-weight="bold" fill="${gcol}" letter-spacing="3">◆ ${rewardGradeLabel(it.grade)}</text>
+<text x="${tx}" y="${y + 22}" font-family="monospace" font-size="9" font-weight="bold" fill="${gcol}" letter-spacing="3">◆ ${esc(it.gradeRaw)}</text>
 <text x="${tx}" y="${y + 46}" font-size="17" font-weight="bold" fill="${C.text}">${esc(it.name)}${qtyText}</text>
 ${it.type   ? `<text x="${tx}" y="${y + 66}" font-family="monospace" font-size="10" fill="${C.textDim}" letter-spacing="1">${esc(it.type)}</text>` : ''}
 ${it.stats  ? `<text x="${tx}" y="${y + 86}" font-family="monospace" font-size="11" font-weight="bold" fill="${gcol}">${esc(it.stats)}</text>` : ''}
@@ -2608,7 +2671,7 @@ function renderRewardPixel({ fromName, headerLabel, items }) {
 <rect x="${W-PAD-3}" y="${y+CARD_H-3}" width="6" height="6" fill="${gcol}"/>
 
 <rect x="${PAD}" y="${y + 10}" width="${W - PAD*2}" height="20" fill="${gcol}"/>
-<text x="${W/2}" y="${y + 24}" font-size="10" font-weight="bold" fill="${C.bg}" letter-spacing="4" text-anchor="middle">— ${rewardGradeLabel(it.grade)} —</text>
+<text x="${W/2}" y="${y + 24}" font-size="10" font-weight="bold" fill="${C.bg}" letter-spacing="4" text-anchor="middle">— ${esc(it.gradeRaw)} —</text>
 
 ${pixelGem(PAD + 38, y + 80, gcol)}
 

@@ -99,14 +99,33 @@ function findWorld(name) {
   return null;
 }
 
-function findPlace(name) {
+function findPlace(name, worldContext) {
   if (!name) return null;
-  if (PLACES[name]) return { ...PLACES[name], key: name };
+
+  // 1) 정식 키 매칭 — world 컨텍스트 있으면 매칭되는 경우만 채택
+  if (PLACES[name]) {
+    const p = PLACES[name];
+    if (!worldContext || p.world === worldContext) {
+      return { ...p, key: name };
+    }
+  }
+
+  // 2) world 컨텍스트 우선: 같은 world 내에서 alias 매칭
+  if (worldContext) {
+    for (const [key, p] of Object.entries(PLACES)) {
+      if (p.world === worldContext && p.alias && p.alias.includes(name)) {
+        return { ...p, key };
+      }
+    }
+  }
+
+  // 3) fallback: world 무관 alias 매칭 (첫 매칭)
   for (const [key, p] of Object.entries(PLACES)) {
     if (p.alias && p.alias.includes(name)) {
       return { ...p, key };
     }
   }
+
   return null;
 }
 
@@ -141,10 +160,10 @@ function relColor(rel) {
 }
 
 // 참조(장소명 또는 xNNNyNNN) → 좌표
-function resolveRef(ref) {
+function resolveRef(ref, worldContext) {
   const m = ref.match(/^x(\d+)y(\d+)$/);
   if (m) return { x: parseInt(m[1]), y: parseInt(m[2]), refWorld: null };
-  const place = findPlace(ref);
+  const place = findPlace(ref, worldContext);
   if (place) return { x: place.x, y: place.y, refWorld: place.world };
   return null;
 }
@@ -292,6 +311,14 @@ async function renderWorldmap(params, env) {
   const labelsOn  = params.get('labels') === 'on';
   let   worldRaw  = params.get('world') || '';
 
+  // 사용자가 명시한 world 컨텍스트 (PLACES 룩업 시 우선 매칭용)
+  // 입력값(예: '1층') → 정식 키('floor1')로 변환해서 사용
+  let worldCtx = null;
+  if (worldRaw) {
+    const w = findWorld(worldRaw);
+    if (w) worldCtx = w.key;
+  }
+
   const markers = [];
 
   // 1) 내 위치
@@ -300,7 +327,7 @@ async function renderWorldmap(params, env) {
     const iy = safeInt(yParam, 0, 0, 10000);
     markers.push({ origX: ix, origY: iy, isMe: true, label: `(${ix},${iy})` });
   } else if (atRaw) {
-    const place = findPlace(atRaw);
+    const place = findPlace(atRaw, worldCtx);
     if (place) {
       markers.push({ origX: place.x, origY: place.y, isMe: true, label: atRaw });
       if (!worldRaw) worldRaw = place.world;
@@ -310,7 +337,7 @@ async function renderWorldmap(params, env) {
   // 2) 다른 사람들
   const partners = parsePartners(pParam);
   for (const p of partners) {
-    const pos = resolveRef(p.ref);
+    const pos = resolveRef(p.ref, worldCtx);
     if (pos) {
       markers.push({
         origX: pos.x, origY: pos.y,
@@ -326,7 +353,7 @@ async function renderWorldmap(params, env) {
   const pathRefs = parsePath(pathRaw);
   const waypoints = [];
   for (const ref of pathRefs) {
-    const pos = resolveRef(ref);
+    const pos = resolveRef(ref, worldCtx);
     if (pos) {
       waypoints.push({ x: pos.x, y: pos.y });
       if (!worldRaw && pos.refWorld) worldRaw = pos.refWorld;

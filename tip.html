@@ -1319,7 +1319,7 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
     ]
   },
   {
-    id:'cat-st', icon:'⚔️', title:'RPG / VN 상태창 UI', sub:'st.winter0.workers.dev — 미연시 · 미연시2 · 다크판타지 · 픽셀RPG · 쯔꾸르 · 엔딩 · 선택지 · 던전 · MMO',
+    id:'cat-st', icon:'⚔️', title:'RPG / VN 상태창 UI', sub:'st.winter0.workers.dev — 미연시 · 미연시2 · 다크판타지 · 픽셀RPG · 쯔꾸르 · 엔딩 · 선택지 · 던전 · MMO · 보상',
     items:[
       {
         id:'t-st-0', title:'미연시 상태창 (?t=vn)',
@@ -1815,6 +1815,53 @@ labyrinth=on:
 • 평화로운 분위기엔 ready 스킬 + 버프만 + 로그아웃 버튼 표시</div>`
       },
       {
+        id:'t-st-reward', title:'보상 / 드랍 화면 (?t=reward)',
+        body:`<div class="label label-use">URL 파라미터 형식</div>
+<pre>/?t=reward&st=스타일
+&p=출처명§[헤더라벨]
+&items=이름§등급§타입§스탯§플레이버§수량|...</pre>
+<hr class="divider">
+<div class="label label-example">예시 — MMO 스타일 (다크 판타지)</div>
+<pre>/?t=reward&st=mmo
+&p=고대+왕의+보물함§TREASURE+CHEST
+&items=여명의+검§legend§TWO-HANDED+SWORD§ATK+%2B184+·+CRIT+%2B12%25§새벽을+가르는+한+줄기의+빛.§1|월광의+외투§epic§CHEST+ARMOR§DEF+%2B96+·+MP+%2B50§달빛으로+짜낸+천.§1|치유의+비약§rare§CONSUMABLE§HP+즉시+회복+%2B500§숲의+정령이+깃든+푸른+액체.§3|마력+결정§uncommon§MATERIAL§제련+재료§별이+깨진+조각.§7</pre>
+<hr class="divider">
+<div class="label label-example">예시 — Pixel 스타일 (16비트 RPG)</div>
+<pre>/?t=reward&st=pixel
+&p=황혼의+마녀+·+셀레네§BOSS+DEFEATED
+&items=마녀의+왕관§legend§ACCESSORY§INT+%2B28+·+MP+%2B120§피로+물든+왕좌의+증표.§1|그림자+지팡이§epic§WEAPON§M.ATK+%2B62+·+DARK+%2B20%25§어둠을+끌어쓴다.§1|마나+비약§rare§CONSUMABLE§MP+즉시+회복+%2B300§별을+마시는+기분.§2</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명:</strong><br>
+• <strong>st</strong> — 렌더링 스타일. <code>mmo</code>(다크 판타지, 기본값) / <code>pixel</code>(16비트 RPG)<br>
+• <strong>p</strong> — 출처명§[헤더라벨]. 라벨 생략 시 <code>REWARD</code> 자동 적용. 라벨은 영문 대문자로 표시됨 (예: <code>BOSS+DROP</code>, <code>TREASURE+CHEST</code>, <code>QUEST+REWARD</code>)<br>
+• <strong>items</strong> — 아이템 목록 (|로 구분, 최대 6개). 각 아이템은 6필드: 이름§등급§타입§스탯§플레이버§수량<br>
+&nbsp;&nbsp;- <strong>이름</strong> (필수): 아이템명<br>
+&nbsp;&nbsp;- <strong>등급</strong> (필수, 영문 소문자): legend / epic / rare / uncommon / common<br>
+&nbsp;&nbsp;- <strong>타입</strong> (선택): 분류 라벨 (예: <code>TWO-HANDED+SWORD</code>, <code>CONSUMABLE</code>, <code>방어구</code>)<br>
+&nbsp;&nbsp;- <strong>스탯</strong> (선택): 자유 텍스트 (예: <code>ATK+%2B184+·+CRIT+%2B12%25</code>)<br>
+&nbsp;&nbsp;- <strong>플레이버</strong> (선택): 한 줄 묘사 (따옴표 자동 추가됨 — 직접 쓰지 말 것)<br>
+&nbsp;&nbsp;- <strong>수량</strong> (선택, 기본 1): 1이면 미표시, 2 이상부터 표기됨<br>
+• 빈 필드는 <code>§§</code>로 자리만 유지하면 자동 생략</div>
+<hr class="divider">
+<div class="label label-example">등급 (grade)</div>
+<div class="desc">
+• <strong>legend</strong> (샌드 #CCAA88) — 전설<br>
+• <strong>epic</strong> (퍼플 #884499) — 영웅<br>
+• <strong>rare</strong> (인디고 #8889CD) — 희귀<br>
+• <strong>uncommon</strong> (로즈 #BB6688) — 고급<br>
+• <strong>common</strong> (회색 #7a7a90) — 일반</div>
+<hr class="divider">
+<div class="label label-example">활용 팁</div>
+<div class="desc">
+• 헤더 라벨은 상황에 맞게: <code>BOSS+DROP</code>(보스 처치) / <code>TREASURE+CHEST</code>(보물상자) / <code>QUEST+REWARD</code>(퀘스트) / <code>DUNGEON+CLEAR</code>(던전 클리어) / <code>MYSTERY+BOX</code>(수상한 상자) 등<br>
+• 단일 아이템은 전설 무기·핵심 보상 강조용, 다중은 상자/퀘스트 후속 보상용으로 분리하면 연출감↑<br>
+• 등급 한 종류로만 채우면 단조로움, 등급 섞으면 시각적 리듬감 생김 (legend 1 + epic 1 + rare 1 + common 다수 같은 패턴 추천)<br>
+• 플레이버 텍스트는 짧고 시적으로 — 한 문장 권장 (15자 이내)<br>
+• 소모품/재료는 수량 표시 활용 (예: <code>치유의+비약§rare§§HP+%2B500§§5</code> → x5 표시)<br>
+• 스탯의 + 기호는 반드시 <code>%2B</code>로 인코딩 (URL의 +는 공백으로 해석됨)<br>
+• % 기호는 <code>%25</code>로 인코딩</div>`
+      },
+      {
         id:'t-st-8', title:'바베챗 프롬프트 (복사용)',
         body:`<div class="label label-use">RPG/VN 상태창 + 엔딩 프롬프트</div>
 <div class="desc">바베챗에 복사하여 사용. 도메인은 <strong>st.winter0.workers.dev</strong></div>
@@ -1925,6 +1972,18 @@ labyrinth=on:
 - 아이템명은 11자 이내 권장 (초과 시 자동 말줄임 …)
 - 위급 분위기: HP 20% 미만 + 디버프 다수
 - 평화 분위기: ready 스킬 + 버프 + 로그아웃 버튼 표시
+
+### 보상 / 드랍 화면
+![](https://st.winter0.workers.dev/?t=reward&st=스타일&p=출처명§헤더라벨&items=이름§등급§타입§스탯§플레이버§수량|...)
+- st: mmo(기본, 다크 판타지) / pixel(16비트 RPG)
+- p: 출처명§헤더라벨. 라벨 생략 시 REWARD 자동. 라벨은 영문 대문자로 표시 (예: BOSS+DROP, TREASURE+CHEST, QUEST+REWARD, DUNGEON+CLEAR)
+- items: 6필드 (이름§등급§타입§스탯§플레이버§수량). |로 구분, 최대 6개
+  등급(영문 소문자 필수): legend(샌드) / epic(퍼플) / rare(인디고) / uncommon(로즈) / common(회색)
+  타입/스탯/플레이버/수량은 선택 — 빈 필드는 §§로 자리만 유지
+  수량 1이면 자동 미표시, 2 이상부터 × N 표기
+- 플레이버 텍스트는 따옴표 자동 추가됨 — 직접 쓰지 말 것
+- 보스 처치 후 단일 전설 무기, 보물상자에서 다중 보상 등 상황에 맞게 헤더 라벨 선택
+- 스탯의 + 기호는 %2B로, % 기호는 %25로 인코딩
 
 ### 공통 규칙
 - 필드 구분자: § / 아이템 구분자: |

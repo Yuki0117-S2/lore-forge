@@ -1,5 +1,5 @@
 // st.winter0.workers.dev — RPG/VN 상태창 (SVG 이미지 출력)
-// ?t=vn / ?t=vn2 / ?t=dark / ?t=pixel / ?t=ending / ?t=rpg2k / ?t=choice / ?t=dungeon / ?t=mmo
+// ?t=vn / ?t=vn2 / ?t=dark / ?t=pixel / ?t=ending / ?t=rpg2k / ?t=choice / ?t=dungeon / ?t=mmo / ?t=reward
 
 function esc(s) {
   return String(s ?? '')
@@ -2405,6 +2405,208 @@ function renderMmo(params) {
 
 
 // ════════════════════════════════════════════
+//  REWARD (보상/드랍 화면)
+//  &st=mmo / pixel
+//  &p=출처명§[헤더라벨]              (라벨 생략시 REWARD)
+//  &items=이름§등급§타입§스탯§플레이버§수량|...   (최대 6개)
+//      등급: legend / epic / rare / uncommon / common
+//      수량 1이면 미표시
+// ════════════════════════════════════════════
+const REWARD_GRADES = ['legend', 'epic', 'rare', 'uncommon', 'common'];
+
+function rewardGradeColor(g) {
+  return ({
+    legend:   '#CCAA88',
+    epic:     '#884499',
+    rare:     '#8889CD',
+    uncommon: '#BB6688',
+    common:   '#7a7a90',
+  })[g] || '#7a7a90';
+}
+
+function rewardGradeLabel(g) {
+  return ({
+    legend:   'LEGENDARY',
+    epic:     'EPIC',
+    rare:     'RARE',
+    uncommon: 'UNCOMMON',
+    common:   'COMMON',
+  })[g] || 'COMMON';
+}
+
+function parseRewardItems(raw) {
+  if (!raw) return [];
+  return raw.split('|').slice(0, 6).map(s => {
+    const parts = s.split('§');
+    const gradeRaw = (parts[1] || 'common').trim().toLowerCase();
+    const grade = REWARD_GRADES.includes(gradeRaw) ? gradeRaw : 'common';
+    return {
+      name:   (parts[0] || '???').trim() || '???',
+      grade,
+      type:   (parts[2] || '').trim(),
+      stats:  (parts[3] || '').trim(),
+      flavor: (parts[4] || '').trim(),
+      qty:    safeInt(parts[5], 1, 1, 999),
+    };
+  });
+}
+
+function renderReward(params) {
+  const validStyles = ['mmo', 'pixel'];
+  const stRaw = (params.get('st') || 'mmo').toLowerCase();
+  const st = validStyles.includes(stRaw) ? stRaw : 'mmo';
+
+  const pp = (params.get('p') || '???§REWARD').split('§');
+  const fromName = (pp[0] || '???').trim() || '???';
+  const headerLabel = ((pp[1] || '').trim() || 'REWARD').toUpperCase();
+
+  const items = parseRewardItems(params.get('items') || '');
+  if (items.length === 0) items.push({ name: '아이템 없음', grade: 'common', type: '', stats: '', flavor: '', qty: 1 });
+
+  if (st === 'pixel') return renderRewardPixel({ fromName, headerLabel, items });
+  return renderRewardMmo({ fromName, headerLabel, items });
+}
+
+// ── MMO 스타일 (다크 판타지) ──
+function renderRewardMmo({ fromName, headerLabel, items }) {
+  const W = 480, PAD = 18;
+  const C = {
+    bg: '#0d0f1f', panel: '#13162a', border: '#2a3050',
+    text: '#d8d6f0', textDim: '#9a9bc0', dim: '#5a5e7a',
+    rose: '#BB6688',
+  };
+
+  const HEADER_H = 92;
+  const CARD_H = 118;
+  const CARD_GAP = 10;
+  const BOTTOM_PAD = 16;
+  const TOTAL_H = HEADER_H + items.length * CARD_H + (items.length - 1) * CARD_GAP + BOTTOM_PAD;
+
+  let defs = `<defs>`;
+  for (const g of REWARD_GRADES) {
+    defs += `<linearGradient id="rwMGlow-${g}" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="${rewardGradeColor(g)}" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="${rewardGradeColor(g)}" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="${rewardGradeColor(g)}" stop-opacity="0"/>
+    </linearGradient>`;
+  }
+  defs += `</defs>`;
+
+  let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${TOTAL_H}" viewBox="0 0 ${W} ${TOTAL_H}" font-family="'Noto Serif KR',Georgia,serif">
+${defs}
+<rect width="${W}" height="${TOTAL_H}" fill="${C.bg}"/>
+
+<text x="${W/2}" y="30" font-family="monospace" font-size="10" font-weight="bold" fill="${C.textDim}" letter-spacing="3" text-anchor="middle">— ${esc(headerLabel)} —</text>
+<text x="${W/2}" y="56" font-size="16" font-style="italic" fill="${C.rose}" text-anchor="middle">${esc(fromName)}</text>
+<line x1="${W/2 - 90}" y1="70" x2="${W/2 + 90}" y2="70" stroke="${C.border}" stroke-width="1"/>
+<text x="${W/2}" y="85" font-family="monospace" font-size="10" fill="${C.dim}" letter-spacing="2" text-anchor="middle">${items.length} ITEM${items.length>1?'S':''} OBTAINED</text>
+`;
+
+  items.forEach((it, idx) => {
+    const y = HEADER_H + idx * (CARD_H + CARD_GAP);
+    const gcol = rewardGradeColor(it.grade);
+    const qtyText = it.qty > 1 ? `  <tspan font-family="monospace" font-weight="normal" fill="${C.textDim}">× ${it.qty}</tspan>` : '';
+    const iconX = PAD + 36;
+    const iconY = y + CARD_H/2;
+    const tx = PAD + 78;
+
+    svg += `
+<rect x="${PAD}" y="${y}" width="${W - PAD*2}" height="${CARD_H}" rx="4" fill="${C.panel}" stroke="${gcol}" stroke-width="2"/>
+<rect x="${PAD}" y="${y}" width="${W - PAD*2}" height="${CARD_H}" rx="4" fill="url(#rwMGlow-${it.grade})"/>
+
+<g transform="translate(${iconX}, ${iconY})">
+  <polygon points="0,-24 24,0 0,24 -24,0" fill="none" stroke="${gcol}" stroke-width="1.5"/>
+  <polygon points="0,-13 13,0 0,13 -13,0" fill="${gcol}" opacity="0.32"/>
+</g>
+
+<text x="${tx}" y="${y + 22}" font-family="monospace" font-size="9" font-weight="bold" fill="${gcol}" letter-spacing="3">◆ ${rewardGradeLabel(it.grade)}</text>
+<text x="${tx}" y="${y + 46}" font-size="17" font-weight="bold" fill="${C.text}">${esc(it.name)}${qtyText}</text>
+${it.type   ? `<text x="${tx}" y="${y + 66}" font-family="monospace" font-size="10" fill="${C.textDim}" letter-spacing="1">${esc(it.type)}</text>` : ''}
+${it.stats  ? `<text x="${tx}" y="${y + 86}" font-family="monospace" font-size="11" font-weight="bold" fill="${gcol}">${esc(it.stats)}</text>` : ''}
+${it.flavor ? `<text x="${tx}" y="${y + 104}" font-size="10" font-style="italic" fill="${C.dim}">"${esc(it.flavor)}"</text>` : ''}
+`;
+  });
+
+  svg += `</svg>`;
+  return svg;
+}
+
+// ── PIXEL 스타일 (16비트 RPG) ──
+function renderRewardPixel({ fromName, headerLabel, items }) {
+  const W = 480, PAD = 20;
+  const C = {
+    bg: '#1c1828', panel: '#2d2540',
+    text: '#e0d8f0', textDim: '#8a7aa0', dim: '#5a4068',
+    pink: '#DDAACC',
+  };
+
+  const HEADER_H = 92;
+  const CARD_H = 128;
+  const CARD_GAP = 10;
+  const BOTTOM_PAD = 18;
+  const TOTAL_H = HEADER_H + items.length * CARD_H + (items.length - 1) * CARD_GAP + BOTTOM_PAD;
+
+  let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${TOTAL_H}" viewBox="0 0 ${W} ${TOTAL_H}" font-family="monospace" shape-rendering="crispEdges">
+<rect width="${W}" height="${TOTAL_H}" fill="${C.bg}"/>
+
+<text x="${W/2}" y="32" font-size="11" font-weight="bold" fill="#8889CD" letter-spacing="3" text-anchor="middle">★ ${esc(headerLabel)} ★</text>
+<text x="${W/2}" y="54" font-size="13" fill="${C.pink}" text-anchor="middle" letter-spacing="1">[ ${esc(fromName)} ]</text>
+<text x="${W/2}" y="76" font-size="10" fill="${C.dim}" text-anchor="middle" letter-spacing="2">${items.length} ITEM${items.length>1?'S':''} OBTAINED</text>
+`;
+
+  // 픽셀 보석 아이콘 (등급 색 적용)
+  const pixelGem = (cx, cy, gcol) => {
+    const u = 4;
+    const pixels = [
+      [3,0],[4,0],
+      [2,1],[3,1],[4,1],[5,1],
+      [1,2],[2,2],[3,2],[4,2],[5,2],[6,2],
+      [0,3],[1,3],[2,3],[3,3],[4,3],[5,3],[6,3],[7,3],
+      [0,4],[1,4],[2,4],[3,4],[4,4],[5,4],[6,4],[7,4],
+      [1,5],[2,5],[3,5],[4,5],[5,5],[6,5],
+      [2,6],[3,6],[4,6],[5,6],
+      [3,7],[4,7],
+    ];
+    const highlights = [[2,1],[3,1],[1,2],[2,2]];
+    let g = `<g transform="translate(${cx - 4*u}, ${cy - 5*u})">`;
+    for (const [x,y] of pixels) g += `<rect x="${x*u}" y="${y*u}" width="${u}" height="${u}" fill="${gcol}"/>`;
+    for (const [x,y] of highlights) g += `<rect x="${x*u}" y="${y*u}" width="${u}" height="${u}" fill="#ffffff" opacity="0.4"/>`;
+    g += `</g>`;
+    return g;
+  };
+
+  items.forEach((it, idx) => {
+    const y = HEADER_H + idx * (CARD_H + CARD_GAP);
+    const gcol = rewardGradeColor(it.grade);
+    const tx = PAD + 78;
+    const qtyTail = it.qty > 1 ? `  · x${it.qty}` : '';
+
+    svg += `
+<rect x="${PAD}" y="${y}" width="${W - PAD*2}" height="${CARD_H}" fill="${C.panel}" stroke="${gcol}" stroke-width="3"/>
+<rect x="${PAD-3}" y="${y-3}" width="6" height="6" fill="${gcol}"/>
+<rect x="${W-PAD-3}" y="${y-3}" width="6" height="6" fill="${gcol}"/>
+<rect x="${PAD-3}" y="${y+CARD_H-3}" width="6" height="6" fill="${gcol}"/>
+<rect x="${W-PAD-3}" y="${y+CARD_H-3}" width="6" height="6" fill="${gcol}"/>
+
+<rect x="${PAD}" y="${y + 10}" width="${W - PAD*2}" height="20" fill="${gcol}"/>
+<text x="${W/2}" y="${y + 24}" font-size="10" font-weight="bold" fill="${C.bg}" letter-spacing="4" text-anchor="middle">— ${rewardGradeLabel(it.grade)} —</text>
+
+${pixelGem(PAD + 38, y + 80, gcol)}
+
+<text x="${tx}" y="${y + 56}" font-size="15" font-weight="bold" fill="${C.text}">${esc(it.name)}</text>
+${it.type   ? `<text x="${tx}" y="${y + 72}" font-size="10" fill="${C.textDim}">${esc(it.type)}${qtyTail}</text>` : (it.qty > 1 ? `<text x="${tx}" y="${y + 72}" font-size="10" fill="${C.textDim}">x${it.qty}</text>` : '')}
+${it.stats  ? `<text x="${tx}" y="${y + 92}" font-size="11" font-weight="bold" fill="${gcol}">${esc(it.stats)}</text>` : ''}
+${it.flavor ? `<text x="${tx}" y="${y + 112}" font-size="9" fill="${C.dim}" font-style="italic">"${esc(it.flavor)}"</text>` : ''}
+`;
+  });
+
+  svg += `</svg>`;
+  return svg;
+}
+
+
+
+// ════════════════════════════════════════════
 //  FETCH
 // ════════════════════════════════════════════
 export default {
@@ -2423,8 +2625,9 @@ export default {
     else if (t === 'choice') svg = renderChoice(params);
     else if (t === 'dungeon') svg = renderDungeon(params);
     else if (t === 'mmo') svg = renderMmo(params);
+    else if (t === 'reward') svg = renderReward(params);
     else {
-      return new Response('사용 가능: ?t=vn / ?t=vn2 / ?t=dark / ?t=pixel / ?t=ending / ?t=rpg2k / ?t=choice / ?t=dungeon / ?t=mmo', {
+      return new Response('사용 가능: ?t=vn / ?t=vn2 / ?t=dark / ?t=pixel / ?t=ending / ?t=rpg2k / ?t=choice / ?t=dungeon / ?t=mmo / ?t=reward', {
         status: 400, headers: { 'Content-Type': 'text/plain; charset=utf-8' }
       });
     }

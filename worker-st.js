@@ -22,9 +22,10 @@ function safeInt(v, fallback = 0, min = 0, max = 100) {
 //  &date=날짜(YYYY-MM-DD면 요일자동) &time=HH:MM(선택) &title=제목
 // ════════════════════════════════════════════
 
-function hearts(val) {
+function hearts(val, bgColor = '#1e1525') {
   const h = Math.round(val / 20);
-  return '♥'.repeat(h) + '♡'.repeat(5 - h);
+  // 빈 하트도 ♥ 글리프로 통일 (크기 일치), fill만 배경색으로 → 안 보이게
+  return `<tspan fill="#BB6688">${'♥'.repeat(h)}</tspan><tspan fill="${bgColor}">${'♥'.repeat(5-h)}</tspan>`;
 }
 
 // ════════════════════════════════════════════
@@ -117,6 +118,64 @@ function formatVNDate(rawDate, rawTime) {
   return out;
 }
 
+// 생일 파싱 + 오늘과 비교
+// rawBday: "MM-DD" 또는 "M-D" 형식
+// currentDate: "YYYY-MM-DD" (params.get('date'))
+// 반환: { display: "M/D", isBirthday: boolean } 또는 null
+function parseBirthday(rawBday, currentDate) {
+  if (!rawBday) return null;
+  const m = String(rawBday).trim().match(/^(\d{1,2})-(\d{1,2})$/);
+  if (!m) return null;
+  const mo = parseInt(m[1]), d = parseInt(m[2]);
+  if (mo < 1 || mo > 12 || d < 1 || d > 31) return null;
+  let isBirthday = false;
+  if (currentDate) {
+    const cm = String(currentDate).match(/^\d{4}-(\d{1,2})-(\d{1,2})$/);
+    if (cm) isBirthday = parseInt(cm[1]) === mo && parseInt(cm[2]) === d;
+  }
+  return { display: `${mo}/${d}`, isBirthday };
+}
+
+// ──── 생일 당일 애니메이션 헬퍼 ────
+// B: 카드 stroke 색 사이클 (#FF6699 ↔ #FFAABB, 무한)
+function bdayStrokeAnim() {
+  return `<animate attributeName="stroke" values="#FF6699;#FFAABB;#FF6699" dur="2s" repeatCount="indefinite"/>`;
+}
+
+// A: 🎂 이모지 좌우 흔들림 (rotate -12 ↔ 12, 무한)
+// dir: 'left' | 'right' (좌우 케이크가 반대 방향으로 흔들림)
+function bdayCake(cx, cy, size, dir) {
+  const vals = dir === 'left' ? '-12;12;-12' : '12;-12;12';
+  return `<g transform="translate(${cx} ${cy})">
+<text font-size="${size}" text-anchor="middle" dominant-baseline="middle" fill="#fff">🎂</text>
+<animateTransform attributeName="transform" type="rotate" additive="sum" values="${vals}" dur="1.2s" repeatCount="indefinite"/>
+</g>`;
+}
+
+// C: BIRTHDAY 텍스트 깜빡임 (1회만)
+function bdayBlinkAnim() {
+  return `<animate attributeName="opacity" values="1;0.3;1;0.3;1;0.3;1" dur="1.4s" repeatCount="1" fill="freeze"/>`;
+}
+
+// D: Floating 이모지 (1회, 위로 떠오르며 사라짐 — RPG reward legend 스타일)
+// 카드 하단에서 시작 → 약 50px 위로 이동 + opacity fade out
+function bdaySparkles(x, y, w, h) {
+  const items = [
+    { text: '🎉', delay: 0.2, sx: w*0.20 },
+    { text: '🎁', delay: 0.7, sx: w*0.50 },
+    { text: '✨', delay: 1.2, sx: w*0.80 },
+    { text: '🎂', delay: 1.7, sx: w*0.35 },
+    { text: '🎉', delay: 2.2, sx: w*0.65 },
+  ];
+  const startY = y + h - 30;
+  const rise = 55;
+  return items.map(item => {
+    const sx = x + item.sx;
+    return `<text x="${sx}" y="${startY}" font-size="16" text-anchor="middle" opacity="0">${item.text}<animate attributeName="y" from="${startY}" to="${startY - rise}" dur="1.6s" begin="${item.delay}s" fill="freeze"/><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.2;0.75;1" dur="1.6s" begin="${item.delay}s" fill="freeze"/></text>`;
+  }).join('');
+}
+
+
 function barColor(type, val) {
   if (type === 'af') {
     if (val < 20) return '#cc3355';
@@ -148,7 +207,7 @@ function renderBar(x, y, w, h, val, type) {
 <rect x="${x}" y="${y}" width="${filled}" height="${Math.floor(h/2)}" rx="3" fill="rgba(255,255,255,0.08)"/>`;
 }
 
-function renderCharCard(char, y, W) {
+function renderCharCard(char, y, W, currentDate) {
   const PAD = 18;
   const cardH = 115;
   const parts = char.split('§');
@@ -158,14 +217,45 @@ function renderCharCard(char, y, W) {
   const af = safeInt(parts[1], 0);
   const mood = esc((parts[2] || '').trim());
   const mem = esc((parts[3] || '').trim());
+  const bday = parseBirthday(parts[4], currentDate);
   const barX = PAD + 100;
   const barW = W - barX - PAD - 50;
+  const isBday = bday?.isBirthday && !isLocked;
 
-  return `<rect x="${PAD}" y="${y}" width="${W - PAD * 2}" height="${cardH}" rx="5"
-  fill="${isLocked ? '#150f18' : '#1e1525'}" stroke="${isLocked ? '#2a2030' : '#3a2a48'}" stroke-width="1"/>
+  // 생일 당일이면 카드 stroke / fill 강조
+  const cardStroke = isBday ? '#FF6699' : (isLocked ? '#2a2030' : '#3a2a48');
+  const cardFill = isBday ? '#241420' : (isLocked ? '#150f18' : '#1e1525');
+  const strokeW = isBday ? '1.5' : '1';
+
+  // 카드 rect (B: stroke 사이클 애니메이션)
+  let cardRect;
+  if (isBday) {
+    cardRect = `<rect x="${PAD}" y="${y}" width="${W - PAD * 2}" height="${cardH}" rx="5" fill="${cardFill}" stroke="${cardStroke}" stroke-width="${strokeW}">${bdayStrokeAnim()}</rect>`;
+  } else {
+    cardRect = `<rect x="${PAD}" y="${y}" width="${W - PAD * 2}" height="${cardH}" rx="5" fill="${cardFill}" stroke="${cardStroke}" stroke-width="${strokeW}"/>`;
+  }
+
+  // 생일 라벨 (이름 옆 우측)
+  let bdaySVG = '';
+  if (bday && !isLocked) {
+    if (isBday) {
+      // C: 텍스트 깜빡임 (1회) + A: 🎂 흔들림
+      bdaySVG = `<text x="${W - PAD - 26}" y="${y + 28}" font-family="monospace" font-size="11" font-weight="bold" fill="#FF6699" text-anchor="end" letter-spacing="1">BIRTHDAY ${bday.display}${bdayBlinkAnim()}</text>
+${bdayCake(W - PAD - 12, y + 24, 13, 'right')}`;
+    } else {
+      bdaySVG = `<text x="${W - PAD - 6}" y="${y + 28}" font-family="monospace" font-size="10"
+  fill="#8070a0" text-anchor="end">🎂 ${bday.display}</text>`;
+    }
+  }
+
+  // D: sparkle (생일 당일만, 1회)
+  const sparkles = isBday ? bdaySparkles(PAD, y, W - PAD*2, cardH) : '';
+
+  return `${cardRect}
 <text x="${PAD + 14}" y="${y + 28}" font-family="'Noto Serif KR',Georgia,serif"
   font-size="17" font-weight="bold" fill="${isLocked ? '#4a3a55' : '#f0e0f5'}"
   ${isLocked ? 'filter="url(#blur)"' : ''}>${esc(name)}</text>
+${bdaySVG}
 <text x="${PAD + 14}" y="${y + 52}" font-family="monospace" font-size="11" font-weight="bold"
   fill="${isLocked ? '#3a2a45' : '#b090c8'}" letter-spacing="1">AFFECTION</text>
 ${isLocked
@@ -176,13 +266,14 @@ ${isLocked
 ${isLocked ? '' : `<text x="${W - PAD - 6}" y="${y + 51}" font-family="monospace" font-size="12" font-weight="bold"
   fill="#DDAACC" text-anchor="end">${af}</text>
 <text x="${PAD + 14}" y="${y + 72}" font-family="monospace" font-size="13"
-  fill="#BB6688" letter-spacing="2">${hearts(af)}</text>`}
+  letter-spacing="2">${hearts(af, cardFill)}</text>`}
 ${mood && !isLocked ? `<text x="${PAD + 14}" y="${y + 92}" font-family="'Noto Serif KR',Georgia,serif"
   font-size="12" fill="#b090c8" font-style="italic">" ${mood.length > 16 ? mood.slice(0, 16) + '…' : mood} "</text>` : ''}
 ${mem && !isLocked ? `<text x="${W - PAD - 10}" y="${y + 92}" font-family="'Noto Serif KR',Georgia,serif"
   font-size="11" fill="#8070a0" text-anchor="end">📎 ${mem.length > 12 ? mem.slice(0, 12) + '…' : mem}</text>` : ''}
 ${isLocked ? `<text x="${W/2}" y="${y + 74}" font-family="monospace" font-size="14" font-weight="bold"
-  fill="#3a2a45" text-anchor="middle">🔒 미해금</text>` : ''}`;
+  fill="#3a2a45" text-anchor="middle">🔒 미해금</text>` : ''}
+${sparkles}`;
 }
 
 function renderMyStatus(my, y, W) {
@@ -222,7 +313,8 @@ function renderVN(params) {
   const PAD = 18;
   const rawChars = params.get('chars') || '???§0§§';
   const rawMy = params.get('my') || '100§0§100§0§0';
-  const date = esc(formatVNDate(params.get('date'), params.get('time')));
+  const rawDate = params.get('date');
+  const date = esc(formatVNDate(rawDate, params.get('time')));
   const title = esc(params.get('title') || 'RELATIONSHIP STATUS');
   const chars = rawChars.split('|').slice(0, 6);
 
@@ -233,7 +325,7 @@ function renderVN(params) {
 
   let cardsY = HEADER_H;
   let cardsSVG = '';
-  chars.forEach(char => { cardsSVG += renderCharCard(char, cardsY, W); cardsY += CARD_H; });
+  chars.forEach(char => { cardsSVG += renderCharCard(char, cardsY, W, rawDate); cardsY += CARD_H; });
 
   const myY = cardsY + MY_LABEL_H;
   const { svg: mySVG } = renderMyStatus(rawMy, myY, W);
@@ -293,7 +385,7 @@ function vn2Bar(x, y, w, h, val, type) {
 <rect x="${x}" y="${y}" width="${filled}" height="${Math.floor(h/2)}" rx="${r}" fill="rgba(255,255,255,0.08)"/>`;
 }
 
-function vn2ParseChar(char) {
+function vn2ParseChar(char, currentDate) {
   const parts = char.split('§');
   const rawName = parts[0];
   const name = rawName?.trim() || '???';
@@ -308,109 +400,179 @@ function vn2ParseChar(char) {
     count:    safeInt(parts[7], 0, 0, 9999),
     heart:    esc((parts[8] || '').trim()),
     mem:      esc((parts[9] || '').trim()),
+    bday:     parseBirthday(parts[10], currentDate),
   };
 }
 
+// vn2 카드 stroke / fill 결정 (생일 당일이면 강조)
+function vn2CardStroke(c) {
+  if (c.isLocked) return { stroke: '#2a2030', fill: '#150f18', w: '1' };
+  if (c.bday?.isBirthday) return { stroke: '#FF6699', fill: '#241420', w: '1.5' };
+  return { stroke: '#3a2a48', fill: '#1e1525', w: '1' };
+}
+
+// 생일 당일이면 카드 상단에 가로 banner 렌더
+function vn2BirthdayBanner(c, x, y, w, size) {
+  if (!c.bday?.isBirthday || c.isLocked) return '';
+  const bh = size === 'wide' ? 18 : (size === 'medium' ? 16 : 14);
+  const fs = size === 'wide' ? 11 : (size === 'medium' ? 10 : 9);
+  const cx = x + w/2;
+  const cy = y + bh/2 + 2;  // 텍스트 baseline 보정
+  // 케이크 위치: BIRTHDAY MM/DD 문구 폭에 맞춰 양쪽 배치
+  const halfWidth = size === 'wide' ? 75 : (size === 'medium' ? 60 : 48);
+  const leftX = cx - halfWidth;
+  const rightX = cx + halfWidth;
+  return `<rect x="${x + 2}" y="${y + 2}" width="${w - 4}" height="${bh}" rx="3" fill="#FF6699"/>
+<text x="${cx}" y="${y + bh/2 + 5}" font-family="monospace" font-size="${fs}" font-weight="bold" fill="#fff" text-anchor="middle" letter-spacing="1">BIRTHDAY ${c.bday.display}${bdayBlinkAnim()}</text>
+${bdayCake(leftX, cy + 3, fs, 'left')}
+${bdayCake(rightX, cy + 3, fs, 'right')}`;
+}
+
+// 평소 모드: 카드 footer 우측에 생일 라벨 (모든 카드 사이즈 통일)
+// 당일이 아닐 때만 표시
+function vn2BirthdayLabel(c, x, y, w, size) {
+  if (!c.bday || c.bday.isBirthday || c.isLocked) return '';
+  let footerY, fs;
+  if (size === 'wide') { footerY = y + 226; fs = 11; }
+  else if (size === 'medium') { footerY = y + 192; fs = 10; }
+  else { footerY = y + 200; fs = 9; }  // small
+  const margin = size === 'small' ? 10 : 12;
+  return `<text x="${x + w - margin}" y="${footerY}" font-family="monospace" font-size="${fs}" font-weight="600" fill="#9080a8" text-anchor="end">🎂 ${c.bday.display}</text>`;
+}
+
 // 작은 카드 (143px 폭) — 3명 이상일 때
-function vn2CardSmall(char, x, y, w) {
-  const c = vn2ParseChar(char);
-  const cardH = 235, PAD = 10;
+function vn2CardSmall(char, x, y, w, currentDate) {
+  const c = vn2ParseChar(char, currentDate);
+  const PAD = 10;
   if (c.isLocked) {
-    return `<rect x="${x}" y="${y}" width="${w}" height="${cardH}" rx="5" fill="#150f18" stroke="#2a2030" stroke-width="1"/>
-<text x="${x + w/2}" y="${y + cardH/2 - 5}" font-family="'Noto Serif KR'" font-size="38" font-weight="bold" fill="#3a2a45" text-anchor="middle" filter="url(#vn2blur)">???</text>
-<text x="${x + w/2}" y="${y + cardH/2 + 30}" font-family="monospace" font-size="11" font-weight="bold" fill="#3a2a45" text-anchor="middle">🔒 미해금</text>`;
+    return `<rect x="${x}" y="${y}" width="${w}" height="235" rx="5" fill="#150f18" stroke="#2a2030" stroke-width="1"/>
+<text x="${x + w/2}" y="${y + 235/2 - 5}" font-family="'Noto Serif KR'" font-size="38" font-weight="bold" fill="#3a2a45" text-anchor="middle" filter="url(#vn2blur)">???</text>
+<text x="${x + w/2}" y="${y + 235/2 + 30}" font-family="monospace" font-size="11" font-weight="bold" fill="#3a2a45" text-anchor="middle">🔒 미해금</text>`;
   }
+  const s = vn2CardStroke(c);
+  const bdayBanner = c.bday?.isBirthday;
+  const off = bdayBanner ? 14 : 0;
+  const cardH = 235 + off;
   const barX = x + PAD, barW = w - PAD*2;
-  let svg = `<rect x="${x}" y="${y}" width="${w}" height="${cardH}" rx="5" fill="#1e1525" stroke="#3a2a48" stroke-width="1"/>`;
-  svg += `<text x="${x + PAD}" y="${y + 20}" font-family="'Noto Serif KR'" font-size="14" font-weight="bold" fill="#f0e0f5">${esc(c.name)}</text>`;
-  if (c.mood) svg += `<text x="${x + w - PAD}" y="${y + 20}" font-family="monospace" font-size="9" fill="#b090c8" text-anchor="end">${c.mood.length > 4 ? c.mood.slice(0,4) : c.mood}</text>`;
-  if (c.progress) svg += `<text x="${x + PAD}" y="${y + 36}" font-family="'Noto Serif KR'" font-size="10" fill="#FF6699" font-style="italic">${c.progress.length > 8 ? c.progress.slice(0,8) + '…' : c.progress}</text>`;
-  svg += `<text x="${x + w - PAD}" y="${y + 36}" font-family="monospace" font-size="9" fill="#8070a0" text-anchor="end">× ${c.count}회</text>`;
-  svg += `<text x="${x + PAD}" y="${y + 58}" font-family="monospace" font-size="9" fill="#8070a0" font-weight="600" letter-spacing="1">호감도</text>`;
-  svg += `<text x="${x + w - PAD}" y="${y + 58}" font-family="monospace" font-size="10" font-weight="bold" fill="${vn2BarColor('af', c.af)}" text-anchor="end">${c.af}</text>`;
-  svg += vn2Bar(barX, y + 62, barW, 7, c.af, 'af');
-  svg += `<text x="${x + PAD}" y="${y + 84}" font-family="monospace" font-size="9" fill="#8070a0" font-weight="600">체력</text>`;
-  svg += `<text x="${x + w - PAD}" y="${y + 84}" font-family="monospace" font-size="9" font-weight="bold" fill="${vn2BarColor('hp', c.hp)}" text-anchor="end">${c.hp}</text>`;
-  svg += vn2Bar(barX, y + 88, barW, 5, c.hp, 'hp');
-  svg += `<text x="${x + PAD}" y="${y + 106}" font-family="monospace" font-size="9" fill="#8070a0" font-weight="600">정신력</text>`;
-  svg += `<text x="${x + w - PAD}" y="${y + 106}" font-family="monospace" font-size="9" font-weight="bold" fill="${vn2BarColor('mental', c.mental)}" text-anchor="end">${c.mental}</text>`;
-  svg += vn2Bar(barX, y + 110, barW, 5, c.mental, 'mental');
-  svg += `<text x="${x + PAD}" y="${y + 128}" font-family="monospace" font-size="9" fill="#8070a0" font-weight="600">발정도</text>`;
-  svg += `<text x="${x + w - PAD}" y="${y + 128}" font-family="monospace" font-size="9" font-weight="bold" fill="${vn2BarColor('arousal', c.arousal)}" text-anchor="end">${c.arousal}</text>`;
-  svg += vn2Bar(barX, y + 132, barW, 5, c.arousal, 'arousal');
-  if (c.heart) svg += `<text x="${x + PAD}" y="${y + 165}" font-family="'Noto Serif KR'" font-size="11" fill="#b090c8" font-style="italic">" ${c.heart.length > 12 ? c.heart.slice(0,12) + '…' : c.heart} "</text>`;
-  if (c.mem) svg += `<text x="${x + PAD}" y="${y + 200}" font-family="'Noto Serif KR'" font-size="10" fill="#8070a0">📎 ${c.mem.length > 12 ? c.mem.slice(0,12) + '…' : c.mem}</text>`;
+  // B: stroke 애니메이션 (생일 당일만)
+  let svg = bdayBanner
+    ? `<rect x="${x}" y="${y}" width="${w}" height="${cardH}" rx="5" fill="${s.fill}" stroke="${s.stroke}" stroke-width="${s.w}">${bdayStrokeAnim()}</rect>`
+    : `<rect x="${x}" y="${y}" width="${w}" height="${cardH}" rx="5" fill="${s.fill}" stroke="${s.stroke}" stroke-width="${s.w}"/>`;
+  svg += vn2BirthdayBanner(c, x, y, w, 'small');
+  svg += `<text x="${x + PAD}" y="${y + 20 + off}" font-family="'Noto Serif KR'" font-size="14" font-weight="bold" fill="#f0e0f5">${esc(c.name)}</text>`;
+  if (c.mood) svg += `<text x="${x + w - PAD}" y="${y + 20 + off}" font-family="monospace" font-size="9" fill="#b090c8" text-anchor="end">${c.mood.length > 4 ? c.mood.slice(0,4) : c.mood}</text>`;
+  if (c.progress) svg += `<text x="${x + PAD}" y="${y + 36 + off}" font-family="'Noto Serif KR'" font-size="10" fill="#FF6699" font-style="italic">${c.progress.length > 8 ? c.progress.slice(0,8) + '…' : c.progress}</text>`;
+  svg += `<text x="${x + w - PAD}" y="${y + 36 + off}" font-family="monospace" font-size="9" fill="#8070a0" text-anchor="end">× ${c.count}회</text>`;
+  svg += `<text x="${x + PAD}" y="${y + 58 + off}" font-family="monospace" font-size="9" fill="#8070a0" font-weight="600" letter-spacing="1">호감도</text>`;
+  svg += `<text x="${x + w - PAD}" y="${y + 58 + off}" font-family="monospace" font-size="10" font-weight="bold" fill="${vn2BarColor('af', c.af)}" text-anchor="end">${c.af}</text>`;
+  svg += vn2Bar(barX, y + 62 + off, barW, 7, c.af, 'af');
+  svg += `<text x="${x + PAD}" y="${y + 84 + off}" font-family="monospace" font-size="9" fill="#8070a0" font-weight="600">체력</text>`;
+  svg += `<text x="${x + w - PAD}" y="${y + 84 + off}" font-family="monospace" font-size="9" font-weight="bold" fill="${vn2BarColor('hp', c.hp)}" text-anchor="end">${c.hp}</text>`;
+  svg += vn2Bar(barX, y + 88 + off, barW, 5, c.hp, 'hp');
+  svg += `<text x="${x + PAD}" y="${y + 106 + off}" font-family="monospace" font-size="9" fill="#8070a0" font-weight="600">정신력</text>`;
+  svg += `<text x="${x + w - PAD}" y="${y + 106 + off}" font-family="monospace" font-size="9" font-weight="bold" fill="${vn2BarColor('mental', c.mental)}" text-anchor="end">${c.mental}</text>`;
+  svg += vn2Bar(barX, y + 110 + off, barW, 5, c.mental, 'mental');
+  svg += `<text x="${x + PAD}" y="${y + 128 + off}" font-family="monospace" font-size="9" fill="#8070a0" font-weight="600">발정도</text>`;
+  svg += `<text x="${x + w - PAD}" y="${y + 128 + off}" font-family="monospace" font-size="9" font-weight="bold" fill="${vn2BarColor('arousal', c.arousal)}" text-anchor="end">${c.arousal}</text>`;
+  svg += vn2Bar(barX, y + 132 + off, barW, 5, c.arousal, 'arousal');
+  if (c.heart) svg += `<text x="${x + PAD}" y="${y + 165 + off}" font-family="'Noto Serif KR'" font-size="11" fill="#b090c8" font-style="italic">" ${c.heart.length > 12 ? c.heart.slice(0,12) + '…' : c.heart} "</text>`;
+  if (c.mem) svg += `<text x="${x + PAD}" y="${y + 200 + off}" font-family="'Noto Serif KR'" font-size="10" fill="#8070a0">📎 ${c.mem.length > 12 ? c.mem.slice(0,12) + '…' : c.mem}</text>`;
+  // 평소 모드 생일 라벨 (footer 우측)
+  if (!bdayBanner) svg += vn2BirthdayLabel(c, x, y + off, w, 'small');
+  // D: floating 이모지 (생일 당일만, 1회)
+  if (bdayBanner) svg += bdaySparkles(x, y, w, cardH);
   return svg;
 }
 
 // 중간 카드 (220px 폭) — 2명/4명일 때
-function vn2CardMedium(char, x, y, w) {
-  const c = vn2ParseChar(char);
-  const cardH = 205, PAD = 12;
+function vn2CardMedium(char, x, y, w, currentDate) {
+  const c = vn2ParseChar(char, currentDate);
+  const PAD = 12;
   if (c.isLocked) {
-    return `<rect x="${x}" y="${y}" width="${w}" height="${cardH}" rx="5" fill="#150f18" stroke="#2a2030" stroke-width="1"/>
-<text x="${x + w/2}" y="${y + cardH/2}" font-family="'Noto Serif KR'" font-size="50" font-weight="bold" fill="#3a2a45" text-anchor="middle" filter="url(#vn2blur)">???</text>
-<text x="${x + w/2}" y="${y + cardH/2 + 35}" font-family="monospace" font-size="12" font-weight="bold" fill="#3a2a45" text-anchor="middle">🔒 미해금</text>`;
+    return `<rect x="${x}" y="${y}" width="${w}" height="205" rx="5" fill="#150f18" stroke="#2a2030" stroke-width="1"/>
+<text x="${x + w/2}" y="${y + 205/2}" font-family="'Noto Serif KR'" font-size="50" font-weight="bold" fill="#3a2a45" text-anchor="middle" filter="url(#vn2blur)">???</text>
+<text x="${x + w/2}" y="${y + 205/2 + 35}" font-family="monospace" font-size="12" font-weight="bold" fill="#3a2a45" text-anchor="middle">🔒 미해금</text>`;
   }
+  const s = vn2CardStroke(c);
+  const bdayBanner = c.bday?.isBirthday;
+  const off = bdayBanner ? 16 : 0;
+  const cardH = 205 + off;
   const barX = x + PAD, barW = w - PAD*2;
-  let svg = `<rect x="${x}" y="${y}" width="${w}" height="${cardH}" rx="5" fill="#1e1525" stroke="#3a2a48" stroke-width="1"/>`;
-  svg += `<text x="${x + PAD}" y="${y + 24}" font-family="'Noto Serif KR'" font-size="16" font-weight="bold" fill="#f0e0f5">${esc(c.name)}</text>`;
-  if (c.mood) svg += `<text x="${x + w - PAD}" y="${y + 24}" font-family="monospace" font-size="10" fill="#b090c8" text-anchor="end">${c.mood.length > 6 ? c.mood.slice(0,6) : c.mood}</text>`;
-  if (c.progress) svg += `<text x="${x + PAD}" y="${y + 42}" font-family="'Noto Serif KR'" font-size="11" fill="#FF6699" font-style="italic">${c.progress.length > 10 ? c.progress.slice(0,10) + '…' : c.progress}</text>`;
-  svg += `<text x="${x + w - PAD}" y="${y + 42}" font-family="monospace" font-size="10" fill="#8070a0" text-anchor="end">× ${c.count}회</text>`;
-  svg += `<text x="${x + PAD}" y="${y + 66}" font-family="monospace" font-size="10" fill="#8070a0" font-weight="600" letter-spacing="1">호감도</text>`;
-  svg += `<text x="${x + w - PAD}" y="${y + 66}" font-family="monospace" font-size="12" font-weight="bold" fill="${vn2BarColor('af', c.af)}" text-anchor="end">${c.af}</text>`;
-  svg += vn2Bar(barX, y + 70, barW, 8, c.af, 'af');
-  svg += `<text x="${x + PAD}" y="${y + 94}" font-family="monospace" font-size="9" fill="#8070a0" font-weight="600">체력</text>`;
-  svg += `<text x="${x + w - PAD}" y="${y + 94}" font-family="monospace" font-size="10" font-weight="bold" fill="${vn2BarColor('hp', c.hp)}" text-anchor="end">${c.hp}</text>`;
-  svg += vn2Bar(barX, y + 98, barW, 6, c.hp, 'hp');
-  svg += `<text x="${x + PAD}" y="${y + 116}" font-family="monospace" font-size="9" fill="#8070a0" font-weight="600">정신력</text>`;
-  svg += `<text x="${x + w - PAD}" y="${y + 116}" font-family="monospace" font-size="10" font-weight="bold" fill="${vn2BarColor('mental', c.mental)}" text-anchor="end">${c.mental}</text>`;
-  svg += vn2Bar(barX, y + 120, barW, 6, c.mental, 'mental');
-  svg += `<text x="${x + PAD}" y="${y + 138}" font-family="monospace" font-size="9" fill="#8070a0" font-weight="600">발정도</text>`;
-  svg += `<text x="${x + w - PAD}" y="${y + 138}" font-family="monospace" font-size="10" font-weight="bold" fill="${vn2BarColor('arousal', c.arousal)}" text-anchor="end">${c.arousal}</text>`;
-  svg += vn2Bar(barX, y + 142, barW, 6, c.arousal, 'arousal');
-  if (c.heart) svg += `<text x="${x + PAD}" y="${y + 170}" font-family="'Noto Serif KR'" font-size="12" fill="#b090c8" font-style="italic">" ${c.heart.length > 16 ? c.heart.slice(0,16) + '…' : c.heart} "</text>`;
-  if (c.mem) svg += `<text x="${x + w - PAD}" y="${y + 192}" font-family="'Noto Serif KR'" font-size="10" fill="#8070a0" text-anchor="end">📎 ${c.mem.length > 16 ? c.mem.slice(0,16) + '…' : c.mem}</text>`;
+  let svg = bdayBanner
+    ? `<rect x="${x}" y="${y}" width="${w}" height="${cardH}" rx="5" fill="${s.fill}" stroke="${s.stroke}" stroke-width="${s.w}">${bdayStrokeAnim()}</rect>`
+    : `<rect x="${x}" y="${y}" width="${w}" height="${cardH}" rx="5" fill="${s.fill}" stroke="${s.stroke}" stroke-width="${s.w}"/>`;
+  svg += vn2BirthdayBanner(c, x, y, w, 'medium');
+  svg += `<text x="${x + PAD}" y="${y + 24 + off}" font-family="'Noto Serif KR'" font-size="16" font-weight="bold" fill="#f0e0f5">${esc(c.name)}</text>`;
+  if (c.mood) svg += `<text x="${x + w - PAD}" y="${y + 24 + off}" font-family="monospace" font-size="10" fill="#b090c8" text-anchor="end">${c.mood.length > 6 ? c.mood.slice(0,6) : c.mood}</text>`;
+  if (c.progress) svg += `<text x="${x + PAD}" y="${y + 42 + off}" font-family="'Noto Serif KR'" font-size="11" fill="#FF6699" font-style="italic">${c.progress.length > 10 ? c.progress.slice(0,10) + '…' : c.progress}</text>`;
+  svg += `<text x="${x + w - PAD}" y="${y + 42 + off}" font-family="monospace" font-size="10" fill="#8070a0" text-anchor="end">× ${c.count}회</text>`;
+  svg += `<text x="${x + PAD}" y="${y + 66 + off}" font-family="monospace" font-size="10" fill="#8070a0" font-weight="600" letter-spacing="1">호감도</text>`;
+  svg += `<text x="${x + w - PAD}" y="${y + 66 + off}" font-family="monospace" font-size="12" font-weight="bold" fill="${vn2BarColor('af', c.af)}" text-anchor="end">${c.af}</text>`;
+  svg += vn2Bar(barX, y + 70 + off, barW, 8, c.af, 'af');
+  svg += `<text x="${x + PAD}" y="${y + 94 + off}" font-family="monospace" font-size="9" fill="#8070a0" font-weight="600">체력</text>`;
+  svg += `<text x="${x + w - PAD}" y="${y + 94 + off}" font-family="monospace" font-size="10" font-weight="bold" fill="${vn2BarColor('hp', c.hp)}" text-anchor="end">${c.hp}</text>`;
+  svg += vn2Bar(barX, y + 98 + off, barW, 6, c.hp, 'hp');
+  svg += `<text x="${x + PAD}" y="${y + 116 + off}" font-family="monospace" font-size="9" fill="#8070a0" font-weight="600">정신력</text>`;
+  svg += `<text x="${x + w - PAD}" y="${y + 116 + off}" font-family="monospace" font-size="10" font-weight="bold" fill="${vn2BarColor('mental', c.mental)}" text-anchor="end">${c.mental}</text>`;
+  svg += vn2Bar(barX, y + 120 + off, barW, 6, c.mental, 'mental');
+  svg += `<text x="${x + PAD}" y="${y + 138 + off}" font-family="monospace" font-size="9" fill="#8070a0" font-weight="600">발정도</text>`;
+  svg += `<text x="${x + w - PAD}" y="${y + 138 + off}" font-family="monospace" font-size="10" font-weight="bold" fill="${vn2BarColor('arousal', c.arousal)}" text-anchor="end">${c.arousal}</text>`;
+  svg += vn2Bar(barX, y + 142 + off, barW, 6, c.arousal, 'arousal');
+  if (c.heart) svg += `<text x="${x + PAD}" y="${y + 170 + off}" font-family="'Noto Serif KR'" font-size="12" fill="#b090c8" font-style="italic">" ${c.heart.length > 16 ? c.heart.slice(0,16) + '…' : c.heart} "</text>`;
+  if (c.mem) svg += `<text x="${x + PAD}" y="${y + 192 + off}" font-family="'Noto Serif KR'" font-size="10" fill="#8070a0">📎 ${c.mem.length > 16 ? c.mem.slice(0,16) + '…' : c.mem}</text>`;
+  // 평소 모드 생일 라벨 (footer 우측)
+  if (!bdayBanner) svg += vn2BirthdayLabel(c, x, y + off, w, 'medium');
+  if (bdayBanner) svg += bdaySparkles(x, y, w, cardH);
   return svg;
 }
 
 // 와이드 카드 (446px 폭) — 1명 전용
-function vn2CardWide(char, x, y, w) {
-  const c = vn2ParseChar(char);
-  const cardH = 245, PAD = 16;
+function vn2CardWide(char, x, y, w, currentDate) {
+  const c = vn2ParseChar(char, currentDate);
+  const PAD = 16;
   if (c.isLocked) {
-    return `<rect x="${x}" y="${y}" width="${w}" height="${cardH}" rx="5" fill="#150f18" stroke="#2a2030" stroke-width="1"/>
-<text x="${x + w/2}" y="${y + cardH/2 + 10}" font-family="'Noto Serif KR'" font-size="70" font-weight="bold" fill="#3a2a45" text-anchor="middle" filter="url(#vn2blur)">???</text>
-<text x="${x + w/2}" y="${y + cardH/2 + 60}" font-family="monospace" font-size="14" font-weight="bold" fill="#3a2a45" text-anchor="middle">🔒 미해금</text>`;
+    return `<rect x="${x}" y="${y}" width="${w}" height="245" rx="5" fill="#150f18" stroke="#2a2030" stroke-width="1"/>
+<text x="${x + w/2}" y="${y + 245/2 + 10}" font-family="'Noto Serif KR'" font-size="70" font-weight="bold" fill="#3a2a45" text-anchor="middle" filter="url(#vn2blur)">???</text>
+<text x="${x + w/2}" y="${y + 245/2 + 60}" font-family="monospace" font-size="14" font-weight="bold" fill="#3a2a45" text-anchor="middle">🔒 미해금</text>`;
   }
+  const s = vn2CardStroke(c);
+  const bdayBanner = c.bday?.isBirthday;
+  const off = bdayBanner ? 22 : 0;
+  const cardH = 245 + off;
   const fullBarX = x + PAD, fullBarW = w - PAD*2;
-  let svg = `<rect x="${x}" y="${y}" width="${w}" height="${cardH}" rx="5" fill="#1e1525" stroke="#3a2a48" stroke-width="1"/>`;
-  svg += `<text x="${x + PAD}" y="${y + 30}" font-family="'Noto Serif KR'" font-size="20" font-weight="bold" fill="#f0e0f5">${esc(c.name)}</text>`;
-  if (c.mood) svg += `<text x="${x + w - PAD}" y="${y + 28}" font-family="monospace" font-size="12" fill="#b090c8" text-anchor="end">${c.mood.length > 8 ? c.mood.slice(0,8) : c.mood}</text>`;
-  if (c.progress) svg += `<text x="${x + PAD}" y="${y + 52}" font-family="'Noto Serif KR'" font-size="12" fill="#FF6699" font-style="italic">${c.progress.length > 18 ? c.progress.slice(0,18) + '…' : c.progress}</text>`;
-  svg += `<text x="${x + w - PAD}" y="${y + 50}" font-family="monospace" font-size="11" fill="#8070a0" text-anchor="end">× ${c.count}회</text>`;
-  svg += `<text x="${x + PAD}" y="${y + 76}" font-family="monospace" font-size="11" fill="#8070a0" font-weight="600" letter-spacing="2">호감도</text>`;
-  svg += `<text x="${x + w - PAD}" y="${y + 76}" font-family="monospace" font-size="14" font-weight="bold" fill="${vn2BarColor('af', c.af)}" text-anchor="end">${c.af}</text>`;
-  svg += vn2Bar(fullBarX, y + 82, fullBarW, 10, c.af, 'af');
-  svg += `<text x="${x + PAD}" y="${y + 110}" font-family="monospace" font-size="11" fill="#8070a0" font-weight="600">체력</text>`;
-  svg += `<text x="${x + w - PAD}" y="${y + 110}" font-family="monospace" font-size="12" font-weight="bold" fill="${vn2BarColor('hp', c.hp)}" text-anchor="end">${c.hp}</text>`;
-  svg += vn2Bar(fullBarX, y + 114, fullBarW, 8, c.hp, 'hp');
-  svg += `<text x="${x + PAD}" y="${y + 138}" font-family="monospace" font-size="11" fill="#8070a0" font-weight="600">정신력</text>`;
-  svg += `<text x="${x + w - PAD}" y="${y + 138}" font-family="monospace" font-size="12" font-weight="bold" fill="${vn2BarColor('mental', c.mental)}" text-anchor="end">${c.mental}</text>`;
-  svg += vn2Bar(fullBarX, y + 142, fullBarW, 8, c.mental, 'mental');
-  svg += `<text x="${x + PAD}" y="${y + 166}" font-family="monospace" font-size="11" fill="#8070a0" font-weight="600">발정도</text>`;
-  svg += `<text x="${x + w - PAD}" y="${y + 166}" font-family="monospace" font-size="12" font-weight="bold" fill="${vn2BarColor('arousal', c.arousal)}" text-anchor="end">${c.arousal}</text>`;
-  svg += vn2Bar(fullBarX, y + 170, fullBarW, 8, c.arousal, 'arousal');
-  if (c.heart) svg += `<text x="${x + PAD}" y="${y + 200}" font-family="'Noto Serif KR'" font-size="13" fill="#b090c8" font-style="italic">" ${c.heart.length > 24 ? c.heart.slice(0,24) + '…' : c.heart} "</text>`;
-  if (c.mem) svg += `<text x="${x + PAD}" y="${y + 226}" font-family="'Noto Serif KR'" font-size="11" fill="#8070a0">📎 ${c.mem.length > 30 ? c.mem.slice(0,30) + '…' : c.mem}</text>`;
+  let svg = bdayBanner
+    ? `<rect x="${x}" y="${y}" width="${w}" height="${cardH}" rx="5" fill="${s.fill}" stroke="${s.stroke}" stroke-width="${s.w}">${bdayStrokeAnim()}</rect>`
+    : `<rect x="${x}" y="${y}" width="${w}" height="${cardH}" rx="5" fill="${s.fill}" stroke="${s.stroke}" stroke-width="${s.w}"/>`;
+  svg += vn2BirthdayBanner(c, x, y, w, 'wide');
+  svg += `<text x="${x + PAD}" y="${y + 30 + off}" font-family="'Noto Serif KR'" font-size="20" font-weight="bold" fill="#f0e0f5">${esc(c.name)}</text>`;
+  if (c.mood) svg += `<text x="${x + w - PAD}" y="${y + 28 + off}" font-family="monospace" font-size="12" fill="#b090c8" text-anchor="end">${c.mood.length > 8 ? c.mood.slice(0,8) : c.mood}</text>`;
+  if (c.progress) svg += `<text x="${x + PAD}" y="${y + 52 + off}" font-family="'Noto Serif KR'" font-size="12" fill="#FF6699" font-style="italic">${c.progress.length > 18 ? c.progress.slice(0,18) + '…' : c.progress}</text>`;
+  svg += `<text x="${x + w - PAD}" y="${y + 50 + off}" font-family="monospace" font-size="11" fill="#8070a0" text-anchor="end">× ${c.count}회</text>`;
+  svg += `<text x="${x + PAD}" y="${y + 76 + off}" font-family="monospace" font-size="11" fill="#8070a0" font-weight="600" letter-spacing="2">호감도</text>`;
+  svg += `<text x="${x + w - PAD}" y="${y + 76 + off}" font-family="monospace" font-size="14" font-weight="bold" fill="${vn2BarColor('af', c.af)}" text-anchor="end">${c.af}</text>`;
+  svg += vn2Bar(fullBarX, y + 82 + off, fullBarW, 10, c.af, 'af');
+  svg += `<text x="${x + PAD}" y="${y + 110 + off}" font-family="monospace" font-size="11" fill="#8070a0" font-weight="600">체력</text>`;
+  svg += `<text x="${x + w - PAD}" y="${y + 110 + off}" font-family="monospace" font-size="12" font-weight="bold" fill="${vn2BarColor('hp', c.hp)}" text-anchor="end">${c.hp}</text>`;
+  svg += vn2Bar(fullBarX, y + 114 + off, fullBarW, 8, c.hp, 'hp');
+  svg += `<text x="${x + PAD}" y="${y + 138 + off}" font-family="monospace" font-size="11" fill="#8070a0" font-weight="600">정신력</text>`;
+  svg += `<text x="${x + w - PAD}" y="${y + 138 + off}" font-family="monospace" font-size="12" font-weight="bold" fill="${vn2BarColor('mental', c.mental)}" text-anchor="end">${c.mental}</text>`;
+  svg += vn2Bar(fullBarX, y + 142 + off, fullBarW, 8, c.mental, 'mental');
+  svg += `<text x="${x + PAD}" y="${y + 166 + off}" font-family="monospace" font-size="11" fill="#8070a0" font-weight="600">발정도</text>`;
+  svg += `<text x="${x + w - PAD}" y="${y + 166 + off}" font-family="monospace" font-size="12" font-weight="bold" fill="${vn2BarColor('arousal', c.arousal)}" text-anchor="end">${c.arousal}</text>`;
+  svg += vn2Bar(fullBarX, y + 170 + off, fullBarW, 8, c.arousal, 'arousal');
+  if (c.heart) svg += `<text x="${x + PAD}" y="${y + 200 + off}" font-family="'Noto Serif KR'" font-size="13" fill="#b090c8" font-style="italic">" ${c.heart.length > 24 ? c.heart.slice(0,24) + '…' : c.heart} "</text>`;
+  if (c.mem) svg += `<text x="${x + PAD}" y="${y + 226 + off}" font-family="'Noto Serif KR'" font-size="11" fill="#8070a0">📎 ${c.mem.length > 30 ? c.mem.slice(0,30) + '…' : c.mem}</text>`;
+  // 평소 모드 생일 라벨 (footer 우측)
+  if (!bdayBanner) svg += vn2BirthdayLabel(c, x, y + off, w, 'wide');
+  if (bdayBanner) svg += bdaySparkles(x, y, w, cardH);
   return svg;
 }
 
 function renderVN2(params) {
   const W = 470, PAD = 12;
   const rawChars = params.get('chars') || '???§0§§§§§§0§§';
-  const date = esc(formatVNDate(params.get('date'), params.get('time')));
+  const rawDate = params.get('date');
+  const date = esc(formatVNDate(rawDate, params.get('time')));
   const title = esc(params.get('title') || 'ROUTE STATUS');
   const chars = rawChars.split('|').slice(0, 6);
   const n = chars.length;
@@ -418,46 +580,66 @@ function renderVN2(params) {
   const startY = HEADER_H + 4;
   let cardsSVG = '', bodyH = 0;
 
+  // 카드별 생일 banner 여부 → row별 max 높이 계산용
+  const hasBday = chars.map(ch => {
+    const c = vn2ParseChar(ch, rawDate);
+    return c.bday?.isBirthday && !c.isLocked;
+  });
+  // 카드 종류별 banner 추가 높이
+  const bannerOff = { small: 14, medium: 16, wide: 22 };
+
   if (n === 1) {
     const cardW = W - PAD*2;
-    cardsSVG = vn2CardWide(chars[0], PAD, startY, cardW);
-    bodyH = 245;
+    cardsSVG = vn2CardWide(chars[0], PAD, startY, cardW, rawDate);
+    bodyH = 245 + (hasBday[0] ? bannerOff.wide : 0);
   } else if (n === 2) {
     const cardW = (W - PAD*3) / 2;
-    cardsSVG += vn2CardMedium(chars[0], PAD, startY, cardW);
-    cardsSVG += vn2CardMedium(chars[1], PAD*2 + cardW, startY, cardW);
-    bodyH = 205;
+    cardsSVG += vn2CardMedium(chars[0], PAD, startY, cardW, rawDate);
+    cardsSVG += vn2CardMedium(chars[1], PAD*2 + cardW, startY, cardW, rawDate);
+    const rowMax = (hasBday[0] || hasBday[1]) ? bannerOff.medium : 0;
+    bodyH = 205 + rowMax;
   } else if (n === 3) {
     const cardW = (W - PAD*4) / 3;
-    cardsSVG += vn2CardSmall(chars[0], PAD, startY, cardW);
-    cardsSVG += vn2CardSmall(chars[1], PAD*2 + cardW, startY, cardW);
-    cardsSVG += vn2CardSmall(chars[2], PAD*3 + cardW*2, startY, cardW);
-    bodyH = 235;
+    cardsSVG += vn2CardSmall(chars[0], PAD, startY, cardW, rawDate);
+    cardsSVG += vn2CardSmall(chars[1], PAD*2 + cardW, startY, cardW, rawDate);
+    cardsSVG += vn2CardSmall(chars[2], PAD*3 + cardW*2, startY, cardW, rawDate);
+    const rowMax = hasBday.slice(0,3).some(b => b) ? bannerOff.small : 0;
+    bodyH = 235 + rowMax;
   } else if (n === 4) {
+    // 2x2 — row별로 banner 여부 계산
     const cardW = (W - PAD*3) / 2;
-    cardsSVG += vn2CardMedium(chars[0], PAD, startY, cardW);
-    cardsSVG += vn2CardMedium(chars[1], PAD*2 + cardW, startY, cardW);
-    cardsSVG += vn2CardMedium(chars[2], PAD, startY + 205 + PAD, cardW);
-    cardsSVG += vn2CardMedium(chars[3], PAD*2 + cardW, startY + 205 + PAD, cardW);
-    bodyH = 205*2 + PAD;
+    const row1Off = (hasBday[0] || hasBday[1]) ? bannerOff.medium : 0;
+    const row2Y = startY + 205 + row1Off + PAD;
+    cardsSVG += vn2CardMedium(chars[0], PAD, startY, cardW, rawDate);
+    cardsSVG += vn2CardMedium(chars[1], PAD*2 + cardW, startY, cardW, rawDate);
+    cardsSVG += vn2CardMedium(chars[2], PAD, row2Y, cardW, rawDate);
+    cardsSVG += vn2CardMedium(chars[3], PAD*2 + cardW, row2Y, cardW, rawDate);
+    const row2Off = (hasBday[2] || hasBday[3]) ? bannerOff.medium : 0;
+    bodyH = 205*2 + PAD + row1Off + row2Off;
   } else if (n === 5) {
     const cardW = (W - PAD*4) / 3;
-    cardsSVG += vn2CardSmall(chars[0], PAD, startY, cardW);
-    cardsSVG += vn2CardSmall(chars[1], PAD*2 + cardW, startY, cardW);
-    cardsSVG += vn2CardSmall(chars[2], PAD*3 + cardW*2, startY, cardW);
+    const row1Off = hasBday.slice(0,3).some(b => b) ? bannerOff.small : 0;
+    const row2Y = startY + 235 + row1Off + PAD;
+    cardsSVG += vn2CardSmall(chars[0], PAD, startY, cardW, rawDate);
+    cardsSVG += vn2CardSmall(chars[1], PAD*2 + cardW, startY, cardW, rawDate);
+    cardsSVG += vn2CardSmall(chars[2], PAD*3 + cardW*2, startY, cardW, rawDate);
     const row2X = (W - (cardW*2 + PAD)) / 2;
-    cardsSVG += vn2CardSmall(chars[3], row2X, startY + 235 + PAD, cardW);
-    cardsSVG += vn2CardSmall(chars[4], row2X + cardW + PAD, startY + 235 + PAD, cardW);
-    bodyH = 235*2 + PAD;
+    cardsSVG += vn2CardSmall(chars[3], row2X, row2Y, cardW, rawDate);
+    cardsSVG += vn2CardSmall(chars[4], row2X + cardW + PAD, row2Y, cardW, rawDate);
+    const row2Off = (hasBday[3] || hasBday[4]) ? bannerOff.small : 0;
+    bodyH = 235*2 + PAD + row1Off + row2Off;
   } else {
     const cardW = (W - PAD*4) / 3;
-    cardsSVG += vn2CardSmall(chars[0], PAD, startY, cardW);
-    cardsSVG += vn2CardSmall(chars[1], PAD*2 + cardW, startY, cardW);
-    cardsSVG += vn2CardSmall(chars[2], PAD*3 + cardW*2, startY, cardW);
-    cardsSVG += vn2CardSmall(chars[3], PAD, startY + 235 + PAD, cardW);
-    cardsSVG += vn2CardSmall(chars[4], PAD*2 + cardW, startY + 235 + PAD, cardW);
-    cardsSVG += vn2CardSmall(chars[5], PAD*3 + cardW*2, startY + 235 + PAD, cardW);
-    bodyH = 235*2 + PAD;
+    const row1Off = hasBday.slice(0,3).some(b => b) ? bannerOff.small : 0;
+    const row2Y = startY + 235 + row1Off + PAD;
+    cardsSVG += vn2CardSmall(chars[0], PAD, startY, cardW, rawDate);
+    cardsSVG += vn2CardSmall(chars[1], PAD*2 + cardW, startY, cardW, rawDate);
+    cardsSVG += vn2CardSmall(chars[2], PAD*3 + cardW*2, startY, cardW, rawDate);
+    cardsSVG += vn2CardSmall(chars[3], PAD, row2Y, cardW, rawDate);
+    cardsSVG += vn2CardSmall(chars[4], PAD*2 + cardW, row2Y, cardW, rawDate);
+    cardsSVG += vn2CardSmall(chars[5], PAD*3 + cardW*2, row2Y, cardW, rawDate);
+    const row2Off = hasBday.slice(3,6).some(b => b) ? bannerOff.small : 0;
+    bodyH = 235*2 + PAD + row1Off + row2Off;
   }
   const TOTAL_H = startY + bodyH + FOOTER_H;
 
@@ -2591,16 +2773,47 @@ ${defs}
     const iconX = PAD + 36;
     const iconY = y + CARD_H/2;
     const tx = PAD + 78;
+    const isLegend = it.grade === 'legend';
+    const isEpic = it.grade === 'epic';
+
+    // 카드 외곽: epic이면 stroke-width 펄스
+    const cardRect = isEpic
+      ? `<rect x="${PAD}" y="${y}" width="${W - PAD*2}" height="${CARD_H}" rx="4" fill="${C.panel}" stroke="${gcol}" stroke-width="2"><animate attributeName="stroke-width" values="2;3.5;2" dur="2.4s" repeatCount="indefinite"/></rect>`
+      : `<rect x="${PAD}" y="${y}" width="${W - PAD*2}" height="${CARD_H}" rx="4" fill="${C.panel}" stroke="${gcol}" stroke-width="2"/>`;
+
+    // 다이아 아이콘: legend=강 펄스 / epic=약 펄스 / 그 외=정적
+    let diamond;
+    if (isLegend) {
+      diamond = `<g transform="translate(${iconX}, ${iconY})"><polygon points="0,-24 24,0 0,24 -24,0" fill="none" stroke="${gcol}" stroke-width="1.5"><animate attributeName="stroke-width" values="1.5;2.5;1.5" dur="1.6s" repeatCount="indefinite"/></polygon><polygon points="0,-13 13,0 0,13 -13,0" fill="${gcol}" opacity="0.32"><animate attributeName="opacity" values="0.32;0.9;0.32" dur="1.6s" repeatCount="indefinite"/></polygon></g>`;
+    } else if (isEpic) {
+      diamond = `<g transform="translate(${iconX}, ${iconY})"><polygon points="0,-24 24,0 0,24 -24,0" fill="none" stroke="${gcol}" stroke-width="1.5"/><polygon points="0,-13 13,0 0,13 -13,0" fill="${gcol}" opacity="0.32"><animate attributeName="opacity" values="0.32;0.55;0.32" dur="2.4s" repeatCount="indefinite"/></polygon></g>`;
+    } else {
+      diamond = `<g transform="translate(${iconX}, ${iconY})"><polygon points="0,-24 24,0 0,24 -24,0" fill="none" stroke="${gcol}" stroke-width="1.5"/><polygon points="0,-13 13,0 0,13 -13,0" fill="${gcol}" opacity="0.32"/></g>`;
+    }
+
+    // legend 입자 6개 (좌3, 우3 시간차 상승)
+    let particles = '';
+    if (isLegend) {
+      const startCy = y + CARD_H - 6;
+      const endCy = y - 6;
+      const pts = [
+        { cx: 10,  r: 1.8, begin: 0    },
+        { cx: 6,   r: 1.4, begin: 0.7  },
+        { cx: 12,  r: 1.6, begin: 1.4  },
+        { cx: 470, r: 1.8, begin: 0.3  },
+        { cx: 474, r: 1.4, begin: 1.0  },
+        { cx: 468, r: 1.6, begin: 1.8  },
+      ];
+      for (const p of pts) {
+        particles += `<circle cx="${p.cx}" cy="${startCy}" r="${p.r}" fill="${gcol}" opacity="0"><animate attributeName="cy" values="${startCy};${endCy}" dur="2.6s" begin="${p.begin}s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;0" dur="2.6s" begin="${p.begin}s" repeatCount="indefinite"/></circle>`;
+      }
+    }
 
     svg += `
-<rect x="${PAD}" y="${y}" width="${W - PAD*2}" height="${CARD_H}" rx="4" fill="${C.panel}" stroke="${gcol}" stroke-width="2"/>
+${cardRect}
 <rect x="${PAD}" y="${y}" width="${W - PAD*2}" height="${CARD_H}" rx="4" fill="url(#rwMGlow-${it.grade})"/>
-
-<g transform="translate(${iconX}, ${iconY})">
-  <polygon points="0,-24 24,0 0,24 -24,0" fill="none" stroke="${gcol}" stroke-width="1.5"/>
-  <polygon points="0,-13 13,0 0,13 -13,0" fill="${gcol}" opacity="0.32"/>
-</g>
-
+${diamond}
+${particles}
 <text x="${tx}" y="${y + 22}" font-family="monospace" font-size="9" font-weight="bold" fill="${gcol}" letter-spacing="3">◆ ${esc(it.gradeRaw)}</text>
 <text x="${tx}" y="${y + 46}" font-size="17" font-weight="bold" fill="${C.text}">${esc(it.name)}${qtyText}</text>
 ${it.type   ? `<text x="${tx}" y="${y + 66}" font-family="monospace" font-size="10" fill="${C.textDim}" letter-spacing="1">${esc(it.type)}</text>` : ''}
@@ -2637,7 +2850,8 @@ function renderRewardPixel({ fromName, headerLabel, items }) {
 `;
 
   // 픽셀 보석 아이콘 (등급 색 적용)
-  const pixelGem = (cx, cy, gcol) => {
+  const pixelGem = (cx, cy, gcol, opts) => {
+    opts = opts || {};
     const u = 4;
     const pixels = [
       [3,0],[4,0],
@@ -2650,9 +2864,22 @@ function renderRewardPixel({ fromName, headerLabel, items }) {
       [3,7],[4,7],
     ];
     const highlights = [[2,1],[3,1],[1,2],[2,2]];
-    let g = `<g transform="translate(${cx - 4*u}, ${cy - 5*u})">`;
+    // epic이면 보석 g 전체에 8비트 discrete 깜빡 animate
+    const gOpen = opts.epicBlink
+      ? `<g transform="translate(${cx - 4*u}, ${cy - 5*u})"><animate attributeName="opacity" values="1;0.35;1;0.7" calcMode="discrete" keyTimes="0;0.33;0.66;0.99" dur="1s" repeatCount="indefinite"/>`
+      : `<g transform="translate(${cx - 4*u}, ${cy - 5*u})">`;
+    let g = gOpen;
     for (const [x,y] of pixels) g += `<rect x="${x*u}" y="${y*u}" width="${u}" height="${u}" fill="${gcol}"/>`;
     for (const [x,y] of highlights) g += `<rect x="${x*u}" y="${y*u}" width="${u}" height="${u}" fill="#ffffff" opacity="0.4"/>`;
+    // legend면 광택 흐름 오버레이 (y행마다 시간차)
+    if (opts.legendShine) {
+      const peakByRow = [0.85, 0.85, 0.85, 0.75, 0.7, 0.65, 0.6, 0.55];
+      for (const [x,y] of pixels) {
+        const delay = (y * 0.12).toFixed(2);
+        const peak = peakByRow[y];
+        g += `<rect x="${x*u}" y="${y*u}" width="${u}" height="${u}" fill="#ffffff" opacity="0"><animate attributeName="opacity" values="0;${peak};0;0" keyTimes="0;0.08;0.25;1" dur="2.4s" begin="${delay}s" repeatCount="indefinite"/></rect>`;
+      }
+    }
     g += `</g>`;
     return g;
   };
@@ -2662,18 +2889,46 @@ function renderRewardPixel({ fromName, headerLabel, items }) {
     const gcol = rewardGradeColor(it.grade);
     const tx = PAD + 78;
     const qtyTail = it.qty > 1 ? `  · x${it.qty}` : '';
+    const isLegend = it.grade === 'legend';
+    const isEpic = it.grade === 'epic';
+
+    // 카드 외곽: epic이면 stroke-width 펄스
+    const cardRect = isEpic
+      ? `<rect x="${PAD}" y="${y}" width="${W - PAD*2}" height="${CARD_H}" fill="${C.panel}" stroke="${gcol}" stroke-width="3"><animate attributeName="stroke-width" values="3;4;3" dur="2.4s" repeatCount="indefinite"/></rect>`
+      : `<rect x="${PAD}" y="${y}" width="${W - PAD*2}" height="${CARD_H}" fill="${C.panel}" stroke="${gcol}" stroke-width="3"/>`;
+
+    // 모서리 점 4개: epic이면 시간차 깜빡
+    const cornerBegins = [0, 0.5, 1.5, 1]; // 좌상, 우상, 좌하, 우하 (시계 반대)
+    const cornerDot = (cx, cy, i) => isEpic
+      ? `<rect x="${cx}" y="${cy}" width="6" height="6" fill="${gcol}"><animate attributeName="opacity" values="1;0.25;1" dur="2s" begin="${cornerBegins[i]}s" repeatCount="indefinite"/></rect>`
+      : `<rect x="${cx}" y="${cy}" width="6" height="6" fill="${gcol}"/>`;
+
+    // legend ✦ 별 4개 (카드 좌우 PAD 영역, 시간차 깜빡)
+    let sparkles = '';
+    if (isLegend) {
+      const stars = [
+        { x: 10,  y: y + 50,  size: 14, begin: 0    },
+        { x: 10,  y: y + 100, size: 12, begin: 1.1  },
+        { x: 470, y: y + 50,  size: 12, begin: 0.55 },
+        { x: 470, y: y + 100, size: 14, begin: 1.65 },
+      ];
+      for (const s of stars) {
+        sparkles += `<text x="${s.x}" y="${s.y}" font-size="${s.size}" font-weight="bold" fill="${gcol}" text-anchor="middle" opacity="0">✦<animate attributeName="opacity" values="0;1;0;0" keyTimes="0;0.2;0.5;1" dur="2.2s" begin="${s.begin}s" repeatCount="indefinite"/></text>`;
+      }
+    }
 
     svg += `
-<rect x="${PAD}" y="${y}" width="${W - PAD*2}" height="${CARD_H}" fill="${C.panel}" stroke="${gcol}" stroke-width="3"/>
-<rect x="${PAD-3}" y="${y-3}" width="6" height="6" fill="${gcol}"/>
-<rect x="${W-PAD-3}" y="${y-3}" width="6" height="6" fill="${gcol}"/>
-<rect x="${PAD-3}" y="${y+CARD_H-3}" width="6" height="6" fill="${gcol}"/>
-<rect x="${W-PAD-3}" y="${y+CARD_H-3}" width="6" height="6" fill="${gcol}"/>
+${cardRect}
+${cornerDot(PAD-3, y-3, 0)}
+${cornerDot(W-PAD-3, y-3, 1)}
+${cornerDot(PAD-3, y+CARD_H-3, 2)}
+${cornerDot(W-PAD-3, y+CARD_H-3, 3)}
 
 <rect x="${PAD}" y="${y + 10}" width="${W - PAD*2}" height="20" fill="${gcol}"/>
 <text x="${W/2}" y="${y + 24}" font-size="10" font-weight="bold" fill="${C.bg}" letter-spacing="4" text-anchor="middle">— ${esc(it.gradeRaw)} —</text>
 
-${pixelGem(PAD + 38, y + 80, gcol)}
+${pixelGem(PAD + 38, y + 80, gcol, { legendShine: isLegend, epicBlink: isEpic })}
+${sparkles}
 
 <text x="${tx}" y="${y + 56}" font-size="15" font-weight="bold" fill="${C.text}">${esc(it.name)}</text>
 ${it.type   ? `<text x="${tx}" y="${y + 72}" font-size="10" fill="${C.textDim}">${esc(it.type)}${qtyTail}</text>` : (it.qty > 1 ? `<text x="${tx}" y="${y + 72}" font-size="10" fill="${C.textDim}">x${it.qty}</text>` : '')}
@@ -2825,28 +3080,28 @@ function renderGameoverModern(params) {
 
   y = 70;
   svg += `<text x="${W/2}" y="${y}" font-family="'Georgia',serif" font-size="44" font-weight="bold"
-fill="#BB6688" text-anchor="middle" letter-spacing="6">${title}</text>`;
+fill="#BB6688" text-anchor="middle" letter-spacing="6" opacity="0">${title}<animate attributeName="opacity" values="0;1" dur="1s" begin="0s" fill="freeze" repeatCount="1"/></text>`;
 
   if (cause) {
     y += 30;
     svg += `<text x="${W/2}" y="${y}" font-family="'Noto Serif KR',Georgia,serif" font-size="14"
-fill="#CCAA88" text-anchor="middle" font-style="italic" opacity="0.85">— ${cause} —</text>`;
+fill="#CCAA88" text-anchor="middle" font-style="italic" opacity="0">— ${cause} —<animate attributeName="opacity" values="0;0.85" dur="0.5s" begin="0.6s" fill="freeze" repeatCount="1"/></text>`;
   }
 
   y += 40;
-  svg += `<line x1="${W/2 - 60}" y1="${y}" x2="${W/2 + 60}" y2="${y}" stroke="#BB6688" stroke-width="1" opacity="0.4"/>`;
+  svg += `<line x1="${W/2}" y1="${y}" x2="${W/2}" y2="${y}" stroke="#BB6688" stroke-width="1" opacity="0"><animate attributeName="x1" values="${W/2};${W/2-60}" dur="0.7s" begin="1.2s" fill="freeze" repeatCount="1"/><animate attributeName="x2" values="${W/2};${W/2+60}" dur="0.7s" begin="1.2s" fill="freeze" repeatCount="1"/><animate attributeName="opacity" values="0;0.4" dur="0.5s" begin="1.2s" fill="freeze" repeatCount="1"/></line>`;
   y += 30;
 
   if (HAS_CHAR) {
     if (name) {
       const nameLine = sub ? `${name}  ·  ${sub}` : name;
       svg += `<text x="${W/2}" y="${y}" font-family="'Noto Serif KR',Georgia,serif" font-size="15"
-font-weight="bold" fill="#8889CD" text-anchor="middle" letter-spacing="2">${nameLine}</text>`;
+font-weight="bold" fill="#8889CD" text-anchor="middle" letter-spacing="2" opacity="0">${nameLine}<animate attributeName="opacity" values="0;1" dur="0.5s" begin="1.8s" fill="freeze" repeatCount="1"/></text>`;
       y += 28;
     }
     if (dialog) {
       svg += `<text x="${W/2}" y="${y}" font-family="'Noto Serif KR',Georgia,serif" font-size="17"
-fill="#f0e0e5" text-anchor="middle">"${dialog}"</text>`;
+fill="#f0e0e5" text-anchor="middle" opacity="0">"${dialog}"<animate attributeName="opacity" values="0;1" dur="0.5s" begin="2.2s" fill="freeze" repeatCount="1"/></text>`;
       y += 40;
     }
   }
@@ -2854,10 +3109,12 @@ fill="#f0e0e5" text-anchor="middle">"${dialog}"</text>`;
   if (achievements.length > 0) {
     y += 20;
     svg += `<text x="${W/2}" y="${y}" font-family="monospace" font-size="11" font-weight="bold"
-fill="#CCAA88" text-anchor="middle" letter-spacing="3" opacity="0.7">— ACHIEVEMENTS —</text>`;
+fill="#CCAA88" text-anchor="middle" letter-spacing="3" opacity="0">— ACHIEVEMENTS —<animate attributeName="opacity" values="0;0.7" dur="0.4s" begin="2.6s" fill="freeze" repeatCount="1"/></text>`;
     y += 25;
 
-    achievements.forEach(a => {
+    achievements.forEach((a, ai) => {
+      const aBegin = (2.9 + ai * 0.3).toFixed(2);
+      svg += `<g opacity="0"><animate attributeName="opacity" values="0;1" dur="0.4s" begin="${aBegin}s" fill="freeze" repeatCount="1"/>`;
       svg += `<rect x="40" y="${y}" width="${W - 80}" height="60" rx="4"
 fill="#1a1018" stroke="#3a2030" stroke-width="1"/>`;
       svg += renderGameoverVectorIcon(a.icon, 54, y + 18, 24, '#DDAACC');
@@ -2867,6 +3124,7 @@ font-weight="bold" fill="#DDAACC">${esc(a.title)}</text>`;
         svg += `<text x="92" y="${y + 46}" font-family="'Noto Serif KR',sans-serif" font-size="12"
 fill="#CCAA88" opacity="0.8">${esc(a.desc)}</text>`;
       }
+      svg += `</g>`;
       y += 70;
     });
   }
@@ -2874,7 +3132,7 @@ fill="#CCAA88" opacity="0.8">${esc(a.desc)}</text>`;
   if (count) {
     y += 15;
     svg += `<text x="${W/2}" y="${y}" font-family="monospace" font-size="12"
-fill="#8889CD" text-anchor="middle" opacity="0.7">DEATH COUNT: ${esc(count)}</text>`;
+fill="#8889CD" text-anchor="middle" opacity="0">DEATH COUNT: ${esc(count)}<animate attributeName="opacity" values="0;0.7" dur="0.4s" begin="4s" fill="freeze" repeatCount="1"/></text>`;
   }
 
   svg += `</svg>`;
@@ -2904,17 +3162,18 @@ function renderGameoverPixel(params) {
 
   y = 70;
   svg += `<text x="${W/2}" y="${y}" font-family="'Courier New',monospace" font-size="38" font-weight="bold"
-fill="#BB6688" text-anchor="middle" letter-spacing="4">${title}</text>`;
+fill="#BB6688" text-anchor="middle" letter-spacing="4" opacity="0">${title}<animate attributeName="opacity" values="0;1" dur="1s" begin="0s" fill="freeze" repeatCount="1"/></text>`;
 
   if (cause) {
     y += 28;
     svg += `<text x="${W/2}" y="${y}" font-family="'Courier New',monospace" font-size="13"
-fill="#CCAA88" text-anchor="middle" letter-spacing="1">* ${cause} *</text>`;
+fill="#CCAA88" text-anchor="middle" letter-spacing="1" opacity="0">* ${cause} *<animate attributeName="opacity" values="0;1" dur="0.5s" begin="0.6s" fill="freeze" repeatCount="1"/></text>`;
   }
 
   y += 40;
   for (let i = 0; i < 15; i++) {
-    svg += `<rect x="${W/2 - 60 + i*8}" y="${y - 2}" width="3" height="3" fill="#BB6688" opacity="0.5"/>`;
+    const dotBegin = (1.2 + i * 0.05).toFixed(2);
+    svg += `<rect x="${W/2 - 60 + i*8}" y="${y - 2}" width="3" height="3" fill="#BB6688" opacity="0"><animate attributeName="opacity" values="0;0.5" dur="0.2s" begin="${dotBegin}s" fill="freeze" repeatCount="1"/></rect>`;
   }
   y += 30;
 
@@ -2922,12 +3181,12 @@ fill="#CCAA88" text-anchor="middle" letter-spacing="1">* ${cause} *</text>`;
     if (name) {
       const nameLine = sub ? `${name} - ${sub}` : name;
       svg += `<text x="${W/2}" y="${y}" font-family="'Courier New',monospace" font-size="14"
-font-weight="bold" fill="#8889CD" text-anchor="middle" letter-spacing="2">[ ${nameLine} ]</text>`;
+font-weight="bold" fill="#8889CD" text-anchor="middle" letter-spacing="2" opacity="0">[ ${nameLine} ]<animate attributeName="opacity" values="0;1" dur="0.5s" begin="1.8s" fill="freeze" repeatCount="1"/></text>`;
       y += 28;
     }
     if (dialog) {
       svg += `<text x="${W/2}" y="${y}" font-family="'Courier New',monospace" font-size="16"
-fill="#f0e0e5" text-anchor="middle">"${dialog}"</text>`;
+fill="#f0e0e5" text-anchor="middle" opacity="0">"${dialog}"<animate attributeName="opacity" values="0;1" dur="0.5s" begin="2.2s" fill="freeze" repeatCount="1"/></text>`;
       y += 40;
     }
   }
@@ -2935,10 +3194,12 @@ fill="#f0e0e5" text-anchor="middle">"${dialog}"</text>`;
   if (achievements.length > 0) {
     y += 20;
     svg += `<text x="${W/2}" y="${y}" font-family="'Courier New',monospace" font-size="11" font-weight="bold"
-fill="#CCAA88" text-anchor="middle" letter-spacing="3">&gt;&gt; ACHIEVEMENTS &lt;&lt;</text>`;
+fill="#CCAA88" text-anchor="middle" letter-spacing="3" opacity="0">&gt;&gt; ACHIEVEMENTS &lt;&lt;<animate attributeName="opacity" values="0;1" dur="0.4s" begin="2.6s" fill="freeze" repeatCount="1"/></text>`;
     y += 25;
 
-    achievements.forEach(a => {
+    achievements.forEach((a, ai) => {
+      const aBegin = (2.9 + ai * 0.3).toFixed(2);
+      svg += `<g opacity="0"><animate attributeName="opacity" values="0;1" dur="0.4s" begin="${aBegin}s" fill="freeze" repeatCount="1"/>`;
       svg += `<rect x="40" y="${y}" width="${W - 80}" height="60" fill="#1a0a14" stroke="#BB6688" stroke-width="2"/>`;
       svg += renderGameoverPixelIcon(a.icon, 54, y + 10, 4, '#DDAACC');
       svg += `<text x="100" y="${y + 26}" font-family="'Courier New',monospace" font-size="14"
@@ -2947,6 +3208,7 @@ font-weight="bold" fill="#DDAACC">${esc(a.title)}</text>`;
         svg += `<text x="100" y="${y + 46}" font-family="'Courier New',monospace" font-size="11"
 fill="#CCAA88">${esc(a.desc)}</text>`;
       }
+      svg += `</g>`;
       y += 70;
     });
   }
@@ -2954,7 +3216,7 @@ fill="#CCAA88">${esc(a.desc)}</text>`;
   if (count) {
     y += 15;
     svg += `<text x="${W/2}" y="${y}" font-family="'Courier New',monospace" font-size="12"
-fill="#8889CD" text-anchor="middle">DEATHS: ${esc(count)}</text>`;
+fill="#8889CD" text-anchor="middle" opacity="0">DEATHS: ${esc(count)}<animate attributeName="opacity" values="0;1" dur="0.4s" begin="4s" fill="freeze" repeatCount="1"/></text>`;
   }
 
   svg += `</svg>`;

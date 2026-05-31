@@ -1324,12 +1324,12 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
       {
         id:'t-st-0', title:'미연시 상태창 (?t=vn)',
         body:`<div class="label label-use">URL 파라미터 형식</div>
-<pre>/?t=vn&chars=이름§호감도§속마음§기억|이름§호감도§속마음§기억
+<pre>/?t=vn&chars=이름§호감도§속마음§기억§생일|이름§호감도§속마음§기억§생일
 &my=체력§스트레스§정신력§피로도§발정도
 &date=YYYY-MM-DD&time=HH:MM&title=제목</pre>
 <hr class="divider">
 <div class="label label-example">예시</div>
-<pre>/?t=vn&chars=소라§75§두근거려§첫만남|블레어§40§재밌는+애네§카페|???§0§§
+<pre>/?t=vn&chars=소라§75§두근거려§첫만남§5-23|블레어§40§재밌는+애네§카페§10-08|???§0§§§
 &my=80§30§70§20§10&date=2026-03-15&time=14:30&title=RELATIONSHIP+STATUS</pre>
 <hr class="divider">
 <div class="desc"><strong>파라미터 설명:</strong><br>
@@ -1338,6 +1338,9 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
 • <strong>호감도</strong> — 0~100 (하트 게이지 자동 변환)<br>
 • <strong>속마음</strong> — 이탤릭 인용 형태로 표시 (16자 초과 시 자동 말줄임)<br>
 • <strong>기억</strong> — 📎 아이콘과 함께 표시 (12자 초과 시 자동 말줄임)<br>
+• <strong>생일</strong> — <code>MM-DD</code> 형식 (선택, 예: <code>5-23</code>). 이름 옆에 작게 🎂 표시.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<code>date</code>가 <code>YYYY-MM-DD</code> 형식이고 오늘이 생일이면 카드 stroke가 핫핑크로 강조 + "BIRTHDAY MM/DD" 표시<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<strong>애니메이션:</strong> 🎂 좌우 흔들림 · stroke 색 사이클 (무한) / BIRTHDAY 깜빡임 · 🎉🎁✨ 이모지 위로 떠오름 (1회)<br>
 • <strong>my</strong> — 내 상태 5개 (각 0~100, 기본값 100§0§100§0§0)<br>
 • <strong>date</strong> — 날짜. <code>YYYY-MM-DD</code> 형식이면 요일 자동 계산 (예: <code>2026-03-15</code> → <code>2026.03.15 (일)</code>). 자유 텍스트도 가능 (기본: ○월 ○일)<br>
 • <strong>time</strong> — 시각 <code>HH:MM</code> (선택, 입력 시 날짜 뒤에 <code>· 14:30</code> 형태로 표시)<br>
@@ -1349,6 +1352,7 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
   호감도    — 0~100 수치
   속마음    — 현재 감정/생각 (이탤릭)
   기억      — 주요 기억/플래그
+  생일      — MM-DD (선택, 예: 5-23). 비우면 표시 안 함
 
 my (§로 구분):
   체력§스트레스§정신력§피로도§발정도
@@ -1361,11 +1365,11 @@ title — 상단 제목 (선택, 기본값 있음)</pre>`
       {
         id:'t-st-1', title:'미연시 상태창 v2 (?t=vn2)',
         body:`<div class="label label-use">URL 파라미터 형식</div>
-<pre>/?t=vn2&chars=이름§호감도§기분§체력§정신력§발정도§진척도§관계횟수§속마음§기억|...
+<pre>/?t=vn2&chars=이름§호감도§기분§체력§정신력§발정도§진척도§관계횟수§속마음§기억§생일|...
 &date=YYYY-MM-DD&time=HH:MM&title=제목</pre>
 <hr class="divider">
 <div class="label label-example">예시</div>
-<pre>/?t=vn2&chars=소라§75§긴장§60§80§85§썸+단계§0§두근거려§옥상에서+눈+마주침|블레어§15§평온§90§70§10§경계+단계§0§재밌는+애네§복도에서+인사
+<pre>/?t=vn2&chars=소라§75§긴장§60§80§85§썸+단계§0§두근거려§옥상에서+눈+마주침§5-23|블레어§15§평온§90§70§10§경계+단계§0§재밌는+애네§복도에서+인사§10-08
 &date=2026-05-23&time=14:30&title=ROUTE+STATUS</pre>
 <hr class="divider">
 <div class="desc"><strong>vn과의 차이점:</strong><br>
@@ -1385,6 +1389,10 @@ title — 상단 제목 (선택, 기본값 있음)</pre>`
 • <strong>관계횟수</strong> — 숫자 (예: 0, 3) — "× N회" 형태로 표시<br>
 • <strong>속마음</strong> — 이탤릭 인용 (16자 초과 시 자동 말줄임)<br>
 • <strong>기억</strong> — 📎 아이콘과 함께 (12자 초과 시 말줄임)<br>
+• <strong>생일</strong> — <code>MM-DD</code> 형식 (선택, 예: <code>5-23</code>).<br>
+&nbsp;&nbsp;&nbsp;&nbsp;평소: 카드 <strong>footer 우측</strong>에 🎂 MM/DD 굵게 표시 (전 카드 사이즈 통일)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;당일 (date와 매칭): 카드 stroke 핫핑크 + 상단에 BIRTHDAY 가로 banner (카드 14~22px 늘어남)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<strong>애니메이션:</strong> 🎂 좌우 흔들림 · stroke 색 사이클 (무한) / BIRTHDAY 깜빡임 · 🎉🎁✨ 이모지 위로 떠오름 (1회)<br>
 • <strong>date / time / title</strong> — vn과 동일</div>
 <hr class="divider">
 <div class="label label-example">레이아웃 자동 조절</div>
@@ -1396,7 +1404,7 @@ title — 상단 제목 (선택, 기본값 있음)</pre>`
 6명 → 3x2 그리드</pre>
 <hr class="divider">
 <div class="label label-example">필드 설명</div>
-<pre>chars (|로 캐릭터 구분, §로 필드 구분, 10필드):
+<pre>chars (|로 캐릭터 구분, §로 필드 구분, 11필드):
   이름      — 캐릭터 이름 (???이면 미해금)
   호감도    — 0~100
   기분      — 짧은 감정 텍스트 (예: 긴장)
@@ -1407,6 +1415,7 @@ title — 상단 제목 (선택, 기본값 있음)</pre>`
   관계횟수  — 숫자 (예: 0)
   속마음    — 이탤릭 인용
   기억      — 📎 표시
+  생일      — MM-DD (선택, 예: 5-23). 비우면 표시 안 함
 
 date — 날짜 (YYYY-MM-DD면 요일 자동)
 time — 시각 HH:MM (선택, 24시간제)
@@ -1904,19 +1913,20 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
 도메인: https://st.winter0.workers.dev
 
 ### 미연시 상태창
-![](https://st.winter0.workers.dev/?t=vn&chars=이름§호감도§속마음§기억|이름§호감도§속마음§기억&my=체력§스트레스§정신력§피로도§발정도&date=YYYY-MM-DD&time=HH:MM&title=제목)
+![](https://st.winter0.workers.dev/?t=vn&chars=이름§호감도§속마음§기억§생일|이름§호감도§속마음§기억§생일&my=체력§스트레스§정신력§피로도§발정도&date=YYYY-MM-DD&time=HH:MM&title=제목)
 - chars: 캐릭터 카드 (|로 구분, 최대 6명)
 - 이름 ???이면 미해금 (블러+잠금)
 - 호감도 0~100, 속마음 16자 이내, 기억 12자 이내
+- 생일: MM-DD 형식 (선택, 예: 5-23). 이름 옆에 🎂 작게 표시. date가 YYYY-MM-DD고 오늘이 생일이면 카드 stroke 핫핑크 + "BIRTHDAY MM/DD" 강조
 - my: 내 상태 5개 (각 0~100)
 - date: YYYY-MM-DD 형식 권장 (예: 2026-03-15 → 자동으로 "2026.03.15 (일)" 표시). 자유 텍스트도 가능
 - time: HH:MM 24시간제 (선택, 예: 14:30). 입력 시 날짜 뒤에 표시
 - title: 선택사항
 
 ### 미연시 상태창 v2 (상대 정보 풍부형)
-![](https://st.winter0.workers.dev/?t=vn2&chars=이름§호감도§기분§체력§정신력§발정도§진척도§관계횟수§속마음§기억|...&date=YYYY-MM-DD&time=HH:MM&title=제목)
+![](https://st.winter0.workers.dev/?t=vn2&chars=이름§호감도§기분§체력§정신력§발정도§진척도§관계횟수§속마음§기억§생일|...&date=YYYY-MM-DD&time=HH:MM&title=제목)
 - vn보다 정보 풍부, 내 상태(my) 없음, 상대 중심
-- 필드 10개 §로 구분: 이름§호감도§기분§체력§정신력§발정도§진척도§관계횟수§속마음§기억
+- 필드 11개 §로 구분: 이름§호감도§기분§체력§정신력§발정도§진척도§관계횟수§속마음§기억§생일
 - chars: 최대 6명, |로 구분
 - 이름 ???이면 미해금 (블러+잠금)
 - 호감도/체력/정신력/발정도: 0~100 (임계값 도달 시 색 자동 변화 — 20/80)
@@ -1924,6 +1934,7 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
 - 진척도: 관계 단계 텍스트 (예: 썸 단계, 친구 단계, 연인)
 - 관계횟수: 숫자 (× N회로 표시)
 - 속마음 16자 이내, 기억 12자 이내
+- 생일: MM-DD 형식 (선택). 평소엔 카드 모서리에 🎂 MM/DD 작게. 당일이면 상단 BIRTHDAY banner + 카드 stroke 핫핑크
 - date/time/title: vn과 동일
 
 ### 다크판타지 상태창

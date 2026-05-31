@@ -2,20 +2,19 @@
 // ?t=worldmap
 //
 // 지원 파라미터:
-//   &world=test            (생략 시 at/path/p의 PLACES에서 자동 추론, 그것도 없으면 'test')
+//   &world=floor1          월드 키 (또는 한글 alias: '1층'). 생략 시 자동 추론
 //   &at=장소명              내 위치 (PLACES 룩업, alias 지원)
 //   &x=&y=                 내 위치 직접 좌표 (디버깅용)
 //   &p=장소§이름§관계|...    다른 사람들 (멀티플레이어)
 //                           관계: 아군(또는 비움) / 적 / 파티 / 중립
 //                           장소 자리에 xNNNyNNN 박으면 직접 좌표
 //   &path=A,B,C            이동 경로 (마지막이 목적지, 중간은 경유지)
-//                           각 항목은 장소명 또는 xNNNyNNN
-//                           나가 있으면 나→A→B→C 점선, 없으면 A→B→C
+//   &labels=on             해당 월드의 모든 PLACES 라벨 자동 표시
 //
 // 예시:
-//   /?t=worldmap&at=center&path=topright
-//   /?t=worldmap&at=center&path=upperleft,topright,lowerright
-//   /?t=worldmap&at=center&p=topright§오크§적&path=lowerright
+//   /?t=worldmap&world=1층&at=center
+//   /?t=worldmap&world=floor4&labels=on        (4층 모든 장소 라벨 표시)
+//   /?t=worldmap&world=floor5&x=500&y=400      (좌표 찍기 디버그)
 
 // ════════════════════════════════════════════
 //  공용 헬퍼 (worker-st 컨벤션)
@@ -62,17 +61,43 @@ async function r2ToDataURI(env, key) {
 // ════════════════════════════════════════════
 
 const WORLDS = {
-  test: { key: 'test-grid.png', w: 1024, h: 1024 },
-  // 향후: aincrad: { key: 'world/aincrad.webp', w: 1024, h: 1024 },
+  // 검증용
+  test:    { src: 'test-grid.png',  w: 1024, h: 1024, alias: [] },
+
+  // 아인크라드 10층
+  floor1:  { src: 'world/f01.webp', w: 1024, h: 1024, alias: ['1층'] },
+  floor2:  { src: 'world/f02.webp', w: 1024, h: 1024, alias: ['2층'] },
+  floor3:  { src: 'world/f03.webp', w: 1024, h: 1024, alias: ['3층'] },
+  floor4:  { src: 'world/f04.webp', w: 1024, h: 1024, alias: ['4층'] },
+  floor5:  { src: 'world/f05.webp', w: 1024, h: 1024, alias: ['5층'] },
+  floor6:  { src: 'world/f06.webp', w: 1024, h: 1024, alias: ['6층'] },
+  floor7:  { src: 'world/f07.webp', w: 1024, h: 1024, alias: ['7층'] },
+  floor8:  { src: 'world/f08.webp', w: 1024, h: 1024, alias: ['8층'] },
+  floor9:  { src: 'world/f09.webp', w: 1024, h: 1024, alias: ['9층'] },
+  floor10: { src: 'world/f10.webp', w: 1024, h: 1024, alias: ['10층'] },
 };
 
 const PLACES = {
+  // 검증용 (test 월드)
   'center':     { world: 'test', x: 512, y: 512, alias: ['중앙', 'middle'] },
   'upperleft':  { world: 'test', x: 100, y: 100, alias: ['좌상단'] },
   'lowerright': { world: 'test', x: 900, y: 900, alias: ['우하단'] },
   'topright':   { world: 'test', x: 900, y: 100, alias: ['우상단'] },
   'bottomleft': { world: 'test', x: 100, y: 900, alias: ['좌하단'] },
+
+  // floor1 ~ floor10 장소들은 좌표 찍어가며 점진적 추가 예정
 };
+
+function findWorld(name) {
+  if (!name) return null;
+  if (WORLDS[name]) return { ...WORLDS[name], key: name };
+  for (const [key, w] of Object.entries(WORLDS)) {
+    if (w.alias && w.alias.includes(name)) {
+      return { ...w, key };
+    }
+  }
+  return null;
+}
 
 function findPlace(name) {
   if (!name) return null;
@@ -83,6 +108,16 @@ function findPlace(name) {
     }
   }
   return null;
+}
+
+// PLACE 표시명 — 한글 alias 우선, 없으면 정식 키
+function getPlaceDisplayName(key, place) {
+  if (place.alias && place.alias.length > 0) {
+    const ko = place.alias.find(a => /[\u3131-\uD79D\uAC00-\uD7A3]/.test(a));
+    if (ko) return ko;
+    return place.alias[0];
+  }
+  return key;
 }
 
 // ════════════════════════════════════════════
@@ -99,6 +134,7 @@ const ME_RING    = '#BB6688';
 const ME_DOT     = '#DDAACC';
 const STROKE     = '#0d0f1f';
 const PATH_COLOR = '#FF7722';   // 점선/경유지/목적지 통일 (오렌지)
+const PLACE_LBL  = '#CCAA88';   // labels=on 배경 라벨 (샌드 톤다운)
 
 function relColor(rel) {
   return REL_COLOR[rel] || REL_COLOR['아군'];
@@ -176,9 +212,13 @@ function distributeMarkers(markers) {
 
 function renderMyMarker(x, y, label) {
   return `
-<circle cx="${x}" cy="${y}" r="20" fill="none" stroke="${ME_RING}" stroke-width="3" opacity="0.55">
-  <animate attributeName="r" values="20;38;20" dur="1.8s" repeatCount="indefinite"/>
-  <animate attributeName="opacity" values="0.55;0;0.55" dur="1.8s" repeatCount="indefinite"/>
+<circle cx="${x}" cy="${y}" r="21" fill="none" stroke="${STROKE}" stroke-width="6" opacity="0.45">
+  <animate attributeName="r" values="21;40;21" dur="1.8s" repeatCount="indefinite"/>
+  <animate attributeName="opacity" values="0.45;0;0.45" dur="1.8s" repeatCount="indefinite"/>
+</circle>
+<circle cx="${x}" cy="${y}" r="21" fill="none" stroke="${ME_RING}" stroke-width="3" opacity="0.85">
+  <animate attributeName="r" values="21;40;21" dur="1.8s" repeatCount="indefinite"/>
+  <animate attributeName="opacity" values="0.85;0;0.85" dur="1.8s" repeatCount="indefinite"/>
 </circle>
 <circle cx="${x}" cy="${y}" r="11" fill="${ME_RING}" stroke="${STROKE}" stroke-width="2.5"/>
 <circle cx="${x}" cy="${y}" r="4"  fill="${ME_DOT}"/>
@@ -196,11 +236,19 @@ function renderOtherMarker(m) {
       fill="${color}" stroke="${STROKE}" stroke-width="4" paint-order="stroke">${esc(m.name)}</text>`;
 }
 
+// labels=on: 배경 PLACE 라벨 (작고 톤다운, 마커 아래)
+function renderPlaceLabel(x, y, name) {
+  return `
+<text x="${x}" y="${y + 24}"
+      font-family="'Courier New',monospace" font-size="15" font-weight="700"
+      fill="${PLACE_LBL}" stroke="${STROKE}" stroke-width="3.5" paint-order="stroke"
+      text-anchor="middle">${esc(name)}</text>`;
+}
+
 // ════════════════════════════════════════════
 //  렌더링 — 경로 (점선) / 경유지(다이아몬드) / 목적지(깃발)
 // ════════════════════════════════════════════
 
-// 점선 라인 + 흐름 애니메이션
 function renderPathLine(points) {
   if (points.length < 2) return '';
   const d = 'M' + points.map(p => `${p.x},${p.y}`).join(' L');
@@ -210,10 +258,9 @@ function renderPathLine(points) {
 </path>`;
 }
 
-// 경유지 다이아몬드 (외곽 빈 + 내부 작은 다이아몬드)
 function renderWaypoint(x, y) {
-  const S = 11; // 외곽 꼭짓점 거리
-  const s = 4;  // 내부 꼭짓점 거리
+  const S = 11;
+  const s = 4;
   return `
 <polygon points="${x},${y - S} ${x + S},${y} ${x},${y + S} ${x - S},${y}"
          fill="${STROKE}" stroke="${PATH_COLOR}" stroke-width="2.5"/>
@@ -221,7 +268,6 @@ function renderWaypoint(x, y) {
          fill="${PATH_COLOR}"/>`;
 }
 
-// 목적지 깃발 (베이스 점 + 폴 + 천)
 function renderDestination(x, y) {
   const POLE_H = 36;
   const FLAG_W = 30;
@@ -238,12 +284,13 @@ function renderDestination(x, y) {
 // ════════════════════════════════════════════
 
 async function renderWorldmap(params, env) {
-  const atRaw    = params.get('at') || '';
-  const xParam   = params.get('x');
-  const yParam   = params.get('y');
-  const pParam   = params.get('p') || '';
-  const pathRaw  = params.get('path') || '';
-  let   worldKey = params.get('world') || '';
+  const atRaw     = params.get('at') || '';
+  const xParam    = params.get('x');
+  const yParam    = params.get('y');
+  const pParam    = params.get('p') || '';
+  const pathRaw   = params.get('path') || '';
+  const labelsOn  = params.get('labels') === 'on';
+  let   worldRaw  = params.get('world') || '';
 
   const markers = [];
 
@@ -252,12 +299,11 @@ async function renderWorldmap(params, env) {
     const ix = safeInt(xParam, 0, 0, 10000);
     const iy = safeInt(yParam, 0, 0, 10000);
     markers.push({ origX: ix, origY: iy, isMe: true, label: `(${ix},${iy})` });
-    if (!worldKey) worldKey = 'test';
   } else if (atRaw) {
     const place = findPlace(atRaw);
     if (place) {
       markers.push({ origX: place.x, origY: place.y, isMe: true, label: atRaw });
-      if (!worldKey) worldKey = place.world;
+      if (!worldRaw) worldRaw = place.world;
     }
   }
 
@@ -272,7 +318,7 @@ async function renderWorldmap(params, env) {
         name: p.name,
         relation: p.relation,
       });
-      if (!worldKey && pos.refWorld) worldKey = pos.refWorld;
+      if (!worldRaw && pos.refWorld) worldRaw = pos.refWorld;
     }
   }
 
@@ -283,19 +329,20 @@ async function renderWorldmap(params, env) {
     const pos = resolveRef(ref);
     if (pos) {
       waypoints.push({ x: pos.x, y: pos.y });
-      if (!worldKey && pos.refWorld) worldKey = pos.refWorld;
+      if (!worldRaw && pos.refWorld) worldRaw = pos.refWorld;
     }
   }
 
-  // 4) 월드 확정
-  if (!worldKey) worldKey = 'test';
-  const world = WORLDS[worldKey];
+  // 4) 월드 확정 (findWorld 사용 — alias 지원)
+  if (!worldRaw) worldRaw = 'test';
+  const world = findWorld(worldRaw);
   if (!world) return null;
+  const worldKey = world.key;
 
   // 5) 사람 마커 겹침 분산
   distributeMarkers(markers);
 
-  // 6) 점선 좌표 (나가 있으면 시작점에 추가)
+  // 6) 점선 좌표
   const meMarker = markers.find(m => m.isMe);
   const linePoints = [];
   if (meMarker && waypoints.length > 0) {
@@ -304,23 +351,44 @@ async function renderWorldmap(params, env) {
   linePoints.push(...waypoints);
 
   // 7) R2 이미지
-  const dataURI = await r2ToDataURI(env, world.key);
+  const dataURI = await r2ToDataURI(env, world.src);
   if (!dataURI) return null;
 
-  // 8) SVG 조립
-  //    Z-order: 배경 → 점선 → 경유지(다이아) → 목적지(깃발) → 다른 사람들 → 나
+  // 8) labels=on: 현재 월드에 속한 모든 PLACES 라벨 수집
+  const placeLabels = [];
+  if (labelsOn) {
+    for (const [pk, p] of Object.entries(PLACES)) {
+      // world 매칭: 정식 키 또는 alias 어느 쪽으로든
+      const matchKey = p.world === worldKey;
+      const matchAlias = world.alias && world.alias.includes(p.world);
+      if (matchKey || matchAlias) {
+        placeLabels.push({
+          x: p.x, y: p.y,
+          name: getPlaceDisplayName(pk, p),
+        });
+      }
+    }
+  }
+
+  // 9) SVG 조립
+  //    Z-order: 배경 → PLACE 라벨(배경 텍스트) → 점선 → 경유지 → 목적지 → 다른 사람들 → 나
   const W = world.w, H = world.h;
   const DISP = 750;
 
   let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${DISP}" height="${DISP}" viewBox="0 0 ${W} ${H}">
 <image href="${dataURI}" x="0" y="0" width="${W}" height="${H}"/>`;
 
+  // PLACE 배경 라벨
+  for (const pl of placeLabels) {
+    svg += renderPlaceLabel(pl.x, pl.y, pl.name);
+  }
+
   // 점선
   if (linePoints.length >= 2) {
     svg += renderPathLine(linePoints);
   }
 
-  // 경유지 다이아몬드 (마지막 제외)
+  // 경유지 다이아몬드
   for (let i = 0; i < waypoints.length - 1; i++) {
     svg += renderWaypoint(waypoints[i].x, waypoints[i].y);
   }
@@ -362,15 +430,17 @@ export default {
         return new Response(
           'worldmap: 잘못된 파라미터 또는 R2 fetch 실패\n\n' +
           '사용법:\n' +
-          '  ?t=worldmap&at=center\n' +
+          '  ?t=worldmap&world=1층\n' +
+          '  ?t=worldmap&world=floor4&at=center\n' +
+          '  ?t=worldmap&world=4층&labels=on            (모든 장소 라벨 표시)\n' +
+          '  ?t=worldmap&world=floor5&x=500&y=400       (좌표 찍기 디버그)\n' +
           '  ?t=worldmap&at=중앙&p=upperleft§지나|topright§오크§적\n' +
-          '  ?t=worldmap&at=center&path=upperleft,topright,lowerright\n' +
-          '  ?t=worldmap&world=test&x=500&y=500\n' +
-          '  ?t=worldmap&world=test (마커 없는 월드 뷰)\n\n' +
+          '  ?t=worldmap&at=center&path=upperleft,topright,lowerright\n\n' +
           '관계 종류: 아군(생략 가능) / 적 / 파티 / 중립\n' +
-          '경로 path: 콤마 구분, 마지막이 목적지(깃발), 중간은 경유지(다이아몬드)\n' +
-          '등록된 장소: center / upperleft / lowerright / topright / bottomleft\n' +
-          '한글 alias:  중앙 / 좌상단 / 우하단 / 우상단 / 좌하단',
+          '경로 path: 콤마 구분, 마지막이 목적지(깃발), 중간은 경유지(다이아몬드)\n\n' +
+          '등록된 월드: test / floor1~floor10 (한글 alias: 1층~10층)\n' +
+          '등록된 장소 (test): center / upperleft / lowerright / topright / bottomleft\n' +
+          '※ floor1~floor10의 PLACES는 좌표 찍어가며 점진적 추가 예정',
           { status: 400, headers: { 'Content-Type': 'text/plain; charset=utf-8' } }
         );
       }

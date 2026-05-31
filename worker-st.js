@@ -2276,19 +2276,32 @@ function renderMmo(params) {
       } else if (s.baseState === 'active') {
         iconBorder = C.pink; glyphColor = C.pink;
       } else if (s.baseState === 'cd') {
-        const cdSec = parseInt(s.reason) || 0;
+        const raw = (s.reason || '').trim();
+        // 단위 파싱: 숫자+선택적단위 (ms/s/m/h). 단위 없으면 초로 가정.
+        const mt = raw.match(/^(\d+(?:\.\d+)?)\s*(ms|s|m|h)?$/i);
+        let cdDur = '', cdDisplay = raw;
+        if (mt) {
+          const num = mt[1];
+          const unit = (mt[2] || 's').toLowerCase();
+          // SMIL dur: 분은 'min'으로 변환, 나머지는 그대로
+          if (unit === 'm')      cdDur = num + 'min';
+          else if (unit === 'h') cdDur = num + 'h';
+          else if (unit === 'ms')cdDur = num + 'ms';
+          else                    cdDur = num + 's';
+          // 표시: 입력에 단위가 있으면 그대로, 없으면 's' 부착
+          cdDisplay = mt[2] ? raw : (num + 's');
+        }
         iconBorder = C.indigoSoft; opacity = 0.7;
         overlay = `<rect x="${iconX}" y="${sy}" width="${ICON_SIZE}" height="${ICON_SIZE}" fill="rgba(0,0,0,0.65)"/>`;
-        const pct = Math.min(1, cdSec / 60);
-        const angle = pct * 360;
-        const rad = (angle - 90) * Math.PI / 180;
         const cx = iconX + ICON_SIZE/2, cy = sy + ICON_SIZE/2, r = ICON_SIZE/2 - 2;
-        const ex = cx + r * Math.cos(rad), ey = cy + r * Math.sin(rad);
-        const large = angle > 180 ? 1 : 0;
-        if (angle > 0 && angle < 360) {
-          overlay += `<path d="M ${cx} ${cy} L ${cx} ${cy-r} A ${r} ${r} 0 ${large} 1 ${ex} ${ey} Z" fill="rgba(255,119,34,0.25)" stroke="${C.orange}" stroke-width="0.5"/>`;
+        const circ = (2 * Math.PI * r).toFixed(2);
+        // 원형 stroke 게이지: 시계방향으로 비워짐 → 다시 처음부터 반복 (무한)
+        overlay += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${C.orange}" stroke-width="2" stroke-linecap="round" stroke-dasharray="${circ}" stroke-dashoffset="0" transform="rotate(-90 ${cx} ${cy})" opacity="0.9">`;
+        if (cdDur) {
+          overlay += `<animate attributeName="stroke-dashoffset" from="0" to="${circ}" dur="${cdDur}" repeatCount="indefinite"/>`;
         }
-        overlay += `<text x="${cx}" y="${cy+5}" font-family="monospace" font-size="12" font-weight="bold" fill="${C.orange}" text-anchor="middle" stroke="${C.bg}" stroke-width="0.3">${cdSec}</text>`;
+        overlay += `</circle>`;
+        overlay += `<text x="${cx}" y="${cy+5}" font-family="monospace" font-size="12" font-weight="bold" fill="${C.orange}" text-anchor="middle" stroke="${C.bg}" stroke-width="0.3">${esc(cdDisplay)}</text>`;
         glyph = '';
       }
 

@@ -1764,7 +1764,7 @@ labyrinth=on:
 <pre>/?t=mmo&p=겨울§월광+검사§듀얼+블레이드§42
 &s=420§980§280§600§67§14580
 &tm=2024.03.15§FRI§22:18§3day+55hr
-&sk=버티컬§892§ready|소닉+리프§745§cd:28|듀얼+워시§680§active|성스러운+검§0§lock:LV.50|봉인된+마법§820§seal:침묵|체술§510§ready
+&sk=버티컬§892§ready|소닉+리프§745§cd:28s|듀얼+워시§680§active|성스러운+검§0§lock:LV.50|봉인된+마법§820§seal:침묵|체술§510§ready
 &eq=엘루시데이터§유니크§다크리펄서§레어|코트+오브+미드나잇§레어|결정의+펜던트§매직§월광+반지§일반
 &pt=아스나§88§세검사|크라딜§62§경전사|에길§95§양손도끼
 &gd=월광의+검§부길드장
@@ -1786,7 +1786,7 @@ labyrinth=on:
 <div class="desc">
 • <strong>ready</strong> — 정상, 사용 가능 (인디고 READY)<br>
 • <strong>active</strong> — 사용 중 (핑크 ACTIVE)<br>
-• <strong>cd:N</strong> — 쿨다운 N초 (오렌지 부채꼴 + 숫자, 예: <code>cd:28</code>)<br>
+• <strong>cd:시간</strong> — 쿨다운 (오렌지 원형 게이지 + 숫자). 단위 포함 자유 표기 — <code>cd:28s</code>, <code>cd:5m</code>, <code>cd:1h</code>. 단위 없으면 초로 간주<br>
 • <strong>lock:사유</strong> — 미해금/조건 미충족 (자물쇠, 회색 <code>LOCKED [사유]</code>. 예: <code>lock:LV.50</code>, <code>lock:퀘스트</code>)<br>
 • <strong>seal:사유</strong> — 침묵/봉인 등 디버프 (빨강 ✕, <code>SEALED [사유]</code>. 예: <code>seal:침묵</code>)<br>
 • <strong>empty</strong> — 슬롯 자체가 렌더링되지 않음 (높이 차지 X). 예: <code>empty§§empty</code></div>
@@ -1987,7 +1987,7 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
 - s: HP§HPmax§MP§MPmax§EXP(0~100)§COL. HP/MP는 비율 따라 색 자동 변화 (20%/50%)
 - tm: 게임 내 날짜§요일§시각§누적 플레이타임 (자유 텍스트, 영문 권장. 예: 3day 55hr, FRI)
 - sk: 스킬§숙련도(0~1000)§상태 (|로 구분, 최대 6개)
-  상태: ready / active / cd:N(N초) / lock:사유 / seal:사유 / empty
+  상태: ready / active / cd:시간(단위 포함, 28s/5m/1h 등) / lock:사유 / seal:사유 / empty
   empty는 슬롯 자체 사라짐 (높이 차지 X)
   lock/seal의 사유는 짧게 (예: lock:LV.50, seal:침묵)
 - eq: 슬롯 3개 (무기|방어구|장신구, |로 구분). 한 슬롯 안에서 § 짝수 단위로 (이름§등급) 다중 — 이도류·다중 장신구 표현

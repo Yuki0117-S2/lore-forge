@@ -1,5 +1,5 @@
 // st.winter0.workers.dev — RPG/VN 상태창 (SVG 이미지 출력)
-// ?t=vn / ?t=vn2 / ?t=dark / ?t=pixel / ?t=ending / ?t=rpg2k / ?t=choice / ?t=dungeon / ?t=mmo / ?t=reward
+// ?t=vn / ?t=vn2 / ?t=dark / ?t=pixel / ?t=ending / ?t=rpg2k / ?t=choice / ?t=dungeon / ?t=mmo / ?t=reward / ?t=gameover
 
 function esc(s) {
   return String(s ?? '')
@@ -2607,6 +2607,280 @@ ${it.flavor ? `<text x="${tx}" y="${y + 112}" font-size="9" fill="${C.dim}" font
 
 
 // ════════════════════════════════════════════
+//  GAMEOVER (modern / pixel)
+//  ?t=gameover&st=modern  — 일반 게임오버 (기본값)
+//  ?t=gameover&st=pixel   — 픽셀 게임오버
+//
+//  공통 파라미터:
+//    title=GAME OVER    제목
+//    cause=...          게임오버 사유
+//    n=...              캐릭터 이름
+//    sub=...            캐릭터 부가설명
+//    d=...              캐릭터 대사
+//    ach=아이콘§제목§설명|...  업적 (0~3개)
+//    count=숫자         사망 횟수
+//
+//  아이콘 키 16종: trophy, star, heart, skull, crown,
+//                  sword, shield, flame, key, book,
+//                  hourglass, coin, potion, note, eye, mask
+// ════════════════════════════════════════════
+
+// ─── 픽셀 아이콘 (10x10, '1'=메인, '2'=그림자, '.'=빈칸) ──
+const GAMEOVER_ICON_PIXEL = {
+  trophy: ['..111111..','.11111111.','.11111111.','..111111..','..111111..','...1111...','....11....','....11....','..111111..','.11111111.'],
+  star: ['....11....','....11....','...1111...','1111111111','.11111111.','..111111..','..11..11..','.11....11.','.11....11.','11......11'],
+  heart: ['.11....11.','1111..1111','1111111111','1111111111','.11111111.','..111111..','...1111...','....11....','..........','..........'],
+  skull: ['..111111..','.11111111.','1111111111','11..11..11','11..11..11','1111111111','.11111111.','.1.1111.1.','..1.11.1..','..........'],
+  crown: ['....11....','....11....','.11.11.11.','.11.11.11.','1111111111','1111..1111','111....111','1111..1111','1111111111','..........'],
+  sword: ['....11....','....11....','....11....','....11....','....11....','...1111...','.11111111.','....11....','...1111...','....11....'],
+  shield: ['1111111111','1111111111','1111..1111','111....111','1111..1111','1111111111','.11111111.','..111111..','...1111...','....11....'],
+  flame: ['.....1....','....11....','...11.1...','..11.111..','.1111111..','11.111111.','11..1111..','1111111111','.11111111.','..111111..'],
+  key: ['...1111...','..111111..','.11.11.11.','.11.11.11.','..111111..','...1111...','....11....','....1111..','....11.1..','....11....'],
+  book: ['1111111111','1........1','1.111111.1','1........1','1.111111.1','1........1','1.111111.1','1........1','1.111111.1','1111111111'],
+  hourglass: ['1111111111','2........2','.2......2.','..211112..','...2112...','....22....','...2222...','..222222..','.22222222.','1111111111'],
+  coin: ['...1111...','.11111111.','1111111111','11.1..1.11','11.1..1.11','11.1..1.11','11.1..1.11','1111111111','.11111111.','...1111...'],
+  potion: ['...1111...','...1..1...','...1..1...','..111111..','.11111111.','1111111111','1.111111.1','1111111111','.11111111.','..111111..'],
+  note: ['....111111','....111111','....11..11','....11....','....11....','....11....','....11....','.1111.....','11111.....','11111.....'],
+  eye: ['..........','...2222...','..2....2..','.2..11..2.','2..1111..2','2..1111..2','.2..11..2.','..2....2..','...2222...','..........'],
+  mask: ['11......11','1111111111','11..11..11','11..11..11','1111111111','1111111111','.11111111.','...1..1...','..........','..........'],
+};
+
+// ─── 벡터 아이콘 (24x24 viewBox path) ──
+const GAMEOVER_ICON_VECTOR = {
+  trophy: 'M6 3h12v3a6 6 0 0 1-5 5.9V14h2v2H9v-2h2v-2.1A6 6 0 0 1 6 6V3zm-2 1v2a3 3 0 0 0 2 2.83V4H4zm16 0h-2v4.83A3 3 0 0 0 20 6V4zM7 19h10v2H7v-2z',
+  star: 'M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 16.8l-6.2 4.5 2.4-7.4L2 9.4h7.6L12 2z',
+  heart: 'M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9z',
+  skull: 'M12 2a8 8 0 0 0-8 8v5l2 2v3h3v-2h2v2h2v-2h2v2h3v-3l2-2v-5a8 8 0 0 0-8-8zm-3 8a2 2 0 1 1 0 4 2 2 0 0 1 0-4zm6 0a2 2 0 1 1 0 4 2 2 0 0 1 0-4z',
+  crown: 'M3 18h18v3H3v-3zm0-2l1-9 4 4 4-8 4 8 4-4 1 9H3zm9-3a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z',
+  sword: 'M12 2l2 4v8h-4V6l2-4zm-4 14h8v2H8v-2zm3 2h2v3h-2v-3zm-1 3h4l-1 1h-2l-1-1z',
+  shield: 'M12 2l9 3v6c0 5-3.5 9.5-9 11-5.5-1.5-9-6-9-11V5l9-3zm0 5l-2 5h4l-2 5',
+  flame: 'M12 2c0 5-5 6-5 11a5 5 0 0 0 10 0c0-3-2-4-2-7 0 0 3 2 3 6a6 6 0 0 1-12 0c0-6 6-7 6-10z',
+  key: 'M9 2a5 5 0 1 0 4.6 7H16v2h2v2h-2v-1h-2v-1h-.4A5 5 0 0 1 9 12 5 5 0 1 0 9 2zm0 3a2 2 0 1 1 0 4 2 2 0 0 1 0-4z',
+  book: 'M4 4h6a3 3 0 0 1 2 1 3 3 0 0 1 2-1h6v15h-7a2 2 0 0 0-2 1 2 2 0 0 0-2-1H4V4zm2 2v11h5a3 3 0 0 1 1 .2V7a1 1 0 0 0-1-1H6zm12 0h-4a1 1 0 0 0-1 1v10.2a3 3 0 0 1 1-.2h4V6z',
+  hourglass: 'M6 2h12v2l-5 8 5 8v2H6v-2l5-8L6 4V2zm2 2v0.5l4 6.5 4-6.5V4H8zm0 16h8v-0.5l-4-6.5-4 6.5V20z',
+  coin: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 3a7 7 0 1 1 0 14 7 7 0 0 1 0-14zm-1 3h2v8h-2V8z',
+  potion: 'M9 2h6v2H9V2zm0 3h6v3l3 5a5 5 0 0 1-6 7 5 5 0 0 1-6-7l3-5V5zm2 1v3l-3 5h8l-3-5V6h-2z',
+  note: 'M9 3v11.5a3.5 3.5 0 1 1-2-3.3V5h10v9.5a3.5 3.5 0 1 1-2-3.3V3H9z',
+  eye: 'M12 5c-5 0-9 4-10 7 1 3 5 7 10 7s9-4 10-7c-1-3-5-7-10-7zm0 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8zm0 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4z',
+  mask: 'M3 6c2-2 5-3 9-3s7 1 9 3v6c-2 3-5 5-9 5s-7-2-9-5V6zm5 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm8 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 9l-1 3m9-3l1 3',
+};
+
+function darkenGameoverColor(hex, ratio) {
+  if (ratio == null) ratio = 0.55;
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  const d = (v) => Math.round(v * ratio).toString(16).padStart(2, '0');
+  return '#' + d(r) + d(g) + d(b);
+}
+
+function renderGameoverPixelIcon(key, x, y, dotSize, mainColor) {
+  const grid = GAMEOVER_ICON_PIXEL[key] || GAMEOVER_ICON_PIXEL.trophy;
+  const shadowColor = darkenGameoverColor(mainColor);
+  let dots = '';
+  for (let row = 0; row < 10; row++) {
+    for (let col = 0; col < 10; col++) {
+      const ch = grid[row][col];
+      if (ch === '1') {
+        dots += `<rect x="${x + col*dotSize}" y="${y + row*dotSize}" width="${dotSize}" height="${dotSize}" fill="${mainColor}"/>`;
+      } else if (ch === '2') {
+        dots += `<rect x="${x + col*dotSize}" y="${y + row*dotSize}" width="${dotSize}" height="${dotSize}" fill="${shadowColor}"/>`;
+      }
+    }
+  }
+  return dots;
+}
+
+function renderGameoverVectorIcon(key, x, y, size, color) {
+  const path = GAMEOVER_ICON_VECTOR[key] || GAMEOVER_ICON_VECTOR.trophy;
+  return `<g transform="translate(${x},${y}) scale(${size/24})" fill="${color}"><path d="${path}"/></g>`;
+}
+
+function parseGameoverAchievements(ach) {
+  if (!ach) return [];
+  return ach.split('|').slice(0, 3).map(item => {
+    const parts = item.split('§');
+    return {
+      icon: (parts[0] || 'trophy').trim(),
+      title: (parts[1] || '???').trim(),
+      desc: (parts[2] || '').trim(),
+    };
+  });
+}
+
+// ─── 라우터 ───
+function renderGameover(params) {
+  const validStyles = ['modern', 'pixel'];
+  const stRaw = (params.get('st') || 'modern').toLowerCase();
+  const st = validStyles.includes(stRaw) ? stRaw : 'modern';
+  if (st === 'pixel') return renderGameoverPixel(params);
+  return renderGameoverModern(params);
+}
+
+// ─── MODERN 스타일 ───
+function renderGameoverModern(params) {
+  const W = 540;
+  const title = esc(params.get('title') || 'GAME OVER');
+  const cause = esc(params.get('cause') || '');
+  const name = esc(params.get('n') || '');
+  const sub = esc(params.get('sub') || '');
+  const dialog = esc(params.get('d') || '');
+  const count = params.get('count');
+  const achievements = parseGameoverAchievements(params.get('ach'));
+
+  const HAS_CHAR = name || dialog;
+  const charBlockH = HAS_CHAR ? 100 : 0;
+  const achBlockH = achievements.length > 0 ? (achievements.length * 70 + 40) : 0;
+  const countH = count ? 30 : 0;
+  const H = 180 + charBlockH + achBlockH + countH + 30;
+
+  let y = 0;
+  let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+<defs><radialGradient id="bg" cx="50%" cy="40%" r="70%">
+<stop offset="0%" stop-color="#1a0a14"/><stop offset="100%" stop-color="#000000"/>
+</radialGradient></defs>
+<rect width="${W}" height="${H}" fill="url(#bg)"/>`;
+
+  y = 70;
+  svg += `<text x="${W/2}" y="${y}" font-family="'Georgia',serif" font-size="44" font-weight="bold"
+fill="#BB6688" text-anchor="middle" letter-spacing="6">${title}</text>`;
+
+  if (cause) {
+    y += 30;
+    svg += `<text x="${W/2}" y="${y}" font-family="'Noto Serif KR',Georgia,serif" font-size="14"
+fill="#CCAA88" text-anchor="middle" font-style="italic" opacity="0.85">— ${cause} —</text>`;
+  }
+
+  y += 40;
+  svg += `<line x1="${W/2 - 60}" y1="${y}" x2="${W/2 + 60}" y2="${y}" stroke="#BB6688" stroke-width="1" opacity="0.4"/>`;
+  y += 30;
+
+  if (HAS_CHAR) {
+    if (name) {
+      const nameLine = sub ? `${name}  ·  ${sub}` : name;
+      svg += `<text x="${W/2}" y="${y}" font-family="'Noto Serif KR',Georgia,serif" font-size="15"
+font-weight="bold" fill="#8889CD" text-anchor="middle" letter-spacing="2">${nameLine}</text>`;
+      y += 28;
+    }
+    if (dialog) {
+      svg += `<text x="${W/2}" y="${y}" font-family="'Noto Serif KR',Georgia,serif" font-size="17"
+fill="#f0e0e5" text-anchor="middle">"${dialog}"</text>`;
+      y += 40;
+    }
+  }
+
+  if (achievements.length > 0) {
+    y += 20;
+    svg += `<text x="${W/2}" y="${y}" font-family="monospace" font-size="11" font-weight="bold"
+fill="#CCAA88" text-anchor="middle" letter-spacing="3" opacity="0.7">— ACHIEVEMENTS —</text>`;
+    y += 25;
+
+    achievements.forEach(a => {
+      svg += `<rect x="40" y="${y}" width="${W - 80}" height="60" rx="4"
+fill="#1a1018" stroke="#3a2030" stroke-width="1"/>`;
+      svg += renderGameoverVectorIcon(a.icon, 54, y + 18, 24, '#DDAACC');
+      svg += `<text x="92" y="${y + 26}" font-family="'Noto Serif KR',sans-serif" font-size="14"
+font-weight="bold" fill="#DDAACC">${esc(a.title)}</text>`;
+      if (a.desc) {
+        svg += `<text x="92" y="${y + 46}" font-family="'Noto Serif KR',sans-serif" font-size="12"
+fill="#CCAA88" opacity="0.8">${esc(a.desc)}</text>`;
+      }
+      y += 70;
+    });
+  }
+
+  if (count) {
+    y += 15;
+    svg += `<text x="${W/2}" y="${y}" font-family="monospace" font-size="12"
+fill="#8889CD" text-anchor="middle" opacity="0.7">DEATH COUNT: ${esc(count)}</text>`;
+  }
+
+  svg += `</svg>`;
+  return svg;
+}
+
+// ─── PIXEL 스타일 ───
+function renderGameoverPixel(params) {
+  const W = 540;
+  const title = esc(params.get('title') || 'GAME OVER');
+  const cause = esc(params.get('cause') || '');
+  const name = esc(params.get('n') || '');
+  const sub = esc(params.get('sub') || '');
+  const dialog = esc(params.get('d') || '');
+  const count = params.get('count');
+  const achievements = parseGameoverAchievements(params.get('ach'));
+
+  const HAS_CHAR = name || dialog;
+  const charBlockH = HAS_CHAR ? 100 : 0;
+  const achBlockH = achievements.length > 0 ? (achievements.length * 70 + 40) : 0;
+  const countH = count ? 30 : 0;
+  const H = 180 + charBlockH + achBlockH + countH + 30;
+
+  let y = 0;
+  let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+<rect width="${W}" height="${H}" fill="#000000"/>`;
+
+  y = 70;
+  svg += `<text x="${W/2}" y="${y}" font-family="'Courier New',monospace" font-size="38" font-weight="bold"
+fill="#BB6688" text-anchor="middle" letter-spacing="4">${title}</text>`;
+
+  if (cause) {
+    y += 28;
+    svg += `<text x="${W/2}" y="${y}" font-family="'Courier New',monospace" font-size="13"
+fill="#CCAA88" text-anchor="middle" letter-spacing="1">* ${cause} *</text>`;
+  }
+
+  y += 40;
+  for (let i = 0; i < 15; i++) {
+    svg += `<rect x="${W/2 - 60 + i*8}" y="${y - 2}" width="3" height="3" fill="#BB6688" opacity="0.5"/>`;
+  }
+  y += 30;
+
+  if (HAS_CHAR) {
+    if (name) {
+      const nameLine = sub ? `${name} - ${sub}` : name;
+      svg += `<text x="${W/2}" y="${y}" font-family="'Courier New',monospace" font-size="14"
+font-weight="bold" fill="#8889CD" text-anchor="middle" letter-spacing="2">[ ${nameLine} ]</text>`;
+      y += 28;
+    }
+    if (dialog) {
+      svg += `<text x="${W/2}" y="${y}" font-family="'Courier New',monospace" font-size="16"
+fill="#f0e0e5" text-anchor="middle">"${dialog}"</text>`;
+      y += 40;
+    }
+  }
+
+  if (achievements.length > 0) {
+    y += 20;
+    svg += `<text x="${W/2}" y="${y}" font-family="'Courier New',monospace" font-size="11" font-weight="bold"
+fill="#CCAA88" text-anchor="middle" letter-spacing="3">&gt;&gt; ACHIEVEMENTS &lt;&lt;</text>`;
+    y += 25;
+
+    achievements.forEach(a => {
+      svg += `<rect x="40" y="${y}" width="${W - 80}" height="60" fill="#1a0a14" stroke="#BB6688" stroke-width="2"/>`;
+      svg += renderGameoverPixelIcon(a.icon, 54, y + 10, 4, '#DDAACC');
+      svg += `<text x="100" y="${y + 26}" font-family="'Courier New',monospace" font-size="14"
+font-weight="bold" fill="#DDAACC">${esc(a.title)}</text>`;
+      if (a.desc) {
+        svg += `<text x="100" y="${y + 46}" font-family="'Courier New',monospace" font-size="11"
+fill="#CCAA88">${esc(a.desc)}</text>`;
+      }
+      y += 70;
+    });
+  }
+
+  if (count) {
+    y += 15;
+    svg += `<text x="${W/2}" y="${y}" font-family="'Courier New',monospace" font-size="12"
+fill="#8889CD" text-anchor="middle">DEATHS: ${esc(count)}</text>`;
+  }
+
+  svg += `</svg>`;
+  return svg;
+}
+
+
+// ════════════════════════════════════════════
 //  FETCH
 // ════════════════════════════════════════════
 export default {
@@ -2626,6 +2900,7 @@ export default {
     else if (t === 'dungeon') svg = renderDungeon(params);
     else if (t === 'mmo') svg = renderMmo(params);
     else if (t === 'reward') svg = renderReward(params);
+    else if (t === 'gameover') svg = renderGameover(params);
     else {
       return new Response('사용 가능: ?t=vn / ?t=vn2 / ?t=dark / ?t=pixel / ?t=ending / ?t=rpg2k / ?t=choice / ?t=dungeon / ?t=mmo / ?t=reward', {
         status: 400, headers: { 'Content-Type': 'text/plain; charset=utf-8' }

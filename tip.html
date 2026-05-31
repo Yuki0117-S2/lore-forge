@@ -1319,7 +1319,7 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
     ]
   },
   {
-    id:'cat-st', icon:'⚔️', title:'RPG / VN 상태창 UI', sub:'st.winter0.workers.dev — 미연시 · 미연시2 · 다크판타지 · 픽셀RPG · 쯔꾸르 · 엔딩 · 선택지 · 던전 · MMO · 보상',
+    id:'cat-st', icon:'⚔️', title:'RPG / VN 상태창 UI', sub:'st.winter0.workers.dev — 미연시 · 미연시2 · 다크판타지 · 픽셀RPG · 쯔꾸르 · 엔딩 · 선택지 · 던전 · MMO · 보상 · 게임오버',
     items:[
       {
         id:'t-st-0', title:'미연시 상태창 (?t=vn)',
@@ -1862,6 +1862,35 @@ labyrinth=on:
 • % 기호는 <code>%25</code>로 인코딩</div>`
       },
       {
+        id:'t-st-gameover', title:'게임오버 화면 (?t=gameover)',
+        body:`<div class="label label-use">용도</div>
+<div class="desc">캐릭터가 사망하거나 게임 실패 시 출력. 캐릭터의 한마디 대사 + 업적 1~3개로 언더테일·소아온 류의 엔딩 분위기 연출.</div>
+<hr class="divider">
+<div class="label label-example">URL 형식</div>
+<pre>?t=gameover&st=스타일&title=제목&cause=사유&n=캐릭터이름&sub=부가설명&d=대사&ach=아이콘§제목§설명|...&count=사망횟수</pre>
+<hr class="divider">
+<div class="label label-example">파라미터</div>
+<pre>- st: modern(기본, 우아한 세리프) / pixel(8비트 도트)
+- title: 큰 제목 (생략 시 'GAME OVER')
+- cause: 사망/실패 사유 (예: 보스에게 패배, 던전 탐험 실패)
+- n: 캐릭터 이름
+- sub: 부가설명 (예: 동료, 보스, ???)
+- d: 캐릭터 대사 한 줄
+- ach: 업적 (최대 3개, |로 구분). 형식: 아이콘키§제목§설명
+- count: 사망/도전 횟수 (선택)</pre>
+<hr class="divider">
+<div class="label label-example">아이콘 키 (16종, modern/pixel 공통)</div>
+<pre>trophy(트로피)  star(별)       heart(하트)    skull(해골)
+crown(왕관)     sword(검)      shield(방패)   flame(불꽃)
+key(열쇠)       book(책)       hourglass(모래시계)  coin(동전)
+potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
+<hr class="divider">
+<div class="label label-example">사용 예시</div>
+<pre>![](https://st.winter0.workers.dev/?t=gameover&st=modern&title=GAME+OVER&cause=레이드+보스에게+패배&n=시논&sub=동료&d=다시+한+번+해보자.&ach=skull§첫+죽음§아인크라드에서+쓰러졌다|sword§검사의+자질§50회+검을+휘둘렀다|hourglass§시간의+끝§24시간+플레이+달성&count=7)</pre>
+<hr class="divider">
+<div class="desc"><strong>스타일 차이:</strong> modern은 우아한 세리프 + 그라데이션 배경(클래식 RPG 분위기), pixel은 8비트 도트 아이콘 + 모노스페이스(언더테일/인디 게임 분위기). 같은 데이터로 두 스타일 자유 선택.</div>`
+      },
+      {
         id:'t-st-8', title:'바베챗 프롬프트 (복사용)',
         body:`<div class="label label-use">RPG/VN 상태창 + 엔딩 프롬프트</div>
 <div class="desc">바베챗에 복사하여 사용. 도메인은 <strong>st.winter0.workers.dev</strong></div>
@@ -1985,6 +2014,18 @@ labyrinth=on:
 - 보스 처치 후 단일 전설 무기, 보물상자에서 다중 보상 등 상황에 맞게 헤더 라벨 선택
 - 스탯의 + 기호는 %2B로, % 기호는 %25로 인코딩
 
+### 게임오버 화면
+![](https://st.winter0.workers.dev/?t=gameover&st=스타일&title=제목&cause=사유&n=이름&sub=부가설명&d=대사&ach=아이콘§제목§설명|...&count=횟수)
+- st: modern(기본, 우아한 세리프) / pixel(8비트 도트)
+- title: 큰 제목 (생략 시 'GAME OVER')
+- cause: 사망/실패 사유 (예: 보스에게 패배, 던전 탐험 실패)
+- n: 캐릭터 이름 / sub: 부가설명 (동료, 보스, ???)
+- d: 캐릭터 한마디 대사
+- ach: 업적 1~3개 (|로 구분). 아이콘§제목§설명 형식
+- 아이콘 키 (16종): trophy / star / heart / skull / crown / sword / shield / flame / key / book / hourglass / coin / potion / note / eye / mask
+- count: 사망/도전 횟수 (선택)
+- 죽음의 비극성·실패의 회한·재도전의 의지 등을 캐릭터 성격에 맞춰 대사로 작성
+
 ### 공통 규칙
 - 필드 구분자: § / 아이템 구분자: |
 - 공백 → + / 줄바꿈 → %0A
@@ -2074,7 +2115,7 @@ export default {
 /?t=letter        편지 ✉️           /?t=menu          메뉴판 🍽️
 /?t=dm            인스타 DM</pre>
 <hr class="divider">
-<div class="label label-example">st.winter0.workers.dev — RPG / VN 상태창 + 엔딩 + 선택지 + 던전 + MMO (8종)</div>
+<div class="label label-example">st.winter0.workers.dev — RPG / VN 상태창 + 엔딩 + 선택지 + 던전 + MMO + 보상 + 게임오버 (11종)</div>
 <pre># URL 형식 — 모두 /?t=타입&파라미터 형식
 /?t=vn            미연시 상태창
 /?t=vn2           미연시 상태창 v2 (상대 정보 풍부형, 1~6명 자동 레이아웃)
@@ -2084,7 +2125,9 @@ export default {
 /?t=ending        엔딩 카드 (bad/normal/good/true)
 /?t=choice        선택지 박스 (vn/rpg/modern/dot)
 /?t=dungeon       던전 맵 (시드 기반, enter=on/coords=on)
-/?t=mmo           MMORPG 상태창 (SAO 아인크라드 톤)</pre>
+/?t=mmo           MMORPG 상태창 (SAO 아인크라드 톤)
+/?t=reward        보상 / 드랍 화면 (mmo/pixel 스타일)
+/?t=gameover      게임오버 화면 (modern/pixel 스타일)</pre>
 <hr class="divider">
 <div class="desc"><strong>무료 한도:</strong> 하루 10만 건 요청까지 무료 (Worker 당). 롤플레이용으로는 충분.</div>`
       }

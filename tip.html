@@ -1757,7 +1757,7 @@ labyrinth=on:
 &eq=무기§등급§...|방어구§등급§...|장신구§등급§...
 &pt=파티원§HP%§직업|...
 &gd=길드명§계급
-&buf=상태이상§남은초|...
+&buf=상태이상§시간|...
 &lo=1</pre>
 <hr class="divider">
 <div class="label label-example">예시</div>
@@ -1768,7 +1768,7 @@ labyrinth=on:
 &eq=엘루시데이터§유니크§다크리펄서§레어|코트+오브+미드나잇§레어|결정의+펜던트§매직§월광+반지§일반
 &pt=아스나§88§세검사|크라딜§62§경전사|에길§95§양손도끼
 &gd=월광의+검§부길드장
-&buf=침묵§12|축복§120|집중§45
+&buf=침묵§12s|축복§2m|집중§45s
 &lo=1</pre>
 <hr class="divider">
 <div class="desc"><strong>파라미터 설명:</strong><br>
@@ -1779,7 +1779,7 @@ labyrinth=on:
 • <strong>eq</strong> — 슬롯 3개 (무기§방어구§장신구, |로 구분). 한 슬롯 안에서 § 짝수 단위로 (이름§등급) 다중 — 이도류·다중 장신구 표현용<br>
 • <strong>pt</strong> — 파티원§HP%§직업 (|로 구분, 최대 4명). HP%에 따라 색 자동 변화<br>
 • <strong>gd</strong> — 길드명§계급 (선택)<br>
-• <strong>buf</strong> — 상태이상§남은초 (|로 구분, 최대 8개)<br>
+• <strong>buf</strong> — 상태이상§시간 (|로 구분, 최대 8개). 시간은 단위 포함 자유 표기 — <code>30s</code>, <code>1m</code>, <code>2h</code>, <code>∞</code> 등<br>
 • <strong>lo</strong> — 1이면 로그아웃 버튼 표시, 0이거나 생략하면 슬롯 자체 사라짐 (SAO 1화 오마주)</div>
 <hr class="divider">
 <div class="label label-example">스킬 상태 (state)</div>
@@ -1982,7 +1982,7 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
 - 입구는 항상 좌상단, 보스는 항상 우하단 (시드 무관)
 
 ### MMORPG 상태창
-![](https://st.winter0.workers.dev/?t=mmo&p=이름§칭호§직업§레벨&s=HP§HPmax§MP§MPmax§EXP§COL&tm=날짜§요일§시각§누적시간&sk=스킬§숙련도§상태|...&eq=무기§등급§...|방어구§등급§...|장신구§등급§...&pt=파티원§HP%§직업|...&gd=길드명§계급&buf=상태이상§남은초|...&lo=1)
+![](https://st.winter0.workers.dev/?t=mmo&p=이름§칭호§직업§레벨&s=HP§HPmax§MP§MPmax§EXP§COL&tm=날짜§요일§시각§누적시간&sk=스킬§숙련도§상태|...&eq=무기§등급§...|방어구§등급§...|장신구§등급§...&pt=파티원§HP%§직업|...&gd=길드명§계급&buf=상태이상§시간|...&lo=1)
 - p: 이름§칭호§직업§레벨 (레벨 1~999)
 - s: HP§HPmax§MP§MPmax§EXP(0~100)§COL. HP/MP는 비율 따라 색 자동 변화 (20%/50%)
 - tm: 게임 내 날짜§요일§시각§누적 플레이타임 (자유 텍스트, 영문 권장. 예: 3day 55hr, FRI)
@@ -1994,7 +1994,7 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
   등급: 전설(샌드) / 유니크(퍼플) / 레어(시안) / 매직(인디고) / 일반 / 저주(빨강)
 - pt: 파티원§HP%§직업 (최대 4명). HP% 비율 따라 색 자동 변화
 - gd: 길드명§계급 (선택)
-- buf: 상태이상§남은초 (|로 구분, 최대 8개)
+- buf: 상태이상§시간 (|로 구분, 최대 8개). 시간은 단위 포함 자유 표기 (예: 30s, 1m, 2h, ∞)
   디버프: 독/혼란/실명/출혈/마비/저주/침묵
   버프: 축복/가속/방어/회복/집중
 - lo=1: 로그아웃 버튼 표시. 0이거나 생략하면 슬롯 통째로 사라짐

@@ -2200,13 +2200,19 @@ function renderMmo(params) {
 
   // HP/MP
   svg += `<rect x="0" y="${y}" width="${W}" height="${H_VITAL}" fill="${C.panelHi}"/>`;
-  const drawVitalBar = (label, val, max, gradId, yy, valColor) => {
+  const drawVitalBar = (label, val, max, gradId, yy, valColor, pulse) => {
     const pct = Math.max(0, Math.min(1, val / max));
     const barX = PAD + 36, barW = INNER_W - 36 - 90;
     let out = `<text x="${PAD}" y="${yy+13}" font-family="monospace" font-size="12" font-weight="bold" fill="${C.textDim}" letter-spacing="1">${label}</text>`;
     out += `<rect x="${barX}" y="${yy+3}" width="${barW}" height="13" fill="${C.bg}" stroke="${C.border}" stroke-width="0.5"/>`;
-    out += `<rect x="${barX}" y="${yy+3}" width="${Math.round(barW*pct)}" height="13" fill="url(#${gradId})"/>`;
-    out += `<rect x="${barX}" y="${yy+3}" width="${Math.round(barW*pct)}" height="6" fill="rgba(255,255,255,0.18)"/>`;
+    if (pulse) {
+      out += `<g><rect x="${barX}" y="${yy+3}" width="${Math.round(barW*pct)}" height="13" fill="url(#${gradId})"/>`;
+      out += `<rect x="${barX}" y="${yy+3}" width="${Math.round(barW*pct)}" height="6" fill="rgba(255,255,255,0.18)"/>`;
+      out += `<animate attributeName="opacity" values="1;0.4;1" dur="0.9s" repeatCount="indefinite"/></g>`;
+    } else {
+      out += `<rect x="${barX}" y="${yy+3}" width="${Math.round(barW*pct)}" height="13" fill="url(#${gradId})"/>`;
+      out += `<rect x="${barX}" y="${yy+3}" width="${Math.round(barW*pct)}" height="6" fill="rgba(255,255,255,0.18)"/>`;
+    }
     for (let i = 1; i < 4; i++) {
       const tx = barX + Math.round(barW * i / 4);
       out += `<line x1="${tx}" y1="${yy+3}" x2="${tx}" y2="${yy+16}" stroke="${C.bg}" stroke-width="1" opacity="0.6"/>`;
@@ -2214,8 +2220,8 @@ function renderMmo(params) {
     out += `<text x="${W-PAD}" y="${yy+14}" font-family="monospace" font-size="12" font-weight="bold" fill="${valColor}" text-anchor="end">${val} / ${max}</text>`;
     return out;
   };
-  svg += drawVitalBar('HP', hp, hpMax, 'mmoHp', y + 12, hpPct < 0.2 ? C.danger : C.text);
-  svg += drawVitalBar('MP', mp, mpMax, 'mmoMp', y + 40, mpPct < 0.2 ? C.purple : C.text);
+  svg += drawVitalBar('HP', hp, hpMax, 'mmoHp', y + 12, hpPct < 0.2 ? C.danger : C.text, hpPct < 0.2);
+  svg += drawVitalBar('MP', mp, mpMax, 'mmoMp', y + 40, mpPct < 0.2 ? C.purple : C.text, mpPct < 0.2);
   y += H_VITAL;
 
   // BUFF/DEBUFF
@@ -2236,7 +2242,7 @@ function renderMmo(params) {
       svg += `<text x="${bx+9}" y="${by+14}" font-family="monospace" font-size="11" fill="${def[0]}" text-anchor="middle">${def[1]}</text>`;
       svg += `<text x="${bx+32}" y="${by+13}" font-family="'Noto Sans KR',sans-serif" font-size="10" font-weight="bold" fill="${C.text}" text-anchor="middle">${esc(bname)}</text>`;
       svg += `<line x1="${bx+3}" y1="${by+19}" x2="${bx+BOX_W-3}" y2="${by+19}" stroke="${def[0]}" stroke-width="0.4" opacity="0.5"/>`;
-      if (btime) svg += `<text x="${bx+BOX_W/2}" y="${by+30}" font-family="monospace" font-size="10" font-weight="bold" fill="${def[0]}" text-anchor="middle">${esc(btime)}s</text>`;
+      if (btime) svg += `<text x="${bx+BOX_W/2}" y="${by+30}" font-family="monospace" font-size="10" font-weight="bold" fill="${def[0]}" text-anchor="middle">${esc(btime)}</text>`;
     });
     y += H_BUFF;
   }
@@ -2902,7 +2908,7 @@ export default {
     else if (t === 'reward') svg = renderReward(params);
     else if (t === 'gameover') svg = renderGameover(params);
     else {
-      return new Response('사용 가능: ?t=vn / ?t=vn2 / ?t=dark / ?t=pixel / ?t=ending / ?t=rpg2k / ?t=choice / ?t=dungeon / ?t=mmo / ?t=reward', {
+      return new Response('사용 가능: ?t=vn / ?t=vn2 / ?t=dark / ?t=pixel / ?t=ending / ?t=rpg2k / ?t=choice / ?t=dungeon / ?t=mmo / ?t=reward / ?t=gameover', {
         status: 400, headers: { 'Content-Type': 'text/plain; charset=utf-8' }
       });
     }

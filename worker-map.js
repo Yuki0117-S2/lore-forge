@@ -347,16 +347,16 @@ function renderOtherMarker(m) {
       fill="${color}" stroke="${STROKE}" stroke-width="4" paint-order="stroke">${esc(m.name)}</text>`;
 }
 
-// labels=on: 배경 PLACE 라벨 (작고 톤다운, 마커 아래)
+// labels=on: 배경 PLACE 라벨 (흰색 + 두꺼운 외곽선, 마커 아래)
 function renderPlaceLabel(x, y, name) {
   return `
 <text x="${x}" y="${y + 24}"
       font-family="'Courier New',monospace" font-size="15" font-weight="700"
-      fill="${PLACE_LBL}" stroke="${STROKE}" stroke-width="3.5" paint-order="stroke"
+      fill="#FFFFFF" stroke="${STROKE}" stroke-width="5" paint-order="stroke"
       text-anchor="middle">${esc(name)}</text>`;
 }
 
-// 월드 타이틀 (좌측 상단, 항상 표시)
+// 월드 타이틀 (좌측 상단, 항상 표시, 흰색 + 두꺼운 외곽선)
 // alias가 있으면 ' · ' 로 연결 (예: "1층 · 여명의 평원"), 없으면 정식 키
 function renderWorldTitle(world, key) {
   const aliases = (world.alias || []).filter(a => a);
@@ -364,7 +364,7 @@ function renderWorldTitle(world, key) {
   return `
 <text x="24" y="44"
       font-family="'Courier New',monospace" font-size="22" font-weight="700"
-      fill="${PLACE_LBL}" stroke="${STROKE}" stroke-width="4" paint-order="stroke">${esc(title)}</text>`;
+      fill="#FFFFFF" stroke="${STROKE}" stroke-width="6" paint-order="stroke">${esc(title)}</text>`;
 }
 
 // ════════════════════════════════════════════

@@ -11,6 +11,7 @@
 //                           장소 자리에 xNNNyNNN 박으면 직접 좌표
 //   &path=A,B,C            이동 경로 (마지막이 목적지, 중간은 경유지)
 //   &labels=on             해당 월드의 모든 PLACES 라벨 자동 표시
+//   &grid=on               100px 격자 + 좌표 라벨 오버레이 (좌표 디버그용)
 //
 // 예시:
 //   /?t=worldmap&world=1층&at=center
@@ -367,6 +368,36 @@ function renderWorldTitle(world, key) {
       fill="#FFFFFF" stroke="${STROKE}" stroke-width="6" paint-order="stroke">${esc(title)}</text>`;
 }
 
+// 격자 오버레이 (grid=on 일 때만)
+// step 간격으로 격자선 + 좌표 라벨. W, H에 자동 적응 (1024 아니어도 OK)
+function renderGrid(W, H, step = 100) {
+  const lineColor = '#DDAACC';
+  const lineOpacity = 0.3;
+  let svg = '';
+
+  // 세로선
+  for (let x = 0; x <= W; x += step) {
+    svg += `<line x1="${x}" y1="0" x2="${x}" y2="${H}" stroke="${lineColor}" stroke-width="1.5" opacity="${lineOpacity}"/>`;
+  }
+  // 가로선
+  for (let y = 0; y <= H; y += step) {
+    svg += `<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="${lineColor}" stroke-width="1.5" opacity="${lineOpacity}"/>`;
+  }
+  // x축 좌표 라벨 (상단)
+  for (let x = 0; x <= W; x += step) {
+    svg += `<text x="${x + 4}" y="16"
+            font-family="'Courier New',monospace" font-size="13" font-weight="700"
+            fill="#FFFFFF" stroke="${STROKE}" stroke-width="3" paint-order="stroke">${x}</text>`;
+  }
+  // y축 좌표 라벨 (좌측)
+  for (let y = step; y <= H; y += step) {
+    svg += `<text x="4" y="${y - 4}"
+            font-family="'Courier New',monospace" font-size="13" font-weight="700"
+            fill="#FFFFFF" stroke="${STROKE}" stroke-width="3" paint-order="stroke">${y}</text>`;
+  }
+  return svg;
+}
+
 // ════════════════════════════════════════════
 //  렌더링 — 경로 (점선) / 경유지(다이아몬드) / 목적지(깃발)
 // ════════════════════════════════════════════
@@ -412,6 +443,7 @@ async function renderWorldmap(params, env) {
   const pParam    = params.get('p') || '';
   const pathRaw   = params.get('path') || '';
   const labelsOn  = params.get('labels') === 'on';
+  const gridOn    = params.get('grid') === 'on';
   let   worldRaw  = params.get('world') || '';
 
   // 사용자가 명시한 world 컨텍스트 (PLACES 룩업 시 우선 매칭용)
@@ -507,6 +539,11 @@ async function renderWorldmap(params, env) {
 
   let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${DISP}" height="${DISP}" viewBox="0 0 ${W} ${H}">
 <image href="${dataURI}" x="0" y="0" width="${W}" height="${H}"/>`;
+
+  // 격자 오버레이 (grid=on 일 때만, 배경 직후)
+  if (gridOn) {
+    svg += renderGrid(W, H, 100);
+  }
 
   // 월드 타이틀 (좌상단, 배경 직후)
   svg += renderWorldTitle(world, worldKey);

@@ -103,6 +103,21 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .place-meta-item strong{color:var(--accent3);}
 .alias-chip{display:inline-block;font-size:10px;color:var(--accent4);background:rgba(204,170,136,0.08);padding:2px 7px;border-radius:10px;border:1px solid rgba(204,170,136,0.2);margin:2px 3px 2px 0;}
 
+/* ── 좌표 디버거 ── */
+.dbg-form{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0;}
+.dbg-input{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;transition:border-color 0.2s;}
+.dbg-input:focus{border-color:var(--accent);}
+.dbg-input-num{width:80px;}
+.dbg-check{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);cursor:pointer;}
+.dbg-check input{cursor:pointer;}
+.dbg-canvas-wrap{position:relative;display:inline-block;max-width:100%;margin:12px 0;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface);}
+.dbg-canvas-wrap img{display:block;max-width:100%;width:100%;cursor:crosshair;user-select:none;-webkit-user-drag:none;}
+#dbg-marker{position:absolute;width:18px;height:18px;border:2.5px solid #BB6688;border-radius:50%;background:rgba(221,170,204,0.5);transform:translate(-50%,-50%);pointer-events:none;display:none;box-shadow:0 0 0 1px rgba(13,15,31,0.8);}
+.dbg-output{display:flex;flex-direction:column;gap:8px;margin-top:8px;}
+.dbg-coords-line{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text);}
+.dbg-coords-line strong{color:var(--accent);}
+.dbg-url-input{width:100%;font-size:11px;background:rgba(0,0,0,0.3);}
+
 /* ── 로딩 / 에러 ── */
 .loading-skeleton{padding:14px;background:var(--surface);border:1px dashed var(--border);border-radius:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px;text-align:center;}
 .error-box{padding:14px;background:rgba(238,17,102,0.05);border:1px solid rgba(238,17,102,0.3);border-radius:10px;color:#EE1166;font-size:11px;}
@@ -393,6 +408,18 @@ function renderStaticCategories() {
         <pre>?t=worldmap&world=4층&labels=on</pre>
       </div>
     </details>
+
+    <details class="tip-item" data-sec="param-grid">
+      <summary><code>&grid=on</code> 격자 표시</summary>
+      <div class="tip-body">
+        <div class="desc">100px 간격 격자선 + 좌표 라벨(0, 100, 200, ...) 오버레이. 좌표 디버그용. 맵 크기(W/H)에 자동 적응.</div>
+        <pre>?t=worldmap&world=4층&grid=on
+?t=worldmap&world=floor5&x=500&y=400&grid=on   ← 좌표 찍기 + 격자</pre>
+        <hr class="divider">
+        <span class="label label-warn">TIP</span>
+        <div class="desc">map.html의 <strong>🔧 좌표 디버거</strong> 카테고리에서 이 옵션을 자동으로 활용해.</div>
+      </div>
+    </details>
   </div>
 
   <!-- ─── 03. 마커 시스템 ─── -->
@@ -510,6 +537,51 @@ URL은 절대 줄바꿈하지 않는다 — 한 줄로 이어 적기</pre>
         <hr class="divider">
         <span class="label label-example">이동 경로</span>
         <pre>![](https://m.winter0.workers.dev/?t=worldmap&world=1층&at=시작도시&path=던전입구,보스방)</pre>
+      </div>
+    </details>
+  </div>
+
+  <!-- ─── 05. 좌표 디버거 ─── -->
+  <div class="cat-block" data-cat="debugger">
+    <div class="cat-header">
+      <div class="cat-num">CATEGORY 05</div>
+      <div><span class="cat-icon">🔧</span><span class="cat-title">좌표 디버거</span></div>
+      <div class="cat-sub">PLACES 등록 전 좌표 찍기 도구</div>
+    </div>
+
+    <details class="tip-item" data-sec="dbg-form">
+      <summary>📝 좌표 입력 (폼)</summary>
+      <div class="tip-body">
+        <div class="desc">좌표 숫자 입력 후 새 탭에서 미리보기. 모바일에서 정확한 좌표 찍을 때.</div>
+        <div class="dbg-form">
+          <select id="dbg-form-world" class="dbg-input"><option value="">— 월드 선택 —</option></select>
+          <input id="dbg-form-x" class="dbg-input dbg-input-num" type="number" min="0" placeholder="X">
+          <input id="dbg-form-y" class="dbg-input dbg-input-num" type="number" min="0" placeholder="Y">
+          <label class="dbg-check"><input type="checkbox" id="dbg-form-grid" checked> 격자</label>
+          <button class="demo-btn" onclick="dbgFormPreview()">🔍 미리보기</button>
+        </div>
+      </div>
+    </details>
+
+    <details class="tip-item" data-sec="dbg-click">
+      <summary>🎯 클릭으로 좌표 추출</summary>
+      <div class="tip-body">
+        <div class="desc">맵 이미지 클릭하면 그 위치의 좌표를 자동 추출. 데스크탑에서 빠르게.</div>
+        <div class="dbg-form">
+          <select id="dbg-click-world" class="dbg-input" onchange="dbgLoadImage()"><option value="">— 월드 선택 —</option></select>
+        </div>
+        <div class="dbg-canvas-wrap" id="dbg-canvas-wrap" style="display:none;">
+          <img id="dbg-image" alt="맵 미리보기">
+          <div id="dbg-marker"></div>
+        </div>
+        <div class="dbg-output" id="dbg-output" style="display:none;">
+          <div class="dbg-coords-line">📍 좌표: <strong id="dbg-coords">(클릭 대기)</strong></div>
+          <input id="dbg-url" class="dbg-input dbg-url-input" readonly placeholder="이미지를 클릭하면 URL 자동 생성">
+          <div>
+            <button class="demo-btn" onclick="dbgCopy()">📋 URL 복사</button>
+            <button class="demo-btn btn-debug" onclick="dbgOpenUrl()">🔗 새 탭 열기</button>
+          </div>
+        </div>
       </div>
     </details>
   </div>
@@ -707,16 +779,123 @@ function goBack() {
 }
 
 // ════════════════════════════════════════════
+//  좌표 디버거
+// ════════════════════════════════════════════
+
+let META_DATA = null;   // 메타 글로벌 보관 (디버거에서 사용)
+let DBG_WORLD = null;   // 현재 클릭 도구의 선택된 월드 객체
+
+// 두 셀렉터에 월드 목록 채우기
+function populateDbgSelectors() {
+  if (!META_DATA) return;
+  const worlds = META_DATA.worlds;
+  const options = '<option value="">— 월드 선택 —</option>' +
+    Object.entries(worlds).map(([key, w]) => {
+      const name = worldDisplayName(key, w);
+      return `<option value="${esc(key)}">${esc(name)}  (${esc(key)})</option>`;
+    }).join('');
+
+  ['dbg-form-world', 'dbg-click-world'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (sel) sel.innerHTML = options;
+  });
+}
+
+// 도구 1: 폼 입력 → 새 탭 미리보기
+function dbgFormPreview() {
+  const world = document.getElementById('dbg-form-world').value;
+  const x = document.getElementById('dbg-form-x').value;
+  const y = document.getElementById('dbg-form-y').value;
+  const grid = document.getElementById('dbg-form-grid').checked;
+  if (!world) { alert('월드를 선택해줘'); return; }
+  if (x === '' || y === '') { alert('X, Y 좌표를 입력해줘'); return; }
+  let url = `${WORKER_URL}/?t=worldmap&world=${encodeURIComponent(world)}&x=${x}&y=${y}`;
+  if (grid) url += '&grid=on';
+  window.open(url, '_blank');
+}
+
+// 도구 2: 월드 선택 → 이미지 로드 (격자 켜진 상태)
+function dbgLoadImage() {
+  const sel = document.getElementById('dbg-click-world');
+  const key = sel.value;
+  const wrap = document.getElementById('dbg-canvas-wrap');
+  const output = document.getElementById('dbg-output');
+  if (!key || !META_DATA || !META_DATA.worlds[key]) {
+    wrap.style.display = 'none';
+    output.style.display = 'none';
+    return;
+  }
+  DBG_WORLD = { key, ...META_DATA.worlds[key] };
+  const img = document.getElementById('dbg-image');
+  img.src = `${WORKER_URL}/?t=worldmap&world=${encodeURIComponent(key)}&grid=on`;
+  wrap.style.display = 'inline-block';
+  output.style.display = 'flex';
+  // 상태 초기화
+  document.getElementById('dbg-marker').style.display = 'none';
+  document.getElementById('dbg-coords').textContent = '(클릭 대기)';
+  document.getElementById('dbg-url').value = '';
+}
+
+// 이미지 클릭 → 표시 크기 기준 좌표를 실제 W/H 좌표로 변환
+function dbgOnClick(event) {
+  if (!DBG_WORLD) return;
+  const img = event.currentTarget;
+  const rect = img.getBoundingClientRect();
+  const clickX = event.clientX - rect.left;
+  const clickY = event.clientY - rect.top;
+  const realX = Math.round(clickX * DBG_WORLD.w / rect.width);
+  const realY = Math.round(clickY * DBG_WORLD.h / rect.height);
+
+  // 좌표 표시
+  document.getElementById('dbg-coords').textContent = `x=${realX}, y=${realY}`;
+  const url = `${WORKER_URL}/?t=worldmap&world=${encodeURIComponent(DBG_WORLD.key)}&x=${realX}&y=${realY}&grid=on`;
+  document.getElementById('dbg-url').value = url;
+
+  // 클릭 마커 표시
+  const marker = document.getElementById('dbg-marker');
+  marker.style.left = clickX + 'px';
+  marker.style.top = clickY + 'px';
+  marker.style.display = 'block';
+}
+
+function dbgCopy() {
+  const url = document.getElementById('dbg-url').value;
+  if (!url) { alert('이미지를 먼저 클릭해줘'); return; }
+  navigator.clipboard.writeText(url).then(() => {
+    alert('URL 복사됨!');
+  }).catch(() => {
+    // fallback: 일부 환경에서 clipboard API 안 됨
+    const input = document.getElementById('dbg-url');
+    input.select();
+    document.execCommand('copy');
+    alert('URL 복사됨!');
+  });
+}
+
+function dbgOpenUrl() {
+  const url = document.getElementById('dbg-url').value;
+  if (!url) { alert('이미지를 먼저 클릭해줘'); return; }
+  window.open(url, '_blank');
+}
+
+function setupDbgClick() {
+  const img = document.getElementById('dbg-image');
+  if (img) img.addEventListener('click', dbgOnClick);
+}
+
+// ════════════════════════════════════════════
 //  진입점
 // ════════════════════════════════════════════
 
 (async function init() {
-  const meta = await loadMeta();
+  META_DATA = await loadMeta();
 
   const root = document.getElementById('content-root');
-  root.innerHTML = renderStaticCategories() + renderGroupCategories(meta);
+  root.innerHTML = renderStaticCategories() + renderGroupCategories(META_DATA);
 
   renderToc();
+  populateDbgSelectors();
+  setupDbgClick();
 })();
 </script>
 

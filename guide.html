@@ -130,7 +130,7 @@ mark.search-highlight {
   .toc-sidebar.mobile-open{transform:translateX(0);}
   .content-area{padding:16px;}
   .chapter-title{font-size:22px;}
-  .app-body{height:calc(100vh - 50px);}
+  .app-body{height:calc(100vh - 50px);z-index:auto;}
 }
 @media(min-width:769px){
   .toc-overlay{display:none!important;}
@@ -243,12 +243,9 @@ function toggleChapterInToc(index) {
 }
 
 function goBack() {
-  // Try to go back, or redirect to index.html
-  if(document.referrer && document.referrer.includes(location.hostname)) {
-    history.back();
-  } else {
-    location.href = 'index.html';
-  }
+  // 새 탭/창에서 열렸으면 닫기, 안 닫히면 index로
+  window.close();
+  if(!window.closed) window.location.href = 'index.html';
 }
 
 // ── TOC 렌더링 ──

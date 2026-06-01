@@ -473,12 +473,29 @@ function renderStaticCategories() {
     </details>
 
     <details class="tip-item" data-sec="prompt-encoding">
-      <summary>⚠️ URL 인코딩 주의사항</summary>
+      <summary>📐 공통 규칙 (구분자 & 인코딩)</summary>
       <div class="tip-body">
-        <div class="desc">한글 alias 사용 시 URL 인코딩 필요한 문자들.</div>
-        <pre><strong>#</strong>  →  %23
-<strong>)</strong>  →  마크다운 ![](URL) 구문 충돌, 본문에 ) 들어가면 마크다운 깨짐
-<strong>공백</strong> →  %20 또는 +</pre>
+        <div class="desc"><strong>tip.html 「공통 규칙」 섹션과 동일</strong> — worldmap에 적용되는 부분 발췌.</div>
+        <hr class="divider">
+        <span class="label label-use">구분자 (worldmap 적용)</span>
+        <pre><strong>§</strong>  필드 구분자  — 멀티플레이어 p= 파라미터
+              예) &p=시작도시§아스나§파티
+
+<strong>|</strong>  아이템 구분자 — 다수 사람 구분 (p=)
+              예) &p=A§Alice|B§Bob§적
+
+<strong>,</strong>  경로 구분자  — path= 경유지/목적지
+              예) &path=마을,던전,보스방</pre>
+        <hr class="divider">
+        <span class="label label-warn">인코딩 규칙</span>
+        <pre>공백  →  + (또는 %20)
+<strong>#</strong>    →  URL에서 사용 금지 (불가피하면 <strong>%23</strong>)
+       ※ # 는 fragment로 인식되어 파서가 끊김
+<strong>(</strong>   →  %28
+<strong>)</strong>   →  %29
+       ※ 마크다운 ![](URL) 파서가 괄호 매칭을 깨뜨림
+
+URL은 절대 줄바꿈하지 않는다 — 한 줄로 이어 적기</pre>
       </div>
     </details>
 

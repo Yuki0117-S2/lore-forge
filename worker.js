@@ -1663,9 +1663,14 @@ parseParams();
   }
   .progress-fill {
     height: 100%;
-    width: 70%;
+    width: 0%;
     background: #fff;
     border-radius: 2px;
+    animation: story-progress 5s linear infinite;
+  }
+  @keyframes story-progress {
+    from { width: 0%; }
+    to   { width: 100%; }
   }
 
   /* Header */
@@ -4185,8 +4190,87 @@ parseParams();
     width: 8px; height: 8px;
     border-radius: 50%;
     background: #e91916;
+    animation: live-blink 1s ease-in-out infinite;
+  }
+  @keyframes live-blink {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.3; }
   }
   .live-text { font-size: 12px; color: #fff; font-weight: 600; }
+
+  /* Donation alert */
+  .donation-alert {
+    position: absolute;
+    top: 48px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 92%;
+    max-width: 340px;
+    background: rgba(26, 20, 34, 0.95);
+    border: 2px solid var(--col-pink);
+    border-radius: 12px;
+    padding: 14px 16px 12px;
+    text-align: center;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(221, 170, 204, 0.2);
+    opacity: 0;
+    animation: donation-pop 6s ease-in-out forwards;
+    z-index: 20;
+  }
+  .donation-header {
+    font-size: 10px;
+    color: var(--col-pink);
+    letter-spacing: 2px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    opacity: 0.85;
+  }
+  .donation-amount {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--col-rose);
+    text-shadow: 0 0 8px rgba(187, 102, 136, 0.4);
+    line-height: 1.1;
+    margin-bottom: 4px;
+  }
+  .donation-nick {
+    font-size: 13px;
+    color: var(--col-indigo);
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .donation-message {
+    font-size: 13px;
+    color: var(--col-sand);
+    line-height: 1.4;
+    word-break: break-word;
+  }
+  @keyframes donation-pop {
+    0%   { opacity: 0; transform: translate(-50%, -16px) scale(0.85); }
+    10%  { opacity: 1; transform: translate(-50%, 0) scale(1.06); }
+    18%  {            transform: translate(-50%, 0) scale(1); }
+    90%  { opacity: 1; transform: translate(-50%, 0) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -10px) scale(0.96); }
+  }
+  .donation-sparkles {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: visible;
+  }
+  .donation-spark {
+    position: absolute;
+    bottom: 4px;
+    font-size: 18px;
+    opacity: 0;
+    line-height: 1;
+    animation: donation-spark-rise 1.8s ease-out infinite;
+  }
+  @keyframes donation-spark-rise {
+    0%   { transform: translateY(0)     scale(0.5); opacity: 0; }
+    20%  {                                          opacity: 1; }
+    40%  { transform: translateY(-25px) scale(1.05); }
+    100% { transform: translateY(-78px) scale(0.85); opacity: 0; }
+  }
 
   /* Stream info */
   .stream-info {
@@ -4326,6 +4410,7 @@ parseParams();
           <div class="viewer-dot"></div>
           <span id="viewer-count">0</span>
         </div>
+        <div id="donation-slot"></div>
         <div class="player-controls">
           <button class="ctrl-btn">▶</button>
           <button class="ctrl-btn">🔊</button>
@@ -6330,12 +6415,34 @@ function renderStream(html, url) {
   if(p){
     const pp=p.split('§');
     const streamer=pp[0]||'스트리머',title=pp[1]||'',viewers=pp[2]||'0',desc=pp[3]||'',tags=pp[4]||'';
+    const dnick=pp[5]||'',damount=pp[6]||'',dmsg=pp[7]||'';
     html=html.replace('>스트리머<','>'+streamer+'<');
     html=html.replace('id="streamer-avatar">S<','id="streamer-avatar">'+streamer.charAt(0)+'<');
     html=html.replace('>방송 제목<','>'+title+'<');
     html=html.replace('id="viewer-count">0<','id="viewer-count">'+Number(viewers).toLocaleString()+'<');
     if(desc) html=html.replace('>방송 화면<','>'+desc+'<');
     if(tags){let th='';tags.split(' ').forEach(t=>{th+='<span class="stream-tag">'+t+'</span>';});html=html.replace('id="stream-tags"></div>','id="stream-tags">'+th+'</div>');}
+    if(dnick&&damount&&dmsg){
+      const sparks=[
+        {l:'4%',  d:'0.6s', e:'🎉'},
+        {l:'22%', d:'1.0s', e:'💰'},
+        {l:'42%', d:'1.3s', e:'✨'},
+        {l:'62%', d:'0.9s', e:'💖'},
+        {l:'80%', d:'1.4s', e:'⭐'},
+        {l:'94%', d:'1.1s', e:'🎁'},
+      ];
+      let sHtml='<div class="donation-sparkles">';
+      sparks.forEach(s=>{sHtml+='<span class="donation-spark" style="left:'+s.l+';animation-delay:'+s.d+'">'+s.e+'</span>';});
+      sHtml+='</div>';
+      const dHtml='<div class="donation-alert">'
+        +'<div class="donation-header">★ DONATION ★</div>'
+        +'<div class="donation-amount">'+damount+'</div>'
+        +'<div class="donation-nick">'+dnick+' 님</div>'
+        +'<div class="donation-message">'+dmsg+'</div>'
+        +sHtml
+        +'</div>';
+      html=html.replace('<div id="donation-slot"></div>',dHtml);
+    }
   }
   if(c){
     let ch='';

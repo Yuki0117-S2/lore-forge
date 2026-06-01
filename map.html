@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAP — 월드맵 레퍼런스</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#1a1520; --surface:#221b2a; --surface2:#2a2235; --border:#3a2e48;
+  --accent:#8889CD; --accent2:#BB6688; --accent3:#DDAACC; --accent4:#CCAA88;
+  --text:#f0eaf5; --muted:#7a6e8a; --success:#CCAA88;
+  --toc-w: 260px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");}
+
+/* ── 헤더 ── */
+.header{position:sticky;top:0;z-index:100;background:rgba(26,21,32,0.97);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:10px 18px;display:flex;align-items:center;gap:12px;height:50px;}
+.back-btn{background:none;border:1px solid var(--border);color:var(--muted);padding:5px 10px;border-radius:6px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:11px;transition:all 0.2s;white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center;gap:4px;}
+.back-btn:hover{border-color:var(--accent);color:var(--accent);}
+.header-logo{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.header-title{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.toc-toggle-btn{margin-left:auto;background:none;border:1px solid var(--border);color:var(--muted);padding:5px 10px;border-radius:6px;cursor:pointer;font-size:13px;transition:all 0.2s;}
+.toc-toggle-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+/* ── 데이터 소스 표시 ── */
+.data-source{font-family:'JetBrains Mono',monospace;font-size:9px;padding:2px 7px;border-radius:4px;letter-spacing:0.5px;}
+.data-source.live{background:rgba(0,187,221,0.12);color:#00BBDD;border:1px solid rgba(0,187,221,0.3);}
+.data-source.fallback{background:rgba(255,119,34,0.12);color:#FF7722;border:1px solid rgba(255,119,34,0.3);}
+
+/* ── 레이아웃 ── */
+.app-body{display:flex;position:relative;z-index:1;height:calc(100vh - 50px);}
+
+/* ── TOC ── */
+.toc-sidebar{width:var(--toc-w);flex-shrink:0;border-right:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;overflow:hidden;transition:transform 0.3s;}
+.toc-sidebar.hidden{transform:translateX(-100%);position:absolute;left:0;top:0;bottom:0;z-index:50;box-shadow:4px 0 20px rgba(0,0,0,0.4);}
+.toc-inner{overflow-y:auto;flex:1;padding:8px 0;}
+.toc-header{padding:10px 14px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);}
+.toc-ch-btn{width:100%;text-align:left;background:none;border:none;cursor:pointer;padding:10px 14px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;font-weight:700;display:flex;align-items:center;gap:8px;transition:background 0.15s;border-left:3px solid transparent;}
+.toc-ch-btn:hover{background:rgba(136,137,205,0.08);}
+.toc-ch-btn.active{color:var(--accent);border-left-color:var(--accent);background:rgba(136,137,205,0.1);}
+.toc-sec-btn{width:100%;text-align:left;background:none;border:none;cursor:pointer;padding:6px 14px 6px 28px;color:var(--muted);font-family:'Noto Sans KR',sans-serif;font-size:11px;transition:all 0.15s;border-left:3px solid transparent;line-height:1.4;}
+.toc-sec-btn:hover{color:var(--text);background:rgba(136,137,205,0.05);}
+.toc-sec-btn.active{color:var(--accent3);border-left-color:var(--accent3);background:rgba(221,170,204,0.07);}
+.toc-sections{overflow:hidden;max-height:0;transition:max-height 0.3s ease;}
+.toc-sections.open{max-height:2000px;}
+.toc-ch-arrow{font-size:9px;color:var(--muted);transition:transform 0.2s;margin-left:auto;}
+.toc-ch-btn.open .toc-ch-arrow{transform:rotate(90deg);}
+
+/* ── 콘텐츠 ── */
+.content-area{flex:1;overflow-y:auto;padding:30px 40px;max-width:900px;margin:0 auto;}
+.content-header{margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid var(--border);}
+.content-header-title{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:4px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px;}
+.content-header-sub{font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:1px;}
+
+/* ── 카테고리 블록 ── */
+.cat-block{margin-bottom:32px;}
+.cat-header{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:18px 22px;margin-bottom:14px;position:relative;overflow:hidden;}
+.cat-header::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(136,137,205,0.05),rgba(187,102,136,0.05));pointer-events:none;}
+.cat-icon{font-size:22px;margin-right:8px;}
+.cat-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:3px;margin-bottom:4px;}
+.cat-title{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:3px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.cat-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+.item-count{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--accent4);background:rgba(204,170,136,0.1);padding:2px 8px;border-radius:10px;border:1px solid rgba(204,170,136,0.2);margin-top:6px;}
+
+/* ── 섹션 구분 (카테고리 내부) ── */
+.sub-section{margin-top:18px;}
+.sub-section-title{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--accent3);padding:6px 12px;background:rgba(221,170,204,0.06);border-left:3px solid var(--accent3);border-radius:4px;margin-bottom:10px;}
+
+/* ── 아이템 (접이식) ── */
+.tip-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden;transition:border-color 0.2s;}
+.tip-item:hover{border-color:#4a3a5a;}
+.tip-item[open]{border-color:rgba(136,137,205,0.4);}
+.tip-item summary{padding:12px 16px;cursor:pointer;user-select:none;list-style:none;font-size:13px;font-weight:700;color:var(--accent3);display:flex;align-items:center;gap:8px;background:var(--surface2);}
+.tip-item summary::-webkit-details-marker{display:none;}
+.tip-item summary::before{content:'▶';font-size:9px;color:var(--muted);transition:transform 0.2s;flex-shrink:0;}
+.tip-item[open] summary::before{transform:rotate(90deg);}
+.tip-item summary:hover{color:var(--accent);}
+.tip-item .summary-meta{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);font-weight:400;}
+.tip-item .tip-body{padding:14px 16px;font-size:12px;line-height:1.8;color:#c0b8d0;}
+.tip-body pre{background:rgba(0,0,0,0.3);border:1px solid #3a3a5a;border-radius:6px;padding:10px 12px;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.7;overflow-x:auto;white-space:pre-wrap;word-break:break-word;color:#b0e8c8;margin:6px 0;}
+.tip-body .label{display:inline-block;font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 7px;border-radius:4px;margin-bottom:6px;font-weight:600;}
+.tip-body .label-use{background:rgba(160,232,200,0.12);color:#a0e8c8;border:1px solid rgba(160,232,200,0.25);}
+.tip-body .label-example{background:rgba(136,137,205,0.12);color:var(--accent);border:1px solid rgba(136,137,205,0.25);}
+.tip-body .label-warn{background:rgba(238,17,102,0.12);color:#EE1166;border:1px solid rgba(238,17,102,0.25);}
+.tip-body .desc{margin-bottom:10px;color:var(--muted);font-size:11px;line-height:1.6;}
+.tip-body strong{color:var(--text);}
+.tip-body .divider{border:none;border-top:1px dashed var(--border);margin:12px 0;}
+
+/* ── 데모/디버그 버튼 ── */
+.demo-btn{display:inline-flex;align-items:center;gap:6px;margin:4px 6px 4px 0;padding:7px 14px;background:linear-gradient(135deg,rgba(136,137,205,0.15),rgba(187,102,136,0.15));border:1px solid rgba(136,137,205,0.35);border-radius:8px;color:var(--accent);font-size:11px;font-weight:600;font-family:'Noto Sans KR',sans-serif;cursor:pointer;text-decoration:none;transition:all 0.2s;}
+.demo-btn:hover{background:linear-gradient(135deg,rgba(136,137,205,0.25),rgba(187,102,136,0.25));transform:translateY(-1px);box-shadow:0 4px 12px rgba(136,137,205,0.2);}
+.demo-btn.btn-debug{border-color:rgba(255,119,34,0.35);color:#FF7722;background:linear-gradient(135deg,rgba(255,119,34,0.1),rgba(255,119,34,0.05));}
+.demo-btn.btn-debug:hover{background:linear-gradient(135deg,rgba(255,119,34,0.2),rgba(255,119,34,0.1));}
+.demo-btn.btn-labels{border-color:rgba(204,170,136,0.35);color:#CCAA88;background:linear-gradient(135deg,rgba(204,170,136,0.1),rgba(204,170,136,0.05));}
+.demo-btn.btn-labels:hover{background:linear-gradient(135deg,rgba(204,170,136,0.2),rgba(204,170,136,0.1));}
+
+/* ── 데이터 배지 ── */
+.place-meta{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;}
+.place-meta-item{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);background:rgba(255,255,255,0.03);padding:3px 8px;border-radius:4px;border:1px solid var(--border);}
+.place-meta-item strong{color:var(--accent3);}
+.alias-chip{display:inline-block;font-size:10px;color:var(--accent4);background:rgba(204,170,136,0.08);padding:2px 7px;border-radius:10px;border:1px solid rgba(204,170,136,0.2);margin:2px 3px 2px 0;}
+
+/* ── 로딩 / 에러 ── */
+.loading-skeleton{padding:14px;background:var(--surface);border:1px dashed var(--border);border-radius:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px;text-align:center;}
+.error-box{padding:14px;background:rgba(238,17,102,0.05);border:1px solid rgba(238,17,102,0.3);border-radius:10px;color:#EE1166;font-size:11px;}
+
+/* ── 모바일 TOC 오버레이 ── */
+.toc-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:49;backdrop-filter:blur(3px);}
+.toc-overlay.show{display:block;}
+
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+
+/* ── 모바일 ── */
+@media(max-width:768px){
+  .header{padding:8px 12px;height:auto;flex-wrap:wrap;gap:6px;}
+  .header-title{display:none;}
+  .toc-sidebar{position:fixed;left:0;top:50px;bottom:0;z-index:50;transform:translateX(-100%);transition:transform 0.3s;box-shadow:4px 0 20px rgba(0,0,0,0.5);}
+  .toc-sidebar.mobile-open{transform:translateX(0);}
+  .content-area{padding:16px;}
+  .cat-title{font-size:20px;}
+  .app-body{height:calc(100vh - 50px);}
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════
+     헤더
+     ════════════════════════════════════════════ -->
+<div class="header">
+  <a href="index.html" class="back-btn">← 메인</a>
+  <a href="tip.html" class="back-btn">📖 TIP</a>
+  <div class="header-logo">MAP</div>
+  <div class="header-title">WORLDMAP · m.winter0.workers.dev</div>
+  <span id="data-source-badge" class="data-source fallback">FALLBACK</span>
+  <button class="toc-toggle-btn" onclick="toggleToc()">☰</button>
+</div>
+
+<div class="app-body">
+
+  <!-- ════════════════════════════════════════════
+       TOC 사이드바
+       ════════════════════════════════════════════ -->
+  <div class="toc-overlay" onclick="closeMobileToc()"></div>
+  <aside class="toc-sidebar" id="toc-sidebar">
+    <div class="toc-header">— TABLE OF CONTENTS —</div>
+    <div class="toc-inner" id="toc-inner">
+      <!-- 동적 생성 -->
+    </div>
+  </aside>
+
+  <!-- ════════════════════════════════════════════
+       콘텐츠
+       ════════════════════════════════════════════ -->
+  <main class="content-area">
+    <div class="content-header">
+      <div class="content-header-title">WORLDMAP REFERENCE</div>
+      <div class="content-header-sub">m.winter0.workers.dev · ?t=worldmap · 좌표 · 마커 · 경로</div>
+    </div>
+
+    <div id="content-root">
+      <div class="loading-skeleton">⏳ 메타데이터 로딩 중…</div>
+    </div>
+  </main>
+
+</div>
+
+<script>
+// ════════════════════════════════════════════
+//  설정
+// ════════════════════════════════════════════
+
+const WORKER_URL = 'https://m.winter0.workers.dev';
+const META_URL   = WORKER_URL + '/?t=meta';
+
+// ════════════════════════════════════════════
+//  Fallback 데이터 (fetch 실패 시 사용)
+//  → worker 배포 전에도 미리보기 가능
+// ════════════════════════════════════════════
+
+const FALLBACK_DATA = {
+  worlds: {
+    test:    { src: 'test-grid.png',  w: 1024, h: 1024, alias: [],      group: 'test' },
+    floor1:  { src: 'world/f01.webp', w: 1024, h: 1024, alias: ['1층'],  group: 'aincrad' },
+    floor2:  { src: 'world/f02.webp', w: 1024, h: 1024, alias: ['2층'],  group: 'aincrad' },
+    floor3:  { src: 'world/f03.webp', w: 1024, h: 1024, alias: ['3층'],  group: 'aincrad' },
+    floor4:  { src: 'world/f04.webp', w: 1024, h: 1024, alias: ['4층'],  group: 'aincrad' },
+    floor5:  { src: 'world/f05.webp', w: 1024, h: 1024, alias: ['5층'],  group: 'aincrad' },
+    floor6:  { src: 'world/f06.webp', w: 1024, h: 1024, alias: ['6층'],  group: 'aincrad' },
+    floor7:  { src: 'world/f07.webp', w: 1024, h: 1024, alias: ['7층'],  group: 'aincrad' },
+    floor8:  { src: 'world/f08.webp', w: 1024, h: 1024, alias: ['8층'],  group: 'aincrad' },
+    floor9:  { src: 'world/f09.webp', w: 1024, h: 1024, alias: ['9층'],  group: 'aincrad' },
+    floor10: { src: 'world/f10.webp', w: 1024, h: 1024, alias: ['10층'], group: 'aincrad' },
+  },
+  places: {
+    'center':     { world: 'test', x: 512, y: 512, alias: ['중앙', 'middle'] },
+    'upperleft':  { world: 'test', x: 100, y: 100, alias: ['좌상단'] },
+    'lowerright': { world: 'test', x: 900, y: 900, alias: ['우하단'] },
+    'topright':   { world: 'test', x: 900, y: 100, alias: ['우상단'] },
+    'bottomleft': { world: 'test', x: 100, y: 900, alias: ['좌하단'] },
+  },
+  groups: {
+    test:    { label: '검증용',     icon: '🧪', order: 99 },
+    aincrad: { label: '아인크라드', icon: '🗡️', order: 1 },
+  },
+  colors: {
+    rel: { '아군': '#8889CD', '적': '#EE1166', '파티': '#00BBDD', '중립': '#CCAA88' },
+    me_ring: '#BB6688', me_dot: '#DDAACC', stroke: '#0d0f1f',
+    path: '#FF7722', place_label: '#CCAA88',
+  },
+};
+
+// ════════════════════════════════════════════
+//  유틸
+// ════════════════════════════════════════════
+
+function esc(s) {
+  return String(s ?? '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// PLACE 표시명 — 한글 alias 우선
+function placeDisplayName(key, place) {
+  if (place.alias && place.alias.length > 0) {
+    const ko = place.alias.find(a => /[\u3131-\uD79D\uAC00-\uD7A3]/.test(a));
+    if (ko) return ko;
+    return place.alias[0];
+  }
+  return key;
+}
+
+// WORLD 표시명 — 한글 alias 우선
+function worldDisplayName(key, world) {
+  if (world.alias && world.alias.length > 0) {
+    const ko = world.alias.find(a => /[\u3131-\uD79D\uAC00-\uD7A3]/.test(a));
+    if (ko) return ko;
+  }
+  return key;
+}
+
+// ════════════════════════════════════════════
+//  데이터 로딩
+// ════════════════════════════════════════════
+
+async function loadMeta() {
+  try {
+    const res = await fetch(META_URL, { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    setBadge('live');
+    return data;
+  } catch (err) {
+    console.warn('[map.html] fetch 실패, fallback 사용:', err);
+    setBadge('fallback');
+    return FALLBACK_DATA;
+  }
+}
+
+function setBadge(mode) {
+  const el = document.getElementById('data-source-badge');
+  if (!el) return;
+  if (mode === 'live') {
+    el.className = 'data-source live';
+    el.textContent = 'LIVE';
+  } else {
+    el.className = 'data-source fallback';
+    el.textContent = 'FALLBACK';
+  }
+}
+
+// ════════════════════════════════════════════
+//  렌더링 — 정적 카테고리
+// ════════════════════════════════════════════
+
+function renderStaticCategories() {
+  return `
+
+  <!-- ─── 01. 시작하기 ─── -->
+  <div class="cat-block" data-cat="getting-started">
+    <div class="cat-header">
+      <div class="cat-num">CATEGORY 01</div>
+      <div><span class="cat-icon">📋</span><span class="cat-title">시작하기</span></div>
+      <div class="cat-sub">엔드포인트 / 좌표 찍기 워크플로우</div>
+    </div>
+
+    <details class="tip-item" data-sec="endpoint">
+      <summary>🔗 엔드포인트<span class="summary-meta">m.winter0.workers.dev</span></summary>
+      <div class="tip-body">
+        <div class="desc">월드맵은 별도 워커에 호스팅됨. 모든 URL은 절대 경로 사용.</div>
+        <pre>https://m.winter0.workers.dev/?t=worldmap&world=1층</pre>
+        <hr class="divider">
+        <span class="label label-use">USE</span>
+        <div class="desc">바베챗에서는 <code>![](URL)</code> 마크다운으로 인라인 이미지 렌더링.</div>
+        <pre>![](https://m.winter0.workers.dev/?t=worldmap&world=1층&at=시작도시)</pre>
+      </div>
+    </details>
+
+    <details class="tip-item" data-sec="workflow">
+      <summary>🎯 좌표 찍기 워크플로우</summary>
+      <div class="tip-body">
+        <div class="desc"><strong>새 장소를 PLACES에 등록할 때:</strong></div>
+        <pre>1. 디버그 URL로 좌표 잡기
+   /?t=worldmap&world=1층&x=500&y=500
+
+2. 마커가 원하는 위치에 박힐 때까지 x, y 미세조정
+
+3. 정확하면 worker-map.js의 PLACES에 등록
+   'f1_starter': { world: 'floor1', x: 500, y: 500,
+                   alias: ['시작도시', '검은화살의 마을'] }
+
+4. 배포 후 labels=on 으로 전체 라벨 위치 검증
+   /?t=worldmap&world=1층&labels=on</pre>
+        <hr class="divider">
+        <span class="label label-warn">CONVENTION</span>
+        <div class="desc">PLACES 정식 키는 <strong>f1_xxx, f4_xxx</strong> 식 층 prefix 권장 (alias는 중복 OK — world 컨텍스트로 구분됨).</div>
+      </div>
+    </details>
+
+    <details class="tip-item" data-sec="meta-endpoint">
+      <summary>📡 메타 엔드포인트 (개발자용)</summary>
+      <div class="tip-body">
+        <div class="desc">map.html이 이 페이지를 그릴 때 fetch로 가져오는 JSON.</div>
+        <pre>GET https://m.winter0.workers.dev/?t=meta</pre>
+        <a href="https://m.winter0.workers.dev/?t=meta" target="_blank" class="demo-btn">📡 메타 JSON 보기</a>
+      </div>
+    </details>
+  </div>
+
+  <!-- ─── 02. 파라미터 ─── -->
+  <div class="cat-block" data-cat="parameters">
+    <div class="cat-header">
+      <div class="cat-num">CATEGORY 02</div>
+      <div><span class="cat-icon">🎯</span><span class="cat-title">파라미터</span></div>
+      <div class="cat-sub">?t=worldmap 의 모든 옵션</div>
+    </div>
+
+    <details class="tip-item" data-sec="param-world">
+      <summary><code>&world=</code> 월드 지정</summary>
+      <div class="tip-body">
+        <div class="desc">정식 키 또는 한글 alias 사용. 생략하면 <code>at</code> 의 PLACE world에서 자동 추론, 그것도 없으면 <code>test</code>.</div>
+        <pre>?t=worldmap&world=floor1
+?t=worldmap&world=1층        ← alias도 OK</pre>
+      </div>
+    </details>
+
+    <details class="tip-item" data-sec="param-at">
+      <summary><code>&at=</code> 내 위치 (PLACES 룩업)</summary>
+      <div class="tip-body">
+        <div class="desc">PLACES에 등록된 장소명/alias로 내 위치 지정.</div>
+        <pre>?t=worldmap&world=1층&at=시작도시</pre>
+        <hr class="divider">
+        <span class="label label-warn">TIP</span>
+        <div class="desc"><code>world</code> 컨텍스트가 있으면 같은 alias가 여러 월드에 있어도 OK (예: '시작도시'가 1층/4층에 둘 다 있어도 충돌 안 남).</div>
+      </div>
+    </details>
+
+    <details class="tip-item" data-sec="param-xy">
+      <summary><code>&x= &y=</code> 직접 좌표 (디버그용)</summary>
+      <div class="tip-body">
+        <div class="desc">PLACES 등록 전 좌표 찍기 노가다용.</div>
+        <pre>?t=worldmap&world=floor5&x=500&y=400</pre>
+      </div>
+    </details>
+
+    <details class="tip-item" data-sec="param-p">
+      <summary><code>&p=</code> 멀티플레이어 (다른 사람들)</summary>
+      <div class="tip-body">
+        <div class="desc">형식: <code>장소§이름§관계</code> · 여러 명은 <code>|</code> 로 구분.</div>
+        <pre>&p=upperleft§지나|topright§오크§적</pre>
+        <hr class="divider">
+        <div class="desc"><strong>관계 종류:</strong> 아군(또는 생략) / 적 / 파티 / 중립<br><strong>장소 자리에 좌표 직접:</strong> <code>x500y400§이름§관계</code></div>
+      </div>
+    </details>
+
+    <details class="tip-item" data-sec="param-path">
+      <summary><code>&path=</code> 이동 경로</summary>
+      <div class="tip-body">
+        <div class="desc">콤마 구분. 마지막이 목적지(깃발), 중간은 경유지(다이아몬드). 시작점은 자동으로 <code>at</code> 위치.</div>
+        <pre>?t=worldmap&at=center&path=upperleft,topright,lowerright</pre>
+      </div>
+    </details>
+
+    <details class="tip-item" data-sec="param-labels">
+      <summary><code>&labels=on</code> 라벨 모드</summary>
+      <div class="tip-body">
+        <div class="desc">해당 월드의 등록된 PLACES 라벨을 한 번에 표시. 좌표 검증할 때 필수.</div>
+        <pre>?t=worldmap&world=4층&labels=on</pre>
+      </div>
+    </details>
+  </div>
+
+  <!-- ─── 03. 마커 시스템 ─── -->
+  <div class="cat-block" data-cat="markers">
+    <div class="cat-header">
+      <div class="cat-num">CATEGORY 03</div>
+      <div><span class="cat-icon">📍</span><span class="cat-title">마커 시스템</span></div>
+      <div class="cat-sub">내 위치 · 멀티플레이어 · 경로</div>
+    </div>
+
+    <details class="tip-item" data-sec="marker-me">
+      <summary>💗 내 위치 마커</summary>
+      <div class="tip-body">
+        <div class="desc">핑크 펄스 (이중 외곽선 — 다크 + 컬러). 어두운/밝은 배경 모두 가독성 OK.</div>
+        <div class="place-meta">
+          <span class="place-meta-item">ring: <strong style="color:#BB6688">#BB6688</strong></span>
+          <span class="place-meta-item">dot: <strong style="color:#DDAACC">#DDAACC</strong></span>
+        </div>
+      </div>
+    </details>
+
+    <details class="tip-item" data-sec="marker-others">
+      <summary>👥 멀티플레이어 마커 (관계별 색상)</summary>
+      <div class="tip-body">
+        <div class="desc">관계에 따라 색상 자동 매핑.</div>
+        <div class="place-meta">
+          <span class="place-meta-item">아군: <strong style="color:#8889CD">#8889CD</strong></span>
+          <span class="place-meta-item">적: <strong style="color:#EE1166">#EE1166</strong></span>
+          <span class="place-meta-item">파티: <strong style="color:#00BBDD">#00BBDD</strong></span>
+          <span class="place-meta-item">중립: <strong style="color:#CCAA88">#CCAA88</strong></span>
+        </div>
+        <hr class="divider">
+        <span class="label label-warn">TIP</span>
+        <div class="desc">같은 좌표에 여러 명 겹치면 시계 12시부터 부채꼴로 자동 분산됨.</div>
+      </div>
+    </details>
+
+    <details class="tip-item" data-sec="marker-path">
+      <summary>🧭 경로 마커 (점선 / 다이아 / 깃발)</summary>
+      <div class="tip-body">
+        <div class="desc">오렌지 통일. 경유지는 다이아몬드, 마지막은 깃발.</div>
+        <div class="place-meta">
+          <span class="place-meta-item">path: <strong style="color:#FF7722">#FF7722</strong></span>
+        </div>
+      </div>
+    </details>
+
+    <details class="tip-item" data-sec="marker-place-label">
+      <summary>🏷️ PLACE 라벨 (labels=on)</summary>
+      <div class="tip-body">
+        <div class="desc">현재 월드의 PLACES 이름을 마커 아래 톤다운 색으로 표시.</div>
+        <div class="place-meta">
+          <span class="place-meta-item">label: <strong style="color:#CCAA88">#CCAA88</strong></span>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- ─── 04. AI 프롬프트 ─── -->
+  <div class="cat-block" data-cat="ai-prompt">
+    <div class="cat-header">
+      <div class="cat-num">CATEGORY 04</div>
+      <div><span class="cat-icon">🤖</span><span class="cat-title">AI 프롬프트</span></div>
+      <div class="cat-sub">바베챗에서 호출할 때 작성 가이드</div>
+    </div>
+
+    <details class="tip-item" data-sec="prompt-basic">
+      <summary>📝 기본 호출 형식</summary>
+      <div class="tip-body">
+        <div class="desc">바베챗은 <code>![](URL)</code> 마크다운을 인라인 이미지로 렌더링.</div>
+        <pre>![](https://m.winter0.workers.dev/?t=worldmap&world=1층&at=시작도시)</pre>
+        <hr class="divider">
+        <span class="label label-warn">중요</span>
+        <div class="desc">URL 뒤에 <code>---</code> (horizontal rule) 붙이면 렌더링 안정성 ↑</div>
+        <pre>![](https://m.winter0.workers.dev/?t=worldmap&world=1층)
+---</pre>
+      </div>
+    </details>
+
+    <details class="tip-item" data-sec="prompt-encoding">
+      <summary>⚠️ URL 인코딩 주의사항</summary>
+      <div class="tip-body">
+        <div class="desc">한글 alias 사용 시 URL 인코딩 필요한 문자들.</div>
+        <pre><strong>#</strong>  →  %23
+<strong>)</strong>  →  마크다운 ![](URL) 구문 충돌, 본문에 ) 들어가면 마크다운 깨짐
+<strong>공백</strong> →  %20 또는 +</pre>
+      </div>
+    </details>
+
+    <details class="tip-item" data-sec="prompt-examples">
+      <summary>💡 사용 예시 모음</summary>
+      <div class="tip-body">
+        <span class="label label-example">기본 위치</span>
+        <pre>![](https://m.winter0.workers.dev/?t=worldmap&world=1층&at=시작도시)</pre>
+        <hr class="divider">
+        <span class="label label-example">파티원과 함께</span>
+        <pre>![](https://m.winter0.workers.dev/?t=worldmap&at=시작도시&p=시작도시§아스나§파티|시작도시§클라인§파티)</pre>
+        <hr class="divider">
+        <span class="label label-example">이동 경로</span>
+        <pre>![](https://m.winter0.workers.dev/?t=worldmap&world=1층&at=시작도시&path=던전입구,보스방)</pre>
+      </div>
+    </details>
+  </div>
+  `;
+}
+
+// ════════════════════════════════════════════
+//  렌더링 — 동적 카테고리 (세계관별)
+// ════════════════════════════════════════════
+
+function renderGroupCategories(meta) {
+  const { worlds, places, groups } = meta;
+
+  // group 키 → order 순으로 정렬
+  const groupKeys = Object.keys(groups).sort((a, b) => {
+    return (groups[a].order ?? 999) - (groups[b].order ?? 999);
+  });
+
+  let html = '';
+  let catNum = 5;
+
+  for (const gk of groupKeys) {
+    const g = groups[gk];
+
+    // 이 group에 속한 worlds 수집
+    const worldEntries = Object.entries(worlds)
+      .filter(([_, w]) => w.group === gk);
+    if (worldEntries.length === 0) continue;
+
+    // 이 group에 속한 places 수집 (world 매칭)
+    const worldKeys = new Set(worldEntries.map(([k, _]) => k));
+    const placeEntries = Object.entries(places)
+      .filter(([_, p]) => worldKeys.has(p.world));
+
+    html += `
+    <div class="cat-block" data-cat="group-${gk}">
+      <div class="cat-header">
+        <div class="cat-num">CATEGORY ${String(catNum).padStart(2, '0')}</div>
+        <div><span class="cat-icon">${g.icon || '🌍'}</span><span class="cat-title">${esc(g.label || gk)}</span></div>
+        <div class="cat-sub">월드 ${worldEntries.length}개 · 장소 ${placeEntries.length}개</div>
+      </div>
+
+      <div class="sub-section">
+        <div class="sub-section-title">🌍 WORLDS · ${worldEntries.length}</div>
+        ${renderWorldList(worldEntries)}
+      </div>
+
+      <div class="sub-section">
+        <div class="sub-section-title">📍 PLACES · ${placeEntries.length}</div>
+        ${placeEntries.length > 0
+          ? renderPlaceList(placeEntries, worlds)
+          : '<div class="loading-skeleton">아직 등록된 장소 없음 — 좌표 찍기 노가다 대기 중</div>'}
+      </div>
+    </div>
+    `;
+    catNum++;
+  }
+
+  return html;
+}
+
+function renderWorldList(worldEntries) {
+  return worldEntries.map(([key, w]) => {
+    const name = worldDisplayName(key, w);
+    const aliasChips = (w.alias || []).map(a => `<span class="alias-chip">${esc(a)}</span>`).join('');
+    return `
+    <details class="tip-item" data-sec="world-${key}">
+      <summary>🗺️ ${esc(name)}<span class="summary-meta">${esc(key)}</span></summary>
+      <div class="tip-body">
+        <div class="place-meta">
+          <span class="place-meta-item">key: <strong>${esc(key)}</strong></span>
+          <span class="place-meta-item">size: <strong>${w.w}×${w.h}</strong></span>
+          <span class="place-meta-item">src: <strong>${esc(w.src)}</strong></span>
+        </div>
+        ${aliasChips ? `<div style="margin:6px 0;">alias: ${aliasChips}</div>` : ''}
+        <hr class="divider">
+        <a href="${WORKER_URL}/?t=worldmap&world=${encodeURIComponent(key)}" target="_blank" class="demo-btn">🗺️ 월드 열기</a>
+        <a href="${WORKER_URL}/?t=worldmap&world=${encodeURIComponent(key)}&labels=on" target="_blank" class="demo-btn btn-labels">🏷️ 전체 라벨</a>
+      </div>
+    </details>
+    `;
+  }).join('');
+}
+
+function renderPlaceList(placeEntries, worlds) {
+  return placeEntries.map(([key, p]) => {
+    const name = placeDisplayName(key, p);
+    const aliasChips = (p.alias || []).map(a => `<span class="alias-chip">${esc(a)}</span>`).join('');
+    const worldName = worlds[p.world] ? worldDisplayName(p.world, worlds[p.world]) : p.world;
+    return `
+    <details class="tip-item" data-sec="place-${key}">
+      <summary>📍 ${esc(name)}<span class="summary-meta">${esc(p.world)} · ${p.x},${p.y}</span></summary>
+      <div class="tip-body">
+        <div class="place-meta">
+          <span class="place-meta-item">key: <strong>${esc(key)}</strong></span>
+          <span class="place-meta-item">world: <strong>${esc(worldName)}</strong></span>
+          <span class="place-meta-item">좌표: <strong>x=${p.x}, y=${p.y}</strong></span>
+        </div>
+        ${aliasChips ? `<div style="margin:6px 0;">alias: ${aliasChips}</div>` : ''}
+        <hr class="divider">
+        <a href="${WORKER_URL}/?t=worldmap&world=${encodeURIComponent(p.world)}&at=${encodeURIComponent(key)}" target="_blank" class="demo-btn">📍 위치 보기</a>
+        <a href="${WORKER_URL}/?t=worldmap&world=${encodeURIComponent(p.world)}&labels=on" target="_blank" class="demo-btn btn-labels">🏷️ 라벨 모드</a>
+        <a href="${WORKER_URL}/?t=worldmap&world=${encodeURIComponent(p.world)}&x=${p.x}&y=${p.y}" target="_blank" class="demo-btn btn-debug">🔧 좌표 디버그</a>
+      </div>
+    </details>
+    `;
+  }).join('');
+}
+
+// ════════════════════════════════════════════
+//  TOC 생성
+// ════════════════════════════════════════════
+
+function renderToc() {
+  const tocInner = document.getElementById('toc-inner');
+  const cats = document.querySelectorAll('.cat-block');
+
+  let html = '';
+  cats.forEach((cat, idx) => {
+    const catId = cat.dataset.cat;
+    const title = cat.querySelector('.cat-title').textContent;
+    const icon = cat.querySelector('.cat-icon')?.textContent || '';
+    const secs = cat.querySelectorAll('.tip-item');
+
+    html += `
+    <button class="toc-ch-btn" onclick="toggleCh(this)" data-target="${catId}">
+      <span>${icon} ${esc(title)}</span>
+      <span class="toc-ch-arrow">▶</span>
+    </button>
+    <div class="toc-sections">
+    `;
+    secs.forEach(sec => {
+      const secId = sec.dataset.sec;
+      const summary = sec.querySelector('summary');
+      // summary의 첫 텍스트만 (메타 제외)
+      const clone = summary.cloneNode(true);
+      const meta = clone.querySelector('.summary-meta');
+      if (meta) meta.remove();
+      const secTitle = clone.textContent.trim();
+      html += `<button class="toc-sec-btn" onclick="jumpTo('${catId}','${secId}')">${esc(secTitle)}</button>`;
+    });
+    html += `</div>`;
+  });
+
+  tocInner.innerHTML = html;
+}
+
+function toggleCh(btn) {
+  const sections = btn.nextElementSibling;
+  const isOpen = btn.classList.contains('open');
+
+  // 다른 챕터 닫기
+  document.querySelectorAll('.toc-ch-btn.open').forEach(b => {
+    if (b !== btn) {
+      b.classList.remove('open');
+      b.nextElementSibling.classList.remove('open');
+    }
+  });
+
+  btn.classList.toggle('open', !isOpen);
+  sections.classList.toggle('open', !isOpen);
+}
+
+function jumpTo(catId, secId) {
+  const sec = document.querySelector(`[data-sec="${secId}"]`);
+  if (sec) {
+    sec.setAttribute('open', '');
+    sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  closeMobileToc();
+}
+
+function toggleToc() {
+  const sidebar = document.getElementById('toc-sidebar');
+  const overlay = document.querySelector('.toc-overlay');
+  if (window.innerWidth <= 768) {
+    sidebar.classList.toggle('mobile-open');
+    overlay.classList.toggle('show');
+  } else {
+    sidebar.classList.toggle('hidden');
+  }
+}
+
+function closeMobileToc() {
+  const sidebar = document.getElementById('toc-sidebar');
+  const overlay = document.querySelector('.toc-overlay');
+  sidebar.classList.remove('mobile-open');
+  overlay.classList.remove('show');
+}
+
+// ════════════════════════════════════════════
+//  진입점
+// ════════════════════════════════════════════
+
+(async function init() {
+  const meta = await loadMeta();
+
+  const root = document.getElementById('content-root');
+  root.innerHTML = renderStaticCategories() + renderGroupCategories(meta);
+
+  renderToc();
+})();
+</script>
+
+</body>
+</html>

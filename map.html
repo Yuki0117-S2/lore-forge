@@ -133,7 +133,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
      헤더
      ════════════════════════════════════════════ -->
 <div class="header">
-  <a href="index.html" class="back-btn">← 메인</a>
+  <button class="back-btn" onclick="goBack()">← 메인</button>
   <a href="tip.html" class="back-btn">📖 TIP</a>
   <div class="header-logo">MAP</div>
   <div class="header-title">WORLDMAP · m.winter0.workers.dev</div>
@@ -698,6 +698,12 @@ function closeMobileToc() {
   const overlay = document.querySelector('.toc-overlay');
   sidebar.classList.remove('mobile-open');
   overlay.classList.remove('show');
+}
+
+function goBack() {
+  // 새 탭/창에서 열렸으면 닫기, 안 닫히면 index로
+  window.close();
+  if(!window.closed) window.location.href = 'index.html';
 }
 
 // ════════════════════════════════════════════

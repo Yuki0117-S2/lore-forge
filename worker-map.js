@@ -89,17 +89,20 @@ const PLACES = {
   'bottomleft': { world: 'test', x: 100, y: 900, alias: ['좌하단'] },
 
   // ─── 1층 : 여명의 평원 ───
-  'f1_starter':         { world: 'floor1', x: 512, y: 512, alias: ['개척자의 원형 성채'] },
+  'f1_starter':         { world: 'floor1', x: 522, y: 450, alias: ['개척자의 원형 성채'] },
   'f1_silver_river':    { world: 'floor1', x: 410, y: 530, alias: ['은빛물결 강'] },
   'f1_wheat_village':   { world: 'floor1', x: 220, y: 680, alias: ['풍요의 밀밭 촌락'] },
   'f1_spring_village':  { world: 'floor1', x: 750, y: 660, alias: ['평온의 샘터 마을'] },
   'f1_watcher_tower':   { world: 'floor1', x: 540, y: 100, alias: ['감시자의 탑'] },
+  'f1_shade_forest':    { world: 'floor1', x: 150, y: 350, alias: ['서쪽 짙은 그늘 숲'] },
+  'f1_rocky_mountain':  { world: 'floor1', x: 850, y: 300, alias: ['동쪽 깎아지른 바위산'] },
 
   // ─── 2층 : 푸른 안개의 호수 ───
   'f2_stilt_village':   { world: 'floor2', x: 512, y: 500, alias: ['물안개 수상 마을'] },
-  'f2_scale_lake':      { world: 'floor2', x: 512, y: 550, alias: ['고요한 비늘 호수'] },
+  'f2_scale_lake':      { world: 'floor2', x: 795, y: 622, alias: ['고요한 비늘 호수'] },
   'f2_ferry_cabin':     { world: 'floor2', x: 730, y: 260, alias: ['외딴 나루터 오두막'] },
   'f2_guardian_tower':  { world: 'floor2', x: 490, y:  80, alias: ['이끼 낀 수호탑'] },
+  'f2_forest_rapids':   { world: 'floor2', x: 250, y: 200, alias: ['북서쪽 얕은 숲 여울'] },
 
   // ─── 3층 : 바닷바람 무역항 ───
   'f3_port_city':       { world: 'floor3', x: 780, y: 580, alias: ['붉은 지붕의 항구도시'] },
@@ -107,12 +110,15 @@ const PLACES = {
   'f3_hilltop':         { world: 'floor3', x: 220, y: 480, alias: ['언덕 위 촌락'] },
   'f3_windmill_farm':   { world: 'floor3', x: 180, y: 260, alias: ['풍차 언덕 농장'] },
   'f3_lighthouse':      { world: 'floor3', x: 180, y: 700, alias: ['길잡이 등대'] },
+  'f3_outer_wall':      { world: 'floor3', x: 800, y: 200, alias: ['북동쪽 외곽 성벽 길'] },
+  'f3_observatory':     { world: 'floor3', x: 509, y:  97, alias: ['별바라기 전망대'] },
 
   // ─── 4층 : 요정의 물거울 쉼터 ───
   'f4_guesthouse':      { world: 'floor4', x: 500, y: 130, alias: ['호숫가 영빈관'] },
   'f4_mirror_lake':     { world: 'floor4', x: 512, y: 500, alias: ['요정의 거울 호수'] },
   'f4_floating_stone':  { world: 'floor4', x: 420, y: 590, alias: ['중앙 부유석'] },
   'f4_jade_mansion':    { world: 'floor4', x: 840, y: 440, alias: ['비취색 저택'] },
+  'f4_mossy_cliff':     { world: 'floor4', x: 200, y: 800, alias: ['남서쪽 이끼 낀 벼랑'] },
 
   // ─── 5층 : 백야의 왕도 ───
   'f5_palace':          { world: 'floor5', x: 512, y: 450, alias: ['태양왕의 대궁전'] },
@@ -120,12 +126,15 @@ const PLACES = {
   'f5_garden':          { world: 'floor5', x: 260, y: 170, alias: ['귀족들의 정원'] },
   'f5_training':        { world: 'floor5', x: 800, y: 750, alias: ['기사단 훈련소'] },
   'f5_cathedral':       { world: 'floor5', x: 790, y: 190, alias: ['별빛 대성당'] },
+  'f5_old_town':        { world: 'floor5', x: 200, y: 800, alias: ['남서쪽 잊힌 구시가지'] },
 
   // ─── 6층 : 고목의 정령 숲 ───
   'f6_stone_plaza':     { world: 'floor6', x: 512, y: 450, alias: ['고대석 판석 광장'] },
-  'f6_root_village':    { world: 'floor6', x: 220, y: 400, alias: ['세계수의 뿌리 마을'] },
+  'f6_root_village':    { world: 'floor6', x: 218, y: 556, alias: ['세계수의 뿌리 마을'] },
   'f6_herbalist':       { world: 'floor6', x: 500, y: 800, alias: ['약초꾼의 계단밭'] },
   'f6_altar':           { world: 'floor6', x: 740, y: 250, alias: ['이름 잊힌 자의 제단'] },
+  'f6_vine_maze':       { world: 'floor6', x: 250, y: 200, alias: ['북서쪽 덩굴나무 미로'] },
+  'f6_secret_workshop': { world: 'floor6', x: 745, y: 630, alias: ['초록이슬 비밀 공방'] },
 
   // ─── 7층 : 단풍과 온천의 산등성이 ───
   'f7_market':          { world: 'floor7', x: 450, y: 750, alias: ['홍련의 저잣거리'] },
@@ -133,6 +142,7 @@ const PLACES = {
   'f7_paddies':         { world: 'floor7', x: 230, y: 250, alias: ['황금빛 다랑논'] },
   'f7_maple_valley':    { world: 'floor7', x: 450, y: 450, alias: ['단풍잎 계곡'] },
   'f7_fox_hideout':     { world: 'floor7', x: 520, y: 100, alias: ['구미호의 은신처'] },
+  'f7_maple_grove':     { world: 'floor7', x: 881, y: 708, alias: ['남동쪽 단풍나무 군락지'] },
 
   // ─── 8층 : 전운의 요새 ───
   'f8_fortress':        { world: 'floor8', x: 512, y: 650, alias: ['강철 맹세의 요새'] },
@@ -140,18 +150,23 @@ const PLACES = {
   'f8_outpost':         { world: 'floor8', x: 220, y: 340, alias: ['전초기지 야영지'] },
   'f8_siege':           { world: 'floor8', x: 750, y: 340, alias: ['공성 병기 정비소'] },
   'f8_demon_castle':    { world: 'floor8', x: 500, y: 180, alias: ['검은 뿔의 마성'] },
+  'f8_barricade':       { world: 'floor8', x: 200, y: 800, alias: ['남서쪽 무너진 방책'] },
 
   // ─── 9층 : 환상의 화원 ───
   'f9_greenhouse':      { world: 'floor9', x: 630, y: 460, alias: ['수정 온실 정원'] },
-  'f9_eternal_spring':  { world: 'floor9', x: 512, y: 500, alias: ['영원한 봄의 군락'] },
+  'f9_eternal_spring':  { world: 'floor9', x: 225, y: 709, alias: ['영원한 봄의 군락'] },
   'f9_petal_manors':    { world: 'floor9', x: 780, y: 730, alias: ['꽃잎 지붕 장원들'] },
   'f9_briar':           { world: 'floor9', x: 512, y: 460, alias: ['가시덤불 미궁'] },
+  'f9_rose_fence':      { world: 'floor9', x: 850, y: 200, alias: ['북동쪽 장미 덩굴 울타리'] },
+  'f9_fountain_plaza':  { world: 'floor9', x: 201, y: 248, alias: ['꽃비 내리는 분수 광장'] },
 
   // ─── 10층 : 종언의 옥좌 ───
   'f10_blood_path':     { world: 'floor10', x: 500, y: 850, alias: ['피의 진입로'] },
   'f10_mana_tower':     { world: 'floor10', x: 180, y: 250, alias: ['부서진 마력탑'] },
   'f10_execution':      { world: 'floor10', x: 800, y: 350, alias: ['버려진 처형장'] },
   'f10_demon_castle':   { world: 'floor10', x: 512, y: 350, alias: ['검붉은 심연의 마왕성'] },
+  'f10_cemetery':       { world: 'floor10', x: 333, y: 156, alias: ['북서쪽 잿빛 묘지'] },
+  'f10_blood_altar':    { world: 'floor10', x: 781, y: 615, alias: ['남동쪽 피 묻은 제단'] },
 };
 
 // 그룹 메타 — map.html이 카테고리 자동 생성용으로 사용

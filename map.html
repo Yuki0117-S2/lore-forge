@@ -580,6 +580,7 @@ URL은 절대 줄바꿈하지 않는다 — 한 줄로 이어 적기</pre>
           <div class="dbg-coords-line">📍 좌표: <strong id="dbg-coords">(클릭 대기)</strong></div>
           <input id="dbg-url" class="dbg-input dbg-url-input" readonly placeholder="이미지를 클릭하면 URL 자동 생성">
           <div>
+            <button class="demo-btn btn-labels" onclick="dbgCopyCoords()">📋 좌표 복사</button>
             <button class="demo-btn" onclick="dbgCopy()">📋 URL 복사</button>
             <button class="demo-btn btn-debug" onclick="dbgOpenUrl()">🔗 새 탭 열기</button>
           </div>
@@ -863,6 +864,26 @@ function dbgOnClick(event) {
   marker.style.left = clickX + 'px';
   marker.style.top = clickY + 'px';
   marker.style.display = 'block';
+}
+
+function dbgCopyCoords() {
+  const coords = document.getElementById('dbg-coords').textContent;
+  if (!coords || coords === '(클릭 대기)') {
+    alert('이미지를 먼저 클릭해줘');
+    return;
+  }
+  navigator.clipboard.writeText(coords).then(() => {
+    alert('좌표 복사됨!  ' + coords);
+  }).catch(() => {
+    // fallback: 일부 환경에서 clipboard API 안 됨
+    const tmp = document.createElement('textarea');
+    tmp.value = coords;
+    document.body.appendChild(tmp);
+    tmp.select();
+    document.execCommand('copy');
+    document.body.removeChild(tmp);
+    alert('좌표 복사됨!  ' + coords);
+  });
 }
 
 function dbgCopy() {

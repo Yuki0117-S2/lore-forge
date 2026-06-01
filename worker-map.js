@@ -67,16 +67,16 @@ const WORLDS = {
   test:    { src: 'test-grid.png',  w: 1024, h: 1024, alias: [],      group: 'test' },
 
   // 아인크라드 10층
-  floor1:  { src: 'world/f01.webp', w: 1024, h: 1024, alias: ['1층'],  group: 'aincrad' },
-  floor2:  { src: 'world/f02.webp', w: 1024, h: 1024, alias: ['2층'],  group: 'aincrad' },
-  floor3:  { src: 'world/f03.webp', w: 1024, h: 1024, alias: ['3층'],  group: 'aincrad' },
-  floor4:  { src: 'world/f04.webp', w: 1024, h: 1024, alias: ['4층'],  group: 'aincrad' },
-  floor5:  { src: 'world/f05.webp', w: 1024, h: 1024, alias: ['5층'],  group: 'aincrad' },
-  floor6:  { src: 'world/f06.webp', w: 1024, h: 1024, alias: ['6층'],  group: 'aincrad' },
-  floor7:  { src: 'world/f07.webp', w: 1024, h: 1024, alias: ['7층'],  group: 'aincrad' },
-  floor8:  { src: 'world/f08.webp', w: 1024, h: 1024, alias: ['8층'],  group: 'aincrad' },
-  floor9:  { src: 'world/f09.webp', w: 1024, h: 1024, alias: ['9층'],  group: 'aincrad' },
-  floor10: { src: 'world/f10.webp', w: 1024, h: 1024, alias: ['10층'], group: 'aincrad' },
+  floor1:  { src: 'world/f01.webp', w: 1024, h: 1024, alias: ['1층',  '여명의 평원'],                 group: 'aincrad' },
+  floor2:  { src: 'world/f02.webp', w: 1024, h: 1024, alias: ['2층',  '푸른 안개의 호수'],            group: 'aincrad' },
+  floor3:  { src: 'world/f03.webp', w: 1024, h: 1024, alias: ['3층',  '바닷바람 무역항'],             group: 'aincrad' },
+  floor4:  { src: 'world/f04.webp', w: 1024, h: 1024, alias: ['4층',  '요정의 물거울 쉼터'],          group: 'aincrad' },
+  floor5:  { src: 'world/f05.webp', w: 1024, h: 1024, alias: ['5층',  '백야의 왕도'],                 group: 'aincrad' },
+  floor6:  { src: 'world/f06.webp', w: 1024, h: 1024, alias: ['6층',  '고목의 정령 숲'],              group: 'aincrad' },
+  floor7:  { src: 'world/f07.webp', w: 1024, h: 1024, alias: ['7층',  '단풍과 온천의 산등성이'],      group: 'aincrad' },
+  floor8:  { src: 'world/f08.webp', w: 1024, h: 1024, alias: ['8층',  '전운의 요새'],                 group: 'aincrad' },
+  floor9:  { src: 'world/f09.webp', w: 1024, h: 1024, alias: ['9층',  '환상의 화원'],                 group: 'aincrad' },
+  floor10: { src: 'world/f10.webp', w: 1024, h: 1024, alias: ['10층', '종언의 옥좌'],                 group: 'aincrad' },
 };
 
 const PLACES = {
@@ -87,7 +87,70 @@ const PLACES = {
   'topright':   { world: 'test', x: 900, y: 100, alias: ['우상단'] },
   'bottomleft': { world: 'test', x: 100, y: 900, alias: ['좌하단'] },
 
-  // floor1 ~ floor10 장소들은 좌표 찍어가며 점진적 추가 예정
+  // ─── 1층 : 여명의 평원 ───
+  'f1_starter':         { world: 'floor1', x: 512, y: 512, alias: ['개척자의 원형 성채'] },
+  'f1_silver_river':    { world: 'floor1', x: 410, y: 530, alias: ['은빛물결 강'] },
+  'f1_wheat_village':   { world: 'floor1', x: 220, y: 680, alias: ['풍요의 밀밭 촌락'] },
+  'f1_spring_village':  { world: 'floor1', x: 750, y: 660, alias: ['평온의 샘터 마을'] },
+  'f1_watcher_tower':   { world: 'floor1', x: 540, y: 100, alias: ['감시자의 탑'] },
+
+  // ─── 2층 : 푸른 안개의 호수 ───
+  'f2_stilt_village':   { world: 'floor2', x: 512, y: 500, alias: ['물안개 수상 마을'] },
+  'f2_scale_lake':      { world: 'floor2', x: 512, y: 550, alias: ['고요한 비늘 호수'] },
+  'f2_ferry_cabin':     { world: 'floor2', x: 730, y: 260, alias: ['외딴 나루터 오두막'] },
+  'f2_guardian_tower':  { world: 'floor2', x: 490, y:  80, alias: ['이끼 낀 수호탑'] },
+
+  // ─── 3층 : 바닷바람 무역항 ───
+  'f3_port_city':       { world: 'floor3', x: 780, y: 580, alias: ['붉은 지붕의 항구도시'] },
+  'f3_ashen_bay':       { world: 'floor3', x: 450, y: 700, alias: ['잿빛 모래 만'] },
+  'f3_hilltop':         { world: 'floor3', x: 220, y: 480, alias: ['언덕 위 촌락'] },
+  'f3_windmill_farm':   { world: 'floor3', x: 180, y: 260, alias: ['풍차 언덕 농장'] },
+  'f3_lighthouse':      { world: 'floor3', x: 180, y: 700, alias: ['길잡이 등대'] },
+
+  // ─── 4층 : 요정의 물거울 쉼터 ───
+  'f4_guesthouse':      { world: 'floor4', x: 500, y: 130, alias: ['호숫가 영빈관'] },
+  'f4_mirror_lake':     { world: 'floor4', x: 512, y: 500, alias: ['요정의 거울 호수'] },
+  'f4_floating_stone':  { world: 'floor4', x: 420, y: 590, alias: ['중앙 부유석'] },
+  'f4_jade_mansion':    { world: 'floor4', x: 840, y: 440, alias: ['비취색 저택'] },
+
+  // ─── 5층 : 백야의 왕도 ───
+  'f5_palace':          { world: 'floor5', x: 512, y: 450, alias: ['태양왕의 대궁전'] },
+  'f5_waterway':        { world: 'floor5', x: 512, y: 530, alias: ['십자 수로'] },
+  'f5_garden':          { world: 'floor5', x: 260, y: 170, alias: ['귀족들의 정원'] },
+  'f5_training':        { world: 'floor5', x: 800, y: 750, alias: ['기사단 훈련소'] },
+  'f5_cathedral':       { world: 'floor5', x: 790, y: 190, alias: ['별빛 대성당'] },
+
+  // ─── 6층 : 고목의 정령 숲 ───
+  'f6_stone_plaza':     { world: 'floor6', x: 512, y: 450, alias: ['고대석 판석 광장'] },
+  'f6_root_village':    { world: 'floor6', x: 220, y: 400, alias: ['세계수의 뿌리 마을'] },
+  'f6_herbalist':       { world: 'floor6', x: 500, y: 800, alias: ['약초꾼의 계단밭'] },
+  'f6_altar':           { world: 'floor6', x: 740, y: 250, alias: ['이름 잊힌 자의 제단'] },
+
+  // ─── 7층 : 단풍과 온천의 산등성이 ───
+  'f7_market':          { world: 'floor7', x: 450, y: 750, alias: ['홍련의 저잣거리'] },
+  'f7_dragon_bath':     { world: 'floor7', x: 760, y: 300, alias: ['솟아오르는 용의 탕'] },
+  'f7_paddies':         { world: 'floor7', x: 230, y: 250, alias: ['황금빛 다랑논'] },
+  'f7_maple_valley':    { world: 'floor7', x: 450, y: 450, alias: ['단풍잎 계곡'] },
+  'f7_fox_hideout':     { world: 'floor7', x: 520, y: 100, alias: ['구미호의 은신처'] },
+
+  // ─── 8층 : 전운의 요새 ───
+  'f8_fortress':        { world: 'floor8', x: 512, y: 650, alias: ['강철 맹세의 요새'] },
+  'f8_trench':          { world: 'floor8', x: 512, y: 430, alias: ['마르지 않는 참호'] },
+  'f8_outpost':         { world: 'floor8', x: 220, y: 340, alias: ['전초기지 야영지'] },
+  'f8_siege':           { world: 'floor8', x: 750, y: 340, alias: ['공성 병기 정비소'] },
+  'f8_demon_castle':    { world: 'floor8', x: 500, y: 180, alias: ['검은 뿔의 마성'] },
+
+  // ─── 9층 : 환상의 화원 ───
+  'f9_greenhouse':      { world: 'floor9', x: 630, y: 460, alias: ['수정 온실 정원'] },
+  'f9_eternal_spring':  { world: 'floor9', x: 512, y: 500, alias: ['영원한 봄의 군락'] },
+  'f9_petal_manors':    { world: 'floor9', x: 780, y: 730, alias: ['꽃잎 지붕 장원들'] },
+  'f9_briar':           { world: 'floor9', x: 512, y: 460, alias: ['가시덤불 미궁'] },
+
+  // ─── 10층 : 종언의 옥좌 ───
+  'f10_blood_path':     { world: 'floor10', x: 500, y: 850, alias: ['피의 진입로'] },
+  'f10_mana_tower':     { world: 'floor10', x: 180, y: 250, alias: ['부서진 마력탑'] },
+  'f10_execution':      { world: 'floor10', x: 800, y: 350, alias: ['버려진 처형장'] },
+  'f10_demon_castle':   { world: 'floor10', x: 512, y: 350, alias: ['검붉은 심연의 마왕성'] },
 };
 
 // 그룹 메타 — map.html이 카테고리 자동 생성용으로 사용
@@ -293,6 +356,17 @@ function renderPlaceLabel(x, y, name) {
       text-anchor="middle">${esc(name)}</text>`;
 }
 
+// 월드 타이틀 (좌측 상단, 항상 표시)
+// alias가 있으면 ' · ' 로 연결 (예: "1층 · 여명의 평원"), 없으면 정식 키
+function renderWorldTitle(world, key) {
+  const aliases = (world.alias || []).filter(a => a);
+  const title = aliases.length > 0 ? aliases.join(' · ') : key;
+  return `
+<text x="24" y="44"
+      font-family="'Courier New',monospace" font-size="22" font-weight="700"
+      fill="${PLACE_LBL}" stroke="${STROKE}" stroke-width="4" paint-order="stroke">${esc(title)}</text>`;
+}
+
 // ════════════════════════════════════════════
 //  렌더링 — 경로 (점선) / 경유지(다이아몬드) / 목적지(깃발)
 // ════════════════════════════════════════════
@@ -433,6 +507,9 @@ async function renderWorldmap(params, env) {
 
   let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${DISP}" height="${DISP}" viewBox="0 0 ${W} ${H}">
 <image href="${dataURI}" x="0" y="0" width="${W}" height="${H}"/>`;
+
+  // 월드 타이틀 (좌상단, 배경 직후)
+  svg += renderWorldTitle(world, worldKey);
 
   // PLACE 배경 라벨
   for (const pl of placeLabels) {

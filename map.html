@@ -558,6 +558,7 @@ URL은 절대 줄바꿈하지 않는다 — 한 줄로 이어 적기</pre>
           <input id="dbg-form-x" class="dbg-input dbg-input-num" type="number" min="0" placeholder="X">
           <input id="dbg-form-y" class="dbg-input dbg-input-num" type="number" min="0" placeholder="Y">
           <label class="dbg-check"><input type="checkbox" id="dbg-form-grid" checked> 격자</label>
+          <label class="dbg-check"><input type="checkbox" id="dbg-form-labels"> 기존 PLACES</label>
           <button class="demo-btn" onclick="dbgFormPreview()">🔍 미리보기</button>
         </div>
       </div>
@@ -569,6 +570,7 @@ URL은 절대 줄바꿈하지 않는다 — 한 줄로 이어 적기</pre>
         <div class="desc">맵 이미지 클릭하면 그 위치의 좌표를 자동 추출. 데스크탑에서 빠르게.</div>
         <div class="dbg-form">
           <select id="dbg-click-world" class="dbg-input" onchange="dbgLoadImage()"><option value="">— 월드 선택 —</option></select>
+          <label class="dbg-check"><input type="checkbox" id="dbg-click-labels" onchange="dbgLoadImage()"> 기존 PLACES</label>
         </div>
         <div class="dbg-canvas-wrap" id="dbg-canvas-wrap" style="display:none;">
           <img id="dbg-image" alt="맵 미리보기">
@@ -807,14 +809,16 @@ function dbgFormPreview() {
   const x = document.getElementById('dbg-form-x').value;
   const y = document.getElementById('dbg-form-y').value;
   const grid = document.getElementById('dbg-form-grid').checked;
+  const labels = document.getElementById('dbg-form-labels').checked;
   if (!world) { alert('월드를 선택해줘'); return; }
   if (x === '' || y === '') { alert('X, Y 좌표를 입력해줘'); return; }
   let url = `${WORKER_URL}/?t=worldmap&world=${encodeURIComponent(world)}&x=${x}&y=${y}`;
-  if (grid) url += '&grid=on';
+  if (grid)   url += '&grid=on';
+  if (labels) url += '&labels=on';
   window.open(url, '_blank');
 }
 
-// 도구 2: 월드 선택 → 이미지 로드 (격자 켜진 상태)
+// 도구 2: 월드 선택 → 이미지 로드 (격자 켜진 상태, 라벨 토글 가능)
 function dbgLoadImage() {
   const sel = document.getElementById('dbg-click-world');
   const key = sel.value;
@@ -826,8 +830,11 @@ function dbgLoadImage() {
     return;
   }
   DBG_WORLD = { key, ...META_DATA.worlds[key] };
+  const labels = document.getElementById('dbg-click-labels').checked;
   const img = document.getElementById('dbg-image');
-  img.src = `${WORKER_URL}/?t=worldmap&world=${encodeURIComponent(key)}&grid=on`;
+  let src = `${WORKER_URL}/?t=worldmap&world=${encodeURIComponent(key)}&grid=on`;
+  if (labels) src += '&labels=on';
+  img.src = src;
   wrap.style.display = 'inline-block';
   output.style.display = 'flex';
   // 상태 초기화

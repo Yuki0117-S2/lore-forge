@@ -1,7 +1,8 @@
 // m.winter0.workers.dev — R2 기반 이미지 합성 (SVG 출력)
 // ?t=worldmap
+// ?t=meta       메타데이터 JSON 반환 (CORS 허용)
 //
-// 지원 파라미터:
+// 지원 파라미터 (worldmap):
 //   &world=floor1          월드 키 (또는 한글 alias: '1층'). 생략 시 자동 추론
 //   &at=장소명              내 위치 (PLACES 룩업, alias 지원)
 //   &x=&y=                 내 위치 직접 좌표 (디버깅용)
@@ -15,6 +16,7 @@
 //   /?t=worldmap&world=1층&at=center
 //   /?t=worldmap&world=floor4&labels=on        (4층 모든 장소 라벨 표시)
 //   /?t=worldmap&world=floor5&x=500&y=400      (좌표 찍기 디버그)
+//   /?t=meta                                    (map.html이 fetch로 사용)
 
 // ════════════════════════════════════════════
 //  공용 헬퍼 (worker-st 컨벤션)
@@ -57,24 +59,24 @@ async function r2ToDataURI(env, key) {
 }
 
 // ════════════════════════════════════════════
-//  WORLDS / PLACES 매핑
+//  WORLDS / PLACES / GROUPS 매핑
 // ════════════════════════════════════════════
 
 const WORLDS = {
   // 검증용
-  test:    { src: 'test-grid.png',  w: 1024, h: 1024, alias: [] },
+  test:    { src: 'test-grid.png',  w: 1024, h: 1024, alias: [],      group: 'test' },
 
   // 아인크라드 10층
-  floor1:  { src: 'world/f01.webp', w: 1024, h: 1024, alias: ['1층'] },
-  floor2:  { src: 'world/f02.webp', w: 1024, h: 1024, alias: ['2층'] },
-  floor3:  { src: 'world/f03.webp', w: 1024, h: 1024, alias: ['3층'] },
-  floor4:  { src: 'world/f04.webp', w: 1024, h: 1024, alias: ['4층'] },
-  floor5:  { src: 'world/f05.webp', w: 1024, h: 1024, alias: ['5층'] },
-  floor6:  { src: 'world/f06.webp', w: 1024, h: 1024, alias: ['6층'] },
-  floor7:  { src: 'world/f07.webp', w: 1024, h: 1024, alias: ['7층'] },
-  floor8:  { src: 'world/f08.webp', w: 1024, h: 1024, alias: ['8층'] },
-  floor9:  { src: 'world/f09.webp', w: 1024, h: 1024, alias: ['9층'] },
-  floor10: { src: 'world/f10.webp', w: 1024, h: 1024, alias: ['10층'] },
+  floor1:  { src: 'world/f01.webp', w: 1024, h: 1024, alias: ['1층'],  group: 'aincrad' },
+  floor2:  { src: 'world/f02.webp', w: 1024, h: 1024, alias: ['2층'],  group: 'aincrad' },
+  floor3:  { src: 'world/f03.webp', w: 1024, h: 1024, alias: ['3층'],  group: 'aincrad' },
+  floor4:  { src: 'world/f04.webp', w: 1024, h: 1024, alias: ['4층'],  group: 'aincrad' },
+  floor5:  { src: 'world/f05.webp', w: 1024, h: 1024, alias: ['5층'],  group: 'aincrad' },
+  floor6:  { src: 'world/f06.webp', w: 1024, h: 1024, alias: ['6층'],  group: 'aincrad' },
+  floor7:  { src: 'world/f07.webp', w: 1024, h: 1024, alias: ['7층'],  group: 'aincrad' },
+  floor8:  { src: 'world/f08.webp', w: 1024, h: 1024, alias: ['8층'],  group: 'aincrad' },
+  floor9:  { src: 'world/f09.webp', w: 1024, h: 1024, alias: ['9층'],  group: 'aincrad' },
+  floor10: { src: 'world/f10.webp', w: 1024, h: 1024, alias: ['10층'], group: 'aincrad' },
 };
 
 const PLACES = {
@@ -86,6 +88,13 @@ const PLACES = {
   'bottomleft': { world: 'test', x: 100, y: 900, alias: ['좌하단'] },
 
   // floor1 ~ floor10 장소들은 좌표 찍어가며 점진적 추가 예정
+};
+
+// 그룹 메타 — map.html이 카테고리 자동 생성용으로 사용
+// 새 세계관 추가 시 여기에 한 줄, WORLDS에 group 필드만 박으면 끝
+const GROUPS = {
+  test:    { label: '검증용',     icon: '🧪', order: 99 },
+  aincrad: { label: '아인크라드', icon: '🗡️', order: 1 },
 };
 
 function findWorld(name) {
@@ -166,6 +175,26 @@ function resolveRef(ref, worldContext) {
   const place = findPlace(ref, worldContext);
   if (place) return { x: place.x, y: place.y, refWorld: place.world };
   return null;
+}
+
+// ════════════════════════════════════════════
+//  META — map.html이 fetch로 가져갈 JSON
+// ════════════════════════════════════════════
+
+function renderMeta() {
+  return JSON.stringify({
+    worlds: WORLDS,
+    places: PLACES,
+    groups: GROUPS,
+    colors: {
+      rel: REL_COLOR,
+      me_ring: ME_RING,
+      me_dot: ME_DOT,
+      stroke: STROKE,
+      path: PATH_COLOR,
+      place_label: PLACE_LBL,
+    },
+  });
 }
 
 // ════════════════════════════════════════════
@@ -450,6 +479,17 @@ export default {
     const params = url.searchParams;
     const t = params.get('t') || '';
 
+    // ── 메타 엔드포인트 (JSON + CORS) ──
+    if (t === 'meta') {
+      return new Response(renderMeta(), {
+        headers: {
+          'content-type': 'application/json; charset=utf-8',
+          'access-control-allow-origin': '*',
+          'cache-control': 'no-cache',
+        },
+      });
+    }
+
     let svg;
     if (t === 'worldmap') {
       svg = await renderWorldmap(params, env);
@@ -472,7 +512,7 @@ export default {
         );
       }
     } else {
-      return new Response('사용 가능: ?t=worldmap', {
+      return new Response('사용 가능: ?t=worldmap | ?t=meta', {
         status: 400, headers: { 'Content-Type': 'text/plain; charset=utf-8' }
       });
     }

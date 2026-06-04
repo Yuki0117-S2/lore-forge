@@ -486,6 +486,14 @@ function renderStaticCategories() {
       <div class="cat-sub">바베챗에서 호출할 때 작성 가이드</div>
     </div>
 
+    <details class="tip-item" data-sec="prompt-auto">
+      <summary>📋 자동 생성 프롬프트 <span class="summary-meta">현재 등록 데이터 기반</span></summary>
+      <div class="tip-body">
+        <div class="desc">워커의 <code>?t=prompt</code> 실시간 fetch. WORLDS/PLACES 수정·배포하면 자동 갱신됨.</div>
+        <pre id="auto-prompt-output">⏳ 로딩 중…</pre>
+      </div>
+    </details>
+
     <details class="tip-item" data-sec="prompt-basic">
       <summary>📝 기본 호출 형식</summary>
       <div class="tip-body">
@@ -911,6 +919,19 @@ function setupDbgClick() {
   if (img) img.addEventListener('click', dbgOnClick);
 }
 
+// 자동 생성 프롬프트 — 워커 ?t=prompt fetch
+async function loadAutoPrompt() {
+  const el = document.getElementById('auto-prompt-output');
+  if (!el) return;
+  try {
+    const res = await fetch(WORKER_URL + '/?t=prompt', { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    el.textContent = await res.text();
+  } catch (err) {
+    el.textContent = '⚠️ 프롬프트 fetch 실패: ' + err.message + '\n\n워커 배포 상태를 확인해줘.';
+  }
+}
+
 // ════════════════════════════════════════════
 //  진입점
 // ════════════════════════════════════════════
@@ -924,6 +945,7 @@ function setupDbgClick() {
   renderToc();
   populateDbgSelectors();
   setupDbgClick();
+  loadAutoPrompt();
 })();
 </script>
 

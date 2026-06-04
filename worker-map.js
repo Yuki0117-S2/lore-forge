@@ -1,6 +1,7 @@
 // m.winter0.workers.dev — R2 기반 이미지 합성 (SVG 출력)
 // ?t=worldmap
 // ?t=meta       메타데이터 JSON 반환 (CORS 허용)
+// ?t=prompt     바베챗용 프롬프트 텍스트 자동 생성 (WORLDS/PLACES 기반)
 //
 // 지원 파라미터 (worldmap):
 //   &world=floor1          월드 키 (또는 한글 alias: '1층'). 생략 시 자동 추론
@@ -274,6 +275,124 @@ function renderMeta() {
       place_label: PLACE_LBL,
     },
   });
+}
+
+// ════════════════════════════════════════════
+//  PROMPT — 바베챗용 프롬프트 자동 생성
+//  WORLDS/PLACES 변경 시 자동 반영됨
+//  사용: GET /?t=prompt → text/plain 반환
+// ════════════════════════════════════════════
+
+// 짧은 alias (예: '1층')
+function worldShortAlias(world, fallbackKey) {
+  if (world.alias && world.alias.length > 0) {
+    const short = world.alias.find(a => /^\d+층$/.test(a));
+    if (short) return short;
+    return world.alias[0];
+  }
+  return fallbackKey;
+}
+
+// 긴 부제 (예: '여명의 평원')
+function worldLongAlias(world) {
+  if (!world.alias) return null;
+  const long = world.alias.find(a => !/^\d+층$/.test(a) && /[\u3131-\uD79D\uAC00-\uD7A3]/.test(a));
+  return long || null;
+}
+
+function renderPrompt() {
+  // 1) PLACES를 world별로 그룹화
+  const placesByWorld = {};
+  for (const [key, p] of Object.entries(PLACES)) {
+    if (!placesByWorld[p.world]) placesByWorld[p.world] = [];
+    placesByWorld[p.world].push({ key, ...p });
+  }
+
+  // 2) WORLDS를 group별로 그룹화
+  const worldsByGroup = {};
+  for (const [key, w] of Object.entries(WORLDS)) {
+    const g = w.group || 'misc';
+    if (!worldsByGroup[g]) worldsByGroup[g] = [];
+    worldsByGroup[g].push({ key, ...w });
+  }
+
+  // 3) group을 order 순서대로 (test 제외)
+  const sortedGroups = Object.entries(GROUPS)
+    .filter(([g]) => g !== 'test')
+    .sort((a, b) => (a[1].order || 99) - (b[1].order || 99));
+
+  let out = '';
+  out += '## 월드맵 이미지 출력 규칙\n\n';
+  out += '아래 URL 형식으로 월드맵 이미지를 출력한다.\n';
+  out += '도메인: https://m.winter0.workers.dev\n';
+  out += '기본형식: ![](https://m.winter0.workers.dev/?t=worldmap&...)\n';
+  out += '※ URL 뒤에 --- 붙이면 렌더링 안정성 ↑\n\n';
+
+  out += '### 파라미터 (모두 선택, 자유 조합)\n';
+  out += '&world=    월드 지정. 생략 시 at에서 자동 추론\n';
+  out += '&at=       내 위치 (등록된 장소명/alias)\n';
+  out += '&x= &y=    내 위치 직접 좌표 (등록 안 된 위치 강제)\n';
+  out += '&p=        다른 사람 (장소§이름§관계, |로 다인 구분)\n';
+  out += '            관계: 아군(기본)/적/파티/중립\n';
+  out += '            장소 자리에 x500y400 식 좌표 가능\n';
+  out += '&path=     이동 경로. 콤마 구분, 마지막=목적지, 중간=경유지\n';
+  out += '&labels=on 현재 월드의 모든 등록 장소 라벨 표시\n';
+  out += '&grid=on   100px 격자 + 좌표 라벨 (디버그용)\n\n';
+
+  // 4) 그룹별 월드 + 층별 등록 장소
+  for (const [groupKey, groupMeta] of sortedGroups) {
+    const worldsInGroup = worldsByGroup[groupKey];
+    if (!worldsInGroup || worldsInGroup.length === 0) continue;
+
+    const groupTitle = `${groupMeta.icon ? groupMeta.icon + ' ' : ''}${groupMeta.label}`;
+    out += `### ${groupTitle} — 월드 & 등록 장소\n\n`;
+
+    for (const w of worldsInGroup) {
+      const short = worldShortAlias(w, w.key);
+      const long = worldLongAlias(w);
+      out += `▸ ${short}`;
+      if (long) out += ` 「${long}」`;
+      out += '\n';
+
+      const places = placesByWorld[w.key] || [];
+      if (places.length === 0) {
+        out += '   (등록 장소 없음)\n';
+      } else {
+        for (const p of places) {
+          out += `   - ${getPlaceDisplayName(p.key, p)}\n`;
+        }
+      }
+      out += '\n';
+    }
+  }
+
+  // 5) 사용 예시 — 핵심만
+  out += '### 사용 예시\n\n';
+  out += '▸ 맵만 표시:\n';
+  out += '  ![](https://m.winter0.workers.dev/?t=worldmap&world=1층)\n\n';
+  out += '▸ 내 위치:\n';
+  out += '  ![](https://m.winter0.workers.dev/?t=worldmap&world=1층&at=감시자의+탑)\n\n';
+  out += '▸ 등록 안 된 곳에 좌표 직접:\n';
+  out += '  ![](https://m.winter0.workers.dev/?t=worldmap&world=1층&x=600&y=400)\n\n';
+  out += '▸ 파티/적 동시 표시:\n';
+  out += '  ![](https://m.winter0.workers.dev/?t=worldmap&world=1층&at=감시자의+탑&p=은빛물결+강§아스나§파티|서쪽+짙은+그늘+숲§오크§적)\n\n';
+  out += '▸ 이동 경로 (시작점=at, 중간=경유지, 마지막=목적지):\n';
+  out += '  ![](https://m.winter0.workers.dev/?t=worldmap&world=1층&at=감시자의+탑&path=은빛물결+강,풍요의+밀밭+촌락)\n\n';
+  out += '▸ 좌표에 사람 직접 박기 (등록 안 된 위치):\n';
+  out += '  ![](https://m.winter0.workers.dev/?t=worldmap&world=1층&at=감시자의+탑&p=x300y500§정체불명§적)\n\n';
+  out += '▸ 전체 조망 (모든 장소 라벨):\n';
+  out += '  ![](https://m.winter0.workers.dev/?t=worldmap&world=1층&labels=on)\n\n';
+
+  // 6) 인코딩
+  out += '### 인코딩 규칙 (필수)\n';
+  out += '공백 → +    (예: 여명의 평원 → 여명의+평원)\n';
+  out += '#    → %23  (fragment 인식 방지)\n';
+  out += '(    → %28\n';
+  out += ')    → %29  (마크다운 괄호 매칭 방지)\n';
+  out += '한글·§·|·, 는 그대로 사용 가능\n';
+  out += 'URL은 절대 줄바꿈하지 않는다 (한 줄로)\n';
+
+  return out;
 }
 
 // ════════════════════════════════════════════
@@ -619,6 +738,17 @@ export default {
       });
     }
 
+    // ── 프롬프트 엔드포인트 (바베챗용 자동 생성 텍스트) ──
+    if (t === 'prompt') {
+      return new Response(renderPrompt(), {
+        headers: {
+          'content-type': 'text/plain; charset=utf-8',
+          'access-control-allow-origin': '*',
+          'cache-control': 'no-cache',
+        },
+      });
+    }
+
     let svg;
     if (t === 'worldmap') {
       svg = await renderWorldmap(params, env);
@@ -641,7 +771,7 @@ export default {
         );
       }
     } else {
-      return new Response('사용 가능: ?t=worldmap | ?t=meta', {
+      return new Response('사용 가능: ?t=worldmap | ?t=meta | ?t=prompt', {
         status: 400, headers: { 'Content-Type': 'text/plain; charset=utf-8' }
       });
     }

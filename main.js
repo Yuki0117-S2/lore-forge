@@ -24,7 +24,19 @@ function createWindow() {
 
   win.loadFile('index.html')
 
-  // 진단용: 필요할 때만 주석 풀어서 사용. 평소엔 주석 처리.
+  // F12 / Ctrl+Shift+I → DevTools 토글 (디버깅용)
+  // before-input-event는 BrowserWindow에 포커스 있을 때만 발화하므로 안전
+  win.webContents.on('before-input-event', (event, input) => {
+    if (input.type !== 'keyDown') return
+    const isF12 = input.key === 'F12'
+    const isCtrlShiftI = input.control && input.shift && (input.key === 'I' || input.key === 'i')
+    if (isF12 || isCtrlShiftI) {
+      win.webContents.toggleDevTools()
+      event.preventDefault()
+    }
+  })
+
+  // 진단용: 시작 시 자동 오픈하려면 아래 줄 주석 해제
   // win.webContents.openDevTools()
 }
 

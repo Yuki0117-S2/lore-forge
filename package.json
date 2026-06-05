@@ -1,12 +1,17 @@
 {
-  "name": "imageforge",
+  "name": "chatbot",
   "version": "1.0.0",
-  "description": "FORGE — 이미지 프롬프트 주조소",
+  "description": "",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "devDependencies": {
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
     "electron": "^42.0.0"
   }
 }

@@ -709,19 +709,21 @@ function deleteProject(){
   const keys=Object.keys(projects);
   if(keys.length===1){alert('마지막 프로젝트는 삭제할 수 없어!');return;}
   if(!confirm(`"${proj.name}" 프로젝트를 삭제할까?`))return;
+  safetyBackup('프로젝트 삭제: '+proj.name);
   delete projects[currentProjectId];
   currentProjectId=Object.keys(projects)[0];
-  saveAll();renderProjectDropdown();loadProjectUI();showToast('🗑 삭제됨');
+  saveAll();renderProjectDropdown();loadProjectUI();showToast('🗑 삭제됨 (실수면 F12 콘솔에서 loreForgeDebug.listBackups())');
 }
 
 function resetProject(){
   const proj=getProject();if(!proj)return;
   if(!confirm(`"${proj.name}" 세계관/출력지침/행동규칙을 초기화할까?\n캐릭터는 유지돼.`))return;
-  proj.world={name:'',era:'',desc:'',magic:'',society:'',taboo:'',places:'',toneVal:'50',ruleTags:[],atmoTags:[],placeTags:[],genreChips:[]};
+  safetyBackup('프로젝트 초기화: '+proj.name);
+  proj.world={name:'',era:'',desc:'',magic:'',society:'',taboo:'',places:'',toneVal:'50',ruleTags:[],atmoTags:[],placeTags:[],genreChips:[],worldTraits:[]};
   proj.output={povChips:[],styleChips:[],densityChips:[],lengthChips:[],actionChips:[],narrDetail:'',lengthDetail:'',status:'',affection:'',affectionFactor:'',extra:''};
   proj.rules={extra:'',mustTags:[],neverTags:[]};
   proj.globalTagData={};proj.lorebook=[];
-  saveAll();loadProjectUI();showToast('↺ 초기화 완료!');
+  saveAll();loadProjectUI();showToast('↺ 초기화 완료! (실수면 F12 콘솔에서 loreForgeDebug.listBackups())');
 }
 
 function renderProjectDropdown(){
@@ -1367,13 +1369,27 @@ function moveTrait(i,dir){
   renderTraits();saveAll();updatePreview();
 }
 // 화면 회전/리사이즈 시 모바일↔데스크탑 레이아웃 전환
+// ⚠️ 모바일 키보드는 viewport 세로만 줄여서 resize 이벤트가 발생하는데,
+// 이때 list.innerHTML='' 재렌더하면 포커스 input이 사라져서 키보드가 즉시 닫힘.
+// 따라서 (1) 가로 폭이 바뀐 경우에만 (2) trait 안에 포커스 없을 때만 리렌더.
 let __traitResizeTimer=null;
+let __lastViewportWidth=window.innerWidth;
 window.addEventListener('resize',()=>{
+  const newW=window.innerWidth;
+  const widthChanged=newW!==__lastViewportWidth;
+  // 모바일↔데스크탑 경계(768px)를 가로지른 경우만 진짜 의미있는 변화
+  const crossedBreakpoint=(__lastViewportWidth<=768)!==(newW<=768);
+  __lastViewportWidth=newW;
+  if(!widthChanged)return; // 키보드로 인한 세로만 변화 → 무시
   clearTimeout(__traitResizeTimer);
   __traitResizeTimer=setTimeout(()=>{
+    // 포커스가 trait input 안에 있으면 리렌더 스킵 (입력 끊기지 않도록)
+    const ae=document.activeElement;
+    const inTraitInput=ae&&(ae.tagName==='INPUT'||ae.tagName==='TEXTAREA')&&ae.closest('.trait-item');
+    if(inTraitInput&&!crossedBreakpoint)return;
     if(document.getElementById('c-traits-list'))renderTraits();
     if(document.getElementById('world-traits-list'))renderWorldTraits();
-  },200);
+  },300);
 });
 
 // ===== 세계관 추가 설정 (World Traits) =====
@@ -1792,8 +1808,112 @@ async function copyPrompt(){
 }
 
 // ===== 저장 =====
-function saveAll(){saveCurrentProjectFromUI();try{localStorage.setItem('loreforge_v3',JSON.stringify({projects,currentProjectId,customChips}));}catch(e){}}
-function loadAll(){try{const raw=localStorage.getItem('loreforge_v3');if(!raw)return false;const data=JSON.parse(raw);projects=data.projects||{};currentProjectId=data.currentProjectId||null;if(data.customChips){customChips=data.customChips;saveCustomChips();}if(currentProjectId&&!projects[currentProjectId])currentProjectId=Object.keys(projects)[0]||null;return true;}catch(e){return false;}}
+// 백업 시스템: 위험 동작 직전 자동 백업 5개 슬롯 보관
+const LF_BACKUP_KEY='loreforge_v3_backups';
+const LF_BACKUP_LIMIT=5;
+function safetyBackup(reason){
+  try{
+    const cur=localStorage.getItem('loreforge_v3');
+    if(!cur)return;
+    let slots=[];
+    try{const raw=localStorage.getItem(LF_BACKUP_KEY);if(raw)slots=JSON.parse(raw);}catch(e){slots=[];}
+    if(!Array.isArray(slots))slots=[];
+    // 같은 데이터가 직전 슬롯과 동일하면 또 백업 안 함 (중복 방지)
+    if(slots.length&&slots[0]&&slots[0].data===cur)return;
+    slots.unshift({savedAt:new Date().toISOString(),reason:reason||'auto',data:cur});
+    if(slots.length>LF_BACKUP_LIMIT)slots=slots.slice(0,LF_BACKUP_LIMIT);
+    try{localStorage.setItem(LF_BACKUP_KEY,JSON.stringify(slots));}
+    catch(e){console.warn('[LoreForge] 백업 저장 실패 (용량?):',e);}
+  }catch(e){console.warn('[LoreForge] 백업 함수 오류:',e);}
+}
+function saveAll(){
+  saveCurrentProjectFromUI();
+  try{
+    localStorage.setItem('loreforge_v3',JSON.stringify({projects,currentProjectId,customChips}));
+  }catch(e){
+    console.error('[LoreForge] 저장 실패! 데이터가 디스크에 반영되지 않았어:',e);
+    showToast('⚠️ 저장 실패! 브라우저 콘솔 확인');
+  }
+}
+function loadAll(){
+  try{
+    const raw=localStorage.getItem('loreforge_v3');
+    if(!raw){window.__lfLoadStatus='empty';return false;}
+    const data=JSON.parse(raw);
+    projects=data.projects||{};
+    currentProjectId=data.currentProjectId||null;
+    if(data.customChips){customChips=data.customChips;saveCustomChips();}
+    if(currentProjectId&&!projects[currentProjectId])currentProjectId=Object.keys(projects)[0]||null;
+    window.__lfLoadStatus='ok';
+    return true;
+  }catch(e){
+    // ⚠️ 파싱 실패 = 데이터 손상. 절대 그냥 무시하면 안 됨.
+    console.error('[LoreForge] loadAll 실패! localStorage 데이터가 손상됐어:',e);
+    console.error('[LoreForge] 손상된 원본:',localStorage.getItem('loreforge_v3'));
+    window.__lfLoadStatus='corrupt';
+    window.__lfLoadError=e;
+    return false;
+  }
+}
+
+// 콘솔 디버그/복구 함수 — 사용자가 F12 콘솔에서 호출
+window.loreForgeDebug={
+  listBackups(){
+    try{
+      const raw=localStorage.getItem(LF_BACKUP_KEY);
+      if(!raw){console.log('백업 슬롯 없음');return[];}
+      const slots=JSON.parse(raw);
+      if(!Array.isArray(slots)||!slots.length){console.log('백업 슬롯 비어있음');return[];}
+      console.log('=== LORE FORGE 백업 슬롯 ===');
+      slots.forEach((s,i)=>{
+        try{
+          const d=JSON.parse(s.data);
+          const projs=Object.values(d.projects||{});
+          console.log(`[${i}] ${s.savedAt} | 사유: ${s.reason||'-'} | 프로젝트 ${projs.length}개`);
+          projs.forEach(p=>console.log(`    └ "${p.name}" (캐릭터 ${(p.characters||[]).length}명)`));
+        }catch(e){console.log(`[${i}] ${s.savedAt} (파싱 실패)`);}
+      });
+      console.log('복구: loreForgeDebug.restoreBackup(인덱스)');
+      return slots;
+    }catch(e){console.error(e);return null;}
+  },
+  restoreBackup(index){
+    try{
+      const raw=localStorage.getItem(LF_BACKUP_KEY);
+      if(!raw){console.log('백업 없음');return false;}
+      const slots=JSON.parse(raw);
+      if(!slots[index]){console.log('해당 인덱스의 백업 없음. listBackups()로 목록 확인');return false;}
+      const d=JSON.parse(slots[index].data);
+      const projCount=Object.keys(d.projects||{}).length;
+      if(!confirm(`백업 #${index} (${slots[index].savedAt})으로 복구할까?\n프로젝트 ${projCount}개로 되돌려져. 현재 데이터는 새 백업으로 보관돼.`))return false;
+      safetyBackup('복구 직전 자동저장');
+      localStorage.setItem('loreforge_v3',slots[index].data);
+      alert('✅ 복구 완료! 페이지를 새로고침해줘 (F5).');
+      return true;
+    }catch(e){console.error(e);return false;}
+  },
+  showCurrent(){
+    try{
+      const raw=localStorage.getItem('loreforge_v3');
+      if(!raw){console.log('현재 저장된 데이터 없음');return null;}
+      const d=JSON.parse(raw);
+      const projs=Object.values(d.projects||{});
+      console.log(`=== 현재 저장 상태 ===`);
+      console.log(`프로젝트 ${projs.length}개:`);
+      projs.forEach(p=>console.log(`  - "${p.name}" (id: ${p.id}, 캐릭터 ${(p.characters||[]).length}명)`));
+      return d;
+    }catch(e){console.error(e);return null;}
+  },
+  exportAllRaw(){
+    // 비상시 전체 데이터 텍스트 덤프
+    const main=localStorage.getItem('loreforge_v3')||'';
+    const backups=localStorage.getItem(LF_BACKUP_KEY)||'';
+    const dump={exportedAt:new Date().toISOString(),main:main?JSON.parse(main):null,backups:backups?JSON.parse(backups):[]};
+    console.log('=== 전체 덤프 (복사해서 보관) ===');
+    console.log(JSON.stringify(dump,null,2));
+    return dump;
+  }
+};
 
 // ===== GITHUB GIST 연동 =====
 function openGistModal(){
@@ -1955,10 +2075,11 @@ function handleImport(e){
   reader.onload=(ev)=>{
     try{const data=JSON.parse(ev.target.result);const proj=data.project||data;if(!proj.id)proj.id='proj_'+Date.now();if(!proj.name)proj.name='불러온 프로젝트';
       if(projects[proj.id]){if(!confirm(`"${proj.name}" 프로젝트가 이미 있어. 덮어쓸까?`))return;}
+      safetyBackup('JSON 가져오기: '+proj.name);
       projects[proj.id]=proj;currentProjectId=proj.id;
       if(data.customChips){Object.keys(data.customChips).forEach(k=>{customChips[k]=[...new Set([...(customChips[k]||[]),...data.customChips[k]])];});saveCustomChips();}
-      renderProjectDropdown();loadProjectUI();try{localStorage.setItem('loreforge_v3',JSON.stringify({projects,currentProjectId,customChips}));}catch(e){}showToast('✅ 프로젝트 불러옴!');
-    }catch(err){alert('JSON 파일이 잘못됐어.');}
+      renderProjectDropdown();loadProjectUI();try{localStorage.setItem('loreforge_v3',JSON.stringify({projects,currentProjectId,customChips}));}catch(e){console.error('[LoreForge] 저장 실패:',e);}showToast('✅ 프로젝트 불러옴!');
+    }catch(err){console.error('[LoreForge] Import 오류:',err);alert('JSON 파일이 잘못됐어.');}
   };
   reader.readAsText(file);e.target.value='';
 }
@@ -2072,11 +2193,58 @@ function startAutoSave(){
 function init(){
   loadCustomChips();
   const loaded=loadAll();
-  if(!loaded||Object.keys(projects).length===0){
-    const proj=newProjectData('기본 프로젝트');projects[proj.id]=proj;currentProjectId=proj.id;saveAll();
+  if(!loaded){
+    // 데이터가 정말 비어 있는지 / 손상된 건지 구분 (덮어쓰기 사고 방지)
+    if(window.__lfLoadStatus==='corrupt'){
+      // 손상! 자동 백업에서 복구 시도
+      console.error('[LoreForge] ⚠️ 데이터 손상 감지. 백업 복구 시도 중...');
+      const recovered=tryAutoRecoverFromBackup();
+      if(recovered){
+        showToast('⚠️ 데이터 손상 감지 → 백업에서 자동 복구함');
+      }else{
+        // 백업도 없으면 사용자에게 명확히 알림 (새 프로젝트 자동 생성 금지)
+        alert('⚠️ 데이터가 손상됐는데 백업도 없어!\n\n빈 프로젝트로 시작하기 전에 F12 콘솔에서 아래 명령어로 원본을 확인해봐:\n\nloreForgeDebug.exportAllRaw()\n\n또는 Gist 동기화에서 복구할 수 있으면 그쪽이 안전해.');
+      }
+    }
+    if(Object.keys(projects).length===0){
+      const proj=newProjectData('기본 프로젝트');projects[proj.id]=proj;currentProjectId=proj.id;saveAll();
+    }
+  }else{
+    // 정상 로드 시 페이지 진입 백업 (세션당 1회)
+    if(!sessionStorage.getItem('lf_session_backup')){
+      safetyBackup('페이지 진입');
+      sessionStorage.setItem('lf_session_backup','1');
+    }
   }
   renderProjectDropdown();loadProjectUI();
   startAutoSave();
+  console.log('[LoreForge] 데이터 손실 시 F12 콘솔에서 loreForgeDebug.listBackups() 입력으로 백업 확인 가능');
+}
+
+// 손상 시 자동 복구 시도
+function tryAutoRecoverFromBackup(){
+  try{
+    const raw=localStorage.getItem(LF_BACKUP_KEY);
+    if(!raw)return false;
+    const slots=JSON.parse(raw);
+    if(!Array.isArray(slots)||!slots.length)return false;
+    // 가장 최신 백업 시도
+    for(const slot of slots){
+      try{
+        const d=JSON.parse(slot.data);
+        if(d.projects&&Object.keys(d.projects).length){
+          projects=d.projects;
+          currentProjectId=d.currentProjectId||Object.keys(d.projects)[0];
+          if(d.customChips)customChips=d.customChips;
+          console.log('[LoreForge] ✅ 백업에서 복구 완료:',slot.savedAt,slot.reason);
+          // 복구한 내용으로 다시 저장
+          try{localStorage.setItem('loreforge_v3',slot.data);}catch(e){}
+          return true;
+        }
+      }catch(e){continue;}
+    }
+    return false;
+  }catch(e){console.error('[LoreForge] 복구 실패:',e);return false;}
 }
 
 

@@ -20,9 +20,9 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .header{position:sticky;top:0;z-index:100;background:rgba(26,21,32,0.97);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:10px 18px;display:flex;align-items:center;gap:12px;height:50px;}
 .back-btn{background:none;border:1px solid var(--border);color:var(--muted);padding:5px 10px;border-radius:6px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:11px;transition:all 0.2s;white-space:nowrap;}
 .back-btn:hover{border-color:var(--accent);color:var(--accent);}
-.header-logo{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;background:linear-gradient(135deg,var(--accent3),var(--accent4));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.header-title{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.toc-toggle-btn{background:none;border:1px solid var(--border);color:var(--muted);padding:5px 10px;border-radius:6px;cursor:pointer;font-size:13px;transition:all 0.2s;margin-left:auto;}
+.header-logo{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;background:linear-gradient(135deg,var(--accent),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.header-title{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-left:auto;}
+.toc-toggle-btn{background:none;border:1px solid var(--border);color:var(--muted);padding:5px 10px;border-radius:6px;cursor:pointer;font-size:13px;transition:all 0.2s;}
 .toc-toggle-btn:hover{border-color:var(--accent);color:var(--accent);}
 
 /* 레이아웃 */
@@ -35,15 +35,15 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .toc-header{padding:10px 14px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);}
 .toc-chapter{margin-bottom:2px;}
 .toc-ch-btn{width:100%;text-align:left;background:none;border:none;cursor:pointer;padding:9px 12px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;transition:background 0.15s;border-left:3px solid transparent;}
-.toc-ch-btn:hover{background:rgba(221,170,204,0.08);}
-.toc-ch-btn.active{color:var(--accent3);border-left-color:var(--accent3);background:rgba(221,170,204,0.1);}
+.toc-ch-btn:hover{background:rgba(136,137,205,0.08);}
+.toc-ch-btn.active{color:var(--accent);border-left-color:var(--accent);background:rgba(136,137,205,0.1);}
 .toc-ch-arrow{font-size:9px;color:var(--muted);transition:transform 0.2s;margin-left:auto;}
 .toc-ch-btn.open .toc-ch-arrow{transform:rotate(90deg);}
 .toc-sections{overflow:hidden;max-height:0;transition:max-height 0.3s ease;}
 .toc-sections.open{max-height:2000px;}
 .toc-sec-btn{width:100%;text-align:left;background:none;border:none;cursor:pointer;padding:6px 12px 6px 24px;color:var(--muted);font-family:'Noto Sans KR',sans-serif;font-size:11px;transition:all 0.15s;border-left:3px solid transparent;line-height:1.4;}
-.toc-sec-btn:hover{color:var(--text);background:rgba(221,170,204,0.05);}
-.toc-sec-btn.active{color:var(--accent4);border-left-color:var(--accent4);background:rgba(204,170,136,0.07);}
+.toc-sec-btn:hover{color:var(--text);background:rgba(136,137,205,0.05);}
+.toc-sec-btn.active{color:var(--accent3);border-left-color:var(--accent3);background:rgba(221,170,204,0.07);}
 
 /* 콘텐츠 영역 */
 .content-area{flex:1;overflow-y:auto;padding:30px 40px;max-width:900px;margin:0 auto;width:100%;}
@@ -93,6 +93,11 @@ details.ref-item .ref-body{padding:0 16px 14px 30px;font-size:12px;color:var(--t
 .toc-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:40;}
 .toc-overlay.active{display:block;}
 
+/* 스크롤바 — guide.html과 일치 */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+
 /* 모바일 */
 @media(max-width:768px){
   body{overflow:auto;}
@@ -119,9 +124,11 @@ details.ref-item .ref-body{padding:0 16px 14px 30px;font-size:12px;color:var(--t
 <body>
 
 <header class="header">
-  <button class="back-btn" onclick="window.close()">✕ 닫기</button>
-  <div class="header-logo">LORE FORGE</div>
-  <div class="header-title">CHARACTER REFERENCE</div>
+  <button class="back-btn" onclick="goBack()">← LORE FORGE</button>
+  <div>
+    <div class="header-logo">REFERENCE</div>
+  </div>
+  <div class="header-title">에니어그램 · D&amp;D 성향표</div>
   <button class="toc-toggle-btn" onclick="toggleToc()" title="목차">☰</button>
 </header>
 
@@ -554,6 +561,23 @@ details.ref-item .ref-body{padding:0 16px 14px 30px;font-size:12px;color:var(--t
 </div>
 
 <script>
+function goBack(){
+  // 부모 탭이 살아있으면 닫고 부모로 돌아감, 아니면 단순 close 시도
+  try{
+    if(window.opener&&!window.opener.closed){
+      window.opener.focus();
+      window.close();
+      return;
+    }
+  }catch(e){}
+  // 부모 못 찾으면 닫기 시도, 안 닫히면 메시지
+  window.close();
+  setTimeout(()=>{
+    // 닫기가 차단된 경우 대비 (브라우저 정책)
+    document.body.style.transition='opacity 0.2s';
+  },50);
+}
+
 function toggleTocCh(btn){
   btn.classList.toggle('open');
   const sections=btn.nextElementSibling;

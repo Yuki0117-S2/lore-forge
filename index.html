@@ -113,6 +113,17 @@
   .relation-item{display:grid;grid-template-columns:1fr 1fr auto;gap:5px;align-items:center;margin-bottom:5px;}
   .del-btn{background:none;border:1px solid var(--border);color:var(--muted);border-radius:5px;width:25px;height:25px;cursor:pointer;font-size:13px;transition:all 0.2s;display:flex;align-items:center;justify-content:center;}
   .del-btn:hover{border-color:var(--accent2);color:var(--accent2);}
+  .trait-item{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px;margin-bottom:6px;display:flex;flex-direction:column;gap:6px;transition:border-color 0.2s;}
+  .trait-item:hover{border-color:#4a3a5a;}
+  .trait-item-head{display:grid;grid-template-columns:1fr auto auto auto;gap:5px;align-items:center;}
+  .trait-item-head input{background:var(--surface);border:1px solid var(--border);font-size:12px;padding:6px 8px;font-weight:600;}
+  .trait-item-head input::placeholder{font-weight:400;color:var(--muted);}
+  .trait-item textarea{min-height:50px;font-size:12px;background:var(--surface);}
+  .trait-move-btn{background:none;border:1px solid var(--border);color:var(--muted);border-radius:5px;width:25px;height:25px;cursor:pointer;font-size:11px;transition:all 0.2s;display:flex;align-items:center;justify-content:center;padding:0;}
+  .trait-move-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent);}
+  .trait-move-btn:disabled{opacity:0.3;cursor:not-allowed;}
+  .trait-count{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+  .trait-limit-msg{font-size:10px;color:var(--accent2);margin-top:4px;text-align:center;}
   .tab-panel{display:none;}
   .tab-panel.active{display:block;}
   .hint{font-size:10px;color:var(--muted);font-style:italic;line-height:1.5;padding:6px 8px;background:rgba(136,137,205,0.06);border-radius:5px;border-left:2px solid rgba(136,137,205,0.3);}
@@ -224,6 +235,9 @@
     .mob-more-item:active{background:var(--surface2);}
     .field-grid{grid-template-columns:1fr;}
     .modal{width:calc(100vw - 32px);max-width:340px;}
+    .trait-item-head{grid-template-columns:1fr auto;gap:4px;}
+    .trait-item-head .trait-move-btn,.trait-item-head .del-btn{width:32px;height:32px;}
+    .trait-actions-row{display:flex;gap:4px;justify-content:flex-end;grid-column:1 / -1;margin-top:2px;}
   }
 </style>
 </head>
@@ -249,6 +263,7 @@
     <button class="btn btn-ghost btn-sync-mob-hide" onclick="openGistModal()" title="GitHub Gist로 클라우드 동기화" style="border-color:rgba(106,200,176,0.5);color:#6AC8B0;">☁️ 동기화 <span class="sync-indicator" id="sync-indicator"></span></button>
     <button class="btn btn-guide" onclick="openGuide()" title="프롬프트 가이드 보기">📖 가이드</button>
     <button class="btn btn-guide" onclick="openTip()" title="마크다운 & UI 레퍼런스" style="background:linear-gradient(135deg,rgba(136,137,205,0.15),rgba(187,102,136,0.15));border-color:rgba(136,137,205,0.4);color:var(--accent);">💡 TIP</button>
+    <button class="btn btn-guide" onclick="openReference()" title="캐릭터 성격 분류 레퍼런스" style="background:linear-gradient(135deg,rgba(221,170,204,0.15),rgba(204,170,136,0.15));border-color:rgba(221,170,204,0.4);color:var(--accent3);">📚 레퍼런스</button>
   </div>
   <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(event)">
 </header>
@@ -364,6 +379,19 @@
               </div>
             </div>
             <div><div class="field-label">금기 / 터부</div><textarea id="world-taboo" placeholder="이 세계에서 절대 하면 안 되는 것..." oninput="saveAll();updatePreview()"></textarea></div>
+          </div>
+        </div>
+        <div class="panel" id="p-world-traits-panel">
+          <div class="panel-header" onclick="togglePanel('p-world-traits-panel')">
+            <div class="panel-icon" style="background:rgba(221,170,204,0.15)">🌐</div>
+            <div class="panel-title">세계관 추가 설정</div>
+            <span class="panel-badge">EXTRAS</span><span class="panel-arrow">▾</span>
+          </div>
+          <div class="panel-body">
+            <div class="hint" style="font-size:10px;color:var(--muted);margin-bottom:8px;">💡 마법·사회·장소·금기 외의 자유 항목을 추가해. 달력 체계, 통화, 종교, 역사적 사건, 세력관계, 언어, 이종족 등. 라벨을 비우면 내용만 출력돼. (최대 15개)</div>
+            <div id="world-traits-list"></div>
+            <button class="add-btn" id="world-trait-add-btn" onclick="addWorldTrait()">＋ 항목 추가</button>
+            <div id="world-trait-limit-msg" class="trait-limit-msg" style="display:none;">최대 15개까지만 추가할 수 있어.</div>
           </div>
         </div>
         <div class="panel" id="p-world-place">
@@ -649,7 +677,7 @@ function getCurrentChar(){const p=getProject();if(!p)return null;return p.charac
 function newProjectData(name){
   return{id:'proj_'+Date.now(),name:name||'새 프로젝트',characters:[],currentCharId:null,
     globalTagData:{},lorebook:[],
-    world:{name:'',era:'',desc:'',magic:'',society:'',taboo:'',places:'',toneVal:'50',ruleTags:[],atmoTags:[],placeTags:[],genreChips:[]},
+    world:{name:'',era:'',desc:'',magic:'',society:'',taboo:'',places:'',toneVal:'50',ruleTags:[],atmoTags:[],placeTags:[],genreChips:[],worldTraits:[]},
     output:{povChips:[],styleChips:[],densityChips:[],lengthChips:[],actionChips:[],narrDetail:'',lengthDetail:'',status:'',affection:'',affectionFactor:'',extra:''},
     rules:{extra:'',mustTags:[],neverTags:[]}
   };
@@ -706,6 +734,7 @@ function renderProjectDropdown(){
 // ===== UI 저장/로드 =====
 function saveCurrentProjectFromUI(){
   const proj=getProject();if(!proj)return;
+  const prevWorld=proj.world||{};
   proj.world={
     name:gv('world-name'),era:gv('world-era'),desc:gv('world-desc'),magic:gv('world-magic'),
     society:gv('world-society'),taboo:gv('world-taboo'),places:gv('world-places'),
@@ -713,6 +742,7 @@ function saveCurrentProjectFromUI(){
     ruleTags:proj.globalTagData['world-rule']||[],atmoTags:proj.globalTagData['atmo']||[],
     placeTags:proj.globalTagData['place']||[],
     genreChips:getActiveChips(document.getElementById('genre-chips')),
+    worldTraits:Array.isArray(prevWorld.worldTraits)?prevWorld.worldTraits:[],
   };
   proj.output={
     povChips:getActiveChips(document.getElementById('pov-chips')),
@@ -750,6 +780,8 @@ function loadProjectUI(){
     proj.globalTagData['place']=w.placeTags||[];
     renderGlobalTags('world-rule');renderGlobalTags('atmo');renderGlobalTags('place');
     restoreChips('genre-chips',w.genreChips||[]);
+    if(!Array.isArray(w.worldTraits))w.worldTraits=[];
+    renderWorldTraits();
 
     const o=proj.output||{};
     setVal('out-narr-detail',o.narrDetail);setVal('out-length-detail',o.lengthDetail);
@@ -778,7 +810,7 @@ function addCharacter(){
   const id='c'+Date.now();
   proj.characters.push({id,colorIdx:proj.characters.length%COLORS.length,
     data:{name:'',age:'',gender:'',role:'',intro:'',personality:'',values:'',appearance:'',outfit:'',backstory:'',secret:'',emotionVal:50,userTitle:'',userRole:'',talkStyle:'',special:''},
-    tagData:{personality:[],habit:[],like:[],dislike:[],must:[],never:[]},speechChips:[],outfitChips:[],bdsmChips:[],relations:[]
+    tagData:{personality:[],habit:[],like:[],dislike:[],must:[],never:[]},speechChips:[],outfitChips:[],bdsmChips:[],relations:[],traits:[]
   });
   proj.currentCharId=id;saveAll();renderSidebar();renderCharEditor();switchTab('character');
 }
@@ -910,6 +942,18 @@ function renderCharEditor(){
         <div><div class="field-label">비밀 / 트라우마 / 숨겨진 면</div><textarea id="c-secret" placeholder="숨기고 있는 것, 약점, 트라우마, 결핍..." oninput="saveField('secret',this.value)">${esc(d.secret)}</textarea></div>
       </div>
     </div>
+    <div class="panel" id="cp-traits">
+      <div class="panel-header" onclick="togglePanel('cp-traits')">
+        <div class="panel-icon" style="background:rgba(204,170,136,0.15)">🎯</div><div class="panel-title">특징 & 기타</div>
+        <span class="panel-badge">TRAITS</span><span class="panel-arrow">▾</span>
+      </div>
+      <div class="panel-body">
+        <div class="hint" style="font-size:10px;color:var(--muted);margin-bottom:8px;">💡 능력, 특기, 직책, 신앙, 소속 등 외모·성격·배경에 안 들어가는 자유 항목을 추가해. 라벨을 비우면 내용만 출력돼. (최대 10개)</div>
+        <div id="c-traits-list"></div>
+        <button class="add-btn" id="c-trait-add-btn" onclick="addTrait()">＋ 항목 추가</button>
+        <div id="c-trait-limit-msg" class="trait-limit-msg" style="display:none;">최대 10개까지만 추가할 수 있어.</div>
+      </div>
+    </div>
     <div class="panel" id="cp-rel">
       <div class="panel-header" onclick="togglePanel('cp-rel')">
         <div class="panel-icon" style="background:rgba(255,176,106,0.15)">🔗</div><div class="panel-title">인간관계</div>
@@ -992,7 +1036,7 @@ function renderCharEditor(){
     </div>`;
 
   renderCharTags('personality');renderCharTags('habit');renderCharTags('like');renderCharTags('dislike');renderCharTags('must');renderCharTags('never');
-  renderRelations();updatePreviewBar();
+  renderRelations();renderTraits();updatePreviewBar();
 
   // 유령 칩 자동 청소: UI에 존재하는 칩만 데이터에 유지 + 경고
   const validSpeech=['반말체','존댓말','사투리','고어체','무뚝뚝','수다스러움','시적인 표현','짧고 단호함',...(customChips['c-speech-chips']||[])];
@@ -1248,6 +1292,169 @@ function renderRelations(){
 function saveRel(i,f,v){const c=getCurrentChar();if(!c)return;c.relations[i][f]=v;saveAll();updatePreview();}
 function removeRel(i){const c=getCurrentChar();if(!c)return;c.relations.splice(i,1);renderRelations();saveAll();updatePreview();}
 
+// ===== 특징 & 기타 (Traits) =====
+const TRAIT_MAX=10;
+function ensureTraits(c){if(c&&!Array.isArray(c.traits))c.traits=[];}
+function addTrait(){
+  const c=getCurrentChar();if(!c)return;
+  ensureTraits(c);
+  if(c.traits.length>=TRAIT_MAX){
+    const m=document.getElementById('c-trait-limit-msg');
+    if(m){m.style.display='block';setTimeout(()=>{m.style.display='none';},2000);}
+    return;
+  }
+  c.traits.push({label:'',content:''});
+  renderTraits();saveAll();
+  // 새로 추가된 항목의 라벨 input에 자동 포커스 (모바일에서 키보드 자동 안 뜨면 무시됨)
+  setTimeout(()=>{
+    const list=document.getElementById('c-traits-list');
+    if(!list)return;
+    const inputs=list.querySelectorAll('.trait-item-head input');
+    if(inputs.length)inputs[inputs.length-1].focus();
+  },50);
+}
+function renderTraits(){
+  const c=getCurrentChar();const list=document.getElementById('c-traits-list');if(!c||!list)return;
+  ensureTraits(c);
+  list.innerHTML='';
+  const isMob=window.innerWidth<=768;
+  c.traits.forEach((t,i)=>{
+    const div=document.createElement('div');div.className='trait-item';
+    const upDisabled=i===0?'disabled':'';
+    const downDisabled=i===c.traits.length-1?'disabled':'';
+    if(isMob){
+      // 모바일: 라벨 + (이동/삭제 아래줄) + 내용
+      div.innerHTML=`
+        <div class="trait-item-head">
+          <input type="text" placeholder="라벨 (예: 능력, 직책, 신앙... 비워도 됨)" value="${esc(t.label||'')}" oninput="saveTrait(${i},'label',this.value)">
+          <div class="trait-actions-row">
+            <button class="trait-move-btn" ${upDisabled} onclick="moveTrait(${i},-1)" title="위로">▲</button>
+            <button class="trait-move-btn" ${downDisabled} onclick="moveTrait(${i},1)" title="아래로">▼</button>
+            <button class="del-btn" onclick="removeTrait(${i})">×</button>
+          </div>
+        </div>
+        <textarea placeholder="내용을 자유롭게 작성해..." oninput="saveTrait(${i},'content',this.value)">${esc(t.content||'')}</textarea>`;
+    }else{
+      div.innerHTML=`
+        <div class="trait-item-head">
+          <input type="text" placeholder="라벨 (예: 능력, 직책, 신앙... 비워도 됨)" value="${esc(t.label||'')}" oninput="saveTrait(${i},'label',this.value)">
+          <button class="trait-move-btn" ${upDisabled} onclick="moveTrait(${i},-1)" title="위로">▲</button>
+          <button class="trait-move-btn" ${downDisabled} onclick="moveTrait(${i},1)" title="아래로">▼</button>
+          <button class="del-btn" onclick="removeTrait(${i})">×</button>
+        </div>
+        <textarea placeholder="내용을 자유롭게 작성해..." oninput="saveTrait(${i},'content',this.value)">${esc(t.content||'')}</textarea>`;
+    }
+    list.appendChild(div);
+  });
+  // 상한 도달 시 추가 버튼 흐리게
+  const addBtn=document.getElementById('c-trait-add-btn');
+  if(addBtn){
+    if(c.traits.length>=TRAIT_MAX){addBtn.style.opacity='0.4';addBtn.style.cursor='not-allowed';}
+    else{addBtn.style.opacity='1';addBtn.style.cursor='pointer';}
+  }
+}
+function saveTrait(i,f,v){const c=getCurrentChar();if(!c)return;ensureTraits(c);if(!c.traits[i])return;c.traits[i][f]=v;saveAll();updatePreview();}
+function removeTrait(i){
+  const c=getCurrentChar();if(!c)return;ensureTraits(c);
+  if(!confirm('이 항목을 삭제할까?'))return;
+  c.traits.splice(i,1);renderTraits();saveAll();updatePreview();
+}
+function moveTrait(i,dir){
+  const c=getCurrentChar();if(!c)return;ensureTraits(c);
+  const j=i+dir;
+  if(j<0||j>=c.traits.length)return;
+  [c.traits[i],c.traits[j]]=[c.traits[j],c.traits[i]];
+  renderTraits();saveAll();updatePreview();
+}
+// 화면 회전/리사이즈 시 모바일↔데스크탑 레이아웃 전환
+let __traitResizeTimer=null;
+window.addEventListener('resize',()=>{
+  clearTimeout(__traitResizeTimer);
+  __traitResizeTimer=setTimeout(()=>{
+    if(document.getElementById('c-traits-list'))renderTraits();
+    if(document.getElementById('world-traits-list'))renderWorldTraits();
+  },200);
+});
+
+// ===== 세계관 추가 설정 (World Traits) =====
+const WORLD_TRAIT_MAX=15;
+function ensureWorldTraits(){
+  const p=getProject();if(!p)return null;
+  if(!p.world)p.world={};
+  if(!Array.isArray(p.world.worldTraits))p.world.worldTraits=[];
+  return p.world.worldTraits;
+}
+function addWorldTrait(){
+  const arr=ensureWorldTraits();if(!arr)return;
+  if(arr.length>=WORLD_TRAIT_MAX){
+    const m=document.getElementById('world-trait-limit-msg');
+    if(m){m.style.display='block';setTimeout(()=>{m.style.display='none';},2000);}
+    return;
+  }
+  arr.push({label:'',content:''});
+  renderWorldTraits();saveAll();updatePreview();
+  setTimeout(()=>{
+    const list=document.getElementById('world-traits-list');
+    if(!list)return;
+    const inputs=list.querySelectorAll('.trait-item-head input');
+    if(inputs.length)inputs[inputs.length-1].focus();
+  },50);
+}
+function renderWorldTraits(){
+  const arr=ensureWorldTraits();const list=document.getElementById('world-traits-list');
+  if(!arr||!list)return;
+  list.innerHTML='';
+  const isMob=window.innerWidth<=768;
+  arr.forEach((t,i)=>{
+    const div=document.createElement('div');div.className='trait-item';
+    const upDisabled=i===0?'disabled':'';
+    const downDisabled=i===arr.length-1?'disabled':'';
+    if(isMob){
+      div.innerHTML=`
+        <div class="trait-item-head">
+          <input type="text" placeholder="라벨 (예: 달력, 통화, 종교, 역사... 비워도 됨)" value="${esc(t.label||'')}" oninput="saveWorldTrait(${i},'label',this.value)">
+          <div class="trait-actions-row">
+            <button class="trait-move-btn" ${upDisabled} onclick="moveWorldTrait(${i},-1)" title="위로">▲</button>
+            <button class="trait-move-btn" ${downDisabled} onclick="moveWorldTrait(${i},1)" title="아래로">▼</button>
+            <button class="del-btn" onclick="removeWorldTrait(${i})">×</button>
+          </div>
+        </div>
+        <textarea placeholder="내용을 자유롭게 작성해..." oninput="saveWorldTrait(${i},'content',this.value)">${esc(t.content||'')}</textarea>`;
+    }else{
+      div.innerHTML=`
+        <div class="trait-item-head">
+          <input type="text" placeholder="라벨 (예: 달력, 통화, 종교, 역사... 비워도 됨)" value="${esc(t.label||'')}" oninput="saveWorldTrait(${i},'label',this.value)">
+          <button class="trait-move-btn" ${upDisabled} onclick="moveWorldTrait(${i},-1)" title="위로">▲</button>
+          <button class="trait-move-btn" ${downDisabled} onclick="moveWorldTrait(${i},1)" title="아래로">▼</button>
+          <button class="del-btn" onclick="removeWorldTrait(${i})">×</button>
+        </div>
+        <textarea placeholder="내용을 자유롭게 작성해..." oninput="saveWorldTrait(${i},'content',this.value)">${esc(t.content||'')}</textarea>`;
+    }
+    list.appendChild(div);
+  });
+  const addBtn=document.getElementById('world-trait-add-btn');
+  if(addBtn){
+    if(arr.length>=WORLD_TRAIT_MAX){addBtn.style.opacity='0.4';addBtn.style.cursor='not-allowed';}
+    else{addBtn.style.opacity='1';addBtn.style.cursor='pointer';}
+  }
+}
+function saveWorldTrait(i,f,v){
+  const arr=ensureWorldTraits();if(!arr||!arr[i])return;
+  arr[i][f]=v;saveAll();updatePreview();
+}
+function removeWorldTrait(i){
+  const arr=ensureWorldTraits();if(!arr)return;
+  if(!confirm('이 항목을 삭제할까?'))return;
+  arr.splice(i,1);renderWorldTraits();saveAll();updatePreview();
+}
+function moveWorldTrait(i,dir){
+  const arr=ensureWorldTraits();if(!arr)return;
+  const j=i+dir;
+  if(j<0||j>=arr.length)return;
+  [arr[i],arr[j]]=[arr[j],arr[i]];
+  renderWorldTraits();saveAll();updatePreview();
+}
+
 // ===== 로어북 =====
 function addLorebook(){
   const proj=getProject();if(!proj)return;
@@ -1428,6 +1635,20 @@ function buildCharPrompt(char){
     p('## 배경 & 동기');if(d.backstory)p(d.backstory);if(lk.length)p(`좋아하는 것: ${lk.join(', ')}`);if(dl.length)p(`싫어하는 것: ${dl.join(', ')}`);if(d.secret)p(`\n[숨겨진 면] ${d.secret}`);p('');
   }
   if(char.relations&&char.relations.length){p('## 인간관계');char.relations.forEach(r=>{if(r.name||r.rel)p(`- ${r.name}: ${r.rel}`);});p('');}
+  if(char.traits&&char.traits.length){
+    const validTraits=char.traits.filter(t=>(t.label&&t.label.trim())||(t.content&&t.content.trim()));
+    if(validTraits.length){
+      p('## 특징 & 기타');
+      validTraits.forEach(t=>{
+        const lbl=(t.label||'').trim();
+        const ctn=(t.content||'').trim();
+        if(lbl&&ctn)p(`${lbl}: ${ctn}`);
+        else if(ctn)p(ctn);
+        else if(lbl)p(lbl);
+      });
+      p('');
+    }
+  }
   const bdsmC=char.bdsmChips||[];const sexDetail=d.sexualityDetail||'';
   if(bdsmC.length||sexDetail){
     p('## 성적 성향');
@@ -1457,11 +1678,27 @@ function buildWorldPrompt(){
   const gc=getActiveChips(document.getElementById('genre-chips'));
   const at=gd['atmo']||[];const wr=gd['world-rule']||[];const pt=gd['place']||[];
   const tvEl=document.getElementById('tone-slider');const tv=parseInt(tvEl?tvEl.value:50);
-  if(!wn&&!wd&&!gc.length&&!wm&&!ws&&!at.length&&!wr.length&&!wp)return'';
+  const wt2Check=(proj.world&&Array.isArray(proj.world.worldTraits))?proj.world.worldTraits.filter(t=>(t.label&&t.label.trim())||(t.content&&t.content.trim())):[];
+  if(!wn&&!wd&&!gc.length&&!wm&&!ws&&!at.length&&!wr.length&&!wp&&!wt2Check.length)return'';
   p('# 세계관 설정');p('');
   if(wn)p(`세계 이름: ${wn}`);if(gc.length)p(`장르: ${gc.join(', ')}`);if(we)p(`시대: ${we}`);p('');
   if(wd){p('## 세계 개요');p(wd);p('');}if(wm){p('## 마법/기술 체계');p(wm);p('');}if(ws){p('## 사회 구조');p(ws);p('');}
   if(wr.length){p('## 세계 법칙');wr.forEach(r=>p(`- ${r}`));p('');}
+  const wt2=(proj.world&&Array.isArray(proj.world.worldTraits))?proj.world.worldTraits:[];
+  if(wt2.length){
+    const validWT=wt2.filter(t=>(t.label&&t.label.trim())||(t.content&&t.content.trim()));
+    if(validWT.length){
+      p('## 세계관 추가 설정');
+      validWT.forEach(t=>{
+        const lbl=(t.label||'').trim();
+        const ctn=(t.content||'').trim();
+        if(lbl&&ctn)p(`${lbl}: ${ctn}`);
+        else if(ctn)p(ctn);
+        else if(lbl)p(lbl);
+      });
+      p('');
+    }
+  }
   if(wp||pt.length){p('## 주요 장소');if(wp)p(wp);if(pt.length)p(`장소 태그: ${pt.join(', ')}`);p('');}
   if(at.length||tv!==50){p('## 분위기');p(tv<30?'전반적으로 어둡고 무거운 분위기':tv>70?'전반적으로 밝고 경쾌한 분위기':'밝음과 어둠이 공존하는 분위기');if(at.length)p(`분위기 키워드: ${at.join(', ')}`);p('');}
   if(wt){p('## 금기사항');p(wt);p('');}
@@ -1749,6 +1986,9 @@ function openGuide(){
 }
 function openTip(){
   window.open('tip.html', '_blank');
+}
+function openReference(){
+  window.open('reference.html', '_blank');
 }
 
 // ===== 초기화 =====

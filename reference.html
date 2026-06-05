@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>캐릭터 성격 레퍼런스 — LORE FORGE</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#1a1520; --surface:#221b2a; --surface2:#2a2235; --border:#3a2e48;
+  --accent:#8889CD; --accent2:#BB6688; --accent3:#DDAACC; --accent4:#CCAA88;
+  --text:#f0eaf5; --muted:#7a6e8a;
+  --toc-w: 260px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");}
+
+/* 헤더 */
+.header{position:sticky;top:0;z-index:100;background:rgba(26,21,32,0.97);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:10px 18px;display:flex;align-items:center;gap:12px;height:50px;}
+.back-btn{background:none;border:1px solid var(--border);color:var(--muted);padding:5px 10px;border-radius:6px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:11px;transition:all 0.2s;white-space:nowrap;}
+.back-btn:hover{border-color:var(--accent);color:var(--accent);}
+.header-logo{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;background:linear-gradient(135deg,var(--accent3),var(--accent4));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.header-title{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.toc-toggle-btn{background:none;border:1px solid var(--border);color:var(--muted);padding:5px 10px;border-radius:6px;cursor:pointer;font-size:13px;transition:all 0.2s;margin-left:auto;}
+.toc-toggle-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+/* 레이아웃 */
+.app-body{display:flex;position:relative;z-index:1;height:calc(100vh - 50px);}
+
+/* TOC 사이드바 */
+.toc-sidebar{width:var(--toc-w);flex-shrink:0;border-right:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;overflow:hidden;transition:transform 0.3s;}
+.toc-sidebar.hidden{transform:translateX(-100%);position:absolute;left:0;top:0;bottom:0;z-index:50;box-shadow:4px 0 20px rgba(0,0,0,0.4);}
+.toc-inner{overflow-y:auto;flex:1;padding:8px 0;}
+.toc-header{padding:10px 14px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);}
+.toc-chapter{margin-bottom:2px;}
+.toc-ch-btn{width:100%;text-align:left;background:none;border:none;cursor:pointer;padding:9px 12px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;transition:background 0.15s;border-left:3px solid transparent;}
+.toc-ch-btn:hover{background:rgba(221,170,204,0.08);}
+.toc-ch-btn.active{color:var(--accent3);border-left-color:var(--accent3);background:rgba(221,170,204,0.1);}
+.toc-ch-arrow{font-size:9px;color:var(--muted);transition:transform 0.2s;margin-left:auto;}
+.toc-ch-btn.open .toc-ch-arrow{transform:rotate(90deg);}
+.toc-sections{overflow:hidden;max-height:0;transition:max-height 0.3s ease;}
+.toc-sections.open{max-height:2000px;}
+.toc-sec-btn{width:100%;text-align:left;background:none;border:none;cursor:pointer;padding:6px 12px 6px 24px;color:var(--muted);font-family:'Noto Sans KR',sans-serif;font-size:11px;transition:all 0.15s;border-left:3px solid transparent;line-height:1.4;}
+.toc-sec-btn:hover{color:var(--text);background:rgba(221,170,204,0.05);}
+.toc-sec-btn.active{color:var(--accent4);border-left-color:var(--accent4);background:rgba(204,170,136,0.07);}
+
+/* 콘텐츠 영역 */
+.content-area{flex:1;overflow-y:auto;padding:30px 40px;max-width:900px;margin:0 auto;width:100%;}
+.content-header{margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid var(--border);}
+.content-header-title{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:4px;background:linear-gradient(135deg,var(--accent3),var(--accent4));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px;}
+.content-header-sub{font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:1px;}
+
+.chapter-block{margin-bottom:32px;}
+.chapter-header{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:16px;position:relative;overflow:hidden;}
+.chapter-header::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(221,170,204,0.05),rgba(204,170,136,0.05));pointer-events:none;}
+.chapter-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:3px;margin-bottom:4px;}
+.chapter-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:3px;background:linear-gradient(135deg,var(--accent3),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px;}
+.chapter-sub{font-size:12px;color:var(--muted);}
+
+/* 그룹 헤더 (1번 중심 등) */
+.group-header{text-align:center;color:var(--accent3);font-size:11px;letter-spacing:3px;font-weight:bold;margin:24px 0 10px;font-family:'JetBrains Mono',monospace;}
+
+/* 아이템 (details/summary) */
+details.ref-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:6px;overflow:hidden;transition:border-color 0.2s;}
+details.ref-item:hover{border-color:#4a3a5a;}
+details.ref-item[open]{border-color:rgba(221,170,204,0.4);}
+details.ref-item summary{padding:12px 16px;cursor:pointer;list-style:none;font-size:13px;font-weight:600;color:var(--accent3);display:flex;align-items:center;gap:8px;}
+details.ref-item summary::-webkit-details-marker{display:none;}
+details.ref-item summary::before{content:'▸';font-size:10px;color:var(--muted);transition:transform 0.2s;}
+details.ref-item[open] summary::before{transform:rotate(90deg);}
+details.ref-item .ref-body{padding:0 16px 14px 30px;font-size:12px;color:var(--text);line-height:1.7;}
+.ref-body .ref-desc{color:#b0a8c0;margin-bottom:10px;}
+.ref-body .ref-meta{display:flex;flex-direction:column;gap:6px;}
+.ref-body .ref-meta-row{display:flex;gap:8px;align-items:flex-start;}
+.ref-body .ref-meta-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;min-width:80px;flex-shrink:0;padding-top:2px;}
+.ref-body .ref-meta-text{flex:1;color:#d8d0e0;}
+.ref-body .ref-dark{margin-top:8px;padding:8px 12px;background:rgba(187,102,136,0.08);border-left:2px solid var(--accent2);border-radius:4px;font-size:11px;color:#e0c0d0;}
+.ref-body .ref-dark-label{color:var(--accent2);font-weight:600;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;margin-right:6px;}
+
+/* 비교표 */
+.ref-table{width:100%;border-collapse:collapse;font-size:11px;margin:10px 0;}
+.ref-table th{background:var(--surface2);color:var(--accent3);font-weight:700;padding:8px 10px;border:1px solid var(--border);text-align:left;}
+.ref-table td{padding:7px 10px;border:1px solid var(--border);color:#c8c0d4;}
+.ref-table td:first-child{color:var(--accent4);font-weight:600;font-family:'JetBrains Mono',monospace;font-size:11px;}
+.ref-table tr:hover td{background:rgba(221,170,204,0.04);}
+
+/* 사용 팁 박스 */
+.tip-box{background:rgba(136,137,205,0.08);border:1px solid rgba(136,137,205,0.3);border-radius:10px;padding:14px 18px;margin-bottom:20px;font-size:12px;color:#d0c8e0;line-height:1.7;}
+.tip-box-title{color:var(--accent);font-weight:700;font-size:12px;margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+
+/* TOC 오버레이 (모바일) */
+.toc-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:40;}
+.toc-overlay.active{display:block;}
+
+/* 모바일 */
+@media(max-width:768px){
+  body{overflow:auto;}
+  .header{padding:10px 14px;}
+  .header-logo{font-size:16px;}
+  .header-title{display:none;}
+  .toc-toggle-btn{display:flex;align-items:center;justify-content:center;width:36px;height:32px;padding:0;}
+  .app-body{flex-direction:column;height:auto;min-height:calc(100vh - 50px);}
+  .toc-sidebar{position:fixed;left:0;top:50px;bottom:0;width:240px;transform:translateX(-100%);z-index:50;box-shadow:4px 0 20px rgba(0,0,0,0.4);}
+  .toc-sidebar.shown-mobile{transform:translateX(0);}
+  .content-area{padding:20px 16px;max-width:100%;}
+  .content-header-title{font-size:24px;}
+  .chapter-header{padding:16px 18px;}
+  .chapter-title{font-size:22px;}
+  details.ref-item summary{padding:11px 14px;font-size:12px;}
+  details.ref-item .ref-body{padding:0 14px 12px 24px;font-size:11px;}
+  .ref-body .ref-meta-row{flex-direction:column;gap:2px;}
+  .ref-body .ref-meta-label{min-width:auto;}
+  .ref-table{font-size:10px;}
+  .ref-table th,.ref-table td{padding:6px 7px;}
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <button class="back-btn" onclick="window.close()">✕ 닫기</button>
+  <div class="header-logo">LORE FORGE</div>
+  <div class="header-title">CHARACTER REFERENCE</div>
+  <button class="toc-toggle-btn" onclick="toggleToc()" title="목차">☰</button>
+</header>
+
+<div class="app-body">
+
+  <aside class="toc-sidebar" id="toc-sidebar">
+    <div class="toc-inner">
+      <div class="toc-header">목차</div>
+      <div class="toc-chapter">
+        <button class="toc-ch-btn open active" onclick="toggleTocCh(this)" data-ch="ch-enneagram">
+          <span>1장 · 에니어그램 윙</span>
+          <span class="toc-ch-arrow">▸</span>
+        </button>
+        <div class="toc-sections open">
+          <button class="toc-sec-btn" onclick="jumpTo('en-1')">1번 중심 · 원칙주의자</button>
+          <button class="toc-sec-btn" onclick="jumpTo('en-2')">2번 중심 · 조력자</button>
+          <button class="toc-sec-btn" onclick="jumpTo('en-3')">3번 중심 · 성취자</button>
+          <button class="toc-sec-btn" onclick="jumpTo('en-4')">4번 중심 · 개인주의자</button>
+          <button class="toc-sec-btn" onclick="jumpTo('en-5')">5번 중심 · 탐구가</button>
+          <button class="toc-sec-btn" onclick="jumpTo('en-6')">6번 중심 · 충실가</button>
+          <button class="toc-sec-btn" onclick="jumpTo('en-7')">7번 중심 · 낙천가</button>
+          <button class="toc-sec-btn" onclick="jumpTo('en-8')">8번 중심 · 도전자</button>
+          <button class="toc-sec-btn" onclick="jumpTo('en-9')">9번 중심 · 평화주의자</button>
+        </div>
+      </div>
+      <div class="toc-chapter">
+        <button class="toc-ch-btn" onclick="toggleTocCh(this)" data-ch="ch-dnd">
+          <span>2장 · D&amp;D 성향표</span>
+          <span class="toc-ch-arrow">▸</span>
+        </button>
+        <div class="toc-sections">
+          <button class="toc-sec-btn" onclick="jumpTo('dnd-good')">선 진영</button>
+          <button class="toc-sec-btn" onclick="jumpTo('dnd-neutral')">중립 진영</button>
+          <button class="toc-sec-btn" onclick="jumpTo('dnd-evil')">악 진영</button>
+        </div>
+      </div>
+      <div class="toc-chapter">
+        <button class="toc-ch-btn" onclick="toggleTocCh(this)" data-ch="ch-table">
+          <span>3장 · 비교표</span>
+          <span class="toc-ch-arrow">▸</span>
+        </button>
+        <div class="toc-sections">
+          <button class="toc-sec-btn" onclick="jumpTo('tb-en')">에니어그램 요약표</button>
+          <button class="toc-sec-btn" onclick="jumpTo('tb-dnd')">D&amp;D 성향 요약표</button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="toc-overlay" id="toc-overlay" onclick="toggleToc()"></div>
+
+  <main class="content-area">
+    <div class="content-header">
+      <div class="content-header-title">CHARACTER REFERENCE</div>
+      <div class="content-header-sub">에니어그램 윙 · D&amp;D 성향표</div>
+    </div>
+
+    <div class="tip-box">
+      <div class="tip-box-title">💡 사용 팁</div>
+      이 페이지는 캐릭터 만들 때 옆에 띄워두고 보는 참고 자료야. 캐릭터 시트의 「성격 & 말투」 패널 안 <strong>"성격 상세 설명"</strong>이나 <strong>"가치관/행동 원리"</strong> 칸에 결과만 짧게 적어두면 좋아 (예: "4w5 보헤미안 / 혼돈중립").
+    </div>
+
+    <!-- ===== 1장 · 에니어그램 ===== -->
+    <div class="chapter-block" id="ch-enneagram">
+      <div class="chapter-header">
+        <div class="chapter-num">CHAPTER 01</div>
+        <div class="chapter-title">에니어그램 윙</div>
+        <div class="chapter-sub">18가지 캐릭터 성향 분류</div>
+      </div>
+
+      <div class="group-header" id="en-1">── 1번 중심 · 원칙주의자 ──</div>
+      <details class="ref-item">
+        <summary>1w9 · 이상주의자</summary>
+        <div class="ref-body">
+          <div class="ref-desc">냉정하고 침착한 원칙주의자. 겉으로는 조용하고 차분하지만, 자기 기준과 도덕관이 매우 단단하다. 갈등을 크게 만들고 싶어 하지는 않지만, 틀렸다고 판단한 일은 쉽게 넘어가지 않는다.</div>
+          <div class="ref-meta">
+            <div class="ref-meta-row"><div class="ref-meta-label">캐릭터</div><div class="ref-meta-text">조용한 선도부장, 침착한 개혁가, 은둔형 이상주의자</div></div>
+          </div>
+          <div class="ref-dark"><span class="ref-dark-label">DARK</span>자기 기준을 절대선으로 믿고 타인을 조용히 심판하는 타입</div>
+        </div>
+      </details>
+      <details class="ref-item">
+        <summary>1w2 · 사회운동가</summary>
+        <div class="ref-body">
+          <div class="ref-desc">1번의 원칙성과 2번의 돌봄 성향이 합쳐진 타입. 타인을 돕고 싶어 하지만, 동시에 "올바른 방향으로 고쳐야 한다"는 생각이 강하다. 잔소리가 많고 가르치려 드는 면이 있지만, 본인은 진심으로 상대를 위해서라고 믿는다.</div>
+          <div class="ref-meta">
+            <div class="ref-meta-row"><div class="ref-meta-label">캐릭터</div><div class="ref-meta-text">엄격한 보호자, 도덕적인 교사, 정의감 강한 활동가</div></div>
+          </div>
+          <div class="ref-dark"><span class="ref-dark-label">DARK</span>"널 위해서야"라는 말로 타인을 통제하려는 타입</div>
+        </div>
+      </details>
+
+      <div class="group-header" id="en-2">── 2번 중심 · 조력자 ──</div>
+      <details class="ref-item">
+        <summary>2w1 · 봉사자</summary>
+        <div class="ref-body">
+          <div class="ref-desc">도덕적 의무감으로 남을 돕는 타입. 다정하고 헌신적으로 보이지만, 예의와 격식, 도리 같은 것을 은근히 중요하게 여긴다. 도움을 주면서도 상대가 최소한의 예의를 지키길 바란다.</div>
+          <div class="ref-meta">
+            <div class="ref-meta-row"><div class="ref-meta-label">캐릭터</div><div class="ref-meta-text">다정한 보호자, 예의 바른 조력자, 헌신적인 간호사</div></div>
+          </div>
+          <div class="ref-dark"><span class="ref-dark-label">DARK</span>도움을 빌미로 상대에게 도덕적 빚을 지우는 타입</div>
+        </div>
+      </details>
+      <details class="ref-item">
+        <summary>2w3 · 호감형 조력자</summary>
+        <div class="ref-body">
+          <div class="ref-desc">사교적이고 매력적인 조력자. 남에게 필요한 사람이 되고 싶어 하며, 사랑받고 인정받는 것에 민감하다. 분위기를 잘 읽고 사람들의 호감을 얻는 데 능하다.</div>
+          <div class="ref-meta">
+            <div class="ref-meta-row"><div class="ref-meta-label">캐릭터</div><div class="ref-meta-text">인기 많은 친구, 매력적인 서포터, 사랑받고 싶은 주인공 타입</div></div>
+          </div>
+          <div class="ref-dark"><span class="ref-dark-label">DARK</span>관심과 애정을 독점하려 하고, 질투심이나 소유욕이 강해지는 타입</div>
+        </div>
+      </details>
+
+      <div class="group-header" id="en-3">── 3번 중심 · 성취자 ──</div>
+      <details class="ref-item">
+        <summary>3w2 · 매력가</summary>
+        <div class="ref-body">
+          <div class="ref-desc">스타성과 대중성이 강한 성취자. 사람들이 원하는 이미지를 잘 파악하고, 자신을 매력적으로 연출하는 데 능하다. 인정받고 사랑받는 성공을 원한다.</div>
+          <div class="ref-meta">
+            <div class="ref-meta-row"><div class="ref-meta-label">캐릭터</div><div class="ref-meta-text">아이돌, 정치가, 사교계 스타, 완벽한 우등생</div></div>
+          </div>
+          <div class="ref-dark"><span class="ref-dark-label">DARK</span>겉모습과 평판을 위해 진심까지 연기하는 타입</div>
+        </div>
+      </details>
+      <details class="ref-item">
+        <summary>3w4 · 전문가</summary>
+        <div class="ref-body">
+          <div class="ref-desc">성공 욕망과 특별해지고 싶은 욕망이 함께 있는 타입. 일 처리에 냉철하고 자기 분야에서 독보적인 존재가 되고 싶어 한다. 평범한 성공보다 "나만의 방식으로 증명된 성공"을 추구한다.</div>
+          <div class="ref-meta">
+            <div class="ref-meta-row"><div class="ref-meta-label">캐릭터</div><div class="ref-meta-text">엘리트 워커홀릭, 천재 전문가, 차가운 아티스트형 사업가</div></div>
+          </div>
+          <div class="ref-dark"><span class="ref-dark-label">DARK</span>실패와 평범함을 견디지 못해 자신을 몰아붙이는 타입</div>
+        </div>
+      </details>
+
+      <div class="group-header" id="en-4">── 4번 중심 · 개인주의자 ──</div>
+      <details class="ref-item">
+        <summary>4w3 · 귀족</summary>
+        <div class="ref-body">
+          <div class="ref-desc">감성적이고 우울한 면이 있으면서도, 남들에게 특별하고 아름답게 보이고 싶어 하는 타입. 자기표현 욕구가 강하고, 미적 감각과 자의식이 뚜렷하다.</div>
+          <div class="ref-meta">
+            <div class="ref-meta-row"><div class="ref-meta-label">캐릭터</div><div class="ref-meta-text">우아한 예술가, 사치스러운 귀족, 비극적인 스타</div></div>
+          </div>
+          <div class="ref-dark"><span class="ref-dark-label">DARK</span>자기 비극과 특별함에 취해 타인을 내려다보는 타입</div>
+        </div>
+      </details>
+      <details class="ref-item">
+        <summary>4w5 · 보헤미안</summary>
+        <div class="ref-body">
+          <div class="ref-desc">지극히 내향적이고 자기만의 세계가 강한 타입. 감정이 깊고 사고가 복잡하며, 세상과 쉽게 섞이지 않는다. 혼자만의 철학, 취향, 예술 세계에 몰입한다.</div>
+          <div class="ref-meta">
+            <div class="ref-meta-row"><div class="ref-meta-label">캐릭터</div><div class="ref-meta-text">은둔 예술가, 인간 혐오형 시인, 서사 깊은 아웃사이더</div></div>
+          </div>
+          <div class="ref-dark"><span class="ref-dark-label">DARK</span>고립과 우울에 빠져 현실과 단절되는 타입</div>
+        </div>
+      </details>
+
+      <div class="group-header" id="en-5">── 5번 중심 · 탐구가 ──</div>
+      <details class="ref-item">
+        <summary>5w4 · 기괴한 천재</summary>
+        <div class="ref-body">
+          <div class="ref-desc">지적 호기심과 독특한 감성이 결합된 타입. 남들이 이해하지 못하는 발상이나 기괴한 이론에 몰두한다. 감정 표현은 적지만 내면세계는 매우 복잡하다.</div>
+          <div class="ref-meta">
+            <div class="ref-meta-row"><div class="ref-meta-label">캐릭터</div><div class="ref-meta-text">매드 사이언티스트, 기괴한 학자, 은둔형 천재</div></div>
+          </div>
+          <div class="ref-dark"><span class="ref-dark-label">DARK</span>윤리보다 호기심을 앞세워 위험한 실험을 하는 타입</div>
+        </div>
+      </details>
+      <details class="ref-item">
+        <summary>5w6 · 문제해결사</summary>
+        <div class="ref-body">
+          <div class="ref-desc">감정보다 데이터, 논리, 시스템을 신뢰하는 타입. 조용하고 신중하며, 위험을 분석하고 문제를 해결하는 데 강하다. 협조적일 수 있지만 감정적으로는 차갑게 보이기 쉽다.</div>
+          <div class="ref-meta">
+            <div class="ref-meta-row"><div class="ref-meta-label">캐릭터</div><div class="ref-meta-text">분석가, 해커, 연구원, 전략 담당 참모</div></div>
+          </div>
+          <div class="ref-dark"><span class="ref-dark-label">DARK</span>인간을 변수나 데이터처럼 취급하는 냉정한 타입</div>
+        </div>
+      </details>
+
+      <div class="group-header" id="en-6">── 6번 중심 · 충실가 ──</div>
+      <details class="ref-item">
+        <summary>6w5 · 방어자</summary>
+        <div class="ref-body">
+          <div class="ref-desc">세상의 위험을 먼저 보고 대비하는 타입. 의심이 많고 신중하며, 시스템과 규칙, 정보, 자료를 통해 안전을 확보하려 한다. 믿을 만한 구조 안에 있을 때 강해진다.</div>
+          <div class="ref-meta">
+            <div class="ref-meta-row"><div class="ref-meta-label">캐릭터</div><div class="ref-meta-text">고집불통 공무원, 방어형 전략가, 보안 담당자, 감시자</div></div>
+          </div>
+          <div class="ref-dark"><span class="ref-dark-label">DARK</span>불안 때문에 모든 사람을 의심하고 통제하려는 타입</div>
+        </div>
+      </details>
+      <details class="ref-item">
+        <summary>6w7 · 친구</summary>
+        <div class="ref-body">
+          <div class="ref-desc">불안을 사람들과의 관계와 활동으로 해소하려는 타입. 겉으로는 명랑하고 유쾌하지만, 속으로는 걱정이 많고 혼자 남는 것을 두려워할 수 있다.</div>
+          <div class="ref-meta">
+            <div class="ref-meta-row"><div class="ref-meta-label">캐릭터</div><div class="ref-meta-text">분위기 메이커, 겁 많은 친구, 귀여운 수다쟁이</div></div>
+          </div>
+          <div class="ref-dark"><span class="ref-dark-label">DARK</span>불안 때문에 타인에게 의존하거나 책임을 회피하는 타입</div>
+        </div>
+      </details>
+
+      <div class="group-header" id="en-7">── 7번 중심 · 낙천가 ──</div>
+      <details class="ref-item">
+        <summary>7w6 · 엔터테이너</summary>
+        <div class="ref-body">
+          <div class="ref-desc">지루함과 고통을 피하고 즐거움을 찾는 타입. 유쾌하고 친근하며 사람들과 어울리는 것을 좋아한다. 다만 진지한 책임이나 무거운 약속을 피하려는 경향이 있다.</div>
+          <div class="ref-meta">
+            <div class="ref-meta-row"><div class="ref-meta-label">캐릭터</div><div class="ref-meta-text">파티피플, 장난꾸러기, 밝은 모험가, 분위기 담당</div></div>
+          </div>
+          <div class="ref-dark"><span class="ref-dark-label">DARK</span>웃음과 장난으로 문제를 회피하는 타입</div>
+        </div>
+      </details>
+      <details class="ref-item">
+        <summary>7w8 · 기회 포착형 모험가</summary>
+        <div class="ref-body">
+          <div class="ref-desc">7번의 재치와 8번의 추진력이 합쳐진 타입. 대담하고 겁이 없으며, 판을 크게 벌이는 데 능하다. 자유와 재미를 위해 위험한 선택도 쉽게 한다.</div>
+          <div class="ref-meta">
+            <div class="ref-meta-row"><div class="ref-meta-label">캐릭터</div><div class="ref-meta-text">매력적인 도둑, 능글맞은 사기꾼, 개척자, 모험 상인</div></div>
+          </div>
+          <div class="ref-dark"><span class="ref-dark-label">DARK</span>자기 재미와 이익을 위해 남을 휘말리게 하는 타입</div>
+        </div>
+      </details>
+
+      <div class="group-header" id="en-8">── 8번 중심 · 도전자 ──</div>
+      <details class="ref-item">
+        <summary>8w7 · 독립주의자</summary>
+        <div class="ref-body">
+          <div class="ref-desc">강한 힘과 추진력을 가진 타입. 간섭받는 것을 싫어하고, 원하는 것을 직접 쟁취하려 한다. 에너지가 크고 충동적이며, 싸움이나 경쟁을 두려워하지 않는다.</div>
+          <div class="ref-meta">
+            <div class="ref-meta-row"><div class="ref-meta-label">캐릭터</div><div class="ref-meta-text">불도저형 리더, 전쟁광, 자유로운 폭군, 아레스형 캐릭터</div></div>
+          </div>
+          <div class="ref-dark"><span class="ref-dark-label">DARK</span>힘으로 모든 것을 밀어붙이고 약자를 억누르는 타입</div>
+        </div>
+      </details>
+      <details class="ref-item">
+        <summary>8w9 · 침묵하는 보스</summary>
+        <div class="ref-body">
+          <div class="ref-desc">평소에는 조용하고 묵직하지만, 자기 영역이나 자기 사람을 건드리면 무섭게 반응하는 타입. 8w7보다 덜 충동적이지만 훨씬 버티는 힘이 강하고, 분노가 오래 남을 수 있다.</div>
+          <div class="ref-meta">
+            <div class="ref-meta-row"><div class="ref-meta-label">캐릭터</div><div class="ref-meta-text">거구의 보스, 조용한 수호자, 묵직한 중재자</div></div>
+          </div>
+          <div class="ref-dark"><span class="ref-dark-label">DARK</span>침묵 속에서 모든 것을 장악하려는 지배자 타입</div>
+        </div>
+      </details>
+
+      <div class="group-header" id="en-9">── 9번 중심 · 평화주의자 ──</div>
+      <details class="ref-item">
+        <summary>9w8 · 외유내강형 중재자</summary>
+        <div class="ref-body">
+          <div class="ref-desc">평화를 좋아하지만, 안쪽에는 강한 힘과 고집이 숨어 있는 타입. 겉으로는 유하고 느긋하지만, 선을 넘으면 확실하게 들이받는다.</div>
+          <div class="ref-meta">
+            <div class="ref-meta-row"><div class="ref-meta-label">캐릭터</div><div class="ref-meta-text">은둔 고수, 느긋한 수호자, 부드러운 중재자</div></div>
+          </div>
+          <div class="ref-dark"><span class="ref-dark-label">DARK</span>귀찮음을 피하다가 한 번 폭발하면 걷잡을 수 없는 타입</div>
+        </div>
+      </details>
+      <details class="ref-item">
+        <summary>9w1 · 꿈꾸는 사람</summary>
+        <div class="ref-body">
+          <div class="ref-desc">갈등 없는 착하고 평화로운 세상을 꿈꾸는 타입. 순하고 말 잘 듣는 것처럼 보이지만, 자기 안의 기준을 건드리면 조용히 버티는 고집이 있다.</div>
+          <div class="ref-meta">
+            <div class="ref-meta-row"><div class="ref-meta-label">캐릭터</div><div class="ref-meta-text">온화한 이상주의자, 착한 모범생, 평화로운 몽상가</div></div>
+          </div>
+          <div class="ref-dark"><span class="ref-dark-label">DARK</span>불편한 갈등을 외면하며 현실 문제를 방치하는 타입</div>
+        </div>
+      </details>
+    </div>
+
+    <!-- ===== 2장 · D&D 성향표 ===== -->
+    <div class="chapter-block" id="ch-dnd">
+      <div class="chapter-header">
+        <div class="chapter-num">CHAPTER 02</div>
+        <div class="chapter-title">D&amp;D 성향표</div>
+        <div class="chapter-sub">9가지 도덕적 · 사회적 성향</div>
+      </div>
+
+      <div class="group-header" id="dnd-good">── 선 진영 · 정의롭거나 착한 타입 ──</div>
+      <details class="ref-item">
+        <summary>질서선 · Lawful Good</summary>
+        <div class="ref-body">
+          <div class="ref-desc">규칙, 명예, 책임을 중시하며 정의를 실현하려는 타입. 법과 질서 안에서 선을 행하려 하며, 모범적인 영웅이나 성기사에게 잘 어울린다.</div>
+          <div class="ref-meta">
+            <div class="ref-meta-row"><div class="ref-meta-label">캐릭터</div><div class="ref-meta-text">정석적인 용사, 기사, 모범생, 성기사</div></div>
+            <div class="ref-meta-row"><div class="ref-meta-label">예시 방향</div><div class="ref-meta-text">캡틴 아메리카식 원칙형 영웅</div></div>
+          </div>
+        </div>
+      </details>
+      <details class="ref-item">
+        <summary>중립선 · Neutral Good</summary>
+        <div class="ref-body">
+          <div class="ref-desc">법이나 반항보다 선행 자체를 우선시하는 타입. 눈앞에 곤경에 처한 사람이 있으면, 규칙을 따질 시간에 먼저 돕는다.</div>
+          <div class="ref-meta">
+            <div class="ref-meta-row"><div class="ref-meta-label">캐릭터</div><div class="ref-meta-text">순수한 선인, 따뜻한 주인공, 구조자</div></div>
+            <div class="ref-meta-row"><div class="ref-meta-label">예시 방향</div><div class="ref-meta-text">해리 포터식 선한 주인공</div></div>
+          </div>
+        </div>
+      </details>
+      <details class="ref-item">
+        <summary>혼돈선 · Chaotic Good</summary>
+        <div class="ref-body">
+          <div class="ref-desc">부당한 규칙이나 사회적 시선은 무시하고, 자기 신념에 따라 선을 행하는 타입. 정의롭지만 얌전하지는 않고, 기존 체제와 자주 충돌한다.</div>
+          <div class="ref-meta">
+            <div class="ref-meta-row"><div class="ref-meta-label">캐릭터</div><div class="ref-meta-text">의적, 반항아 영웅, 자유로운 혁명가</div></div>
+            <div class="ref-meta-row"><div class="ref-meta-label">예시 방향</div><div class="ref-meta-text">로빈 훗식 의적</div></div>
+          </div>
+        </div>
+      </details>
+
+      <div class="group-header" id="dnd-neutral">── 중립 진영 · 자기 길을 가는 타입 ──</div>
+      <details class="ref-item">
+        <summary>질서중립 · Lawful Neutral</summary>
+        <div class="ref-body">
+          <div class="ref-desc">선악보다 질서, 법, 절차, 계약을 우선하는 타입. 개인의 감정보다 규칙과 시스템이 유지되는 것을 더 중요하게 여긴다.</div>
+          <div class="ref-meta">
+            <div class="ref-meta-row"><div class="ref-meta-label">캐릭터</div><div class="ref-meta-text">판사, 관료, 감시자, 원칙적인 관리자</div></div>
+          </div>
+          <div class="ref-dark"><span class="ref-dark-label">DARK</span>부당한 법이라도 법이라는 이유로 따르는 타입</div>
+        </div>
+      </details>
+      <details class="ref-item">
+        <summary>절대중립 · True Neutral</summary>
+        <div class="ref-body">
+          <div class="ref-desc">선악이나 질서·혼돈 어느 한쪽에 크게 치우치지 않는 타입. 균형, 생존, 자연의 흐름, 혹은 자기 일에만 집중하는 성향이 강하다.</div>
+          <div class="ref-meta">
+            <div class="ref-meta-row"><div class="ref-meta-label">캐릭터</div><div class="ref-meta-text">균형주의자, 드루이드, 방관자, 은둔자</div></div>
+          </div>
+          <div class="ref-dark"><span class="ref-dark-label">DARK</span>아무것도 선택하지 않음으로써 문제를 방치하는 타입</div>
+        </div>
+      </details>
+      <details class="ref-item">
+        <summary>혼돈중립 · Chaotic Neutral</summary>
+        <div class="ref-body">
+          <div class="ref-desc">규칙이나 도덕보다 자유, 재미, 충동을 우선하는 타입. 악의가 강한 것은 아니지만, 예측불가능하고 주변을 자주 휘말리게 만든다.</div>
+          <div class="ref-meta">
+            <div class="ref-meta-row"><div class="ref-meta-label">캐릭터</div><div class="ref-meta-text">자유주의자, 변덕쟁이, 장난꾼, 방랑자</div></div>
+            <div class="ref-meta-row"><div class="ref-meta-label">예시 방향</div><div class="ref-meta-text">잭 스패로우식 예측불가 캐릭터</div></div>
+          </div>
+        </div>
+      </details>
+
+      <div class="group-header" id="dnd-evil">── 악 진영 · 이기적이거나 파괴적인 타입 ──</div>
+      <details class="ref-item">
+        <summary>질서악 · Lawful Evil</summary>
+        <div class="ref-body">
+          <div class="ref-desc">법, 계약, 계급, 조직을 이용해 타인을 지배하거나 착취하는 타입. 혼란보다는 통제된 지배를 선호하며, 합법적인 방식으로 악을 행하기도 한다.</div>
+          <div class="ref-meta">
+            <div class="ref-meta-row"><div class="ref-meta-label">캐릭터</div><div class="ref-meta-text">폭군, 악덕 귀족, 악마적 계약자, 냉혹한 기업가</div></div>
+            <div class="ref-meta-row"><div class="ref-meta-label">핵심</div><div class="ref-meta-text">질서를 이용한 악</div></div>
+          </div>
+        </div>
+      </details>
+      <details class="ref-item">
+        <summary>중립악 · Neutral Evil</summary>
+        <div class="ref-body">
+          <div class="ref-desc">명예, 질서, 혼돈 같은 이념보다 자신의 이익과 욕망을 우선하는 타입. 필요하면 법을 이용하고, 필요하면 배신하며, 죄책감 없이 자기 이익을 챙긴다.</div>
+          <div class="ref-meta">
+            <div class="ref-meta-row"><div class="ref-meta-label">캐릭터</div><div class="ref-meta-text">이기적인 빌런, 배신자, 암살자, 권력욕 강한 마법사</div></div>
+            <div class="ref-meta-row"><div class="ref-meta-label">핵심</div><div class="ref-meta-text">순수한 자기 이익</div></div>
+          </div>
+        </div>
+      </details>
+      <details class="ref-item">
+        <summary>혼돈악 · Chaotic Evil</summary>
+        <div class="ref-body">
+          <div class="ref-desc">질서도 명예도 없이 파괴, 충동, 쾌락, 증오를 따라 움직이는 타입. 계획이 있을 수도 있지만, 근본적으로는 세상이 망가지든 말든 자기 광기와 욕망이 우선이다.</div>
+          <div class="ref-meta">
+            <div class="ref-meta-row"><div class="ref-meta-label">캐릭터</div><div class="ref-meta-text">파괴자, 광기 어린 살인마, 재앙형 빌런, 통제불능 괴물</div></div>
+            <div class="ref-meta-row"><div class="ref-meta-label">핵심</div><div class="ref-meta-text">충동과 파괴의 악</div></div>
+          </div>
+        </div>
+      </details>
+    </div>
+
+    <!-- ===== 3장 · 비교표 ===== -->
+    <div class="chapter-block" id="ch-table">
+      <div class="chapter-header">
+        <div class="chapter-num">CHAPTER 03</div>
+        <div class="chapter-title">간단 비교표</div>
+        <div class="chapter-sub">한눈에 훑어보기</div>
+      </div>
+
+      <div class="group-header" id="tb-en">── 에니어그램 윙 요약 ──</div>
+      <table class="ref-table">
+        <thead>
+          <tr><th>타입</th><th>핵심 이미지</th><th>어두운 방향</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1w9</td><td>조용한 원칙주의자</td><td>조용한 심판자</td></tr>
+          <tr><td>1w2</td><td>엄격한 보호자</td><td>도덕적 통제자</td></tr>
+          <tr><td>2w1</td><td>예의 바른 봉사자</td><td>도덕적 빚을 지우는 조력자</td></tr>
+          <tr><td>2w3</td><td>사랑받고 싶은 조력자</td><td>질투와 소유욕</td></tr>
+          <tr><td>3w2</td><td>스타형 성취자</td><td>완벽한 이미지에 집착</td></tr>
+          <tr><td>3w4</td><td>차가운 전문가</td><td>실패 공포에 잠식</td></tr>
+          <tr><td>4w3</td><td>우아한 예술가</td><td>비극적 자의식 과잉</td></tr>
+          <tr><td>4w5</td><td>은둔형 아웃사이더</td><td>현실과 단절</td></tr>
+          <tr><td>5w4</td><td>기괴한 천재</td><td>윤리 없는 호기심</td></tr>
+          <tr><td>5w6</td><td>논리적 문제해결사</td><td>인간을 변수처럼 취급</td></tr>
+          <tr><td>6w5</td><td>방어형 전략가</td><td>의심과 통제</td></tr>
+          <tr><td>6w7</td><td>불안한 분위기 메이커</td><td>의존과 회피</td></tr>
+          <tr><td>7w6</td><td>유쾌한 엔터테이너</td><td>책임 회피</td></tr>
+          <tr><td>7w8</td><td>대담한 모험가</td><td>남을 휘말리게 함</td></tr>
+          <tr><td>8w7</td><td>불도저형 독립주의자</td><td>힘으로 억압</td></tr>
+          <tr><td>8w9</td><td>침묵하는 보스</td><td>조용한 지배</td></tr>
+          <tr><td>9w8</td><td>외유내강 중재자</td><td>회피하다 폭발</td></tr>
+          <tr><td>9w1</td><td>온화한 이상주의자</td><td>갈등 외면</td></tr>
+        </tbody>
+      </table>
+
+      <div class="group-header" id="tb-dnd">── D&amp;D 성향표 요약 ──</div>
+      <table class="ref-table">
+        <thead>
+          <tr><th>성향</th><th>핵심</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>질서선</td><td>규칙과 명예를 통해 선을 행함</td></tr>
+          <tr><td>중립선</td><td>법보다 선행 자체를 우선함</td></tr>
+          <tr><td>혼돈선</td><td>부당한 규칙을 무시하고 선을 행함</td></tr>
+          <tr><td>질서중립</td><td>선악보다 질서와 절차를 우선함</td></tr>
+          <tr><td>절대중립</td><td>균형, 생존, 자연스러움을 따름</td></tr>
+          <tr><td>혼돈중립</td><td>자유, 재미, 충동을 우선함</td></tr>
+          <tr><td>질서악</td><td>법과 시스템을 이용해 지배함</td></tr>
+          <tr><td>중립악</td><td>자기 이익과 욕망을 위해 악을 행함</td></tr>
+          <tr><td>혼돈악</td><td>파괴와 충동을 따라 움직임</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+</div>
+
+<script>
+function toggleTocCh(btn){
+  btn.classList.toggle('open');
+  const sections=btn.nextElementSibling;
+  if(sections&&sections.classList.contains('toc-sections')){
+    sections.classList.toggle('open');
+  }
+}
+
+function jumpTo(id){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.scrollIntoView({behavior:'smooth',block:'start'});
+  // 그룹 헤더 안쪽 첫 ref-item 자동 펼치기 (선택사항)
+  // 활성 표시
+  document.querySelectorAll('.toc-sec-btn').forEach(b=>b.classList.remove('active'));
+  const matches=document.querySelectorAll(`.toc-sec-btn[onclick*="${id}"]`);
+  matches.forEach(b=>b.classList.add('active'));
+  // 모바일에서는 점프 후 TOC 닫기
+  if(window.innerWidth<=768){
+    document.getElementById('toc-sidebar').classList.remove('shown-mobile');
+    document.getElementById('toc-overlay').classList.remove('active');
+  }
+}
+
+function toggleToc(){
+  if(window.innerWidth<=768){
+    const sb=document.getElementById('toc-sidebar');
+    const ov=document.getElementById('toc-overlay');
+    sb.classList.toggle('shown-mobile');
+    ov.classList.toggle('active');
+  }else{
+    const sb=document.getElementById('toc-sidebar');
+    sb.classList.toggle('hidden');
+  }
+}
+
+// 스크롤 시 TOC 활성 표시 자동 업데이트
+const allAnchors=['en-1','en-2','en-3','en-4','en-5','en-6','en-7','en-8','en-9','dnd-good','dnd-neutral','dnd-evil','tb-en','tb-dnd'];
+const contentArea=document.querySelector('.content-area');
+if(contentArea){
+  let scrollTimeout=null;
+  contentArea.addEventListener('scroll',()=>{
+    clearTimeout(scrollTimeout);
+    scrollTimeout=setTimeout(()=>{
+      let active=null;
+      for(const id of allAnchors){
+        const el=document.getElementById(id);
+        if(!el)continue;
+        const rect=el.getBoundingClientRect();
+        if(rect.top<160){active=id;}else break;
+      }
+      if(active){
+        document.querySelectorAll('.toc-sec-btn').forEach(b=>b.classList.remove('active'));
+        document.querySelectorAll(`.toc-sec-btn[onclick*="${active}"]`).forEach(b=>b.classList.add('active'));
+      }
+    },100);
+  });
+}
+</script>
+</body>
+</html>

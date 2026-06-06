@@ -328,6 +328,11 @@ function renderPrompt() {
   out += '기본형식: ![](https://m.winter0.workers.dev/?t=worldmap&...)\n';
   out += '※ URL 뒤에 --- 붙이면 렌더링 안정성 ↑\n\n';
 
+  out += '### 좌표계\n';
+  out += '원점(0,0)은 지도의 좌상단.\n';
+  out += 'x는 오른쪽으로 증가, y는 아래로 증가.\n';
+  out += '각 월드의 좌표 범위는 아래 월드별 크기(가로×세로) 참조.\n\n';
+
   out += '### 파라미터 (모두 선택, 자유 조합)\n';
   out += '&world=    월드 지정. 생략 시 at에서 자동 추론\n';
   out += '&at=       내 위치 (등록된 장소명/alias)\n';
@@ -352,14 +357,14 @@ function renderPrompt() {
       const long = worldLongAlias(w);
       out += `▸ ${short}`;
       if (long) out += ` 「${long}」`;
-      out += '\n';
+      out += ` (${w.w}×${w.h})\n`;
 
       const places = placesByWorld[w.key] || [];
       if (places.length === 0) {
         out += '   (등록 장소 없음)\n';
       } else {
         for (const p of places) {
-          out += `   - ${getPlaceDisplayName(p.key, p)}\n`;
+          out += `   - ${getPlaceDisplayName(p.key, p)} (${p.x},${p.y})\n`;
         }
       }
       out += '\n';

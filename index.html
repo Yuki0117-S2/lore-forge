@@ -546,7 +546,10 @@
             <span class="panel-badge">EXTRA</span><span class="panel-arrow">▾</span>
           </div>
           <div class="panel-body">
-            <div><div class="field-label">추가 출력 지침</div><textarea id="out-extra" style="min-height:100px" placeholder="예: 이미지 항상 출력, 유저의 감정/행동 직접 서술 금지, AI임을 밝히지 않음..." oninput="saveAll();updatePreview()"></textarea></div>
+            <div class="hint" style="font-size:10px;color:var(--muted);margin-bottom:8px;">💡 항목별로 라벨을 달아서 자유롭게 추가해. 예: 이미지 출력 규칙, 인코딩 규칙, 좌표계, AI 정체 숨김 등. 라벨을 비우면 내용만 출력돼. (최대 15개)</div>
+            <div id="output-traits-list"></div>
+            <button class="add-btn" id="output-trait-add-btn" onclick="addOutputTrait()">＋ 항목 추가</button>
+            <div id="output-trait-limit-msg" class="trait-limit-msg" style="display:none;">최대 15개까지만 추가할 수 있어.</div>
           </div>
         </div>
       </div>
@@ -684,7 +687,7 @@ function newProjectData(name){
   return{id:'proj_'+Date.now(),name:name||'새 프로젝트',characters:[],currentCharId:null,
     globalTagData:{},lorebook:[],
     world:{name:'',era:'',desc:'',magic:'',society:'',taboo:'',places:'',toneVal:'50',ruleTags:[],atmoTags:[],placeTags:[],genreChips:[],worldTraits:[]},
-    output:{povChips:[],styleChips:[],densityChips:[],lengthChips:[],actionChips:[],narrDetail:'',lengthDetail:'',status:'',affection:'',affectionFactor:'',extra:''},
+    output:{povChips:[],styleChips:[],densityChips:[],lengthChips:[],actionChips:[],narrDetail:'',lengthDetail:'',status:'',affection:'',affectionFactor:'',extra:'',outputTraits:[]},
     rules:{extra:'',mustTags:[],neverTags:[]}
   };
 }
@@ -729,7 +732,7 @@ function resetProject(){
     if(!(await showConfirm(`"${proj.name}" 세계관/출력지침/행동규칙을 초기화할까?\n캐릭터는 유지돼.`,{danger:true,title:'⚠️ 프로젝트 초기화'})))return;
     safetyBackup('프로젝트 초기화: '+proj.name);
     proj.world={name:'',era:'',desc:'',magic:'',society:'',taboo:'',places:'',toneVal:'50',ruleTags:[],atmoTags:[],placeTags:[],genreChips:[],worldTraits:[]};
-    proj.output={povChips:[],styleChips:[],densityChips:[],lengthChips:[],actionChips:[],narrDetail:'',lengthDetail:'',status:'',affection:'',affectionFactor:'',extra:''};
+    proj.output={povChips:[],styleChips:[],densityChips:[],lengthChips:[],actionChips:[],narrDetail:'',lengthDetail:'',status:'',affection:'',affectionFactor:'',extra:'',outputTraits:[]};
     proj.rules={extra:'',mustTags:[],neverTags:[]};
     proj.globalTagData={};proj.lorebook=[];
     saveAll();loadProjectUI();showToast('↺ 초기화 완료! (실수면 F12 콘솔에서 loreForgeDebug.listBackups())');
@@ -756,6 +759,7 @@ function saveCurrentProjectFromUI(){
     genreChips:getActiveChips(document.getElementById('genre-chips')),
     worldTraits:Array.isArray(prevWorld.worldTraits)?prevWorld.worldTraits:[],
   };
+  const prevOutput=proj.output||{};
   proj.output={
     povChips:getActiveChips(document.getElementById('pov-chips')),
     styleChips:getActiveChips(document.getElementById('style-chips')),
@@ -764,7 +768,8 @@ function saveCurrentProjectFromUI(){
     actionChips:getActiveChips(document.getElementById('action-chips')),
     narrDetail:gv('out-narr-detail'),lengthDetail:gv('out-length-detail'),
     status:gv('out-status'),affection:gv('out-affection'),
-    affectionFactor:gv('out-affection-factor'),extra:gv('out-extra'),
+    affectionFactor:gv('out-affection-factor'),
+    outputTraits:Array.isArray(prevOutput.outputTraits)?prevOutput.outputTraits:[],
   };
   proj.rules={
     extra:gv('rules-extra-text'),
@@ -775,7 +780,7 @@ function saveCurrentProjectFromUI(){
 function loadProjectUI(){
   const proj=getProject();previewMode='all';
   const globalIds=['world-name','world-era','world-desc','world-magic','world-society','world-taboo','world-places',
-    'out-narr-detail','out-length-detail','out-status','out-affection','out-affection-factor','out-extra',
+    'out-narr-detail','out-length-detail','out-status','out-affection','out-affection-factor',
     'rules-extra-text'];
   globalIds.forEach(id=>setVal(id,''));
   document.querySelectorAll('.chip.active').forEach(c=>c.classList.remove('active'));
@@ -798,7 +803,14 @@ function loadProjectUI(){
     const o=proj.output||{};
     setVal('out-narr-detail',o.narrDetail);setVal('out-length-detail',o.lengthDetail);
     setVal('out-status',o.status);setVal('out-affection',o.affection);
-    setVal('out-affection-factor',o.affectionFactor);setVal('out-extra',o.extra);
+    setVal('out-affection-factor',o.affectionFactor);
+    // ── 마이그레이션: 구버전 o.extra 단일 텍스트를 outputTraits 첫 카드로 변환 ──
+    if(!Array.isArray(o.outputTraits))o.outputTraits=[];
+    if(o.extra&&o.extra.trim()&&o.outputTraits.length===0){
+      o.outputTraits.push({label:'추가 출력 지침',content:o.extra});
+      o.extra='';
+    }
+    renderOutputTraits();
     restoreChips('pov-chips',o.povChips||[]);restoreChips('style-chips',o.styleChips||[]);
     restoreChips('density-chips',o.densityChips||[]);restoreChips('length-chips',o.lengthChips||[]);
     restoreChips('action-chips',o.actionChips||[]);
@@ -1489,6 +1501,87 @@ function moveWorldTrait(i,dir){
   renderWorldTraits();saveAll();updatePreview();
 }
 
+// ===== 출력 설정 (Output Traits) =====
+const OUTPUT_TRAIT_MAX=15;
+function ensureOutputTraits(){
+  const p=getProject();if(!p)return null;
+  if(!p.output)p.output={};
+  if(!Array.isArray(p.output.outputTraits))p.output.outputTraits=[];
+  return p.output.outputTraits;
+}
+function addOutputTrait(){
+  const arr=ensureOutputTraits();if(!arr)return;
+  if(arr.length>=OUTPUT_TRAIT_MAX){
+    const m=document.getElementById('output-trait-limit-msg');
+    if(m){m.style.display='block';setTimeout(()=>{m.style.display='none';},2000);}
+    return;
+  }
+  arr.push({label:'',content:''});
+  renderOutputTraits();saveAll();updatePreview();
+  setTimeout(()=>{
+    const list=document.getElementById('output-traits-list');
+    if(!list)return;
+    const inputs=list.querySelectorAll('.trait-item-head input');
+    if(inputs.length)inputs[inputs.length-1].focus();
+  },50);
+}
+function renderOutputTraits(){
+  const arr=ensureOutputTraits();const list=document.getElementById('output-traits-list');
+  if(!arr||!list)return;
+  list.innerHTML='';
+  const isMob=window.innerWidth<=768;
+  arr.forEach((t,i)=>{
+    const div=document.createElement('div');div.className='trait-item';
+    const upDisabled=i===0?'disabled':'';
+    const downDisabled=i===arr.length-1?'disabled':'';
+    if(isMob){
+      div.innerHTML=`
+        <div class="trait-item-head">
+          <input type="text" placeholder="라벨 (예: 이미지 출력 규칙, 인코딩 규칙... 비워도 됨)" value="${esc(t.label||'')}" oninput="saveOutputTrait(${i},'label',this.value)">
+          <div class="trait-actions-row">
+            <button class="trait-move-btn" ${upDisabled} onclick="moveOutputTrait(${i},-1)" title="위로">▲</button>
+            <button class="trait-move-btn" ${downDisabled} onclick="moveOutputTrait(${i},1)" title="아래로">▼</button>
+            <button class="del-btn" onclick="removeOutputTrait(${i})">×</button>
+          </div>
+        </div>
+        <textarea placeholder="내용을 자유롭게 작성해..." oninput="saveOutputTrait(${i},'content',this.value)">${esc(t.content||'')}</textarea>`;
+    }else{
+      div.innerHTML=`
+        <div class="trait-item-head">
+          <input type="text" placeholder="라벨 (예: 이미지 출력 규칙, 인코딩 규칙... 비워도 됨)" value="${esc(t.label||'')}" oninput="saveOutputTrait(${i},'label',this.value)">
+          <button class="trait-move-btn" ${upDisabled} onclick="moveOutputTrait(${i},-1)" title="위로">▲</button>
+          <button class="trait-move-btn" ${downDisabled} onclick="moveOutputTrait(${i},1)" title="아래로">▼</button>
+          <button class="del-btn" onclick="removeOutputTrait(${i})">×</button>
+        </div>
+        <textarea placeholder="내용을 자유롭게 작성해..." oninput="saveOutputTrait(${i},'content',this.value)">${esc(t.content||'')}</textarea>`;
+    }
+    list.appendChild(div);
+  });
+  const addBtn=document.getElementById('output-trait-add-btn');
+  if(addBtn){
+    if(arr.length>=OUTPUT_TRAIT_MAX){addBtn.style.opacity='0.4';addBtn.style.cursor='not-allowed';}
+    else{addBtn.style.opacity='1';addBtn.style.cursor='pointer';}
+  }
+}
+function saveOutputTrait(i,f,v){
+  const arr=ensureOutputTraits();if(!arr||!arr[i])return;
+  arr[i][f]=v;saveAll();updatePreview();
+}
+function removeOutputTrait(i){
+  const arr=ensureOutputTraits();if(!arr)return;
+  (async()=>{
+    if(!(await showConfirm('이 항목을 삭제할까?')))return;
+    arr.splice(i,1);renderOutputTraits();saveAll();updatePreview();
+  })();
+}
+function moveOutputTrait(i,dir){
+  const arr=ensureOutputTraits();if(!arr)return;
+  const j=i+dir;
+  if(j<0||j>=arr.length)return;
+  [arr[i],arr[j]]=[arr[j],arr[i]];
+  renderOutputTraits();saveAll();updatePreview();
+}
+
 // ===== 로어북 =====
 function addLorebook(){
   const proj=getProject();if(!proj)return;
@@ -1746,6 +1839,7 @@ function buildWorldPrompt(){
 }
 
 function buildOutputPrompt(){
+  const proj=getProject();if(!proj)return'';
   const L=[];const p=s=>{if(s!==undefined&&s!==null&&s!=='')L.push(s);};
   const pov=getActiveChips(document.getElementById('pov-chips'));
   const style=getActiveChips(document.getElementById('style-chips'));
@@ -1754,8 +1848,10 @@ function buildOutputPrompt(){
   const action=getActiveChips(document.getElementById('action-chips'));
   const narrDetail=gv('out-narr-detail');const lengthDetail=gv('out-length-detail');
   const status=gv('out-status');const affection=gv('out-affection');
-  const affectionFactor=gv('out-affection-factor');const extra=gv('out-extra');
-  const hasContent=pov.length||style.length||density.length||length.length||action.length||narrDetail||lengthDetail||status||affection||extra;
+  const affectionFactor=gv('out-affection-factor');
+  const ot=(proj.output&&Array.isArray(proj.output.outputTraits))?proj.output.outputTraits:[];
+  const otValid=ot.filter(t=>(t.label&&t.label.trim())||(t.content&&t.content.trim()));
+  const hasContent=pov.length||style.length||density.length||length.length||action.length||narrDetail||lengthDetail||status||affection||otValid.length;
   if(!hasContent)return'';
   p('# 출력 지침');p('');
   if(pov.length||style.length||density.length||narrDetail){
@@ -1767,7 +1863,16 @@ function buildOutputPrompt(){
   }
   if(status){p('## 상태창');p(status);p('');}
   if(affection||affectionFactor){p('## 호감도 시스템');if(affection)p(affection);if(affectionFactor){p('');p('[변화 요인]');p(affectionFactor);}p('');}
-  if(extra){p('## 기타');p(extra);p('');}
+  if(otValid.length){
+    p('## 기타 출력 설정');
+    otValid.forEach(t=>{
+      const lbl=(t.label||'').trim();
+      const ctn=(t.content||'').trim();
+      if(lbl&&ctn){p(`### ${lbl}`);p(ctn);p('');}
+      else if(ctn){p(ctn);p('');}
+      else if(lbl){p(`### ${lbl}`);p('');}
+    });
+  }
   return L.join('\n').trim();
 }
 
@@ -2416,11 +2521,35 @@ function setupTextareaAutoGrow(){
     const newH=Math.max(minH,ta.scrollHeight+2);
     ta.style.height=newH+'px';
   };
+  // ── 포커스 추적: textarea 하단(커서 영역)이 viewport 하단 너무 가까이 가면 중앙 정렬 ──
+  const keepCursorInView=(ta)=>{
+    if(!ta||ta.tagName!=='TEXTAREA')return;
+    if(document.activeElement!==ta)return;
+    // visualViewport: iOS 가상키보드 고려 (없으면 window.innerHeight)
+    const vv=window.visualViewport;
+    const viewportH=vv?vv.height:window.innerHeight;
+    const viewportTop=vv?vv.offsetTop:0;
+    const rect=ta.getBoundingClientRect();
+    // textarea 하단이 viewport 하단 70% 지점보다 아래에 있으면 스크롤
+    const threshold=viewportTop+viewportH*0.7;
+    if(rect.bottom>threshold){
+      // instant 스크롤로 멀미 방지, center 정렬
+      try{ta.scrollIntoView({block:'center',behavior:'instant'});}
+      catch(_){ta.scrollIntoView({block:'center'});}
+    }
+  };
   document.addEventListener('focusin',(e)=>{
-    if(e.target.tagName==='TEXTAREA')grow(e.target);
+    if(e.target.tagName==='TEXTAREA'){
+      grow(e.target);
+      // 포커스 직후 키보드/레이아웃 안정화 대기
+      setTimeout(()=>keepCursorInView(e.target),120);
+    }
   });
   document.addEventListener('input',(e)=>{
-    if(e.target.tagName==='TEXTAREA'&&document.activeElement===e.target)grow(e.target);
+    if(e.target.tagName==='TEXTAREA'&&document.activeElement===e.target){
+      grow(e.target);
+      keepCursorInView(e.target);
+    }
   });
   document.addEventListener('focusout',(e)=>{
     if(e.target.tagName==='TEXTAREA'){

@@ -365,10 +365,14 @@ function renderStaticCategories() {
     </details>
 
     <details class="tip-item" data-sec="param-at">
-      <summary><code>&at=</code> 내 위치 (PLACES 룩업)</summary>
+      <summary><code>&at=</code> 내 위치</summary>
       <div class="tip-body">
-        <div class="desc">PLACES에 등록된 장소명/alias로 내 위치 지정.</div>
-        <pre>?t=worldmap&world=1층&at=시작도시</pre>
+        <div class="desc">PLACES 등록 장소명/alias로 내 위치 지정. <strong><code>x300y500</code> 형식</strong>으로 직접 좌표도 OK.</div>
+        <pre>?t=worldmap&world=1층&at=감시자의+탑
+?t=worldmap&world=1층&at=x600y400      ← 등록 안 된 곳에 있을 때</pre>
+        <hr class="divider">
+        <span class="label label-warn">CONVENTION</span>
+        <div class="desc">라벨은 항상 <strong>"내 위치"</strong>로 표시됨 (장소명·좌표 안 띄움). <code>labels=on</code>과 같이 쓰면 PLACE 라벨도 함께 떠서 위치 확인 가능.</div>
         <hr class="divider">
         <span class="label label-warn">TIP</span>
         <div class="desc"><code>world</code> 컨텍스트가 있으면 같은 alias가 여러 월드에 있어도 OK (예: '시작도시'가 1층/4층에 둘 다 있어도 충돌 안 남).</div>
@@ -376,10 +380,20 @@ function renderStaticCategories() {
     </details>
 
     <details class="tip-item" data-sec="param-xy">
-      <summary><code>&x= &y=</code> 직접 좌표 (디버그용)</summary>
+      <summary><code>&x= &y=</code> POI 핀</summary>
       <div class="tip-body">
-        <div class="desc">PLACES 등록 전 좌표 찍기 노가다용.</div>
-        <pre>?t=worldmap&world=floor5&x=500&y=400</pre>
+        <div class="desc">★ 심볼로 좌표 위치 표시. <strong>내 위치 아님</strong> (그건 <code>at</code>). 등록 안 된 위치 지목하거나, 좌표 검증, 강조 마킹 등에 사용.</div>
+        <pre>?t=worldmap&world=floor5&x=500&y=400
+?t=worldmap&world=1층&at=감시자의+탑&x=300&y=500   ← 내 위치 + POI 동시</pre>
+        <hr class="divider">
+        <div class="place-meta">
+          <span class="place-meta-item">color: <strong style="color:#0077DD">#0077DD</strong></span>
+          <span class="place-meta-item">symbol: <strong>★</strong></span>
+          <span class="place-meta-item">motion: <strong>self-rotate 6s</strong></span>
+        </div>
+        <hr class="divider">
+        <span class="label label-warn">TIP</span>
+        <div class="desc">라벨 없음 (별 심볼만). 좌표 표시 필요하면 <code>grid=on</code> 같이 써.</div>
       </div>
     </details>
 
@@ -427,17 +441,33 @@ function renderStaticCategories() {
     <div class="cat-header">
       <div class="cat-num">CATEGORY 03</div>
       <div><span class="cat-icon">📍</span><span class="cat-title">마커 시스템</span></div>
-      <div class="cat-sub">내 위치 · 멀티플레이어 · 경로</div>
+      <div class="cat-sub">내 위치 · POI · 멀티플레이어 · 경로</div>
     </div>
 
     <details class="tip-item" data-sec="marker-me">
       <summary>💗 내 위치 마커</summary>
       <div class="tip-body">
-        <div class="desc">핑크 펄스 (이중 외곽선 — 다크 + 컬러). 어두운/밝은 배경 모두 가독성 OK.</div>
+        <div class="desc">핑크 펄스 (이중 외곽선 — 다크 + 컬러). 어두운/밝은 배경 모두 가독성 OK. 라벨은 항상 <strong>"내 위치"</strong>로 고정 (장소명·좌표 표시 X).</div>
         <div class="place-meta">
           <span class="place-meta-item">ring: <strong style="color:#BB6688">#BB6688</strong></span>
           <span class="place-meta-item">dot: <strong style="color:#DDAACC">#DDAACC</strong></span>
+          <span class="place-meta-item">motion: <strong>pulse 1.8s</strong></span>
         </div>
+      </div>
+    </details>
+
+    <details class="tip-item" data-sec="marker-poi">
+      <summary>⭐ POI 핀 마커</summary>
+      <div class="tip-body">
+        <div class="desc"><code>&x=&y=</code>로 찍는 별표 핀. 내 위치 아님 — 좌표만 강조해서 표시할 때. 라벨 없음(별 심볼만).</div>
+        <div class="place-meta">
+          <span class="place-meta-item">color: <strong style="color:#0077DD">#0077DD</strong></span>
+          <span class="place-meta-item">symbol: <strong>★</strong></span>
+          <span class="place-meta-item">motion: <strong>self-rotate 6s</strong></span>
+        </div>
+        <hr class="divider">
+        <span class="label label-warn">TIP</span>
+        <div class="desc">내 위치(<code>at</code>)와 동시 사용 가능. 펄스(내 위치) vs 회전(POI) — 움직임이 달라서 시각 충돌 없음.</div>
       </div>
     </details>
 
@@ -470,9 +500,10 @@ function renderStaticCategories() {
     <details class="tip-item" data-sec="marker-place-label">
       <summary>🏷️ PLACE 라벨 (labels=on)</summary>
       <div class="tip-body">
-        <div class="desc">현재 월드의 PLACES 이름을 마커 아래 톤다운 색으로 표시.</div>
+        <div class="desc">현재 월드의 PLACES 이름을 마커 아래 표시. 흰색 + 두꺼운 외곽선이라 어두운/밝은 배경 모두 가독성 OK.</div>
         <div class="place-meta">
-          <span class="place-meta-item">label: <strong style="color:#CCAA88">#CCAA88</strong></span>
+          <span class="place-meta-item">label: <strong style="color:#FFFFFF">#FFFFFF</strong></span>
+          <span class="place-meta-item">stroke: <strong style="color:#0d0f1f">#0d0f1f</strong></span>
         </div>
       </div>
     </details>

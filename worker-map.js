@@ -5,8 +5,8 @@
 //
 // 지원 파라미터 (worldmap):
 //   &world=floor1          월드 키 (또는 한글 alias: '1층'). 생략 시 자동 추론
-//   &at=장소명              내 위치 (PLACES 룩업, alias 지원)
-//   &x=&y=                 내 위치 직접 좌표 (디버깅용)
+//   &at=장소명              내 위치 (PLACES 룩업, alias 지원, 또는 x300y500 형식)
+//   &x=&y=                 POI 핀 (★ 심볼, 블루). 등록 안 된 위치 마킹용
 //   &p=장소§이름§관계|...    다른 사람들 (멀티플레이어)
 //                           관계: 아군(또는 비움) / 적 / 파티 / 중립
 //                           장소 자리에 xNNNyNNN 박으면 직접 좌표
@@ -15,9 +15,11 @@
 //   &grid=on               100px 격자 + 좌표 라벨 오버레이 (좌표 디버그용)
 //
 // 예시:
-//   /?t=worldmap&world=1층&at=center
-//   /?t=worldmap&world=floor4&labels=on        (4층 모든 장소 라벨 표시)
-//   /?t=worldmap&world=floor5&x=500&y=400      (좌표 찍기 디버그)
+//   /?t=worldmap&world=1층&at=감시자의+탑
+//   /?t=worldmap&world=1층&at=x600y400              (내 위치 직접 좌표)
+//   /?t=worldmap&world=floor4&labels=on             (4층 모든 장소 라벨 표시)
+//   /?t=worldmap&world=floor5&x=500&y=400           (POI 핀)
+//   /?t=worldmap&world=1층&at=감시자의+탑&x=300&y=500 (내 위치 + POI 동시)
 //   /?t=meta                                    (map.html이 fetch로 사용)
 
 // ════════════════════════════════════════════
@@ -242,7 +244,8 @@ const ME_RING    = '#BB6688';
 const ME_DOT     = '#DDAACC';
 const STROKE     = '#0d0f1f';
 const PATH_COLOR = '#FF7722';   // 점선/경유지/목적지 통일 (오렌지)
-const PLACE_LBL  = '#CCAA88';   // labels=on 배경 라벨 (샌드 톤다운)
+const PLACE_LBL  = '#FFFFFF';   // labels=on 배경 라벨 (흰색 + 두꺼운 외곽선)
+const POI_COLOR  = '#0077DD';   // &x=&y= POI 핀 (블루)
 
 function relColor(rel) {
   return REL_COLOR[rel] || REL_COLOR['아군'];
@@ -273,6 +276,7 @@ function renderMeta() {
       stroke: STROKE,
       path: PATH_COLOR,
       place_label: PLACE_LBL,
+      poi: POI_COLOR,
     },
   });
 }
@@ -335,8 +339,10 @@ function renderPrompt() {
 
   out += '### 파라미터 (모두 선택, 자유 조합)\n';
   out += '&world=    월드 지정. 생략 시 at에서 자동 추론\n';
-  out += '&at=       내 위치 (등록된 장소명/alias)\n';
-  out += '&x= &y=    내 위치 직접 좌표 (등록 안 된 위치 강제)\n';
+  out += '&at=       내 위치 (등록 장소명/alias, 또는 x300y500 식 직접 좌표).\n';
+  out += '            라벨은 항상 "내 위치" 로 표시됨\n';
+  out += '&x= &y=    POI 핀 (★ 심볼, 블루). 등록 안 된 위치 마킹용.\n';
+  out += '            내 위치(&at)와 동시 사용 가능\n';
   out += '&p=        다른 사람 (장소§이름§관계, |로 다인 구분)\n';
   out += '            관계: 아군(기본)/적/파티/중립\n';
   out += '            장소 자리에 x500y400 식 좌표 가능\n';
@@ -375,10 +381,14 @@ function renderPrompt() {
   out += '### 사용 예시\n\n';
   out += '▸ 맵만 표시:\n';
   out += '  ![](https://m.winter0.workers.dev/?t=worldmap&world=1층)\n\n';
-  out += '▸ 내 위치:\n';
+  out += '▸ 내 위치 (등록 장소명):\n';
   out += '  ![](https://m.winter0.workers.dev/?t=worldmap&world=1층&at=감시자의+탑)\n\n';
-  out += '▸ 등록 안 된 곳에 좌표 직접:\n';
-  out += '  ![](https://m.winter0.workers.dev/?t=worldmap&world=1층&x=600&y=400)\n\n';
+  out += '▸ 내 위치 (직접 좌표 — 등록 안 된 곳에 내가 있을 때):\n';
+  out += '  ![](https://m.winter0.workers.dev/?t=worldmap&world=1층&at=x600y400)\n\n';
+  out += '▸ POI 핀 (★ 심볼로 좌표 표시):\n';
+  out += '  ![](https://m.winter0.workers.dev/?t=worldmap&world=1층&x=300&y=500)\n\n';
+  out += '▸ 내 위치 + POI 동시:\n';
+  out += '  ![](https://m.winter0.workers.dev/?t=worldmap&world=1층&at=감시자의+탑&x=300&y=500)\n\n';
   out += '▸ 파티/적 동시 표시:\n';
   out += '  ![](https://m.winter0.workers.dev/?t=worldmap&world=1층&at=감시자의+탑&p=은빛물결+강§아스나§파티|서쪽+짙은+그늘+숲§오크§적)\n\n';
   out += '▸ 이동 경로 (시작점=at, 중간=경유지, 마지막=목적지):\n';
@@ -487,12 +497,27 @@ function renderOtherMarker(m) {
       fill="${color}" stroke="${STROKE}" stroke-width="4" paint-order="stroke">${esc(m.name)}</text>`;
 }
 
+// POI 핀 (★ 심볼, 천천히 자체 회전). x=&y= 로 좌표 직접 박은 경우.
+function renderPoiMarker(x, y) {
+  return `
+<g transform="translate(${x},${y})">
+  <g>
+    <text x="0" y="0"
+          font-family="'Courier New',monospace" font-size="36" font-weight="900"
+          fill="${POI_COLOR}" stroke="${STROKE}" stroke-width="4" paint-order="stroke"
+          text-anchor="middle" dominant-baseline="central">★</text>
+    <animateTransform attributeName="transform" type="rotate"
+                      from="0" to="360" dur="6s" repeatCount="indefinite"/>
+  </g>
+</g>`;
+}
+
 // labels=on: 배경 PLACE 라벨 (흰색 + 두꺼운 외곽선, 마커 아래)
 function renderPlaceLabel(x, y, name) {
   return `
 <text x="${x}" y="${y + 24}"
       font-family="'Courier New',monospace" font-size="15" font-weight="700"
-      fill="#FFFFFF" stroke="${STROKE}" stroke-width="5" paint-order="stroke"
+      fill="${PLACE_LBL}" stroke="${STROKE}" stroke-width="5" paint-order="stroke"
       text-anchor="middle">${esc(name)}</text>`;
 }
 
@@ -595,17 +620,20 @@ async function renderWorldmap(params, env) {
 
   const markers = [];
 
-  // 1) 내 위치
+  // 1) 내 위치 (&at — 등록 장소명/alias 또는 x300y500 형식)
+  if (atRaw) {
+    const ref = resolveRef(atRaw, worldCtx);
+    if (ref) {
+      markers.push({ origX: ref.x, origY: ref.y, isMe: true, label: '내 위치' });
+      if (!worldRaw && ref.refWorld) worldRaw = ref.refWorld;
+    }
+  }
+
+  // 1-b) POI 핀 (&x=&y= — 등록 안 된 위치 마킹용. &at과 동시 사용 가능)
   if (xParam !== null && yParam !== null) {
     const ix = safeInt(xParam, 0, 0, 10000);
     const iy = safeInt(yParam, 0, 0, 10000);
-    markers.push({ origX: ix, origY: iy, isMe: true, label: `(${ix},${iy})` });
-  } else if (atRaw) {
-    const place = findPlace(atRaw, worldCtx);
-    if (place) {
-      markers.push({ origX: place.x, origY: place.y, isMe: true, label: atRaw });
-      if (!worldRaw) worldRaw = place.world;
-    }
+    markers.push({ origX: ix, origY: iy, isPoi: true });
   }
 
   // 2) 다른 사람들
@@ -640,8 +668,10 @@ async function renderWorldmap(params, env) {
   if (!world) return null;
   const worldKey = world.key;
 
-  // 5) 사람 마커 겹침 분산
-  distributeMarkers(markers);
+  // 5) 사람 마커 겹침 분산 (POI 제외 — 명시 좌표 그대로 유지)
+  const distributable = markers.filter(m => !m.isPoi);
+  distributeMarkers(distributable);
+  markers.filter(m => m.isPoi).forEach(m => { m.x = m.origX; m.y = m.origY; });
 
   // 6) 점선 좌표
   const meMarker = markers.find(m => m.isMe);
@@ -710,7 +740,12 @@ async function renderWorldmap(params, env) {
 
   // 다른 사람들
   for (const m of markers) {
-    if (!m.isMe) svg += renderOtherMarker(m);
+    if (!m.isMe && !m.isPoi) svg += renderOtherMarker(m);
+  }
+
+  // POI 핀
+  for (const m of markers) {
+    if (m.isPoi) svg += renderPoiMarker(m.x, m.y);
   }
 
   // 나
@@ -762,11 +797,14 @@ export default {
           'worldmap: 잘못된 파라미터 또는 R2 fetch 실패\n\n' +
           '사용법:\n' +
           '  ?t=worldmap&world=1층\n' +
-          '  ?t=worldmap&world=floor4&at=center\n' +
-          '  ?t=worldmap&world=4층&labels=on            (모든 장소 라벨 표시)\n' +
-          '  ?t=worldmap&world=floor5&x=500&y=400       (좌표 찍기 디버그)\n' +
+          '  ?t=worldmap&world=floor4&at=center                  (내 위치)\n' +
+          '  ?t=worldmap&world=1층&at=x600y400                   (내 위치 직접 좌표)\n' +
+          '  ?t=worldmap&world=4층&labels=on                     (모든 장소 라벨 표시)\n' +
+          '  ?t=worldmap&world=floor5&x=500&y=400                (POI 핀)\n' +
           '  ?t=worldmap&at=중앙&p=upperleft§지나|topright§오크§적\n' +
           '  ?t=worldmap&at=center&path=upperleft,topright,lowerright\n\n' +
+          '내 위치(&at): 등록 장소명/alias, 또는 x300y500 형식. 라벨은 "내 위치"\n' +
+          'POI(&x=&y=): ★ 심볼(블루). 내 위치와 동시 사용 가능\n' +
           '관계 종류: 아군(생략 가능) / 적 / 파티 / 중립\n' +
           '경로 path: 콤마 구분, 마지막이 목적지(깃발), 중간은 경유지(다이아몬드)\n\n' +
           '등록된 월드: test / floor1~floor10 (한글 alias: 1층~10층)\n' +

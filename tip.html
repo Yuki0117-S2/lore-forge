@@ -1124,33 +1124,23 @@ m 파라미터 (|로 메시지, §로 필드 구분):
       {
         id:'t-6-12c', title:'인터넷 방송 (스트림)',
         body:`<div class="label label-use">URL 파라미터 형식</div>
-<pre>/?t=stream&p=스트리머닉§방송제목§시청자수§화면설명§[태그1+태그2]§도네닉§도네금액§도네메시지
+<pre>/?t=stream&p=스트리머닉§방송제목§시청자수§화면설명§[태그1+태그2]
 &c=닉:색:내용|닉:색:내용|system:시스템메시지</pre>
 <hr class="divider">
-<div class="label label-example">예시 (도네 없음)</div>
+<div class="label label-example">예시</div>
 <pre>/?t=stream&p=JayMcCoy_TV§파티+전+워밍업+배그§1247§FPS+게임+플레이+화면§배그+파티+코랄뷰
 &c=system:JayMcCoy_TV님의+방송에+오신+걸+환영합니다|BlairK:핑크:오빠+화이팅!!|xNoxym:샌드:ㅋㅋ+또+죽음|fan_boy99:인디고:캐리+가자|JayMcCoy_TV:로즈:ㅋㅋㅋ+기다려봐</pre>
-<hr class="divider">
-<div class="label label-example">예시 (도네 알람 포함)</div>
-<pre>/?t=stream&p=JayMcCoy_TV§파티+전+워밍업+배그§1247§FPS+게임+플레이+화면§배그+파티+코랄뷰§익명후원자§5,000원§오늘도+방송+힘내세요!
-&c=system:JayMcCoy_TV님의+방송에+오신+걸+환영합니다|BlairK:핑크:오빠+화이팅!!</pre>
 <hr class="divider">
 <div class="desc"><strong>파라미터 설명:</strong><br>
 • <strong>system:</strong> 으로 시작하면 시스템 메시지 (가운데 회색)<br>
 • 닉 색상: 인디고/핑크/샌드/로즈/구독자/매니저 등<br>
 • 영상 영역은 플레이스홀더 + LIVE 배지 + 시청자 수<br>
-• 팔로우 버튼, 태그, 채팅 입력창 포함<br>
-• <strong>LIVE 점 깜빡임:</strong> 플레이어 컨트롤바의 LIVE 점이 1초 주기로 자동 깜빡임 (애니메이션)<br>
-• <strong>도네 알람 (선택):</strong> 6~8번째 필드(도네닉/도네금액/도네메시지) 셋 다 채워야 알람 박스 표시. 셋 중 하나라도 비면 박스 안 뜸<br>
-• 도네 알람은 약 6초간 화면 위에 떴다가 사라지며, 등장 직후부터 사라지기 전까지 이모지(🎉💰✨💖⭐🎁)가 호로록 뿌려짐<br>
-• 도네 메시지에는 § 문자 사용 불가 (필드 구분자라 split 깨짐). 대신 일반 문장부호는 자유롭게 사용 가능</div>
+• 팔로우 버튼, 태그, 채팅 입력창 포함</div>
 <hr class="divider">
 <div class="label label-example">필드 설명</div>
 <pre>p 파라미터 (§로 구분):
-  스트리머닉§방송제목§시청자수§화면설명§[태그]§도네닉§도네금액§도네메시지
+  스트리머닉§방송제목§시청자수§화면설명§[태그]
   태그: 공백으로 구분 (게임 코딩 라이브)
-  도네 3필드: 선택 사항. 셋 다 있을 때만 알람 박스 표시
-  도네금액: 통화 단위 자유 (예: "5,000원" "$10" "1000P")
 
 &c= 채팅 (|로 구분, :로 필드 구분):
   닉:색:내용
@@ -1286,9 +1276,7 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
 - sv 색상은 hex값에서 # 제외 (예: 8889CD, BB6688)
 
 ### 인터넷 방송
-![](https://i.winter0.workers.dev/?t=stream&p=스트리머§제목§시청자수§화면설명§태그1+태그2§도네닉§도네금액§도네메시지&c=닉:색:내용|system:시스템메시지)
-- 도네 3필드(닉/금액/메시지)는 선택사항. 셋 다 있어야 알람 박스 표시, 하나라도 비면 박스 안 뜸 (도네 없는 방송은 셋 다 생략)
-- 도네 메시지에 § 사용 불가 (split 깨짐)
+![](https://i.winter0.workers.dev/?t=stream&p=스트리머§제목§시청자수§화면설명§태그1+태그2&c=닉:색:내용|system:시스템메시지)
 
 ### ✉️ 편지
 ![](https://i.winter0.workers.dev/?t=letter&p=보내는사람§받는사람§날짜§맺음말§우표라벨&b=본문내용&ps=추신&w=워터마크이모지)
@@ -1628,7 +1616,7 @@ char — 관련 캐릭터 (|로 구분, 선택)</pre>`
 &title=어디로+갈까&st=vn</pre>
 <hr class="divider">
 <div class="desc"><strong>파라미터 설명:</strong><br>
-• <strong>c</strong> — 선택지 (<code>|</code>로 구분, 권장 8개 이하). 숫자 prefix는 자동 부여<br>
+• <strong>c</strong> — 선택지 (<code>|</code>로 구분, 최대 4개). 숫자 prefix(1. 2. 3. 4.)는 자동 부여<br>
 • <strong>title</strong> — 박스 위 작은 라벨 (선택, 생략 가능)<br>
 • <strong>st</strong> — 스타일 (생략 시 <code>vn</code>):<br>
 &nbsp;&nbsp;– <code>vn</code> 미연시 (반투명 보라 박스 + 핑크 숫자 원)<br>
@@ -1636,10 +1624,10 @@ char — 관련 캐릭터 (|로 구분, 선택)</pre>`
 &nbsp;&nbsp;– <code>modern</code> 모던 카드 (좌측 컬러바)<br>
 &nbsp;&nbsp;– <code>dot</code> 도트 RPG (8-bit 픽셀 그림자)<br>
 • 본문 텍스트는 박스에 들어가지 않음 — 위쪽 챗봇 메시지로 따로 출력<br>
-• 개수 제한 없음 (권장 8개 이하, 그 이상도 가능하나 카드가 길어짐). 빈 항목은 자동 제거</div>
+• 4개 초과 입력 시 앞 4개만 사용, 빈 항목은 자동 제거</div>
 <hr class="divider">
 <div class="label label-example">필드 설명</div>
-<pre>c (|로 보기 구분, 권장 8개 이하):
+<pre>c (|로 보기 구분, 최대 4개):
   보기1|보기2|보기3|보기4
   각 보기는 28~30자 이내 권장 (초과 시 자동 말줄임)
 
@@ -1986,7 +1974,7 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
 
 ### 선택지 박스
 ![](https://st.winter0.workers.dev/?t=choice&c=보기1|보기2|보기3|보기4&title=제목&st=스타일)
-- c: 선택지 (|로 구분, 권장 8개 이하). 숫자 prefix는 자동 부여
+- c: 선택지 (|로 구분, 최대 4개). 숫자 prefix는 자동 부여
 - title: 박스 상단 라벨 (선택, 생략 가능)
 - st: vn(기본) / rpg / modern / dot
 - 본문은 박스에 넣지 않는다 — 위쪽 메시지로 따로 출력

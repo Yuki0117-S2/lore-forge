@@ -2509,7 +2509,7 @@ function executeCopyChar(targetId){
   showToast('✅ '+projects[targetId].name+'에 복사됐어!');
 }
 
-// ── Textarea Auto-Grow (포커스 시 확장 + 내용에 맞춰 자동 늘어남, viewport 65%에서 cap) ─────────
+// ── Textarea Auto-Grow (포커스 시 1회만 크기 결정. input 중에는 변경 X → 페이지 점프 방지) ─────────
 function setupTextareaAutoGrow(){
   // viewport 비율 cap 계산 (모바일 키보드 올라오면 visualViewport.height가 줄어듦)
   const getMaxH=()=>{
@@ -2517,20 +2517,18 @@ function setupTextareaAutoGrow(){
     const viewportH=vv?vv.height:window.innerHeight;
     return Math.max(300,Math.floor(viewportH*0.65));
   };
-  // 포커스/입력 시 내용 높이에 맞춰 늘리되 max-height 안에서만
-  const grow=(ta)=>{
+  // focus 직후 한 번만 호출. 글 양에 맞춰 height 결정 (min 300px, max viewport*0.65)
+  // input 중에는 호출 안 함 → textarea가 자라지 않음 → 페이지 자동 스크롤 발생 X
+  const setInitialHeight=(ta)=>{
     if(!ta||ta.tagName!=='TEXTAREA')return;
-    const isFocused=document.activeElement===ta;
-    // 일시적으로 height 리셋해야 정확한 scrollHeight 측정 가능
     ta.style.height='auto';
-    const minH=isFocused?300:72;
-    const maxH=isFocused?getMaxH():Infinity;
+    const minH=300;
+    const maxH=getMaxH();
     const targetH=Math.max(minH,ta.scrollHeight+2);
     const newH=Math.min(maxH,targetH);
     ta.style.height=newH+'px';
-    // max에 닿으면 내부 스크롤 활성화 (CSS에서 focus 시 overflow-y:auto 이미 설정됨)
   };
-  // 포커스 직후 textarea를 viewport 안으로 끌어오기 (input 중에는 호출 안 함 - 점프 방지)
+  // 포커스 직후 textarea를 viewport 안으로 끌어오기 (한 번만)
   const scrollIntoViewOnce=(ta)=>{
     if(!ta||ta.tagName!=='TEXTAREA')return;
     if(document.activeElement!==ta)return;
@@ -2538,7 +2536,6 @@ function setupTextareaAutoGrow(){
     const viewportH=vv?vv.height:window.innerHeight;
     const viewportTop=vv?vv.offsetTop:0;
     const rect=ta.getBoundingClientRect();
-    // textarea가 viewport 밖으로 빠져있거나 너무 아래에 있을 때만 한 번 스크롤
     if(rect.bottom>viewportTop+viewportH||rect.top<viewportTop){
       try{ta.scrollIntoView({block:'center',behavior:'instant'});}
       catch(_){ta.scrollIntoView({block:'center'});}
@@ -2546,27 +2543,27 @@ function setupTextareaAutoGrow(){
   };
   document.addEventListener('focusin',(e)=>{
     if(e.target.tagName==='TEXTAREA'){
-      grow(e.target);
+      setInitialHeight(e.target);
       // 포커스 직후 키보드/레이아웃 안정화 대기 후 한 번만 스크롤
       setTimeout(()=>scrollIntoViewOnce(e.target),150);
     }
   });
-  document.addEventListener('input',(e)=>{
-    if(e.target.tagName==='TEXTAREA'&&document.activeElement===e.target){
-      grow(e.target);
-      // input 시에는 페이지 스크롤 건드리지 않음 (textarea 내부 스크롤이 커서 따라감)
-    }
-  });
+  // input 이벤트 핸들러 의도적으로 제거: textarea 자체 height 변경 X
+  // → 글이 textarea를 넘어가면 textarea 내부 스크롤로 자동 처리 (브라우저가 커서 따라감)
   document.addEventListener('focusout',(e)=>{
     if(e.target.tagName==='TEXTAREA'){
       // 포커스 빠지면 inline height 제거 → CSS의 min-height(72px)로 복귀
       e.target.style.height='';
     }
   });
-  // 모바일 키보드 토글/회전 등 viewport 크기 변경 시 활성 textarea height 재조정
+  // viewport 변경 시 (키보드 토글/회전) active textarea height max 다시 적용 (초과 시 줄이기만)
   const handleResize=()=>{
     const ta=document.activeElement;
-    if(ta&&ta.tagName==='TEXTAREA')grow(ta);
+    if(ta&&ta.tagName==='TEXTAREA'){
+      const maxH=getMaxH();
+      const cur=parseFloat(ta.style.height)||0;
+      if(cur>maxH)ta.style.height=maxH+'px';
+    }
   };
   if(window.visualViewport){
     window.visualViewport.addEventListener('resize',handleResize);

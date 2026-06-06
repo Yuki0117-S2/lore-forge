@@ -1628,7 +1628,7 @@ char — 관련 캐릭터 (|로 구분, 선택)</pre>`
 &title=어디로+갈까&st=vn</pre>
 <hr class="divider">
 <div class="desc"><strong>파라미터 설명:</strong><br>
-• <strong>c</strong> — 선택지 (<code>|</code>로 구분, 최대 4개). 숫자 prefix(1. 2. 3. 4.)는 자동 부여<br>
+• <strong>c</strong> — 선택지 (<code>|</code>로 구분, 권장 8개 이하). 숫자 prefix는 자동 부여<br>
 • <strong>title</strong> — 박스 위 작은 라벨 (선택, 생략 가능)<br>
 • <strong>st</strong> — 스타일 (생략 시 <code>vn</code>):<br>
 &nbsp;&nbsp;– <code>vn</code> 미연시 (반투명 보라 박스 + 핑크 숫자 원)<br>
@@ -1636,10 +1636,10 @@ char — 관련 캐릭터 (|로 구분, 선택)</pre>`
 &nbsp;&nbsp;– <code>modern</code> 모던 카드 (좌측 컬러바)<br>
 &nbsp;&nbsp;– <code>dot</code> 도트 RPG (8-bit 픽셀 그림자)<br>
 • 본문 텍스트는 박스에 들어가지 않음 — 위쪽 챗봇 메시지로 따로 출력<br>
-• 4개 초과 입력 시 앞 4개만 사용, 빈 항목은 자동 제거</div>
+• 개수 제한 없음 (권장 8개 이하, 그 이상도 가능하나 카드가 길어짐). 빈 항목은 자동 제거</div>
 <hr class="divider">
 <div class="label label-example">필드 설명</div>
-<pre>c (|로 보기 구분, 최대 4개):
+<pre>c (|로 보기 구분, 권장 8개 이하):
   보기1|보기2|보기3|보기4
   각 보기는 28~30자 이내 권장 (초과 시 자동 말줄임)
 
@@ -1986,7 +1986,7 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
 
 ### 선택지 박스
 ![](https://st.winter0.workers.dev/?t=choice&c=보기1|보기2|보기3|보기4&title=제목&st=스타일)
-- c: 선택지 (|로 구분, 최대 4개). 숫자 prefix는 자동 부여
+- c: 선택지 (|로 구분, 권장 8개 이하). 숫자 prefix는 자동 부여
 - title: 박스 상단 라벨 (선택, 생략 가능)
 - st: vn(기본) / rpg / modern / dot
 - 본문은 박스에 넣지 않는다 — 위쪽 메시지로 따로 출력

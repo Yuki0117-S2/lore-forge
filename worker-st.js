@@ -1558,7 +1558,7 @@ ${body}
 // ════════════════════════════════════════════
 //  CHOICE (선택지 박스)
 //  ?t=choice&c=보기1|보기2|보기3|보기4&title=라벨&st=vn|rpg|modern|dot
-//  최대 4개, 숫자 prefix 자동, 본문 없음 (본문은 위쪽 챗봇 메시지)
+//  최대 개수 제한 없음 (권장 8개 이하), 숫자 prefix 자동, 본문 없음 (본문은 위쪽 챗봇 메시지)
 //  st 생략 시 vn
 // ════════════════════════════════════════════
 
@@ -1712,7 +1712,7 @@ function renderChoice(params) {
   const st = validStyles.includes(stRaw) ? stRaw : 'vn';
 
   const rawC = params.get('c') || '';
-  let choices = rawC ? rawC.split('|').map(s => s.trim()).filter(Boolean).slice(0, 4) : [];
+  let choices = rawC ? rawC.split('|').map(s => s.trim()).filter(Boolean) : [];
   if (choices.length === 0) choices = ['선택지 없음'];
   choices = choices.map(esc);
 

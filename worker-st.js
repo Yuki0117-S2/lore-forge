@@ -46,7 +46,7 @@ function normalizeRarity(g) {
 const RARITY_COLOR = {
   legend:   '#CCAA88',
   epic:     '#884499',
-  rare:     '#8889CD',
+  rare:     '#8888CC',
   uncommon: '#BB6688',
   common:   '#7a7a90',
   cursed:   '#EE1166',
@@ -194,7 +194,7 @@ function barColor(type, val) {
   }
   if (type === 'mental') {
     if (val < 30) return '#884499';
-    return '#8889CD';
+    return '#8888CC';
   }
   return '#CCAA88';
 }
@@ -371,7 +371,7 @@ function vn2BarColor(type, val) {
     return '#FF6699';
   }
   if (type === 'hp')      { if (val <= 20) return '#EE1166'; return '#BB6688'; }
-  if (type === 'mental')  { if (val <= 20) return '#0077DD'; return '#8889CD'; }
+  if (type === 'mental')  { if (val <= 20) return '#0077DD'; return '#8888CC'; }
   if (type === 'arousal') { if (val >= 80) return '#EE1166'; return '#884499'; }
   return '#CCAA88';
 }
@@ -678,10 +678,10 @@ ${cardsSVG}
 
 function darkBarColor(type, val) {
   if (type === 'hp')  { if (val < 20) return '#EE1166'; if (val < 40) return '#FF7722'; return '#BB6688'; }
-  if (type === 'mp')  { if (val < 20) return '#884499'; return '#8889CD'; }
+  if (type === 'mp')  { if (val < 20) return '#884499'; return '#8888CC'; }
   if (type === 'sp')  { if (val < 20) return '#FF7722'; return '#CCAA88'; }
   if (type === 'exp') return '#884499';
-  return '#8889CD';
+  return '#8888CC';
 }
 
 function darkBar(x, y, w, h, val, max, type) {
@@ -700,7 +700,7 @@ function darkBar(x, y, w, h, val, max, type) {
 
 function darkStatBar(x, y, w, h, val) {
   const filled = Math.round((Math.min(99, val) / 99) * w);
-  const col = val > 80 ? '#CCAA88' : val > 50 ? '#8889CD' : '#BB6688';
+  const col = val > 80 ? '#CCAA88' : val > 50 ? '#8888CC' : '#BB6688';
   return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="2" fill="#0d0a08"/>
 <rect x="${x}" y="${y}" width="${filled}" height="${h}" rx="2" fill="${col}" opacity="0.85"/>`;
 }
@@ -802,7 +802,7 @@ ${equipIcon(e.type, gcol, PAD+4, ey+2, 1)}
     let bx = PAD;
     bufs.slice(0,6).forEach(buf => {
       const isD = buf.startsWith('!'); const label = esc(isD ? buf.slice(1) : buf);
-      const bcol = isD ? '#BB6688' : '#8889CD'; const bw = label.length * 9 + 24;
+      const bcol = isD ? '#BB6688' : '#8888CC'; const bw = label.length * 9 + 24;
       svg += `<rect x="${bx}" y="${y+22}" width="${bw}" height="22" rx="3" fill="#0a0805" stroke="${bcol}" stroke-width="1.5"/>
 <text x="${bx+bw/2}" y="${y+37}" font-family="'Noto Serif KR',Georgia,serif" font-size="12" font-weight="bold" fill="${bcol}" text-anchor="middle">${label}</text>`;
       bx += bw + 6;
@@ -830,15 +830,15 @@ ${svg}
 
 function pixelBarColor(type, pct) {
   if (type==='hp') { if(pct<20) return '#EE1166'; if(pct<40) return '#FF7722'; return '#BB6688'; }
-  if (type==='mp') { if(pct<20) return '#884499'; return '#8889CD'; }
+  if (type==='mp') { if(pct<20) return '#884499'; return '#8888CC'; }
   if (type==='sp') { if(pct<20) return '#FF7722'; return '#CCAA88'; }
   if (type==='exp') return '#884499';
   if (type==='atk') return '#BB6688';
-  if (type==='def') return '#8889CD';
+  if (type==='def') return '#8888CC';
   if (type==='agi') return '#CCAA88';
   if (type==='mag') return '#884499';
   if (type==='luk') return '#DDAACC';
-  return '#8889CD';
+  return '#8888CC';
 }
 
 function pixelBar(x, y, w, h, val, max, type) {
@@ -882,7 +882,7 @@ function pixelStatBar(x, y, w, h, val, type) {
 // 직업별 도트 아이콘 (16x16 무기/상징)
 // [x,y,color] 배열, 좌표는 16x16 기준 (렌더 시 SC=3 곱함)
 function jobIcons() {
-  const S='#8889CD',D='#DDAACC',C='#CCAA88',B='#BB6688',P='#884499',E='#EE1166',O='#FF7722';
+  const S='#8888CC',D='#DDAACC',C='#CCAA88',B='#BB6688',P='#884499',E='#EE1166',O='#FF7722';
   const m1='#ccc',m2='#ddd',m3='#eee',m0='#aaa',m4='#bbb';
   const w='#6a4a2a',w2='#8a6a3a',dk='#2a1a2a',dkp='#4a2a4a';
   const g1='#6aa04a',g2='#5a8a3a',g3='#7ab85a';
@@ -1130,7 +1130,7 @@ function renderPixel(params) {
   let y = 0, svg = '';
 
   // 타이틀바
-  svg += `<rect x="0" y="0" width="${W}" height="${TITLEBAR_H}" fill="#8889CD"/>
+  svg += `<rect x="0" y="0" width="${W}" height="${TITLEBAR_H}" fill="#8888CC"/>
 <rect x="0" y="${TITLEBAR_H-3}" width="${W}" height="3" fill="#000"/>
 <text x="${W/2}" y="15" font-family="monospace" font-size="11" fill="#000" text-anchor="middle" letter-spacing="2" font-weight="bold">STATUS</text>`;
   y = TITLEBAR_H;
@@ -1140,7 +1140,7 @@ function renderPixel(params) {
 ${pixelSprite(PAD, y+8, avKey)}
 <text x="${PAD+58}" y="${y+24}" font-family="monospace" font-size="16" font-weight="bold" fill="#DDAACC">${name}</text>
 <text x="${PAD+58}" y="${y+40}" font-family="monospace" font-size="10" font-weight="bold" fill="#8a80a0" letter-spacing="1">${job}</text>
-<text x="${PAD+58}" y="${y+56}" font-family="monospace" font-size="12" font-weight="bold" fill="#8889CD">LV.${lv}</text>
+<text x="${PAD+58}" y="${y+56}" font-family="monospace" font-size="12" font-weight="bold" fill="#8888CC">LV.${lv}</text>
 <text x="${PAD}" y="${y+HEADER_H-16}" font-family="monospace" font-size="9" font-weight="bold" fill="#6a6080">EXP</text>
 ${pixelBar(PAD+32, y+HEADER_H-26, INNER_W-32, 12, exp, 100, 'exp')}
 <text x="${W-PAD}" y="${y+HEADER_H-16}" font-family="monospace" font-size="10" font-weight="bold" fill="#884499" text-anchor="end">${exp}%</text>
@@ -1180,7 +1180,7 @@ ${pixelStatBar(bx, sy+4, SBAW, 10, s.val, s.type)}
   eqItems.forEach((e,i) => {
     const ex = PAD+i*Math.floor(INNER_W/3), ey = y+20, slotW = Math.floor(INNER_W/3)-4;
     // pixel은 등급 입력 없음 — 인디고 통일색 사용
-    const iconColor = '#8889CD';
+    const iconColor = '#8888CC';
     // 가운데 정렬: 아이콘 24px 기준 scale 1.2 → 28.8px. iconY를 살짝 위로 올려 라벨 가림 방지
     const iconScale = 1.2;
     const iconSize = 24 * iconScale;
@@ -1189,7 +1189,7 @@ ${pixelStatBar(bx, sy+4, SBAW, 10, s.val, s.type)}
     svg += `<rect x="${ex}" y="${ey}" width="${slotW}" height="54" fill="#000" stroke="#2a2040" stroke-width="2"/>
 ${equipIcon(e.type, iconColor, iconX, iconY, iconScale)}
 <text x="${ex+slotW/2}" y="${ey+38}" font-family="monospace" font-size="8" font-weight="bold" fill="#5a5078" text-anchor="middle" letter-spacing="1">${e.type}</text>
-<text x="${ex+slotW/2}" y="${ey+50}" font-family="monospace" font-size="10" font-weight="bold" fill="#8889CD" text-anchor="middle">${e.name.length>7?e.name.slice(0,7)+'…':e.name}</text>`;
+<text x="${ex+slotW/2}" y="${ey+50}" font-family="monospace" font-size="10" font-weight="bold" fill="#8888CC" text-anchor="middle">${e.name.length>7?e.name.slice(0,7)+'…':e.name}</text>`;
   });
   svg += pdiv(y + EQ_H);
   y += EQ_H;
@@ -1200,7 +1200,7 @@ ${equipIcon(e.type, iconColor, iconX, iconY, iconScale)}
     let bx = PAD;
     bufs.slice(0,6).forEach(buf => {
       const isD = buf.startsWith('!'); const label = esc(isD ? buf.slice(1) : buf);
-      const bcol = isD ? '#BB6688' : '#8889CD'; const bw = label.length*8+20;
+      const bcol = isD ? '#BB6688' : '#8888CC'; const bw = label.length*8+20;
       svg += `<rect x="${bx}" y="${y+8}" width="${bw}" height="22" fill="#000" stroke="${bcol}" stroke-width="2"/>
 <text x="${bx+bw/2}" y="${y+23}" font-family="monospace" font-size="10" font-weight="bold" fill="${bcol}" text-anchor="middle">${label}</text>`;
       bx += bw + 4;
@@ -1210,11 +1210,11 @@ ${equipIcon(e.type, iconColor, iconX, iconY, iconScale)}
 
   // 하단 바
   svg += `<rect x="0" y="${y}" width="${W}" height="3" fill="#000"/>
-<rect x="0" y="${y+3}" width="${W}" height="${FOOTER_H-3}" fill="#8889CD"/>`;
+<rect x="0" y="${y+3}" width="${W}" height="${FOOTER_H-3}" fill="#8888CC"/>`;
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${TOTAL_H}" viewBox="0 0 ${W} ${TOTAL_H}">
 <rect width="${W}" height="${TOTAL_H}" fill="#080814"/>
-<rect x="0" y="0" width="${W}" height="${TOTAL_H}" fill="none" stroke="#8889CD" stroke-width="4"/>
+<rect x="0" y="0" width="${W}" height="${TOTAL_H}" fill="none" stroke="#8888CC" stroke-width="4"/>
 <rect x="4" y="4" width="${W-8}" height="${TOTAL_H-8}" fill="none" stroke="#000" stroke-width="2"/>
 ${svg}
 </svg>`;
@@ -1242,7 +1242,7 @@ function renderEnding(params) {
 
   const themes = {
     bad:    { bg:'#110a0a', border:'#4a2020', accent:'#BB6688', accentDim:'#9a5060', textMain:'#f0c8c8', textSub:'#a87878', label:'BAD ENDING',    deco:'BAD'  },
-    normal: { bg:'#0d0d18', border:'#3a3060', accent:'#8889CD', accentDim:'#6668AA', textMain:'#d8d6f0', textSub:'#9898b8', label:'NORMAL ENDING', deco:'END'  },
+    normal: { bg:'#0d0d18', border:'#3a3060', accent:'#8888CC', accentDim:'#6668AA', textMain:'#d8d6f0', textSub:'#9898b8', label:'NORMAL ENDING', deco:'END'  },
     good:   { bg:'#0a100d', border:'#285038', accent:'#6ab87a', accentDim:'#4a8858', textMain:'#c0e8c8', textSub:'#78a880', label:'GOOD ENDING',   deco:'END'  },
     true:   { bg:'#0d0a14', border:'#4a3868', accent:'#CCAA88', accentDim:'#aa8858', textMain:'#f0e0c0', textSub:'#c0a878', label:'TRUE ENDING',   deco:'TRUE' },
   };
@@ -1483,7 +1483,7 @@ function renderRpg2k(params) {
     body += `<text x="${PAD}" y="74" font-family="Georgia,serif" font-size="13" fill="#BB6688" font-style="italic">${subtitle}</text>`;
   }
   if (chapter) {
-    body += `<text x="${W-PAD}" y="52" font-family="monospace" font-size="11" font-weight="bold" fill="#8889CD" text-anchor="end" letter-spacing="2">${chapter}</text>`;
+    body += `<text x="${W-PAD}" y="52" font-family="monospace" font-size="11" font-weight="bold" fill="#8888CC" text-anchor="end" letter-spacing="2">${chapter}</text>`;
   }
   if (loc) {
     body += `<text x="${W-PAD}" y="72" font-family="monospace" font-size="11" fill="#8a7a90" text-anchor="end">▸ ${loc}</text>`;
@@ -1538,7 +1538,7 @@ function renderRpg2k(params) {
   }
 
   if (note) {
-    body += `<text x="${W/2}" y="${y+24}" font-family="Georgia,serif" font-size="13" fill="#8889CD" font-style="italic" text-anchor="middle">" ${note} "</text>`;
+    body += `<text x="${W/2}" y="${y+24}" font-family="Georgia,serif" font-size="13" fill="#8888CC" font-style="italic" text-anchor="middle">" ${note} "</text>`;
     y += NOTE_H;
   }
 
@@ -1549,7 +1549,7 @@ function renderRpg2k(params) {
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${TOTAL_H}" viewBox="0 0 ${W} ${TOTAL_H}">
 <rect width="${W}" height="${TOTAL_H}" fill="#110d18"/>
-<rect x="2" y="2" width="${W-4}" height="${TOTAL_H-4}" rx="3" fill="none" stroke="#8889CD" stroke-width="1" opacity="0.4"/>
+<rect x="2" y="2" width="${W-4}" height="${TOTAL_H-4}" rx="3" fill="none" stroke="#8888CC" stroke-width="1" opacity="0.4"/>
 ${corners}
 ${body}
 </svg>`;
@@ -1583,7 +1583,7 @@ function renderChoiceVN(choices, title, W) {
   choices.forEach((choice, i) => {
     const y = TOP + i * (ROW_H + GAP);
     const display = clipChoice(choice, 30);
-    body += `<rect x="${PAD}" y="${y}" width="${W - PAD*2}" height="${ROW_H}" rx="6" fill="url(#choiceVnRow)" stroke="#8889CD" stroke-width="1" stroke-opacity="0.4"/>
+    body += `<rect x="${PAD}" y="${y}" width="${W - PAD*2}" height="${ROW_H}" rx="6" fill="url(#choiceVnRow)" stroke="#8888CC" stroke-width="1" stroke-opacity="0.4"/>
 <circle cx="${PAD + 24}" cy="${y + ROW_H/2}" r="14" fill="#BB6688" fill-opacity="0.25" stroke="#DDAACC" stroke-width="1" stroke-opacity="0.6"/>
 <text x="${PAD + 24}" y="${y + ROW_H/2 + 5}" font-family="'Noto Serif KR',Georgia,serif" font-size="14" font-weight="bold" fill="#DDAACC" text-anchor="middle">${i+1}</text>
 <text x="${PAD + 52}" y="${y + ROW_H/2 + 5}" font-family="'Noto Serif KR',Georgia,serif" font-size="14" fill="#f0eaf5">${display}</text>`;
@@ -1642,11 +1642,11 @@ function renderChoiceModern(choices, title, W) {
   const BOT = 16;
   const TOTAL_H = TOP + choices.length * ROW_H + Math.max(0, choices.length - 1) * GAP + BOT;
 
-  const accents = ['#8889CD', '#DDAACC', '#CCAA88', '#BB6688'];
+  const accents = ['#8888CC', '#DDAACC', '#CCAA88', '#BB6688'];
 
   let body = '';
   if (title) {
-    body += `<text x="${PAD}" y="26" font-family="monospace" font-size="11" font-weight="bold" fill="#8889CD" letter-spacing="3">—  ${title.toUpperCase()}</text>`;
+    body += `<text x="${PAD}" y="26" font-family="monospace" font-size="11" font-weight="bold" fill="#8888CC" letter-spacing="3">—  ${title.toUpperCase()}</text>`;
   }
 
   choices.forEach((choice, i) => {
@@ -1693,10 +1693,10 @@ function renderChoiceDot(choices, title, W) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${TOTAL_H}" viewBox="0 0 ${W} ${TOTAL_H}">
 <rect x="4" y="4" width="${W-4}" height="${TOTAL_H-4}" fill="#000"/>
 <rect x="0" y="0" width="${W-4}" height="${TOTAL_H-4}" fill="#1a1438"/>
-<rect x="0" y="0" width="${W-4}" height="4" fill="#8889CD"/>
-<rect x="0" y="${TOTAL_H-8}" width="${W-4}" height="4" fill="#8889CD"/>
-<rect x="0" y="0" width="4" height="${TOTAL_H-4}" fill="#8889CD"/>
-<rect x="${W-8}" y="0" width="4" height="${TOTAL_H-4}" fill="#8889CD"/>
+<rect x="0" y="0" width="${W-4}" height="4" fill="#8888CC"/>
+<rect x="0" y="${TOTAL_H-8}" width="${W-4}" height="4" fill="#8888CC"/>
+<rect x="0" y="0" width="4" height="${TOTAL_H-4}" fill="#8888CC"/>
+<rect x="${W-8}" y="0" width="4" height="${TOTAL_H-4}" fill="#8888CC"/>
 <rect x="4" y="4" width="${W-12}" height="4" fill="#DDAACC"/>
 <rect x="4" y="${TOTAL_H-12}" width="${W-12}" height="4" fill="#DDAACC"/>
 <rect x="4" y="4" width="4" height="${TOTAL_H-12}" fill="#DDAACC"/>
@@ -2188,7 +2188,7 @@ function renderDungeon(params) {
   svg += `<text x="${PAD}" y="22" fill="#DDAACC" font-family="monospace" font-size="13" font-weight="bold">${label}</text>`;
   const modeLabel = isLabyrinth ? '[미궁] ' : '';
   const statusLabel = playerInBoss ? ' · ⚔ 전투' : '';
-  svg += `<text x="${svgW - PAD}" y="22" fill="#8889CD" font-family="monospace" font-size="11" text-anchor="end">${modeLabel}${rules.width}×${rules.height} · ${rules.bossLevel}${statusLabel}</text>`;
+  svg += `<text x="${svgW - PAD}" y="22" fill="#8888CC" font-family="monospace" font-size="11" text-anchor="end">${modeLabel}${rules.width}×${rules.height} · ${rules.bossLevel}${statusLabel}</text>`;
   
   const gx0 = PAD + COORD_LEFT, gy0 = PAD + HEADER + COORD_TOP;
   const px = x => gx0 + x * TILE;
@@ -2200,10 +2200,10 @@ function renderDungeon(params) {
   if (showCoords) {
     for (let x = 1; x < w; x++) {
       const letter = String.fromCharCode(64 + x);
-      svg += `<text x="${cx(x)}" y="${gy0 - 4}" fill="#8889CD" font-family="monospace" font-size="9" text-anchor="middle" opacity="0.7">${letter}</text>`;
+      svg += `<text x="${cx(x)}" y="${gy0 - 4}" fill="#8888CC" font-family="monospace" font-size="9" text-anchor="middle" opacity="0.7">${letter}</text>`;
     }
     for (let y = 1; y < h; y++) {
-      svg += `<text x="${gx0 - 6}" y="${cy(y) + 3}" fill="#8889CD" font-family="monospace" font-size="9" text-anchor="end" opacity="0.7">${y}</text>`;
+      svg += `<text x="${gx0 - 6}" y="${cy(y) + 3}" fill="#8888CC" font-family="monospace" font-size="9" text-anchor="end" opacity="0.7">${y}</text>`;
     }
   }
   
@@ -2333,7 +2333,7 @@ function renderMmo(params) {
   // 색상 팔레트 (네 가지 메인 + 비비드 보조)
   const C = {
     bg:'#0d0f1f', panel:'#13162a', panelHi:'#1a1f38', border:'#2a3050',
-    indigo:'#8889CD', indigoSoft:'#5a5e9a',
+    indigo:'#8888CC', indigoSoft:'#5a5e9a',
     rose:'#BB6688', sand:'#CCAA88', pink:'#DDAACC',
     cyan:'#00BBDD', purple:'#884499', orange:'#FF7722',
     hot:'#FF6699', danger:'#EE1166', blue:'#0077DD',
@@ -2844,7 +2844,7 @@ function renderRewardPixel({ fromName, headerLabel, items }) {
   let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${TOTAL_H}" viewBox="0 0 ${W} ${TOTAL_H}" font-family="monospace" shape-rendering="crispEdges">
 <rect width="${W}" height="${TOTAL_H}" fill="${C.bg}"/>
 
-<text x="${W/2}" y="32" font-size="11" font-weight="bold" fill="#8889CD" letter-spacing="3" text-anchor="middle">★ ${esc(headerLabel)} ★</text>
+<text x="${W/2}" y="32" font-size="11" font-weight="bold" fill="#8888CC" letter-spacing="3" text-anchor="middle">★ ${esc(headerLabel)} ★</text>
 <text x="${W/2}" y="54" font-size="13" fill="${C.pink}" text-anchor="middle" letter-spacing="1">[ ${esc(fromName)} ]</text>
 <text x="${W/2}" y="76" font-size="10" fill="${C.dim}" text-anchor="middle" letter-spacing="2">${items.length} ITEM${items.length>1?'S':''} OBTAINED</text>
 `;
@@ -3096,7 +3096,7 @@ fill="#CCAA88" text-anchor="middle" font-style="italic" opacity="0">— ${cause}
     if (name) {
       const nameLine = sub ? `${name}  ·  ${sub}` : name;
       svg += `<text x="${W/2}" y="${y}" font-family="'Noto Serif KR',Georgia,serif" font-size="15"
-font-weight="bold" fill="#8889CD" text-anchor="middle" letter-spacing="2" opacity="0">${nameLine}<animate attributeName="opacity" values="0;1" dur="0.5s" begin="1.8s" fill="freeze" repeatCount="1"/></text>`;
+font-weight="bold" fill="#8888CC" text-anchor="middle" letter-spacing="2" opacity="0">${nameLine}<animate attributeName="opacity" values="0;1" dur="0.5s" begin="1.8s" fill="freeze" repeatCount="1"/></text>`;
       y += 28;
     }
     if (dialog) {
@@ -3132,7 +3132,7 @@ fill="#CCAA88" opacity="0.8">${esc(a.desc)}</text>`;
   if (count) {
     y += 15;
     svg += `<text x="${W/2}" y="${y}" font-family="monospace" font-size="12"
-fill="#8889CD" text-anchor="middle" opacity="0">DEATH COUNT: ${esc(count)}<animate attributeName="opacity" values="0;0.7" dur="0.4s" begin="4s" fill="freeze" repeatCount="1"/></text>`;
+fill="#8888CC" text-anchor="middle" opacity="0">DEATH COUNT: ${esc(count)}<animate attributeName="opacity" values="0;0.7" dur="0.4s" begin="4s" fill="freeze" repeatCount="1"/></text>`;
   }
 
   svg += `</svg>`;
@@ -3181,7 +3181,7 @@ fill="#CCAA88" text-anchor="middle" letter-spacing="1" opacity="0">* ${cause} *<
     if (name) {
       const nameLine = sub ? `${name} - ${sub}` : name;
       svg += `<text x="${W/2}" y="${y}" font-family="'Courier New',monospace" font-size="14"
-font-weight="bold" fill="#8889CD" text-anchor="middle" letter-spacing="2" opacity="0">[ ${nameLine} ]<animate attributeName="opacity" values="0;1" dur="0.5s" begin="1.8s" fill="freeze" repeatCount="1"/></text>`;
+font-weight="bold" fill="#8888CC" text-anchor="middle" letter-spacing="2" opacity="0">[ ${nameLine} ]<animate attributeName="opacity" values="0;1" dur="0.5s" begin="1.8s" fill="freeze" repeatCount="1"/></text>`;
       y += 28;
     }
     if (dialog) {
@@ -3216,7 +3216,7 @@ fill="#CCAA88">${esc(a.desc)}</text>`;
   if (count) {
     y += 15;
     svg += `<text x="${W/2}" y="${y}" font-family="'Courier New',monospace" font-size="12"
-fill="#8889CD" text-anchor="middle" opacity="0">DEATHS: ${esc(count)}<animate attributeName="opacity" values="0;1" dur="0.4s" begin="4s" fill="freeze" repeatCount="1"/></text>`;
+fill="#8888CC" text-anchor="middle" opacity="0">DEATHS: ${esc(count)}<animate attributeName="opacity" values="0;1" dur="0.4s" begin="4s" fill="freeze" repeatCount="1"/></text>`;
   }
 
   svg += `</svg>`;

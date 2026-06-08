@@ -235,7 +235,7 @@ function getPlaceDisplayName(key, place) {
 // ════════════════════════════════════════════
 
 const REL_COLOR = {
-  '아군':   '#8889CD',
+  '아군':   '#8888CC',
   '적':     '#EE1166',
   '파티':   '#00BBDD',
   '중립':   '#CCAA88',

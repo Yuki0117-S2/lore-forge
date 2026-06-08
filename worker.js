@@ -10,7 +10,7 @@ const TEMPLATES = {
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   :root {
-    --col-indigo: #8889CD;
+    --col-indigo: #8888CC;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
@@ -436,7 +436,7 @@ parseParams();
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   :root {
-    --col-indigo: #8889CD;
+    --col-indigo: #8888CC;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
@@ -585,7 +585,7 @@ parseParams();
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   :root {
-    --col-indigo: #8889CD;
+    --col-indigo: #8888CC;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
@@ -981,7 +981,7 @@ parseParams();
 <title>Reddit Thread</title>
 <style>
   :root {
-    --col-indigo: #8889CD;
+    --col-indigo: #8888CC;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
@@ -1183,7 +1183,7 @@ parseParams();
 <title>Lock Screen</title>
 <style>
   :root {
-    --col-indigo: #8889CD;
+    --col-indigo: #8888CC;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
@@ -1427,7 +1427,7 @@ parseParams();
 <title>Email</title>
 <style>
   :root {
-    --col-indigo: #8889CD;
+    --col-indigo: #8888CC;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
@@ -1626,7 +1626,7 @@ parseParams();
 <title>Instagram Story</title>
 <style>
   :root {
-    --col-indigo: #8889CD;
+    --col-indigo: #8888CC;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
@@ -1861,7 +1861,7 @@ parseParams();
 <title>Search Results</title>
 <style>
   :root {
-    --col-indigo: #8889CD;
+    --col-indigo: #8888CC;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
@@ -2095,7 +2095,7 @@ parseParams();
 <title>News Article</title>
 <style>
   :root {
-    --col-indigo: #8889CD;
+    --col-indigo: #8888CC;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
@@ -2326,7 +2326,7 @@ parseParams();
 <title>Document</title>
 <style>
   :root {
-    --col-indigo: #8889CD;
+    --col-indigo: #8888CC;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
@@ -2572,7 +2572,7 @@ parseParams();
 <title>Board</title>
 <style>
   :root {
-    --col-indigo: #8889CD;
+    --col-indigo: #8888CC;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
@@ -2800,7 +2800,7 @@ parseParams();
 <title>Discord</title>
 <style>
   :root {
-    --col-indigo: #8889CD;
+    --col-indigo: #8888CC;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
@@ -3008,7 +3008,7 @@ parseParams();
 
 function roleColor(c) {
   const map = {
-    '인디고': '#8889CD', '핑크': '#DDAACC', '샌드': '#CCAA88',
+    '인디고': '#8888CC', '핑크': '#DDAACC', '샌드': '#CCAA88',
     '로즈': '#BB6688', '빨강': '#ed4245', '초록': '#57f287',
     '파랑': '#5865f2', '노랑': '#fee75c'
   };
@@ -3016,7 +3016,7 @@ function roleColor(c) {
 }
 
 function avatarBg(name) {
-  const colors = ['#5865f2','#FF6699','#57f287','#fee75c','#ed4245','#8889CD','#BB6688','#CCAA88','#3ba55c','#FF7722','#0077DD','#e8a44d','#9b84ec','#00BBDD'];
+  const colors = ['#5865f2','#FF6699','#57f287','#fee75c','#ed4245','#8888CC','#BB6688','#CCAA88','#3ba55c','#FF7722','#0077DD','#e8a44d','#9b84ec','#00BBDD'];
   let h = 7;
   let _i=0; for (const c of name) { h = (h * 31 + c.charCodeAt(0) + _i * 17) | 0; _i++; }
   return colors[((h % colors.length) + colors.length) % colors.length];
@@ -3113,7 +3113,7 @@ parseParams();
 <title>Discord Voice</title>
 <style>
   :root {
-    --col-indigo: #8889CD;
+    --col-indigo: #8888CC;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
@@ -3459,7 +3459,7 @@ parseParams();
 // &active=현재접속중인음성채널이름  (선택 - 하단 연결 바 표시)
 
 function avatarBg(name) {
-  const colors = ['#5865f2','#FF6699','#57f287','#fee75c','#ed4245','#8889CD','#BB6688','#CCAA88','#3ba55c','#FF7722','#0077DD','#e8a44d','#9b84ec','#00BBDD'];
+  const colors = ['#5865f2','#FF6699','#57f287','#fee75c','#ed4245','#8888CC','#BB6688','#CCAA88','#3ba55c','#FF7722','#0077DD','#e8a44d','#9b84ec','#00BBDD'];
   let h = 7;
   let _i=0; for (const c of name) { h = (h * 31 + c.charCodeAt(0) + _i * 17) | 0; _i++; }
   return colors[((h % colors.length) + colors.length) % colors.length];
@@ -3467,7 +3467,7 @@ function avatarBg(name) {
 
 function roleColor(c) {
   const map = {
-    '인디고': '#8889CD', '핑크': '#DDAACC', '샌드': '#CCAA88',
+    '인디고': '#8888CC', '핑크': '#DDAACC', '샌드': '#CCAA88',
     '로즈': '#BB6688', '빨강': '#ed4245', '초록': '#57f287',
     '파랑': '#5865f2', '노랑': '#fee75c', '흰색': '#f2f3f5'
   };
@@ -3599,7 +3599,7 @@ parseParams();
 <title>Discord Full</title>
 <style>
   :root {
-    --col-indigo: #8889CD;
+    --col-indigo: #8888CC;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
@@ -3888,14 +3888,14 @@ parseParams();
 // &m=닉네임,역할색,시간,내용|닉네임,...
 
 function avatarBg(name) {
-  const colors = ['#5865f2','#FF6699','#57f287','#fee75c','#ed4245','#8889CD','#BB6688','#CCAA88','#3ba55c','#FF7722','#0077DD','#e8a44d','#9b84ec','#00BBDD'];
+  const colors = ['#5865f2','#FF6699','#57f287','#fee75c','#ed4245','#8888CC','#BB6688','#CCAA88','#3ba55c','#FF7722','#0077DD','#e8a44d','#9b84ec','#00BBDD'];
   let h = 7;
   let _i=0; for (const c of name) { h = (h * 31 + c.charCodeAt(0) + _i * 17) | 0; _i++; }
   return colors[((h % colors.length) + colors.length) % colors.length];
 }
 function roleColor(c) {
   const map = {
-    '인디고':'#8889CD','핑크':'#DDAACC','샌드':'#CCAA88',
+    '인디고':'#8888CC','핑크':'#DDAACC','샌드':'#CCAA88',
     '로즈':'#BB6688','빨강':'#ed4245','초록':'#57f287',
     '파랑':'#5865f2','노랑':'#fee75c','흰색':'#f2f3f5'
   };
@@ -4053,7 +4053,7 @@ parseParams();
 <title>Live Stream</title>
 <style>
   :root {
-    --col-indigo: #8889CD;
+    --col-indigo: #8888CC;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
@@ -4451,7 +4451,7 @@ parseParams();
 
 function roleColor(c) {
   const map = {
-    '인디고':'#8889CD','핑크':'#DDAACC','샌드':'#CCAA88',
+    '인디고':'#8888CC','핑크':'#DDAACC','샌드':'#CCAA88',
     '로즈':'#BB6688','빨강':'#ed4245','초록':'#57f287',
     '파랑':'#5865f2','노랑':'#fee75c','구독자':'#BB6688',
     '매니저':'#CCAA88'
@@ -4530,7 +4530,7 @@ parseParams();
 <title>Board Post</title>
 <style>
   :root {
-    --col-indigo: #8889CD;
+    --col-indigo: #8888CC;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
@@ -4833,7 +4833,7 @@ parseParams();
 <title>Letter</title>
 <style>
   :root {
-    --col-indigo: #8889CD;
+    --col-indigo: #8888CC;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
@@ -5171,7 +5171,7 @@ parseParams();
 <title>Menu</title>
 <style>
   :root {
-    --col-indigo: #8889CD;
+    --col-indigo: #8888CC;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
@@ -5530,7 +5530,7 @@ parseParams();
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   :root {
-    --col-indigo: #8889CD;
+    --col-indigo: #8888CC;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
@@ -5854,14 +5854,14 @@ function avatarColor(name) {
 }
 
 function avatarBg(name) {
-  const colors = ['#5865f2','#FF6699','#57f287','#fee75c','#ed4245','#8889CD','#BB6688','#CCAA88','#3ba55c','#FF7722','#0077DD','#e8a44d','#9b84ec','#00BBDD'];
+  const colors = ['#5865f2','#FF6699','#57f287','#fee75c','#ed4245','#8888CC','#BB6688','#CCAA88','#3ba55c','#FF7722','#0077DD','#e8a44d','#9b84ec','#00BBDD'];
   let h = 7;
   let _i=0; for (const c of name) { h = (h * 31 + c.charCodeAt(0) + _i * 17) | 0; _i++; }
   return colors[((h % colors.length) + colors.length) % colors.length];
 }
 
 function roleColor(c) {
-  const map = {'인디고':'#8889CD','핑크':'#DDAACC','샌드':'#CCAA88','로즈':'#BB6688','빨강':'#ed4245','초록':'#57f287','파랑':'#5865f2','노랑':'#fee75c','흰색':'#f2f3f5','구독자':'#BB6688','매니저':'#CCAA88'};
+  const map = {'인디고':'#8888CC','핑크':'#DDAACC','샌드':'#CCAA88','로즈':'#BB6688','빨강':'#ed4245','초록':'#57f287','파랑':'#5865f2','노랑':'#fee75c','흰색':'#f2f3f5','구독자':'#BB6688','매니저':'#CCAA88'};
   return map[c] || '#b5bac1';
 }
 
@@ -5934,7 +5934,7 @@ function renderTwitter(html, url) {
   if (r) {
     html=html.replace('class="tweet no-replies"','class="tweet"');
     html=html.replace('id="replies-section" style="display:none"','id="replies-section"');
-    const colors=['#5865f2','#FF6699','#57f287','#fee75c','#ed4245','#8889CD','#BB6688','#CCAA88','#3ba55c','#FF7722','#0077DD','#e8a44d','#9b84ec','#00BBDD'];
+    const colors=['#5865f2','#FF6699','#57f287','#fee75c','#ed4245','#8888CC','#BB6688','#CCAA88','#3ba55c','#FF7722','#0077DD','#e8a44d','#9b84ec','#00BBDD'];
     const abg=name=>{let h=7;let _i=0;for(const c of name){h=(h*31+c.charCodeAt(0)+_i*17)|0;_i++;}return colors[((h%colors.length)+colors.length)%colors.length];};
     const replyList=r.split('|');
     let rh='';
@@ -6621,7 +6621,7 @@ export default {
       ).join('');
       return new Response(
         '<html><body style="font-family:sans-serif;padding:40px;background:#1a1a2e;color:#e0e0e0;">'
-        + '<h1 style="color:#8889CD;">겨울의 SNS UI v13</h1>'
+        + '<h1 style="color:#8888CC;">겨울의 SNS UI v13</h1>'
         + '<p>사용 가능한 타입 (19종):</p><ul>' + links + '</ul>'
         + '</body></html>',
         { headers: { 'content-type': 'text/html;charset=UTF-8' } }

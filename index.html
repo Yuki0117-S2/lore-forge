@@ -8,7 +8,7 @@
 <style>
   :root {
     --bg:#1a1520; --surface:#221b2a; --surface2:#2a2235; --border:#3a2e48;
-    --accent:#8889CD; --accent2:#BB6688; --accent3:#DDAACC; --accent4:#CCAA88;
+    --accent:#8888CC; --accent2:#BB6688; --accent3:#DDAACC; --accent4:#CCAA88;
     --text:#f0eaf5; --muted:#7a6e8a; --success:#CCAA88;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
@@ -332,7 +332,7 @@
       <div class="tab" onclick="switchTab('rules')" id="tab-rules">📜 행동 규칙</div>
       <div class="tab" onclick="switchTab('lorebook')" id="tab-lorebook">📚 로어북</div>
       <div style="margin-left:auto;display:flex;align-items:center;padding:0 8px;">
-        <button id="copy-tab-btn" onclick="openCopyTabModal()" style="font-size:10px;padding:4px 9px;background:rgba(136,137,205,0.15);border:1px solid rgba(136,137,205,0.35);color:#8889CD;border-radius:6px;cursor:pointer;white-space:nowrap;display:none;">📋 복사</button>
+        <button id="copy-tab-btn" onclick="openCopyTabModal()" style="font-size:10px;padding:4px 9px;background:rgba(136,137,205,0.15);border:1px solid rgba(136,137,205,0.35);color:#8888CC;border-radius:6px;cursor:pointer;white-space:nowrap;display:none;">📋 복사</button>
       </div>
     </div>
     <div class="editor-area">
@@ -670,7 +670,7 @@ let projects={}, currentProjectId=null, previewMode='all';
 let customChips={};
 
 const COLORS=[
-  ['rgba(136,137,205,0.25)','#8889CD'],['rgba(187,102,136,0.25)','#BB6688'],
+  ['rgba(136,137,205,0.25)','#8888CC'],['rgba(187,102,136,0.25)','#BB6688'],
   ['rgba(221,170,204,0.25)','#DDAACC'],['rgba(204,170,136,0.25)','#CCAA88'],
   ['rgba(106,200,176,0.25)','#6AC8B0'],['rgba(200,160,106,0.25)','#C8A06A'],
   ['rgba(160,200,106,0.25)','#A0C86A'],['rgba(106,136,200,0.25)','#6A88C8'],
@@ -878,7 +878,7 @@ function renderCharEditor(){
       <div class="panel-header" onclick="togglePanel('cp-basic')">
         <div class="panel-icon" style="background:${bg}">🎭</div><div class="panel-title">기본 정보</div>
         <span class="panel-badge">BASIC</span>
-        <button onclick="event.stopPropagation();openCopyCharModal()" style="margin-left:auto;margin-right:6px;font-size:10px;padding:3px 8px;background:rgba(136,137,205,0.15);border:1px solid rgba(136,137,205,0.35);color:#8889CD;border-radius:6px;cursor:pointer;">📋 복사</button>
+        <button onclick="event.stopPropagation();openCopyCharModal()" style="margin-left:auto;margin-right:6px;font-size:10px;padding:3px 8px;background:rgba(136,137,205,0.15);border:1px solid rgba(136,137,205,0.35);color:#8888CC;border-radius:6px;cursor:pointer;">📋 복사</button>
         <span class="panel-arrow">▾</span>
       </div>
       <div class="panel-body">
@@ -2192,9 +2192,49 @@ document.addEventListener('click',(e)=>{
 });
 
 function exportJSON(){
-  saveAll();const proj=getProject();if(!proj){alert('프로젝트가 없어!');return;}
+  saveAll();
+  const projectCount=Object.keys(projects).length;
+  if(projectCount===0){alert('내보낼 프로젝트가 없어!');return;}
+  if(projectCount===1){exportCurrentProject();return;}
+  showExportChoice();
+}
+
+function showExportChoice(){
+  const projectCount=Object.keys(projects).length;
+  const curProj=getProject();
+  const overlay=document.createElement('div');
+  overlay.className='modal-overlay';
+  overlay.innerHTML=`<div class="modal" style="min-width:320px;max-width:420px;">
+    <div class="modal-title">💾 내보내기</div>
+    <div class="modal-msg" style="font-size:12px;color:var(--text-dim);">어떻게 내보낼까?</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:6px;">
+      <button class="btn btn-primary" data-act="current" style="text-align:left;padding:10px 14px;">📄 현재 프로젝트만<div style="font-size:11px;opacity:0.8;font-weight:normal;margin-top:2px;">${esc(curProj?curProj.name:'(없음)')}</div></button>
+      <button class="btn btn-primary" data-act="all" style="text-align:left;padding:10px 14px;background:linear-gradient(135deg,#8888CC,#BB6688);border-color:#8888CC;">📦 전체 프로젝트<div style="font-size:11px;opacity:0.85;font-weight:normal;margin-top:2px;">프로젝트 ${projectCount}개 + 커스텀 칩 한꺼번에</div></button>
+    </div>
+    <div class="modal-btns" style="margin-top:14px;"><button class="btn btn-ghost" data-act="cancel">취소</button></div>
+  </div>`;
+  document.body.appendChild(overlay);
+  const close=()=>overlay.remove();
+  overlay.querySelector('[data-act="current"]').onclick=()=>{close();exportCurrentProject();};
+  overlay.querySelector('[data-act="all"]').onclick=()=>{close();exportAllProjects();};
+  overlay.querySelector('[data-act="cancel"]').onclick=close;
+  overlay.onclick=(e)=>{if(e.target===overlay)close();};
+}
+
+function exportCurrentProject(){
+  const proj=getProject();if(!proj){alert('프로젝트가 없어!');return;}
   const blob=new Blob([JSON.stringify({version:3,project:proj,customChips},null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(proj.name||'project').replace(/[^\w가-힣]/g,'_')+'.json';a.click();
+}
+
+function exportAllProjects(){
+  const projectCount=Object.keys(projects).length;
+  const dump={version:3,type:'all',exportedAt:new Date().toISOString(),projects,currentProjectId,customChips};
+  const blob=new Blob([JSON.stringify(dump,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  const date=new Date().toISOString().slice(0,10).replace(/-/g,'');
+  a.download=`lore-forge-all-${date}.json`;a.click();
+  showToast(`📦 전체 ${projectCount}개 프로젝트 내보냄!`);
 }
 
 function importJSON(){document.getElementById('import-file').click();}
@@ -2202,15 +2242,110 @@ function handleImport(e){
   const file=e.target.files[0];if(!file)return;
   const reader=new FileReader();
   reader.onload=async (ev)=>{
-    try{const data=JSON.parse(ev.target.result);const proj=data.project||data;if(!proj.id)proj.id='proj_'+Date.now();if(!proj.name)proj.name='불러온 프로젝트';
-      if(projects[proj.id]){if(!(await showConfirm(`"${proj.name}" 프로젝트가 이미 있어. 덮어쓸까?`,{danger:true,title:'⚠️ 프로젝트 덮어쓰기'})))return;}
-      safetyBackup('JSON 가져오기: '+proj.name);
-      projects[proj.id]=proj;currentProjectId=proj.id;
-      if(data.customChips){Object.keys(data.customChips).forEach(k=>{customChips[k]=[...new Set([...(customChips[k]||[]),...data.customChips[k]])];});saveCustomChips();}
-      renderProjectDropdown();loadProjectUI();try{localStorage.setItem('loreforge_v3',JSON.stringify({projects,currentProjectId,customChips}));}catch(e){console.error('[LoreForge] 저장 실패:',e);}showToast('✅ 프로젝트 불러옴!');
+    try{
+      const data=JSON.parse(ev.target.result);
+      // 전체 내보내기 파일 판별: type:'all' 이거나 projects(객체)는 있고 단일 project 키는 없는 경우
+      const isAllExport=data.type==='all'||(data.projects&&typeof data.projects==='object'&&!Array.isArray(data.projects)&&!data.project);
+      if(isAllExport){
+        await importAllProjects(data);
+      } else {
+        // 기존 단일 프로젝트 import (그대로 유지)
+        const proj=data.project||data;if(!proj.id)proj.id='proj_'+Date.now();if(!proj.name)proj.name='불러온 프로젝트';
+        if(projects[proj.id]){if(!(await showConfirm(`"${proj.name}" 프로젝트가 이미 있어. 덮어쓸까?`,{danger:true,title:'⚠️ 프로젝트 덮어쓰기'})))return;}
+        safetyBackup('JSON 가져오기: '+proj.name);
+        projects[proj.id]=proj;currentProjectId=proj.id;
+        if(data.customChips){Object.keys(data.customChips).forEach(k=>{customChips[k]=[...new Set([...(customChips[k]||[]),...data.customChips[k]])];});saveCustomChips();}
+        renderProjectDropdown();loadProjectUI();try{localStorage.setItem('loreforge_v3',JSON.stringify({projects,currentProjectId,customChips}));}catch(e){console.error('[LoreForge] 저장 실패:',e);}showToast('✅ 프로젝트 불러옴!');
+      }
     }catch(err){console.error('[LoreForge] Import 오류:',err);alert('JSON 파일이 잘못됐어.');}
   };
   reader.readAsText(file);e.target.value='';
+}
+
+async function importAllProjects(data){
+  if(!data.projects||typeof data.projects!=='object'){alert('전체 내보내기 파일 형식이 잘못됐어.');return;}
+  const incomingIds=Object.keys(data.projects);
+  if(incomingIds.length===0){alert('가져올 프로젝트가 없어.');return;}
+  const conflicts=incomingIds.filter(id=>projects[id]);
+  const newOnes=incomingIds.filter(id=>!projects[id]);
+
+  let overwriteIds=[];
+  if(conflicts.length>0){
+    const result=await showImportConflictModal(conflicts,data.projects);
+    if(result===null)return; // 취소
+    overwriteIds=result;
+  } else {
+    if(!(await showConfirm(`프로젝트 ${newOnes.length}개를 가져올까?\n(충돌 없음 — 전부 신규 추가돼)`,{title:'📦 전체 가져오기'})))return;
+  }
+
+  safetyBackup(`전체 가져오기 (신규 ${newOnes.length}, 덮어쓰기 ${overwriteIds.length})`);
+
+  // 적용
+  newOnes.forEach(id=>{projects[id]=data.projects[id];});
+  overwriteIds.forEach(id=>{projects[id]=data.projects[id];});
+
+  // customChips 병합 (기존 단일 import와 동일 패턴)
+  if(data.customChips){
+    Object.keys(data.customChips).forEach(k=>{
+      customChips[k]=[...new Set([...(customChips[k]||[]),...data.customChips[k]])];
+    });
+    saveCustomChips();
+  }
+
+  // currentProjectId 결정
+  if(data.currentProjectId&&projects[data.currentProjectId]){
+    currentProjectId=data.currentProjectId;
+  } else if(!projects[currentProjectId]){
+    currentProjectId=Object.keys(projects)[0];
+  }
+
+  renderProjectDropdown();loadProjectUI();
+  try{localStorage.setItem('loreforge_v3',JSON.stringify({projects,currentProjectId,customChips}));}catch(e){console.error('[LoreForge] 저장 실패:',e);}
+
+  const appliedCount=newOnes.length+overwriteIds.length;
+  const skippedCount=conflicts.length-overwriteIds.length;
+  showToast(`✅ ${appliedCount}개 적용${skippedCount>0?` (${skippedCount}개 건너뜀)`:''}`);
+}
+
+function showImportConflictModal(conflictIds,incomingProjects){
+  return new Promise(resolve=>{
+    const overlay=document.createElement('div');
+    overlay.className='modal-overlay';
+    const items=conflictIds.map(id=>{
+      const existing=projects[id];
+      const incoming=incomingProjects[id];
+      const existingChars=(existing.characters&&existing.characters.length)||0;
+      const incomingChars=(incoming.characters&&incoming.characters.length)||0;
+      const sameName=(existing.name||'')===(incoming.name||'');
+      return `<label style="display:flex;align-items:flex-start;gap:10px;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;cursor:pointer;margin-bottom:6px;">
+        <input type="checkbox" data-pid="${esc(id)}" style="margin-top:3px;flex-shrink:0;cursor:pointer;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:bold;color:var(--accent);font-size:13px;margin-bottom:3px;word-break:break-all;">${esc(incoming.name||'(이름 없음)')}${sameName?'':` <span style="color:var(--text-dim);font-weight:normal;font-size:11px;">(기존: ${esc(existing.name||'-')})</span>`}</div>
+          <div style="font-size:11px;color:var(--text-dim);">기존 캐릭터 ${existingChars}개 → 가져올 거 ${incomingChars}개</div>
+        </div>
+      </label>`;
+    }).join('');
+    overlay.innerHTML=`<div class="modal" style="min-width:380px;max-width:520px;max-height:80vh;display:flex;flex-direction:column;">
+      <div class="modal-title">⚠️ 프로젝트 충돌 (${conflictIds.length}개)</div>
+      <div class="modal-msg" style="font-size:12px;color:var(--text-dim);">체크한 프로젝트만 가져온 파일로 덮어써. 체크 안 한 건 기존 그대로야.</div>
+      <div style="display:flex;gap:6px;margin-bottom:10px;">
+        <button class="btn btn-ghost" data-act="all-on" style="font-size:11px;padding:5px 10px;">전부 덮어쓰기</button>
+        <button class="btn btn-ghost" data-act="all-off" style="font-size:11px;padding:5px 10px;">전부 건너뛰기</button>
+      </div>
+      <div style="overflow-y:auto;max-height:50vh;padding-right:4px;">${items}</div>
+      <div class="modal-btns" style="margin-top:14px;"><button class="btn btn-ghost" data-act="cancel">취소</button><button class="btn btn-primary" data-act="ok">적용</button></div>
+    </div>`;
+    document.body.appendChild(overlay);
+    const checkboxes=()=>overlay.querySelectorAll('input[type="checkbox"]');
+    overlay.querySelector('[data-act="all-on"]').onclick=()=>{checkboxes().forEach(c=>c.checked=true);};
+    overlay.querySelector('[data-act="all-off"]').onclick=()=>{checkboxes().forEach(c=>c.checked=false);};
+    overlay.querySelector('[data-act="ok"]').onclick=()=>{
+      const selected=Array.from(checkboxes()).filter(c=>c.checked).map(c=>c.dataset.pid);
+      overlay.remove();resolve(selected);
+    };
+    overlay.querySelector('[data-act="cancel"]').onclick=()=>{overlay.remove();resolve(null);};
+    overlay.onclick=(e)=>{if(e.target===overlay){overlay.remove();resolve(null);}};
+  });
 }
 
 // ===== 모달 & 토스트 =====

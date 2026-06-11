@@ -1,5 +1,5 @@
 // st.winter0.workers.dev — RPG/VN 상태창 (SVG 이미지 출력)
-// ?t=vn / ?t=vn2 / ?t=dark / ?t=pixel / ?t=ending / ?t=rpg2k / ?t=choice / ?t=dungeon / ?t=mmo / ?t=reward / ?t=gameover
+// ?t=vn / ?t=vn2 / ?t=dark / ?t=pixel / ?t=ending / ?t=rpg2k / ?t=choice / ?t=dungeon / ?t=mmo / ?t=reward / ?t=gameover / ?t=inv
 
 function esc(s) {
   return String(s ?? '')
@@ -3225,6 +3225,228 @@ fill="#8888CC" text-anchor="middle" opacity="0">DEATHS: ${esc(count)}<animate at
 
 
 // ════════════════════════════════════════════
+//  INVENTORY (격자 인벤토리/장비창)
+//  ?t=inv  &st=dark|mmo|pixel (기본 mmo)
+//  &p=주인§소지금§최대칸수
+//  &col=가로 열 수
+//  &items=[*]이름§등급§타입§스탯§설명§수량|...   (이름 앞 * = 신규 드랍 빛 스윕)
+//  &eq=무기§등급§방어구§등급§장신구§등급   (선택 · 있으면 착용 줄 표시)
+//  타입: 무기/방어구/장신구→equipIcon 재사용 · 물약/폭탄/열쇠/재료/음식/두루마리/보석/기타→신규 아이콘
+//  items 포맷은 reward와 100% 동일 (앞 * 플래그만 추가)
+// ════════════════════════════════════════════
+
+function parseInvItems(raw) {
+  if (!raw) return [];
+  return raw.split('|').slice(0, 60).map(s => {
+    const parts = s.split('§');
+    let name = (parts[0] || '???').trim() || '???';
+    let isNew = false;
+    if (name.startsWith('*')) { isNew = true; name = name.slice(1).trim() || '???'; }
+    const rawGrade = (parts[1] || 'common').trim();
+    return {
+      name,
+      isNew,
+      grade:    normalizeRarity(rawGrade),
+      gradeRaw: rawGrade,
+      type:     (parts[2] || '').trim(),
+      stats:    (parts[3] || '').trim(),
+      flavor:   (parts[4] || '').trim(),
+      qty:      safeInt(parts[5], 1, 1, 999),
+    };
+  });
+}
+
+// 슬롯 중앙(cx,cy)에 아이콘 배치. 장비 3종은 기존 equipIcon 재사용, 나머지는 신규 벡터.
+// 최종 stroke ~2px 유지 (scale 보정).
+function invItemIcon(type, color, cx, cy, S) {
+  const T = (type || '').toString().trim().toUpperCase();
+  const k = (type || '').toString().trim();
+  if (T.includes('WEAPON') || k === '무기' ||
+      T.includes('ARMOR')  || k === '방어구' ||
+      T.includes('ACC')    || k === '장신구' || k === '악세서리') {
+    return equipIcon(type, color, cx - 11 * S, cy - 11 * S, S);
+  }
+  const tx = (cx - 12 * S).toFixed(2), ty = (cy - 12 * S).toFixed(2);
+  const sw = (2 / S).toFixed(3);
+  let b;
+  if (k === '물약' || T === 'POTION' || k === '포션') {
+    b = `<line x1="9.5" y1="3" x2="14.5" y2="3"/><path d="M10 4 L10 8 L7 13 Q6 20 12 20 Q18 20 17 13 L14 8 L14 4"/><path d="M7.5 14.5 Q12 16.5 16.5 14.5"/>`;
+  } else if (k === '폭탄' || T === 'BOMB') {
+    b = `<circle cx="11" cy="15" r="6"/><path d="M15.5 10.5 C 17 8.5 17 6.5 18 5"/><line x1="18" y1="2.8" x2="18" y2="5.2"/><line x1="16.4" y1="3.8" x2="19.6" y2="6.2"/><line x1="19.6" y1="3.8" x2="16.4" y2="6.2"/>`;
+  } else if (k === '열쇠' || T === 'KEY') {
+    b = `<circle cx="7.5" cy="12" r="4"/><line x1="11.5" y1="12" x2="20" y2="12"/><line x1="16.5" y1="12" x2="16.5" y2="16"/><line x1="19.5" y1="12" x2="19.5" y2="15"/>`;
+  } else if (k === '재료' || T === 'MATERIAL' || k === '광석' || T === 'ORE') {
+    b = `<path d="M6 12 L9 6 L16 5 L20 11 L15 19 L8 18 Z"/><path d="M9 6 L12 12 L20 11 M12 12 L15 19"/>`;
+  } else if (k === '음식' || T === 'FOOD' || k === '사과') {
+    b = `<path d="M12 8 C 8.5 5.5 5 8.5 6 13.5 C 7 18.5 10 20.5 12 19.5 C 14 20.5 17 18.5 18 13.5 C 19 8.5 15.5 5.5 12 8 Z"/><path d="M12 8 L12.3 5"/><path d="M12.4 5.6 Q15 3.5 16.6 5.6 Q14.6 7.6 12.4 5.9"/>`;
+  } else if (k === '두루마리' || T === 'SCROLL' || k === '스크롤') {
+    b = `<path d="M6.5 7 Q6.5 5 8.5 5 L15.5 5 Q17.5 5 17.5 7 Q17.5 9 15.5 9 L8.5 9 Q6.5 9 6.5 7 Z"/><path d="M6.5 17 Q6.5 19 8.5 19 L15.5 19 Q17.5 19 17.5 17 Q17.5 15 15.5 15 L8.5 15 Q6.5 15 6.5 17 Z"/><line x1="7.3" y1="9" x2="7.3" y2="15"/><line x1="16.7" y1="9" x2="16.7" y2="15"/><line x1="9.5" y1="11.4" x2="14.5" y2="11.4"/><line x1="9.5" y1="13" x2="14.5" y2="13"/>`;
+  } else if (k === '보석' || T === 'GEM' || T === 'JEWEL') {
+    b = `<path d="M12 4 L18 9 L12 20 L6 9 Z"/><path d="M6 9 L18 9 M12 4 L9 9 L12 20 M12 4 L15 9"/>`;
+  } else {
+    b = `<path d="M7 11.5 Q7 20 12 20 Q17 20 17 11.5 Q17 9.5 14 8.5 L10 8.5 Q7 9.5 7 11.5 Z"/><path d="M9.2 8.5 Q9.2 5 12 5 Q14.8 5 14.8 8.5"/><line x1="9" y1="8.5" x2="15" y2="8.5"/>`;
+  }
+  return `<g transform="translate(${tx},${ty}) scale(${S})" stroke="${color}" stroke-width="${sw}" fill="none" stroke-linecap="round" stroke-linejoin="round">${b}</g>`;
+}
+
+const INV_THEMES = {
+  mmo: {
+    bg:'#0d0f1f', slotFill:'#13162a', emptyStroke:'#222842', border:'#2a3050',
+    text:'#d8d6f0', dim:'#9a9bc0', accent:'#8888CC', sand:'#CCAA88',
+    font:"'Noto Sans KR',sans-serif", mono:"monospace", rx:6, grid:true,
+  },
+  dark: {
+    bg:'#110e0a', slotFill:'#0a0805', emptyStroke:'#1a1410', border:'#2a1e14',
+    text:'#d8c8b0', dim:'#8a7a68', accent:'#CCAA88', sand:'#CCAA88',
+    font:"Georgia,'Noto Serif KR',serif", mono:"monospace", rx:3, grid:false,
+  },
+  pixel: {
+    bg:'#000000', slotFill:'#1a0a14', emptyStroke:'#2a1620', border:'#BB6688',
+    text:'#f0e0e5', dim:'#8888CC', accent:'#BB6688', sand:'#CCAA88',
+    font:"'Courier New',monospace", mono:"'Courier New',monospace", rx:0, grid:false,
+  },
+};
+
+function renderInv(params) {
+  const valid = ['mmo', 'dark', 'pixel'];
+  const stRaw = (params.get('st') || 'mmo').toLowerCase();
+  const st = valid.includes(stRaw) ? stRaw : 'mmo';
+  const TH = INV_THEMES[st];
+
+  const W = 480, PAD = 18, INNER_W = W - PAD * 2;
+  const pp = (params.get('p') || '§§').split('§');
+  const owner = esc((pp[0] || '').trim());
+  const gold  = (pp[1] || '').trim();
+  const items = parseInvItems(params.get('items'));
+  const maxSlotsRaw = safeInt(pp[2], 0, 0, 60);
+  const col = safeInt(params.get('col'), st === 'mmo' ? 5 : 6, 1, 10);
+
+  const filled = items.length;
+  const maxSlots = Math.min(Math.max(maxSlotsRaw, filled, col), 60);
+  const rows = Math.ceil(maxSlots / col);
+
+  const gap = 8;
+  const slotSize = Math.floor((INNER_W - (col - 1) * gap) / col);
+  const nameH = 15;
+  const rowH = slotSize + nameH + 6;
+
+  // 착용 장비 (선택)
+  const eqRaw = params.get('eq');
+  let eqRows = null;
+  if (eqRaw) {
+    const e = eqRaw.split('§');
+    eqRows = [
+      { type: '무기',   name: (e[0] || '—').trim() || '—', grade: (e[1] || '일반').trim() },
+      { type: '방어구', name: (e[2] || '—').trim() || '—', grade: (e[3] || '일반').trim() },
+      { type: '장신구', name: (e[4] || '—').trim() || '—', grade: (e[5] || '일반').trim() },
+    ];
+  }
+
+  const H_HEADER = 60;
+  const H_EQ = eqRows ? 64 : 0;
+  const H_BAGLBL = 22;
+  const H_GRID = rows * rowH;
+  const H_FOOT = 16;
+  const TOTAL_H = H_HEADER + H_EQ + H_BAGLBL + H_GRID + H_FOOT;
+
+  const maxNameChars = Math.max(3, Math.floor(slotSize / 8));
+  const trunc = (s) => s.length <= maxNameChars ? s : s.slice(0, maxNameChars - 1) + '…';
+
+  let defs = `<defs>`;
+  if (TH.grid) {
+    defs += `<pattern id="invGrid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0 L0 0 0 40" fill="none" stroke="${TH.border}" stroke-width="0.5" opacity="0.5"/></pattern>`;
+  }
+  defs += `<linearGradient id="invShine" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0"/><stop offset="0.5" stop-color="#ffffff" stop-opacity="0.55"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></linearGradient>`;
+  let clipDefs = '';
+
+  let body = '';
+  let y = 0;
+
+  // HEADER
+  body += `<text x="${PAD}" y="36" font-family="${TH.font}" font-size="22" font-weight="bold" fill="${TH.accent}">${owner || 'INVENTORY'}</text>`;
+  if (gold) {
+    body += `<text x="${W - PAD}" y="30" font-family="${TH.mono}" font-size="13" font-weight="bold" fill="${TH.sand}" text-anchor="end">${esc(gold)} G</text>`;
+  }
+  body += `<text x="${W - PAD}" y="48" font-family="${TH.mono}" font-size="11" fill="${TH.dim}" text-anchor="end">${filled} / ${maxSlots} 칸</text>`;
+  body += `<line x1="${PAD}" y1="${H_HEADER - 4}" x2="${W - PAD}" y2="${H_HEADER - 4}" stroke="${TH.border}" stroke-width="1"/>`;
+  y = H_HEADER;
+
+  // 착용 장비
+  if (eqRows) {
+    body += `<text x="${PAD}" y="${y + 14}" font-family="${TH.mono}" font-size="10" font-weight="bold" fill="${TH.dim}" letter-spacing="2">EQUIPPED</text>`;
+    const chipW = Math.floor((INNER_W - 2 * 8) / 3);
+    eqRows.forEach((eq, i) => {
+      const cx0 = PAD + i * (chipW + 8);
+      const cy0 = y + 22;
+      const gcol = rarityColor(eq.grade);
+      body += `<rect x="${cx0}" y="${cy0}" width="${chipW}" height="30" rx="${TH.rx}" fill="${TH.slotFill}" stroke="${gcol}" stroke-width="1.2"/>`;
+      body += invItemIcon(eq.type, gcol, cx0 + 16, cy0 + 15, 0.95);
+      body += `<text x="${cx0 + 31}" y="${cy0 + 19}" font-family="${TH.font}" font-size="12" font-weight="bold" fill="${TH.text}">${esc(trunc(eq.name))}</text>`;
+    });
+    y += H_EQ;
+  }
+
+  // BAG label
+  body += `<text x="${PAD}" y="${y + 14}" font-family="${TH.mono}" font-size="10" font-weight="bold" fill="${TH.dim}" letter-spacing="2">BAG</text>`;
+  y += H_BAGLBL;
+
+  // GRID
+  const gridTop = y;
+  for (let idx = 0; idx < maxSlots; idx++) {
+    const r = Math.floor(idx / col), c = idx % col;
+    const sx = PAD + c * (slotSize + gap);
+    const sy = gridTop + r * rowH;
+    const item = items[idx];
+
+    if (!item) {
+      body += `<rect x="${sx}" y="${sy}" width="${slotSize}" height="${slotSize}" rx="${TH.rx}" fill="${TH.bg}" stroke="${TH.emptyStroke}" stroke-width="1" stroke-dasharray="4 4"/>`;
+      continue;
+    }
+
+    const gcol = rarityColor(item.grade);
+    const isHi = item.grade === 'legend' || item.grade === 'epic';
+    const ccx = sx + slotSize / 2, ccy = sy + slotSize / 2;
+
+    body += `<rect x="${sx}" y="${sy}" width="${slotSize}" height="${slotSize}" rx="${TH.rx}" fill="${TH.slotFill}" stroke="${gcol}" stroke-width="${isHi ? 2 : 1.5}"/>`;
+    const iconS = (slotSize * 0.5) / 24;
+    body += invItemIcon(item.type, gcol, ccx, ccy, iconS);
+
+    if (isHi) {
+      body += `<rect x="${sx}" y="${sy}" width="${slotSize}" height="${slotSize}" rx="${TH.rx}" fill="none" stroke="${gcol}" stroke-width="2.5" opacity="0.3"><animate attributeName="opacity" values="0.2;0.9;0.2" dur="1.6s" repeatCount="indefinite"/><animate attributeName="stroke-width" values="2;3.5;2" dur="1.6s" repeatCount="indefinite"/></rect>`;
+    }
+    if (item.isNew) {
+      const cid = `invShineClip${idx}`;
+      clipDefs += `<clipPath id="${cid}"><rect x="${sx}" y="${sy}" width="${slotSize}" height="${slotSize}" rx="${TH.rx}"/></clipPath>`;
+      const band = Math.round(slotSize * 0.35);
+      body += `<g clip-path="url(#${cid})"><rect x="${sx}" width="${slotSize}" height="${band}" fill="url(#invShine)"><animate attributeName="y" values="${sy - band};${sy + slotSize}" dur="1.7s" repeatCount="indefinite"/></rect></g>`;
+    }
+    if (item.qty > 1) {
+      body += `<text x="${sx + slotSize - 5}" y="${sy + slotSize - 6}" font-family="${TH.mono}" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="end">×${item.qty}</text>`;
+    }
+    body += `<text x="${ccx}" y="${sy + slotSize + 12}" font-family="${TH.font}" font-size="10" fill="${item.isNew ? TH.accent : TH.text}" text-anchor="middle">${esc(trunc(item.name))}</text>`;
+  }
+  y = gridTop + rows * rowH;
+
+  defs += clipDefs + `</defs>`;
+
+  let bg = `<rect width="${W}" height="${TOTAL_H}" fill="${TH.bg}"/>`;
+  if (TH.grid) bg += `<rect width="${W}" height="${TOTAL_H}" fill="url(#invGrid)"/>`;
+  let frame;
+  if (st === 'pixel') {
+    frame = `<rect x="4" y="4" width="${W - 8}" height="${TOTAL_H - 8}" fill="none" stroke="${TH.border}" stroke-width="2"/>`;
+  } else if (st === 'dark') {
+    frame = `<rect x="1" y="1" width="${W - 2}" height="${TOTAL_H - 2}" rx="3" fill="none" stroke="${TH.border}" stroke-width="1"/>`
+          + `<path d="M${PAD} 12 L12 12 L12 ${PAD}" fill="none" stroke="#CCAA88" stroke-width="1" opacity="0.5"/>`
+          + `<path d="M${W - PAD} 12 L${W - 12} 12 L${W - 12} ${PAD}" fill="none" stroke="#CCAA88" stroke-width="1" opacity="0.5"/>`;
+  } else {
+    frame = `<rect x="1" y="1" width="${W - 2}" height="${TOTAL_H - 2}" rx="4" fill="none" stroke="${TH.border}" stroke-width="1"/>`;
+  }
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${TOTAL_H}" viewBox="0 0 ${W} ${TOTAL_H}">${defs}${bg}${frame}${body}</svg>`;
+}
+
+
+// ════════════════════════════════════════════
 //  FETCH
 // ════════════════════════════════════════════
 export default {
@@ -3245,8 +3467,9 @@ export default {
     else if (t === 'mmo') svg = renderMmo(params);
     else if (t === 'reward') svg = renderReward(params);
     else if (t === 'gameover') svg = renderGameover(params);
+    else if (t === 'inv') svg = renderInv(params);
     else {
-      return new Response('사용 가능: ?t=vn / ?t=vn2 / ?t=dark / ?t=pixel / ?t=ending / ?t=rpg2k / ?t=choice / ?t=dungeon / ?t=mmo / ?t=reward / ?t=gameover', {
+      return new Response('사용 가능: ?t=vn / ?t=vn2 / ?t=dark / ?t=pixel / ?t=ending / ?t=rpg2k / ?t=choice / ?t=dungeon / ?t=mmo / ?t=reward / ?t=gameover / ?t=inv', {
         status: 400, headers: { 'Content-Type': 'text/plain; charset=utf-8' }
       });
     }

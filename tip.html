@@ -1917,6 +1917,56 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
 <div class="desc"><strong>스타일 차이:</strong> modern은 우아한 세리프 + 그라데이션 배경(클래식 RPG 분위기), pixel은 8비트 도트 아이콘 + 모노스페이스(언더테일/인디 게임 분위기). 같은 데이터로 두 스타일 자유 선택.</div>`
       },
       {
+        id:'t-st-inv', title:'인벤토리 / 장비창 (?t=inv)',
+        body:`<div class="label label-use">용도</div>
+<div class="desc">소지품을 격자(grid)로 보여주는 인벤토리/장비창. reward가 "방금 획득한 보상 목록"이라면 inv는 "가방에 보관 중인 소지품 전체". 등급색 슬롯 테두리 + 수량 + 빈 칸(용량) 표시. mmo·dark·pixel 세 스타일.</div>
+<hr class="divider">
+<div class="label label-use">URL 파라미터 형식</div>
+<pre>/?t=inv&st=스타일
+&p=주인§소지금§최대칸수
+&col=가로열수
+&items=[*]이름§등급§타입§스탯§설명§수량|...
+&eq=무기§등급§방어구§등급§장신구§등급</pre>
+<hr class="divider">
+<div class="label label-example">예시 — MMO 스타일</div>
+<pre>/?t=inv&st=mmo&p=겨울§14580§20&col=5
+&eq=월광+장검§전설§용비늘+갑주§에픽§바람의+반지§레어
+&items=*월광+장검§전설§무기|치유+물약§일반§물약§§§5|섬광+폭탄§고급§폭탄§§§2|*고대의+보석§전설§보석|빵§일반§음식§§§8|화염+두루마리§에픽§두루마리</pre>
+<hr class="divider">
+<div class="label label-example">예시 — Dark / Pixel 스타일</div>
+<pre>/?t=inv&st=dark&p=탐험가§3200§12&col=6
+&items=*전설검§전설§무기|물약§일반§물약§§§5|광석§고급§재료§§§3|보석§레어§보석
+
+/?t=inv&st=pixel&p=PLAYER§999§18&col=6
+&items=*검§전설§무기|폭탄§고급§폭탄§§§9|두루마리§에픽§두루마리</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명:</strong><br>
+• <strong>st</strong> — 렌더링 스타일. <code>mmo</code>(인디고 격자, 기본값) / <code>dark</code>(양피지 세리프) / <code>pixel</code>(8비트 도트)<br>
+• <strong>p</strong> — 주인§소지금§최대칸수 (모두 선택). 최대칸수 = 빈 칸 포함 총 슬롯 수. 실제 아이템 수보다 작으면 아이템 수로 자동 보정 (최대 60)<br>
+• <strong>col</strong> — 가로 열 수 (1~10). 생략 시 mmo는 5, dark/pixel은 6<br>
+• <strong>items</strong> — 아이템 목록 (|로 구분, 최대 60개). <strong>reward와 동일한 6필드</strong>: 이름§등급§타입§스탯§설명§수량<br>
+&nbsp;&nbsp;- 이름 앞에 <code>*</code>를 붙이면 <strong>신규 드랍</strong> 표시 (빛이 위→아래로 흐르는 스윕 애니 + 이름 강조색)<br>
+&nbsp;&nbsp;- <strong>타입</strong>이 칸 아이콘을 결정 (아래 표 참고)<br>
+&nbsp;&nbsp;- 격자 칸엔 아이콘+등급테두리+수량만, <strong>이름은 칸 아래 작게</strong> 표시. 스탯·설명은 격자에선 미표시 (reward와 데이터 호환용 필드)<br>
+&nbsp;&nbsp;- 수량 1이면 미표시, 2 이상부터 × N 표기<br>
+• <strong>eq</strong> (선택) — 착용 장비 줄. 무기§등급§방어구§등급§장신구§등급. <strong>입력하면 가방 위에 EQUIPPED 줄 표시, 생략하면 순수 격자만</strong></div>
+<hr class="divider">
+<div class="label label-example">타입 (type) → 아이콘</div>
+<div class="desc">
+• <strong>장비 3종</strong> (기존 equipIcon 재사용): <code>무기</code> / <code>방어구</code> / <code>장신구</code> (영문 WEAPON/ARMOR/ACC도 인식)<br>
+• <strong>신규 8종</strong>: <code>물약</code> / <code>폭탄</code> / <code>열쇠</code> / <code>재료</code>(=광석) / <code>음식</code> / <code>두루마리</code> / <code>보석</code> / <code>기타</code><br>
+• 매칭 안 되는 타입은 <code>기타</code>(주머니) 아이콘으로<br>
+• 무기도 격자 아이템 가능 (드랍된 장비 표현) — eq의 착용 무기와 같은 아이콘 공유</div>
+<hr class="divider">
+<div class="label label-example">애니메이션 (SMIL · 자동)</div>
+<div class="desc">
+• <strong>등급 펄스</strong>: legend/epic 칸 테두리가 숨쉬듯 깜빡임 (지정 불필요, 자동)<br>
+• <strong>신규 드랍 스윕</strong>: 이름 앞 <code>*</code> 붙은 칸에 흰 빛이 위→아래로 무한 반복<br>
+• 둘은 겹쳐도 됨 (전설 신규 드랍 = 펄스 + 스윕 동시)</div>
+<hr class="divider">
+<div class="desc"><strong>등급(rarity)</strong>은 「장비 등급 공통」 섹션 참고 (모든 라우트 공통, 입력 표기 그대로 표시). <strong>인코딩:</strong> 공백 → +, + 기호 → %2B, % → %25, ( → %28, ) → %29</div>`
+      },
+      {
         id:'t-st-8', title:'바베챗 프롬프트 (복사용)',
         body:`<div class="label label-use">RPG/VN 상태창 + 엔딩 프롬프트</div>
 <div class="desc">바베챗에 복사하여 사용. 도메인은 <strong>st.winter0.workers.dev</strong></div>
@@ -2041,6 +2091,21 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
 - 플레이버 텍스트는 따옴표 자동 추가됨 — 직접 쓰지 말 것
 - 보스 처치 후 단일 전설 무기, 보물상자에서 다중 보상 등 상황에 맞게 헤더 라벨 선택
 - 스탯의 + 기호는 %2B로, % 기호는 %25로 인코딩
+
+### 인벤토리 / 장비창
+![](https://st.winter0.workers.dev/?t=inv&st=스타일&p=주인§소지금§최대칸수&col=가로열수&items=[*]이름§등급§타입§스탯§설명§수량|...&eq=무기§등급§방어구§등급§장신구§등급)
+- st: mmo(인디고 격자, 기본) / dark(양피지 세리프) / pixel(8비트 도트)
+- p: 주인§소지금§최대칸수 (모두 선택, 최대칸수=빈칸 포함 총 슬롯 수, 최대 60)
+- col: 가로 열 수 1~10 (생략 시 mmo 5, dark/pixel 6)
+- items: reward와 동일 6필드 (이름§등급§타입§스탯§설명§수량). |로 구분, 최대 60개
+  격자 칸엔 아이콘+등급테두리+수량만, 이름은 칸 아래 작게 (스탯·설명은 격자 미표시)
+  이름 앞 *를 붙이면 신규 드랍 = 빛이 위→아래로 흐르는 스윕 애니 + 이름 강조
+- 타입이 칸 아이콘 결정:
+  장비) 무기 / 방어구 / 장신구 (equipIcon 공용 — 드랍 무기도 가능)
+  소비·기타) 물약 / 폭탄 / 열쇠 / 재료 / 음식 / 두루마리 / 보석 / 기타
+- eq: 착용 장비 줄 (무기§등급§방어구§등급§장신구§등급). 입력 시 가방 위 EQUIPPED 줄, 생략 시 순수 격자
+- legend/epic 칸은 테두리 펄스 자동, * 칸은 빛 스윕 자동 (둘 다 SMIL)
+- 용도 구분: reward=방금 획득한 보상 목록 / inv=가방에 보관 중인 소지품 전체
 
 ### 게임오버 화면
 ![](https://st.winter0.workers.dev/?t=gameover&st=스타일&title=제목&cause=사유&n=이름&sub=부가설명&d=대사&ach=아이콘§제목§설명|...&count=횟수)

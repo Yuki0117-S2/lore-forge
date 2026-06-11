@@ -40,6 +40,10 @@ function safeInt(v, fallback = 0, min = -10000, max = 10000) {
   return Math.min(max, Math.max(min, n));
 }
 
+// 이미지 크기 비례 스케일 — 고정 px에 곱해서 화면상 크기 일정 유지
+// 기준 1024 (아인크라드). 1254 → ×1.225, 그보다 크면 더 키움
+function sc(n, s) { return Math.round(n * s * 1000) / 1000; }
+
 function mimeFromKey(key) {
   const k = key.toLowerCase();
   if (k.endsWith('.png'))  return 'image/png';
@@ -81,6 +85,9 @@ const WORLDS = {
   floor8:  { src: 'world/f08.webp', w: 1024, h: 1024, alias: ['8층',  '전운의 요새'],                 group: 'aincrad' },
   floor9:  { src: 'world/f09.webp', w: 1024, h: 1024, alias: ['9층',  '환상의 화원'],                 group: 'aincrad' },
   floor10: { src: 'world/f10.webp', w: 1024, h: 1024, alias: ['10층', '종언의 옥좌'],                 group: 'aincrad' },
+
+  // 판타지 — 루시드 판타지아
+  lucid:   { src: 'fantasy/lucidfantasia.png', w: 1254, h: 1254, alias: ['루시드비아', 'Lucidvia'],   group: 'fantasy' },
 };
 
 const PLACES = {
@@ -170,6 +177,20 @@ const PLACES = {
   'f10_demon_castle':   { world: 'floor10', x: 512, y: 350, alias: ['검붉은 심연의 마왕성'] },
   'f10_cemetery':       { world: 'floor10', x: 333, y: 156, alias: ['북서쪽 잿빛 묘지'] },
   'f10_blood_altar':    { world: 'floor10', x: 781, y: 615, alias: ['남동쪽 피 묻은 제단'] },
+
+  // ─── 루시드비아 : 루시드 판타지아 (6구역 × 거점+지역) ───
+  'lf_sea_palace':      { world: 'lucid', x: 627,  y: 627,  alias: ['중앙 해상궁전'] },
+  'lf_central_lake':    { world: 'lucid', x: 627,  y: 500,  alias: ['중앙 대호수'] },
+  'lf_garden_palace':   { world: 'lucid', x: 326,  y: 200,  alias: ['녹색 장미의 정원궁'] },
+  'lf_great_forest':    { world: 'lucid', x: 240,  y: 300,  alias: ['녹음의 대삼림'] },
+  'lf_rose_city':       { world: 'lucid', x: 204,  y: 822,  alias: ['초원의 장미도시'] },
+  'lf_west_plain':      { world: 'lucid', x: 216,  y: 592,  alias: ['서쪽 초원'] },
+  'lf_ice_citadel':     { world: 'lucid', x: 791,  y: 118,  alias: ['얼음 꽃의 성채'] },
+  'lf_frostland':       { world: 'lucid', x: 961,  y: 240,  alias: ['영원한 빙설지대'] },
+  'lf_magma_fortress':  { world: 'lucid', x: 1100, y: 600,  alias: ['마그마의 요새'] },
+  'lf_volcano':         { world: 'lucid', x: 946,  y: 705,  alias: ['불타는 화산지대'] },
+  'lf_isle_palace':     { world: 'lucid', x: 784,  y: 996,  alias: ['섬들의 장미 궁전'] },
+  'lf_south_isles':     { world: 'lucid', x: 507,  y: 1066, alias: ['남쪽 군도'] },
 };
 
 // 그룹 메타 — map.html이 카테고리 자동 생성용으로 사용
@@ -177,6 +198,7 @@ const PLACES = {
 const GROUPS = {
   test:    { label: '검증용',     icon: '🧪', order: 99 },
   aincrad: { label: '아인크라드', icon: '🗡️', order: 1 },
+  fantasy: { label: '판타지',     icon: '🔮', order: 2 },
 };
 
 function findWorld(name) {
@@ -471,40 +493,41 @@ function distributeMarkers(markers) {
 //  렌더링 — 마커
 // ════════════════════════════════════════════
 
-function renderMyMarker(x, y, label) {
+function renderMyMarker(x, y, label, s) {
+  const r1 = sc(21, s), r2 = sc(40, s), rIn = sc(11, s), rDot = sc(4, s);
   return `
-<circle cx="${x}" cy="${y}" r="21" fill="none" stroke="${STROKE}" stroke-width="6" opacity="0.45">
-  <animate attributeName="r" values="21;40;21" dur="1.8s" repeatCount="indefinite"/>
+<circle cx="${x}" cy="${y}" r="${r1}" fill="none" stroke="${STROKE}" stroke-width="${sc(6,s)}" opacity="0.45">
+  <animate attributeName="r" values="${r1};${r2};${r1}" dur="1.8s" repeatCount="indefinite"/>
   <animate attributeName="opacity" values="0.45;0;0.45" dur="1.8s" repeatCount="indefinite"/>
 </circle>
-<circle cx="${x}" cy="${y}" r="21" fill="none" stroke="${ME_RING}" stroke-width="3" opacity="0.85">
-  <animate attributeName="r" values="21;40;21" dur="1.8s" repeatCount="indefinite"/>
+<circle cx="${x}" cy="${y}" r="${r1}" fill="none" stroke="${ME_RING}" stroke-width="${sc(3,s)}" opacity="0.85">
+  <animate attributeName="r" values="${r1};${r2};${r1}" dur="1.8s" repeatCount="indefinite"/>
   <animate attributeName="opacity" values="0.85;0;0.85" dur="1.8s" repeatCount="indefinite"/>
 </circle>
-<circle cx="${x}" cy="${y}" r="11" fill="${ME_RING}" stroke="${STROKE}" stroke-width="2.5"/>
-<circle cx="${x}" cy="${y}" r="4"  fill="${ME_DOT}"/>
-<text x="${x + 22}" y="${y + 8}"
-      font-family="'Courier New',monospace" font-size="22" font-weight="900"
-      fill="${ME_DOT}" stroke="${STROKE}" stroke-width="5" paint-order="stroke">${esc(label)}</text>`;
+<circle cx="${x}" cy="${y}" r="${rIn}" fill="${ME_RING}" stroke="${STROKE}" stroke-width="${sc(2.5,s)}"/>
+<circle cx="${x}" cy="${y}" r="${rDot}"  fill="${ME_DOT}"/>
+<text x="${x + sc(22,s)}" y="${y + sc(8,s)}"
+      font-family="'Courier New',monospace" font-size="${sc(22,s)}" font-weight="900"
+      fill="${ME_DOT}" stroke="${STROKE}" stroke-width="${sc(5,s)}" paint-order="stroke">${esc(label)}</text>`;
 }
 
-function renderOtherMarker(m) {
+function renderOtherMarker(m, s) {
   const color = relColor(m.relation);
   return `
-<circle cx="${m.x}" cy="${m.y}" r="8" fill="${color}" stroke="${STROKE}" stroke-width="2"/>
-<text x="${m.x + 14}" y="${m.y + 6}"
-      font-family="'Courier New',monospace" font-size="16" font-weight="900"
-      fill="${color}" stroke="${STROKE}" stroke-width="4" paint-order="stroke">${esc(m.name)}</text>`;
+<circle cx="${m.x}" cy="${m.y}" r="${sc(8,s)}" fill="${color}" stroke="${STROKE}" stroke-width="${sc(2,s)}"/>
+<text x="${m.x + sc(14,s)}" y="${m.y + sc(6,s)}"
+      font-family="'Courier New',monospace" font-size="${sc(16,s)}" font-weight="900"
+      fill="${color}" stroke="${STROKE}" stroke-width="${sc(4,s)}" paint-order="stroke">${esc(m.name)}</text>`;
 }
 
 // POI 핀 (★ 심볼, 천천히 자체 회전). x=&y= 로 좌표 직접 박은 경우.
-function renderPoiMarker(x, y) {
+function renderPoiMarker(x, y, s) {
   return `
 <g transform="translate(${x},${y})">
   <g>
     <text x="0" y="0"
-          font-family="'Courier New',monospace" font-size="36" font-weight="900"
-          fill="${POI_COLOR}" stroke="${STROKE}" stroke-width="4" paint-order="stroke"
+          font-family="'Courier New',monospace" font-size="${sc(36,s)}" font-weight="900"
+          fill="${POI_COLOR}" stroke="${STROKE}" stroke-width="${sc(4,s)}" paint-order="stroke"
           text-anchor="middle" dominant-baseline="central">★</text>
     <animateTransform attributeName="transform" type="rotate"
                       from="0" to="360" dur="6s" repeatCount="indefinite"/>
@@ -513,51 +536,52 @@ function renderPoiMarker(x, y) {
 }
 
 // labels=on: 배경 PLACE 라벨 (흰색 + 두꺼운 외곽선, 마커 아래)
-function renderPlaceLabel(x, y, name) {
+function renderPlaceLabel(x, y, name, s) {
   return `
-<text x="${x}" y="${y + 24}"
-      font-family="'Courier New',monospace" font-size="15" font-weight="700"
-      fill="${PLACE_LBL}" stroke="${STROKE}" stroke-width="5" paint-order="stroke"
+<text x="${x}" y="${y + sc(24,s)}"
+      font-family="'Courier New',monospace" font-size="${sc(15,s)}" font-weight="700"
+      fill="${PLACE_LBL}" stroke="${STROKE}" stroke-width="${sc(5,s)}" paint-order="stroke"
       text-anchor="middle">${esc(name)}</text>`;
 }
 
 // 월드 타이틀 (좌측 상단, 항상 표시, 흰색 + 두꺼운 외곽선)
 // alias가 있으면 ' · ' 로 연결 (예: "1층 · 여명의 평원"), 없으면 정식 키
-function renderWorldTitle(world, key) {
+function renderWorldTitle(world, key, s) {
   const aliases = (world.alias || []).filter(a => a);
   const title = aliases.length > 0 ? aliases.join(' · ') : key;
   return `
-<text x="24" y="44"
-      font-family="'Courier New',monospace" font-size="22" font-weight="700"
-      fill="#FFFFFF" stroke="${STROKE}" stroke-width="6" paint-order="stroke">${esc(title)}</text>`;
+<text x="${sc(24,s)}" y="${sc(44,s)}"
+      font-family="'Courier New',monospace" font-size="${sc(22,s)}" font-weight="700"
+      fill="#FFFFFF" stroke="${STROKE}" stroke-width="${sc(6,s)}" paint-order="stroke">${esc(title)}</text>`;
 }
 
 // 격자 오버레이 (grid=on 일 때만)
 // step 간격으로 격자선 + 좌표 라벨. W, H에 자동 적응 (1024 아니어도 OK)
-function renderGrid(W, H, step = 100) {
+function renderGrid(W, H, step = 100, s = 1) {
   const lineColor = '#DDAACC';
   const lineOpacity = 0.3;
+  const fs = sc(13, s), sw = sc(3, s), lw = sc(1.5, s), off = sc(4, s);
   let svg = '';
 
   // 세로선
   for (let x = 0; x <= W; x += step) {
-    svg += `<line x1="${x}" y1="0" x2="${x}" y2="${H}" stroke="${lineColor}" stroke-width="1.5" opacity="${lineOpacity}"/>`;
+    svg += `<line x1="${x}" y1="0" x2="${x}" y2="${H}" stroke="${lineColor}" stroke-width="${lw}" opacity="${lineOpacity}"/>`;
   }
   // 가로선
   for (let y = 0; y <= H; y += step) {
-    svg += `<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="${lineColor}" stroke-width="1.5" opacity="${lineOpacity}"/>`;
+    svg += `<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="${lineColor}" stroke-width="${lw}" opacity="${lineOpacity}"/>`;
   }
   // x축 좌표 라벨 (상단)
   for (let x = 0; x <= W; x += step) {
-    svg += `<text x="${x + 4}" y="16"
-            font-family="'Courier New',monospace" font-size="13" font-weight="700"
-            fill="#FFFFFF" stroke="${STROKE}" stroke-width="3" paint-order="stroke">${x}</text>`;
+    svg += `<text x="${x + off}" y="${sc(16,s)}"
+            font-family="'Courier New',monospace" font-size="${fs}" font-weight="700"
+            fill="#FFFFFF" stroke="${STROKE}" stroke-width="${sw}" paint-order="stroke">${x}</text>`;
   }
   // y축 좌표 라벨 (좌측)
   for (let y = step; y <= H; y += step) {
-    svg += `<text x="4" y="${y - 4}"
-            font-family="'Courier New',monospace" font-size="13" font-weight="700"
-            fill="#FFFFFF" stroke="${STROKE}" stroke-width="3" paint-order="stroke">${y}</text>`;
+    svg += `<text x="${off}" y="${y - off}"
+            font-family="'Courier New',monospace" font-size="${fs}" font-weight="700"
+            fill="#FFFFFF" stroke="${STROKE}" stroke-width="${sw}" paint-order="stroke">${y}</text>`;
   }
   return svg;
 }
@@ -566,34 +590,34 @@ function renderGrid(W, H, step = 100) {
 //  렌더링 — 경로 (점선) / 경유지(다이아몬드) / 목적지(깃발)
 // ════════════════════════════════════════════
 
-function renderPathLine(points) {
+function renderPathLine(points, s) {
   if (points.length < 2) return '';
   const d = 'M' + points.map(p => `${p.x},${p.y}`).join(' L');
   return `
-<path d="${d}" stroke="${PATH_COLOR}" stroke-width="3" stroke-dasharray="10 6" fill="none" stroke-linecap="round">
-  <animate attributeName="stroke-dashoffset" from="0" to="-16" dur="0.8s" repeatCount="indefinite"/>
+<path d="${d}" stroke="${PATH_COLOR}" stroke-width="${sc(3,s)}" stroke-dasharray="${sc(10,s)} ${sc(6,s)}" fill="none" stroke-linecap="round">
+  <animate attributeName="stroke-dashoffset" from="0" to="${sc(-16,s)}" dur="0.8s" repeatCount="indefinite"/>
 </path>`;
 }
 
-function renderWaypoint(x, y) {
-  const S = 11;
-  const s = 4;
+function renderWaypoint(x, y, s) {
+  const S  = sc(11, s);
+  const sm = sc(4, s);
   return `
 <polygon points="${x},${y - S} ${x + S},${y} ${x},${y + S} ${x - S},${y}"
-         fill="${STROKE}" stroke="${PATH_COLOR}" stroke-width="2.5"/>
-<polygon points="${x},${y - s} ${x + s},${y} ${x},${y + s} ${x - s},${y}"
+         fill="${STROKE}" stroke="${PATH_COLOR}" stroke-width="${sc(2.5,s)}"/>
+<polygon points="${x},${y - sm} ${x + sm},${y} ${x},${y + sm} ${x - sm},${y}"
          fill="${PATH_COLOR}"/>`;
 }
 
-function renderDestination(x, y) {
-  const POLE_H = 36;
-  const FLAG_W = 30;
+function renderDestination(x, y, s) {
+  const POLE_H = sc(36, s);
+  const FLAG_W = sc(30, s);
   const top    = y - POLE_H;
   return `
-<line x1="${x}" y1="${y}" x2="${x}" y2="${top}" stroke="${PATH_COLOR}" stroke-width="2.5"/>
-<polygon points="${x},${top} ${x + FLAG_W},${top + 6} ${x},${top + 18}"
-         fill="${PATH_COLOR}" stroke="${STROKE}" stroke-width="1.5"/>
-<circle cx="${x}" cy="${y}" r="4" fill="${PATH_COLOR}"/>`;
+<line x1="${x}" y1="${y}" x2="${x}" y2="${top}" stroke="${PATH_COLOR}" stroke-width="${sc(2.5,s)}"/>
+<polygon points="${x},${top} ${x + FLAG_W},${top + sc(6,s)} ${x},${top + sc(18,s)}"
+         fill="${PATH_COLOR}" stroke="${STROKE}" stroke-width="${sc(1.5,s)}"/>
+<circle cx="${x}" cy="${y}" r="${sc(4,s)}" fill="${PATH_COLOR}"/>`;
 }
 
 // ════════════════════════════════════════════
@@ -705,52 +729,53 @@ async function renderWorldmap(params, env) {
   //    Z-order: 배경 → PLACE 라벨(배경 텍스트) → 점선 → 경유지 → 목적지 → 다른 사람들 → 나
   const W = world.w, H = world.h;
   const DISP = 750;
+  const SCALE = ((W + H) / 2) / 1024;   // 1024 기준 글씨/마커 비례 스케일
 
   let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${DISP}" height="${DISP}" viewBox="0 0 ${W} ${H}">
 <image href="${dataURI}" x="0" y="0" width="${W}" height="${H}"/>`;
 
   // 격자 오버레이 (grid=on 일 때만, 배경 직후)
   if (gridOn) {
-    svg += renderGrid(W, H, 100);
+    svg += renderGrid(W, H, 100, SCALE);
   }
 
   // 월드 타이틀 (좌상단, 배경 직후)
-  svg += renderWorldTitle(world, worldKey);
+  svg += renderWorldTitle(world, worldKey, SCALE);
 
   // PLACE 배경 라벨
   for (const pl of placeLabels) {
-    svg += renderPlaceLabel(pl.x, pl.y, pl.name);
+    svg += renderPlaceLabel(pl.x, pl.y, pl.name, SCALE);
   }
 
   // 점선
   if (linePoints.length >= 2) {
-    svg += renderPathLine(linePoints);
+    svg += renderPathLine(linePoints, SCALE);
   }
 
   // 경유지 다이아몬드
   for (let i = 0; i < waypoints.length - 1; i++) {
-    svg += renderWaypoint(waypoints[i].x, waypoints[i].y);
+    svg += renderWaypoint(waypoints[i].x, waypoints[i].y, SCALE);
   }
 
   // 목적지 깃발
   if (waypoints.length > 0) {
     const dest = waypoints[waypoints.length - 1];
-    svg += renderDestination(dest.x, dest.y);
+    svg += renderDestination(dest.x, dest.y, SCALE);
   }
 
   // 다른 사람들
   for (const m of markers) {
-    if (!m.isMe && !m.isPoi) svg += renderOtherMarker(m);
+    if (!m.isMe && !m.isPoi) svg += renderOtherMarker(m, SCALE);
   }
 
   // POI 핀
   for (const m of markers) {
-    if (m.isPoi) svg += renderPoiMarker(m.x, m.y);
+    if (m.isPoi) svg += renderPoiMarker(m.x, m.y, SCALE);
   }
 
   // 나
   for (const m of markers) {
-    if (m.isMe) svg += renderMyMarker(m.x, m.y, m.label);
+    if (m.isMe) svg += renderMyMarker(m.x, m.y, m.label, SCALE);
   }
 
   svg += `</svg>`;

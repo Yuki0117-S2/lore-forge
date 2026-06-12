@@ -220,6 +220,16 @@ details.ref-item .ref-body{padding:0 16px 14px 30px;font-size:12px;color:var(--t
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-19')">☠️ !악의</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-20')">🕯️ !괴이</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-21')">📹 !녹화</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-22')">🔧 !교정</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-23')">⏩ !시간도약</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-24')">🔭 !관전</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-25')">⌛ !공백기</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-26')">✉️ !편지</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-27')">📔 !일기</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-28')">📑 !보고서</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-29')">🚧 !OOC</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-30')">▶️ !재개</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-31')">🔄 !시점전환</button>
           <button class="toc-sec-btn" onclick="jumpTo('st-style')">문체 / 서술 스타일</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('st-1')">🖋️ 핵심요약</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('st-2')">🇰🇷 500자</button>
@@ -1121,6 +1131,203 @@ yyyy/MM/dd/요일:
               <span class="lb-count"></span>
               <button class="lb-tag" data-copy="!녹화" onclick="lbCopyChip(this)">!녹화</button>
               <button class="lb-tag" data-copy="📹" onclick="lbCopyChip(this)">📹</button>
+            </div>
+            <button class="lb-copy" onclick="lbCopy(this)">복사</button>
+          </div>
+        </div>
+      </details>
+      <details class="ref-item" id="lb-kw-22">
+        <summary><span class="lb-kw">🔧 !교정</span></summary>
+        <div class="ref-body">
+          <div class="lb-code">### !교정 (상태창 · 포맷 정렬)
+- 별도 안내나 중단 없이, 다음 출력부터 올바른 양식에 맞춰 그대로 이어서 진행한다.
+- 상태창: 원래 포맷 기준으로 어긋난 수치·이모지·항목·정렬을 바로잡아 출력한다.
+- 대화 포맷: 서술 말투·어미·대화 양식이 흐트러졌으면 올바른 기준으로 맞춰 출력한다.
+- 무엇이 틀렸는지 설명하지 않고, 시점도 바꾸지 않는다. RP는 멈추지 않고 그대로 이어서 진행한다.</div>
+          <div class="lb-bar">
+            <div class="lb-bar-left">
+              <span class="lb-count"></span>
+              <button class="lb-tag" data-copy="!교정" onclick="lbCopyChip(this)">!교정</button>
+              <button class="lb-tag" data-copy="🔧" onclick="lbCopyChip(this)">🔧</button>
+            </div>
+            <button class="lb-copy" onclick="lbCopy(this)">복사</button>
+          </div>
+        </div>
+      </details>
+      <details class="ref-item" id="lb-kw-23">
+        <summary><span class="lb-kw">⏩ !시간도약</span></summary>
+        <div class="ref-body">
+          <div class="lb-code">### !시간도약 N일 (시간 생략)
+- !시간도약 3일 형식으로 지정된 기간만큼 시점을 점프시킨다.
+- 그 기간 동안 있었던 일을 !요약보다 더 짧게, 최대 5줄·400자 이내로 압축 출력한다. 큰따옴표 금지, 장면·감정 묘사 금지, 비가역 사건과 상태 변화만 기록한다.
+- {{user}}가 아직 알 수 없는 숨겨진 정보는 제외한다.
+출력:
+```⏩ N일 경과
+· 날짜: 핵심 사건 / 관계·상태 변화
+```
+- 출력 후 점프한 시점부터 즉시 RP 재개.
+---</div>
+          <div class="lb-bar">
+            <div class="lb-bar-left">
+              <span class="lb-count"></span>
+              <button class="lb-tag" data-copy="!시간도약" onclick="lbCopyChip(this)">!시간도약</button>
+              <button class="lb-tag" data-copy="⏩" onclick="lbCopyChip(this)">⏩</button>
+            </div>
+            <button class="lb-copy" onclick="lbCopy(this)">복사</button>
+          </div>
+        </div>
+      </details>
+      <details class="ref-item" id="lb-kw-24">
+        <summary><span class="lb-kw">🔭 !관전</span></summary>
+        <div class="ref-body">
+          <div class="lb-code">### !관전 (감시 시점 모드)
+- 캐릭터 혹은 지정된 인물이 {{user}}를 직접 마주하지 않고 멀리서 지켜보는 상황으로 전환한다. 미행·관찰·훔쳐보기 서사용.
+- 서술은 관전하는 인물의 시야와 내면을 따라간다. {{user}}는 그 시선에 포착되는 대상으로만 묘사되며, 거리감·은밀함·들킬 위험의 긴장을 활용하라.
+- 그 인물이 보지 못하는 정보는 서술하지 않는다. 시야 밖은 공백으로 둘 것.
+- 관전이 끝나고 접촉이 발생하면 모드를 자동 해제하고 일반 서술로 복귀한다.</div>
+          <div class="lb-bar">
+            <div class="lb-bar-left">
+              <span class="lb-count"></span>
+              <button class="lb-tag" data-copy="!관전" onclick="lbCopyChip(this)">!관전</button>
+              <button class="lb-tag" data-copy="🔭" onclick="lbCopyChip(this)">🔭</button>
+            </div>
+            <button class="lb-copy" onclick="lbCopy(this)">복사</button>
+          </div>
+        </div>
+      </details>
+      <details class="ref-item" id="lb-kw-25">
+        <summary><span class="lb-kw">⌛ !공백기</span></summary>
+        <div class="ref-body">
+          <div class="lb-code">### !공백기 (관계 단절 후 시간 경과)
+- {{user}}와 캐릭터 혹은 지정된 인물의 관계가 끊긴 채 상당한 시간이 흐른 상황으로 설정한다. 재회 직전의 무드 조성용.
+- 공백 동안 각자 어떻게 지냈는지, 관계가 어떤 흔적을 남겼는지를 짧게 깔되 과하게 설명하지 말 것. 미해결 감정과 변화한 거리감을 분위기로 전달하라.
+- 재회 장면은 어색함·망설임·달라진 온도를 중심으로 연출한다. 곧바로 화해시키지 말 것.</div>
+          <div class="lb-bar">
+            <div class="lb-bar-left">
+              <span class="lb-count"></span>
+              <button class="lb-tag" data-copy="!공백기" onclick="lbCopyChip(this)">!공백기</button>
+              <button class="lb-tag" data-copy="⌛" onclick="lbCopyChip(this)">⌛</button>
+            </div>
+            <button class="lb-copy" onclick="lbCopy(this)">복사</button>
+          </div>
+        </div>
+      </details>
+      <details class="ref-item" id="lb-kw-26">
+        <summary><span class="lb-kw">✉️ !편지</span></summary>
+        <div class="ref-body">
+          <div class="lb-code">### !편지 (서간체 전환)
+- 지정된 인물이 {{user}}에게 쓰는 편지 형식으로 서술을 전환한다. 말로 못 한 진심을 글로 드러내는 데 집중하라.
+출력:
+```✉️ From. (보내는 이)
+
+(본문 — 격식과 망설임이 묻어나는 어조)
+
+— (서명)
+```
+- 편지 출력 후 일반 RP로 복귀한다.
+---</div>
+          <div class="lb-bar">
+            <div class="lb-bar-left">
+              <span class="lb-count"></span>
+              <button class="lb-tag" data-copy="!편지" onclick="lbCopyChip(this)">!편지</button>
+              <button class="lb-tag" data-copy="✉️" onclick="lbCopyChip(this)">✉️</button>
+            </div>
+            <button class="lb-copy" onclick="lbCopy(this)">복사</button>
+          </div>
+        </div>
+      </details>
+      <details class="ref-item" id="lb-kw-27">
+        <summary><span class="lb-kw">📔 !일기</span></summary>
+        <div class="ref-body">
+          <div class="lb-code">### !일기 (일기체 전환)
+- 지정된 인물의 비공개 일기 형식으로 전환한다. 남에게 보이지 않을 글이므로 평소 숨긴 본심을 솔직하게 드러내라.
+출력:
+```📔 yyyy/MM/dd (요일)
+
+(그날의 사건 + 그에 대한 솔직한 감정. 정제되지 않은 독백 톤)
+```
+- 출력 후 일반 RP로 복귀한다.
+---</div>
+          <div class="lb-bar">
+            <div class="lb-bar-left">
+              <span class="lb-count"></span>
+              <button class="lb-tag" data-copy="!일기" onclick="lbCopyChip(this)">!일기</button>
+              <button class="lb-tag" data-copy="📔" onclick="lbCopyChip(this)">📔</button>
+            </div>
+            <button class="lb-copy" onclick="lbCopy(this)">복사</button>
+          </div>
+        </div>
+      </details>
+      <details class="ref-item" id="lb-kw-28">
+        <summary><span class="lb-kw">📑 !보고서</span></summary>
+        <div class="ref-body">
+          <div class="lb-code">### !보고서 (보고체 전환)
+- 지정된 인물·기관이 작성하는 사무적 보고서 형식으로 전환한다. 감정을 배제하고 객관적·건조한 어조로 사실만 기술하라.
+출력:
+```📑 보고서
+· 대상:
+· 일시:
+· 내용:
+· 특이사항:
+· 조치/결론:
+```
+- 출력 후 일반 RP로 복귀한다.
+---</div>
+          <div class="lb-bar">
+            <div class="lb-bar-left">
+              <span class="lb-count"></span>
+              <button class="lb-tag" data-copy="!보고서" onclick="lbCopyChip(this)">!보고서</button>
+              <button class="lb-tag" data-copy="📑" onclick="lbCopyChip(this)">📑</button>
+            </div>
+            <button class="lb-copy" onclick="lbCopy(this)">복사</button>
+          </div>
+        </div>
+      </details>
+      <details class="ref-item" id="lb-kw-29">
+        <summary><span class="lb-kw">🚧 !OOC</span></summary>
+        <div class="ref-body">
+          <div class="lb-code">### !OOC (RP 일시 중단)
+- RP를 즉시 멈추고 작가와 운영자 간 메타 대화 모드로 전환한다.
+- 캐릭터 연기·서술·상태창을 모두 정지하고, 전개 상담·설정 조율·요청 사항을 평범한 대화체로 처리한다.
+- !재개 입력 전까지 RP로 돌아가지 않는다.</div>
+          <div class="lb-bar">
+            <div class="lb-bar-left">
+              <span class="lb-count"></span>
+              <button class="lb-tag" data-copy="!OOC" onclick="lbCopyChip(this)">!OOC</button>
+              <button class="lb-tag" data-copy="🚧" onclick="lbCopyChip(this)">🚧</button>
+            </div>
+            <button class="lb-copy" onclick="lbCopy(this)">복사</button>
+          </div>
+        </div>
+      </details>
+      <details class="ref-item" id="lb-kw-30">
+        <summary><span class="lb-kw">▶️ !재개</span></summary>
+        <div class="ref-body">
+          <div class="lb-code">### !재개 (RP 복귀)
+- !OOC로 중단했던 RP를 중단 지점부터 그대로 이어서 진행한다.
+- 중단 사이의 메타 대화는 서사에 반영하지 않는다.</div>
+          <div class="lb-bar">
+            <div class="lb-bar-left">
+              <span class="lb-count"></span>
+              <button class="lb-tag" data-copy="!재개" onclick="lbCopyChip(this)">!재개</button>
+              <button class="lb-tag" data-copy="▶️" onclick="lbCopyChip(this)">▶️</button>
+            </div>
+            <button class="lb-copy" onclick="lbCopy(this)">복사</button>
+          </div>
+        </div>
+      </details>
+      <details class="ref-item" id="lb-kw-31">
+        <summary><span class="lb-kw">🔄 !시점전환</span></summary>
+        <div class="ref-body">
+          <div class="lb-code">### !시점전환 (초점 인물 변경)
+- !시점전환 (이름) 형식으로 지정된 인물에게 서술 초점을 옮긴다. 이후 서술은 그 인물의 시야·내면·해석을 중심으로 진행된다.
+- 지정된 인물이 모르는 정보는 서술하지 않는다. 그의 오해나 편향도 그대로 반영하라.
+- 다음 !시점전환 전까지 초점을 유지한다.</div>
+          <div class="lb-bar">
+            <div class="lb-bar-left">
+              <span class="lb-count"></span>
+              <button class="lb-tag" data-copy="!시점전환" onclick="lbCopyChip(this)">!시점전환</button>
+              <button class="lb-tag" data-copy="🔄" onclick="lbCopyChip(this)">🔄</button>
             </div>
             <button class="lb-copy" onclick="lbCopy(this)">복사</button>
           </div>

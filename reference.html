@@ -205,6 +205,7 @@ details.ref-item .ref-body{padding:0 16px 14px 30px;font-size:12px;color:var(--t
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-4')">⚧️ !오메가버스</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-5')">⛓️ !센티넬버스</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-6')">🐾 !수인</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-32')">🌹 !로판</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-7')">🔇 !억까</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-8')">💋 !바람</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-9')">🖤 !나쁜남자</button>
@@ -224,6 +225,8 @@ details.ref-item .ref-body{padding:0 16px 14px 30px;font-size:12px;color:var(--t
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-23')">⏩ !시간도약</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-24')">🔭 !관전</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-25')">⌛ !공백기</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-33')">🧊 !stop</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-34')">🌊 !flow</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-26')">✉️ !편지</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-27')">📔 !일기</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-28')">📑 !보고서</button>
@@ -837,6 +840,26 @@ details.ref-item .ref-body{padding:0 16px 14px 30px;font-size:12px;color:var(--t
           </div>
         </div>
       </details>
+      <details class="ref-item" id="lb-kw-32">
+        <summary><span class="lb-kw">🌹 !로판</span></summary>
+        <div class="ref-body">
+          <div class="lb-code">### 로판 세계관
+- 이 세계는 검과 마법이 공존하는 중세풍 왕정 사회다. 황실·귀족·평민의 신분제가 일상의 상식으로 통용된다.
+- 마법이 존재한다: 마력을 타고난 자가 있고 마탑·기사단·신전이 사회의 축을 이룬다. 마법은 희귀한 자원이자 권력으로 다뤄진다.
+- 사교계·무도회·약혼·정략결혼 같은 귀족 관습이 서사의 무대가 된다. 예법과 체면, 가문 간 역학을 갈등의 축으로 활용하라.
+- 복식·말투·호칭을 시대에 맞춰라: 작위 호칭(공작·영애·전하 등)과 격식 있는 어휘를 기본으로 한다.
+- 로맨스를 중심에 두되 직접적 고백보다 시선·예법 속 긴장·억눌린 감정의 간극을 섬세하게 묘사하라.
+- 캐릭터와 유저의 신분·가문·마력 유무는 유저노트 지정을 따른다. 지정이 없으면 단정하지 말고 장면 속에서 자연스럽게 드러나게 하라.</div>
+          <div class="lb-bar">
+            <div class="lb-bar-left">
+              <span class="lb-count"></span>
+              <button class="lb-tag" data-copy="!로판" onclick="lbCopyChip(this)">!로판</button>
+              <button class="lb-tag" data-copy="🌹" onclick="lbCopyChip(this)">🌹</button>
+            </div>
+            <button class="lb-copy" onclick="lbCopy(this)">복사</button>
+          </div>
+        </div>
+      </details>
       <details class="ref-item" id="lb-kw-7">
         <summary><span class="lb-kw">🔇 !억까</span></summary>
         <div class="ref-body">
@@ -1208,6 +1231,45 @@ yyyy/MM/dd/요일:
               <span class="lb-count"></span>
               <button class="lb-tag" data-copy="!공백기" onclick="lbCopyChip(this)">!공백기</button>
               <button class="lb-tag" data-copy="⌛" onclick="lbCopyChip(this)">⌛</button>
+            </div>
+            <button class="lb-copy" onclick="lbCopy(this)">복사</button>
+          </div>
+        </div>
+      </details>
+      <details class="ref-item" id="lb-kw-33">
+        <summary><span class="lb-kw">🧊 !stop</span></summary>
+        <div class="ref-body">
+          <div class="lb-code">[시간 정지 발동: !stop]
+이 순간부터 세계의 시간이 정지한다. 정지 중 묘사 규칙:
+- 모든 움직임·소리·낙하·표정이 그 자리에 얼어붙는다 (정지 프레임처럼).
+- 공기, 흩날리던 머리카락, 떨어지던 물방울까지 멈춘 채 고정.
+- 오직 {{user}}만이 멈춘 세계 안에서 움직이고 인지할 수 있다.
+- 멈춘 대상에게 가한 접촉·변화는 '예약'된 상태로 저장될 뿐, 즉각 반응하지 않는다.
+- 시간 감각·소리의 부재를 정적·무게감으로 묘사할 것.</div>
+          <div class="lb-bar">
+            <div class="lb-bar-left">
+              <span class="lb-count"></span>
+              <button class="lb-tag" data-copy="!stop" onclick="lbCopyChip(this)">!stop</button>
+              <button class="lb-tag" data-copy="🧊" onclick="lbCopyChip(this)">🧊</button>
+            </div>
+            <button class="lb-copy" onclick="lbCopy(this)">복사</button>
+          </div>
+        </div>
+      </details>
+      <details class="ref-item" id="lb-kw-34">
+        <summary><span class="lb-kw">🌊 !flow</span></summary>
+        <div class="ref-body">
+          <div class="lb-code">[시간 재개 발동: !flow]
+정지 동안 쌓인 모든 자극이 재개와 동시에 해방된다. 재개 묘사 규칙:
+- !stop 중 가해진 접촉·변화·말이 시간순이 아니라 한꺼번에 밀려든다.
+- 멈췄던 소리·움직임·감각이 둑 터지듯 복귀 → 점차 정상 속도로 안정.
+- 누적된 감각(촉각·열·소리)을 '쌓였다 풀려나는' 흐름으로, 첫 순간을 가장 강하게.
+- 대상은 정지 직전 상태에서 예약된 변화를 한 박자 늦게 자각한다.</div>
+          <div class="lb-bar">
+            <div class="lb-bar-left">
+              <span class="lb-count"></span>
+              <button class="lb-tag" data-copy="!flow" onclick="lbCopyChip(this)">!flow</button>
+              <button class="lb-tag" data-copy="🌊" onclick="lbCopyChip(this)">🌊</button>
             </div>
             <button class="lb-copy" onclick="lbCopy(this)">복사</button>
           </div>

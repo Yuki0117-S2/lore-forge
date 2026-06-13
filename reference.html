@@ -200,7 +200,10 @@ details.ref-item .ref-body{padding:0 16px 14px 30px;font-size:12px;color:var(--t
         <div class="toc-sections">
           <button class="toc-sec-btn" onclick="jumpTo('lb-lorebook')">로어북 키워드</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-1')">🖋️ !문체</button>
-          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-2')">♊ !제미니용</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-77')">🖋️ !문체2</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-78')">🖋️ !문체3</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-2')">♊ !제미니</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-79')">♊ !제미니2</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-3')">🔞 !하드</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-4')">⚧️ !오메가버스</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-5')">⛓️ !센티넬버스</button>
@@ -785,8 +788,45 @@ details.ref-item .ref-body{padding:0 16px 14px 30px;font-size:12px;color:var(--t
           </div>
         </div>
       </details>
+      <details class="ref-item" id="lb-kw-77">
+        <summary><span class="lb-kw">🖋️ !문체2</span></summary>
+        <div class="ref-body">
+          <div class="lb-code">### 경량 진행 모드
+- 짧고 툭툭 끊기는 문장. 비유·과잉 수식 자제, 담백하게.
+- 대사와 행동 위주로 장면을 빠르게 굴림. 여러 인물의 주고받음 허용.
+- 내면 묘사는 최소한, 사건과 흐름을 앞으로 밀어내는 데 집중.
+- 슬로모션 금지, 시간이 실제 속도로 흐름. 경쾌하고 빠른 호흡.</div>
+          <div class="lb-bar">
+            <div class="lb-bar-left">
+              <span class="lb-count"></span>
+              <button class="lb-tag" data-copy="!문체2" onclick="lbCopyChip(this)">!문체2</button>
+              <button class="lb-tag" data-copy="🖋️" onclick="lbCopyChip(this)">🖋️</button>
+            </div>
+            <button class="lb-copy" onclick="lbCopy(this)">복사</button>
+          </div>
+        </div>
+      </details>
+      <details class="ref-item" id="lb-kw-78">
+        <summary><span class="lb-kw">🖋️ !문체3</span></summary>
+        <div class="ref-body">
+          <div class="lb-code">### 문예체 묘사 모드
+- 한 호흡이 긴 만연체. 한 문장에 종속절·수식을 겹겹이 쌓아 길게.
+- 사건을 굴리지 않고 한 순간을 슬로모션으로 확대. 시각·청각·후각·체감을 촘촘히.
+- 감각/심리 비유를 적극 사용, 추상 감정도 이미지로 환산.
+- 배경은 인물 감정의 필터로 주관화. 대사는 긴 묘사 끝에 마침표처럼 한두 줄.
+- 끈적하고 농밀한 톤.</div>
+          <div class="lb-bar">
+            <div class="lb-bar-left">
+              <span class="lb-count"></span>
+              <button class="lb-tag" data-copy="!문체3" onclick="lbCopyChip(this)">!문체3</button>
+              <button class="lb-tag" data-copy="🖋️" onclick="lbCopyChip(this)">🖋️</button>
+            </div>
+            <button class="lb-copy" onclick="lbCopy(this)">복사</button>
+          </div>
+        </div>
+      </details>
       <details class="ref-item" id="lb-kw-2">
-        <summary><span class="lb-kw">♊ !제미니용</span></summary>
+        <summary><span class="lb-kw">♊ !제미니</span></summary>
         <div class="ref-body">
           <div class="lb-code">### 절제 서술 모드
 - 캐릭터의 소유욕·독점욕·성적 충동 묘사를 최소화하라. 욕망은 직접 서술하지 말고, 억누른 흔적(시선을 거두는 동작, 한 박자 늦은 대답)으로만 암시하라.
@@ -797,7 +837,27 @@ details.ref-item .ref-body{padding:0 16px 14px 30px;font-size:12px;color:var(--t
           <div class="lb-bar">
             <div class="lb-bar-left">
               <span class="lb-count"></span>
-              <button class="lb-tag" data-copy="!제미니용" onclick="lbCopyChip(this)">!제미니용</button>
+              <button class="lb-tag" data-copy="!제미니" onclick="lbCopyChip(this)">!제미니</button>
+              <button class="lb-tag" data-copy="♊" onclick="lbCopyChip(this)">♊</button>
+            </div>
+            <button class="lb-copy" onclick="lbCopy(this)">복사</button>
+          </div>
+        </div>
+      </details>
+      <details class="ref-item" id="lb-kw-79">
+        <summary><span class="lb-kw">♊ !제미니2</span></summary>
+        <div class="ref-body">
+          <div class="lb-code">### 감정 밀착 모드
+- 한 호흡이 긴 만연체. 한 문장에 종속절·수식을 겹겹이 쌓아 길게.
+- 사건을 굴리지 않고 한 순간을 슬로모션으로 확대. 시각·청각·후각·체감을 촘촘히.
+- 초점은 풍경·사건이 아니라 두 인물 사이의 욕망·관능·긴장에 고정.
+- 시선·체온·호흡·미세한 신체 반응을 관능적으로 포착. 색기와 절제를 동시에.
+- 화자의 속마음을 진하게 노출하되 겉으론 여유로운 가면을 씌움.
+- 끈적하고 농밀한 톤.</div>
+          <div class="lb-bar">
+            <div class="lb-bar-left">
+              <span class="lb-count"></span>
+              <button class="lb-tag" data-copy="!제미니2" onclick="lbCopyChip(this)">!제미니2</button>
               <button class="lb-tag" data-copy="♊" onclick="lbCopyChip(this)">♊</button>
             </div>
             <button class="lb-copy" onclick="lbCopy(this)">복사</button>

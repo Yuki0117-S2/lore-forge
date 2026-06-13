@@ -274,6 +274,7 @@ details.ref-item .ref-body{padding:0 16px 14px 30px;font-size:12px;color:var(--t
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-29')">🚧 !OOC</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-30')">▶️ !재개</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-31')">🔄 !시점전환</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-76')">🎛️ !커스텀</button>
           <button class="toc-sec-btn" onclick="jumpTo('st-style')">문체 / 서술 스타일</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('st-1')">🖋️ 핵심요약</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('st-2')">🇰🇷 500자</button>
@@ -2243,6 +2244,24 @@ yyyy/MM/dd/요일:
               <span class="lb-count"></span>
               <button class="lb-tag" data-copy="!시점전환" onclick="lbCopyChip(this)">!시점전환</button>
               <button class="lb-tag" data-copy="🔄" onclick="lbCopyChip(this)">🔄</button>
+            </div>
+            <button class="lb-copy" onclick="lbCopy(this)">복사</button>
+          </div>
+        </div>
+      </details>
+      <details class="ref-item" id="lb-kw-76">
+        <summary><span class="lb-kw">🎛️ !커스텀</span></summary>
+        <div class="ref-body">
+          <div class="lb-code">### 커스텀 전개 (유저 설정 우선)
+- 함께 입력된 내용과 유저노트 설정을 동등한 최우선 규칙으로 전개하라. 해당 내용은 기존 설정보다 우선순위를 갖는다.
+- 현재 지정된 세계관·설정·앞선 전개를 무시하고 유저 지정을 우선한다. 단 캐릭터 성격은 유지.
+- 유저노트에 쓰여져 있지 않은 부분은 기존 설정을 따라서 이행한다.
+- 빈틈은 단정 말고 새 설정에 맞춰 채우되, 선언 없이 장면에 녹여라.</div>
+          <div class="lb-bar">
+            <div class="lb-bar-left">
+              <span class="lb-count"></span>
+              <button class="lb-tag" data-copy="!커스텀" onclick="lbCopyChip(this)">!커스텀</button>
+              <button class="lb-tag" data-copy="🎛️" onclick="lbCopyChip(this)">🎛️</button>
             </div>
             <button class="lb-copy" onclick="lbCopy(this)">복사</button>
           </div>

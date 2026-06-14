@@ -902,6 +902,7 @@ function renderSidebar(){
   proj.characters.forEach(char=>{
     const[bg,fg]=COLORS[char.colorIdx];
     const item=document.createElement('div');item.className='char-item'+(char.id===proj.currentCharId?' active':'');
+    item.dataset.charId=char.id;
     item.onclick=()=>selectCharacter(char.id);
     item.innerHTML=`<div class="char-avatar" style="background:${bg};color:${fg}">${(char.data.name||'?')[0].toUpperCase()}</div><div class="char-info"><div class="char-name-label">${char.data.name||'이름 없음'}</div><div class="char-role-label">${char.data.role||'역할 미정'}</div></div><button class="char-del" onclick="deleteCharacter('${char.id}',event)">×</button>`;
     list.appendChild(item);
@@ -913,6 +914,7 @@ function renderSidebar(){
 function renderCharEditor(){
   const container=document.getElementById('char-editor-content');
   const char=getCurrentChar();
+  normalizeCharacterData(char);
   if(!char){container.innerHTML=`<div class="empty-state"><div class="empty-state-icon">🎭</div><div class="empty-state-text">캐릭터를 선택하거나 추가해봐</div><div class="empty-state-sub">왼쪽 사이드바 ＋ 버튼을 눌러</div></div>`;return;}
   const d=char.data;const[bg]=COLORS[char.colorIdx];
 
@@ -1153,9 +1155,11 @@ function renderCharEditor(){
 // ===== 의상 칩 =====
 function toggleOutfitChip(el,value){
   const char=getCurrentChar();if(!char)return;
-  char.outfitChips=char.outfitChips||[];
-  if(el.classList.contains('active')){el.classList.remove('active');char.outfitChips=char.outfitChips.filter(s=>s!==value);}
-  else{el.classList.add('active');char.outfitChips.push(value);}
+  const v=String(value??'').trim();if(!v)return;
+  char.outfitChips=uniqStrings(char.outfitChips||[]);
+  const wasActive=char.outfitChips.includes(v);
+  if(wasActive){el.classList.remove('active');char.outfitChips=char.outfitChips.filter(s=>s!==v);}
+  else{el.classList.add('active');char.outfitChips.push(v);}
   saveAll();updatePreview();
 }
 function toggleOutfitChipByEl(el){
@@ -1164,9 +1168,11 @@ function toggleOutfitChipByEl(el){
 }
 function toggleBdsmChip(el,value){
   const char=getCurrentChar();if(!char)return;
-  char.bdsmChips=char.bdsmChips||[];
-  if(el.classList.contains('active')){el.classList.remove('active');char.bdsmChips=char.bdsmChips.filter(s=>s!==value);}
-  else{el.classList.add('active');char.bdsmChips.push(value);}
+  const v=String(value??'').trim();if(!v)return;
+  char.bdsmChips=uniqStrings(char.bdsmChips||[]);
+  const wasActive=char.bdsmChips.includes(v);
+  if(wasActive){el.classList.remove('active');char.bdsmChips=char.bdsmChips.filter(s=>s!==v);}
+  else{el.classList.add('active');char.bdsmChips.push(v);}
   saveAll();updatePreview();
 }
 function toggleBdsmChipByEl(el){
@@ -1191,32 +1197,85 @@ function injectOutfitChips(){
 }
 
 // ===== 필드 저장 =====
+function uniqStrings(arr){
+  const out=[];const seen=new Set();
+  (Array.isArray(arr)?arr:[]).forEach(v=>{
+    const s=String(v??'').trim();
+    if(!s||seen.has(s))return;
+    seen.add(s);out.push(s);
+  });
+  return out;
+}
+
+function normalizeCharacterData(char){
+  if(!char)return;
+  char.tagData=char.tagData||{};
+  ['personality','habit','like','dislike','must','never'].forEach(k=>{
+    char.tagData[k]=uniqStrings(char.tagData[k]||[]);
+  });
+  char.speechChips=uniqStrings(char.speechChips||[]);
+  char.outfitChips=uniqStrings(char.outfitChips||[]);
+  char.bdsmChips=uniqStrings(char.bdsmChips||[]);
+}
+
+function normalizeAllData(){
+  Object.values(projects||{}).forEach(p=>{
+    (p.characters||[]).forEach(normalizeCharacterData);
+  });
+}
+
+function updateSidebarCurrentChar(char){
+  if(!char)return;
+  const item=document.querySelector(`.char-item[data-char-id="${char.id}"]`);
+  if(item){
+    const avatar=item.querySelector('.char-avatar');
+    const name=item.querySelector('.char-name-label');
+    const role=item.querySelector('.char-role-label');
+    if(avatar)avatar.textContent=(char.data.name||'?')[0].toUpperCase();
+    if(name)name.textContent=char.data.name||'이름 없음';
+    if(role)role.textContent=char.data.role||'역할 미정';
+  }
+  const mob=document.getElementById('mob-char-select');
+  if(mob){
+    const opt=mob.querySelector(`option[value="${char.id}"]`);
+    if(opt)opt.textContent=char.data.name||'이름 없음';
+  }
+}
+
 function saveField(field,value){
   const char=getCurrentChar();if(!char)return;
   char.data[field]=value;
-  if(field==='name'||field==='role')renderSidebar();
+  if(field==='name'||field==='role'){
+    updateSidebarCurrentChar(char);
+    if(field==='name')updatePreviewBar();
+  }
   saveAll();updatePreview();
 }
 
 // ===== 캐릭터 태그 =====
+function addUniqueCharTag(key,val){
+  const char=getCurrentChar();if(!char)return false;
+  const s=String(val??'').trim();if(!s)return false;
+  char.tagData[key]=uniqStrings(char.tagData[key]||[]);
+  if(char.tagData[key].includes(s)){showToast('⚠️ 이미 있는 태그야!');return false;}
+  char.tagData[key].push(s);
+  return true;
+}
+
 function handleCharTag(e,key){
   if(e.key!=='Enter')return;
   if(e.type==='keydown')return;e.preventDefault();
-  const char=getCurrentChar();if(!char)return;
-  const val=e.target.value.trim();if(!val)return;
-  char.tagData[key]=char.tagData[key]||[];char.tagData[key].push(val);
-  e.target.value='';renderCharTags(key);saveAll();updatePreview();
+  if(addUniqueCharTag(key,e.target.value)){
+    e.target.value='';renderCharTags(key);saveAll();updatePreview();
+  }
 }
 
 function addCharTagBtn(key){
   const inp = document.getElementById('c-'+key+'-input');
   if(!inp) return;
-  const val = inp.value.trim();
-  if(!val) return;
-  const char = getCurrentChar(); if(!char) return;
-  char.tagData[key] = char.tagData[key]||[];
-  char.tagData[key].push(val);
-  inp.value=''; renderCharTags(key); saveAll(); updatePreview();
+  if(addUniqueCharTag(key,inp.value)){
+    inp.value=''; renderCharTags(key); saveAll(); updatePreview();
+  }
 }
 
 function addTagBtn(key){
@@ -1225,20 +1284,22 @@ function addTagBtn(key){
   const val = inp.value.trim();
   if(!val) return;
   const proj = getProject(); if(!proj) return;
-  proj.globalTagData[key] = proj.globalTagData[key]||[];
+  proj.globalTagData[key] = uniqStrings(proj.globalTagData[key]||[]);
+  if(proj.globalTagData[key].includes(val)){showToast('⚠️ 이미 있는 태그야!');return;}
   proj.globalTagData[key].push(val);
   inp.value=''; renderGlobalTags(key); saveAll(); updatePreview();
 }
 
 function renderCharTags(key){
   const char=getCurrentChar();if(!char)return;
+  char.tagData[key]=uniqStrings(char.tagData[key]||[]);
   const con=document.getElementById('c-'+key+'-tags');const inp=document.getElementById('c-'+key+'-input');
   if(!con||!inp)return;
   con.querySelectorAll('.tag').forEach(t=>t.remove());
   const inpWrap=inp.parentElement||inp;
   (char.tagData[key]||[]).forEach((t,i)=>{
     const el=document.createElement('div');el.className='tag';
-    el.innerHTML=`${t}<span class="tag-remove" onclick="removeCharTag('${key}',${i})">×</span>`;
+    el.innerHTML=`${esc(t)}<span class="tag-remove" onclick="removeCharTag('${key}',${i})">×</span>`;
     con.insertBefore(el,inpWrap);
   });
 }
@@ -1253,19 +1314,22 @@ function handleTagInput(e,key){
   if(e.type==='keydown')return;e.preventDefault();
   const proj=getProject();if(!proj)return;
   const val=e.target.value.trim();if(!val)return;
-  proj.globalTagData[key]=proj.globalTagData[key]||[];proj.globalTagData[key].push(val);
+  proj.globalTagData[key]=uniqStrings(proj.globalTagData[key]||[]);
+  if(proj.globalTagData[key].includes(val)){showToast('⚠️ 이미 있는 태그야!');return;}
+  proj.globalTagData[key].push(val);
   e.target.value='';renderGlobalTags(key);saveAll();updatePreview();
 }
 
 function renderGlobalTags(key){
   const proj=getProject();const[cid,iid]=TAG_IDS[key]||[];
+  if(proj)proj.globalTagData[key]=uniqStrings(proj.globalTagData[key]||[]);
   const con=document.getElementById(cid);const inp=document.getElementById(iid);
   if(!con||!inp)return;
   con.querySelectorAll('.tag').forEach(t=>t.remove());
   const inpWrap2=inp.parentElement||inp;
   ((proj?proj.globalTagData[key]:null)||[]).forEach((t,i)=>{
     const el=document.createElement('div');el.className='tag';
-    el.innerHTML=`${t}<span class="tag-remove" onclick="removeGlobalTag('${key}',${i})">×</span>`;
+    el.innerHTML=`${esc(t)}<span class="tag-remove" onclick="removeGlobalTag('${key}',${i})">×</span>`;
     con.insertBefore(el,inpWrap2);
   });
 }
@@ -1279,9 +1343,16 @@ function toggleChip(el,group){
 
 function toggleSpeechChip(el,value){
   const char=getCurrentChar();if(!char)return;
-  char.speechChips=char.speechChips||[];
-  if(el.classList.contains('active')){el.classList.remove('active');char.speechChips=char.speechChips.filter(s=>s!==value);}
-  else{el.classList.add('active');char.speechChips.push(value);}
+  const v=String(value??'').trim();if(!v)return;
+  char.speechChips=uniqStrings(char.speechChips||[]);
+  const wasActive=char.speechChips.includes(v);
+  if(wasActive){
+    char.speechChips=char.speechChips.filter(s=>s!==v);
+    el.classList.remove('active');
+  }else{
+    char.speechChips.push(v);
+    el.classList.add('active');
+  }
   saveAll();updatePreview();
 }
 
@@ -1319,11 +1390,15 @@ function injectCustomChips(groupId,group){
   const container=document.getElementById(groupId);if(!container)return;
   const addBtn=container.querySelector('.chip-add');
   container.querySelectorAll('.chip-custom').forEach(c=>c.remove());
+  customChips[groupId]=uniqStrings(customChips[groupId]||[]);
   (customChips[groupId]||[]).forEach(name=>{
     const chip=document.createElement('div');
     const currentActive=Array.from(container.querySelectorAll('.chip.active')).map(c=>c.textContent.replace('×','').trim());
-    chip.className='chip chip-custom'+(currentActive.includes(name)?' active':'');
-    chip.innerHTML=`${name}<span class="chip-custom-del" onclick="removeCustomChip(event,'${groupId}','${group}','${name.replace(/'/g,"\\'")}')">×</span>`;
+    const char=getCurrentChar();
+    const isSpeechActive=group==='speech'&&char&&(char.speechChips||[]).includes(name);
+    const isActive=isSpeechActive||currentActive.includes(name);
+    chip.className='chip chip-custom'+(isActive?' active':'');
+    chip.innerHTML=`${esc(name)}<span class="chip-custom-del" onclick="removeCustomChip(event,'${groupId}','${group}','${name.replace(/'/g,"\\'")}')">×</span>`;
     if(group==='speech')chip.onclick=(e)=>{if(e.target.classList.contains('chip-custom-del'))return;toggleSpeechChip(chip,name);};
     else {
       chip.onclick=(e)=>{if(e.target.classList.contains('chip-custom-del'))return;toggleChip(chip,group);};
@@ -2053,6 +2128,7 @@ function safetyBackup(reason){
 }
 function saveAll(){
   saveCurrentProjectFromUI();
+  normalizeAllData();
   try{
     localStorage.setItem('loreforge_v3',JSON.stringify({projects,currentProjectId,customChips}));
   }catch(e){
@@ -2069,6 +2145,7 @@ function loadAll(){
     currentProjectId=data.currentProjectId||null;
     if(data.customChips){customChips=data.customChips;saveCustomChips();}
     if(currentProjectId&&!projects[currentProjectId])currentProjectId=Object.keys(projects)[0]||null;
+    normalizeAllData();
     window.__lfLoadStatus='ok';
     return true;
   }catch(e){

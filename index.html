@@ -116,9 +116,9 @@
   .trait-item{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px;margin-bottom:6px;display:flex;flex-direction:column;gap:6px;transition:border-color 0.2s;}
   .trait-item:hover{border-color:#4a3a5a;}
   .trait-item-head{display:grid;grid-template-columns:1fr auto auto auto;gap:5px;align-items:center;}
-  .trait-item-head input{background:var(--surface);border:1px solid var(--border);font-size:12px;padding:6px 8px;font-weight:600;}
+  .trait-item-head input{background:var(--surface);border:1px solid var(--border);font-size:13px;padding:6px 8px;font-weight:600;}
   .trait-item-head input::placeholder{font-weight:400;color:var(--muted);}
-  .trait-item textarea{min-height:50px;font-size:12px;background:var(--surface);}
+  .trait-item textarea{min-height:50px;font-size:13px;background:var(--surface);}
   .trait-move-btn{background:none;border:1px solid var(--border);color:var(--muted);border-radius:5px;width:25px;height:25px;cursor:pointer;font-size:11px;transition:all 0.2s;display:flex;align-items:center;justify-content:center;padding:0;}
   .trait-move-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent);}
   .trait-move-btn:disabled{opacity:0.3;cursor:not-allowed;}
@@ -134,7 +134,7 @@
   .lorebook-item.collapsed .lorebook-item-body{display:none;}
   .lorebook-item.collapsed .lorebook-item-header{margin-bottom:0;}
   .lorebook-item.collapsed .panel-arrow{transform:rotate(-90deg);}
-  .lorebook-title-input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;padding:5px 9px;outline:none;}
+  .lorebook-title-input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:13px;padding:5px 9px;outline:none;}
   .lorebook-title-input:focus{border-color:var(--accent);}
 
   /* 프리뷰 */
@@ -1741,7 +1741,7 @@ function renderLorebook(){
       </div>
       <div>
         <div class="field-label">내용</div>
-        <textarea style="min-height:90px;font-size:12px;" placeholder="이 키워드가 감지되면 삽입될 설정 내용..." oninput="saveLbField(${idx},'content',this.value)">${esc(item.content)}</textarea>
+        <textarea style="min-height:90px;font-size:13px;" placeholder="이 키워드가 감지되면 삽입될 설정 내용..." oninput="saveLbField(${idx},'content',this.value)">${esc(item.content)}</textarea>
       </div>
       <button class="btn btn-ghost" style="margin-top:8px;font-size:10px;" onclick="toggleLbPreview(${idx})">🔍 이 항목 프리뷰</button>
       <div id="lb-preview-${idx}" style="display:none;margin-top:8px;">

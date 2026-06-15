@@ -206,6 +206,7 @@ details.ref-item .ref-body{padding:0 16px 14px 30px;font-size:12px;color:var(--t
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-79')">♊ !제미니2</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-80')">♊ !제미니3</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-81')">♊ !제미니4</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-82')">♊ !제미니5</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-3')">🔞 !하드</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-4')">⚧️ !오메가버스</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-5')">⛓️ !센티넬버스</button>
@@ -849,7 +850,7 @@ details.ref-item .ref-body{padding:0 16px 14px 30px;font-size:12px;color:var(--t
       <details class="ref-item" id="lb-kw-79">
         <summary><span class="lb-kw">♊ !제미니2</span></summary>
         <div class="ref-body">
-          <div class="lb-code">### 감정 밀착 모드
+          <div class="lb-code">### 농밀 감정 모드
 - 한 호흡이 긴 만연체. 한 문장에 종속절·수식을 겹겹이 쌓아 길게.
 - 사건을 굴리지 않고 한 순간을 슬로모션으로 확대. 시각·청각·후각·체감을 촘촘히.
 - 초점은 풍경·사건이 아니라 두 인물 사이의 욕망·관능·긴장에 고정.
@@ -869,7 +870,7 @@ details.ref-item .ref-body{padding:0 16px 14px 30px;font-size:12px;color:var(--t
       <details class="ref-item" id="lb-kw-80">
         <summary><span class="lb-kw">♊ !제미니3</span></summary>
         <div class="ref-body">
-          <div class="lb-code">### 절제 밀착 모드
+          <div class="lb-code">### 서사 밀착 모드
 - 지문은 종속절·수식을 겹겹이 쌓은 긴 만연체로. 비유는 적극 활용. (이 규칙은 지문에만)
 - 대사는 만연체를 따르지 않는다. 짧고 자연스러운 구어로, 입말 호흡을 살려 끊어 말하듯. 문어체 금지.
 - 한 턴마다 사건을 한 걸음 진전시킨다. 한 장면에 눌러앉지 말고, 장면 전환을 주저하지 말 것. 단, {{user}}행동이나 생각 서술 금지
@@ -890,21 +891,40 @@ details.ref-item .ref-body{padding:0 16px 14px 30px;font-size:12px;color:var(--t
       <details class="ref-item" id="lb-kw-81">
         <summary><span class="lb-kw">♊ !제미니4</span></summary>
         <div class="ref-body">
-          <div class="lb-code">### 절제 밀착 모드
-- 지문은 단문으로. 한 문장에 한 동작이나 한 생각만.
-- 줄바꿈을 자주 써 호흡을 끊고, 결정적 순간엔 한 줄로 끊어친다.
+          <div class="lb-code">### 절제 진행 모드
 - 비유는 한 장면에 하나만.
 - 대사는 짧은 구어체로. 문어체 금지. 속삭이듯 나직하게.
 - 매 턴 사건을 한 걸음 진전시킨다. 한 장면에 머물지 말고 전환을 주저 말 것. 단,{{user}}행동이나 생각 서술 금지
 - 감각은 장면당 1~2개만 묘사한다.
 - 소유욕·독점욕·통제욕·성적 충동은 직접 쓰지 않고, 거두는 시선·늦은 대답 같은 억누른 흔적으로만 암시한다.
-- 충동을 누른 직후, 캐릭터가 지키려는 선(관계·입장·원칙)을 되뇌는 자기검열 독백을 한 줄 넣는다.
 - 신체 접촉은 드물게, 나와도 짧고 담백하게.
 - 무게중심은 사건·대사 진행에 둔다. 배경 디테일은 최소로. 내면은 간접 배치하되 결정적 순간만 직접 독백 한 줄.</div>
           <div class="lb-bar">
             <div class="lb-bar-left">
               <span class="lb-count"></span>
               <button class="lb-tag" data-copy="!제미니4" onclick="lbCopyChip(this)">!제미니4</button>
+              <button class="lb-tag" data-copy="♊" onclick="lbCopyChip(this)">♊</button>
+            </div>
+            <button class="lb-copy" onclick="lbCopy(this)">복사</button>
+          </div>
+        </div>
+      </details>
+      <details class="ref-item" id="lb-kw-82">
+        <summary><span class="lb-kw">♊ !제미니5</span></summary>
+        <div class="ref-body">
+          <div class="lb-code">### 관찰 밀착 모드
+- {{user}}의 행동·표정·소지품은 캐릭터가 본 범위 안에서만 묘사한다.
+- 사건보다 한 장면의 공기, 거리감, 시선, 침묵, 손끝의 망설임을 우선한다.
+- 감정은 고백하지 말고 늦은 반응·피하는 시선·말끝의 흔들림으로 암시한다.
+- 감각은 장면당 2~3개. 소리·향·촉감·빛을 조용히 배치한다.
+- 작은 행동의 의미는 확정하지 말고 캐릭터의 해석과 의문으로 남긴다.
+- 대사는 짧고 담백하게. 내면 독백은 낮고 느리게 한두 줄만.
+- 소유욕·독점욕·통제욕·성적 충동은 직접 쓰지 않고, 거두는 시선·늦은 대답 같은 억누른 흔적으로만 암시한다.
+- 끝에는 미세한 관계 변화나 다음 행동의 여지를 남긴다.</div>
+          <div class="lb-bar">
+            <div class="lb-bar-left">
+              <span class="lb-count"></span>
+              <button class="lb-tag" data-copy="!제미니5" onclick="lbCopyChip(this)">!제미니5</button>
               <button class="lb-tag" data-copy="♊" onclick="lbCopyChip(this)">♊</button>
             </div>
             <button class="lb-copy" onclick="lbCopy(this)">복사</button>

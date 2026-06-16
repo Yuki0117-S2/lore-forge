@@ -40,13 +40,25 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .toc-ch-arrow{font-size:9px;color:var(--muted);transition:transform 0.2s;margin-left:auto;}
 .toc-ch-btn.open .toc-ch-arrow{transform:rotate(90deg);}
 .toc-sections{overflow:hidden;max-height:0;transition:max-height 0.3s ease;}
-.toc-sections.open{max-height:2000px;}
+.toc-sections.open{max-height:6000px;}
 .toc-sec-btn{width:100%;text-align:left;background:none;border:none;cursor:pointer;padding:6px 12px 6px 24px;color:var(--muted);font-family:'Noto Sans KR',sans-serif;font-size:11px;transition:all 0.15s;border-left:3px solid transparent;line-height:1.4;}
 .toc-sec-btn:hover{color:var(--text);background:rgba(136,137,205,0.05);}
 .toc-sec-btn.active{color:var(--accent3);border-left-color:var(--accent3);background:rgba(221,170,204,0.07);}
 .toc-sec-btn.kw{padding-left:38px;font-size:10.5px;color:#6f6480;}
 .toc-sec-btn.kw:hover{color:var(--accent3);}
 .toc-sec-btn.kw.active{color:var(--accent3);}
+.toc-subgroup-btn{width:100%;text-align:left;background:none;border:none;cursor:pointer;padding:6px 12px 6px 24px;color:var(--muted);font-family:'Noto Sans KR',sans-serif;font-size:11px;font-weight:700;display:flex;align-items:center;gap:6px;transition:all 0.15s;border-left:3px solid transparent;line-height:1.4;}
+.toc-subgroup-btn:hover{color:var(--text);background:rgba(136,137,205,0.05);}
+.toc-sub-arrow{font-size:8px;color:var(--muted);transition:transform 0.2s;margin-left:auto;}
+.toc-subgroup-btn.open .toc-sub-arrow{transform:rotate(90deg);}
+.toc-subsections{overflow:hidden;max-height:0;transition:max-height 0.3s ease;}
+.toc-subsections.open{max-height:1500px;}
+.toc-cat-btn{width:100%;text-align:left;background:none;border:none;cursor:pointer;padding:7px 12px 7px 18px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:11.5px;font-weight:700;display:flex;align-items:center;gap:6px;transition:all 0.15s;border-left:3px solid transparent;line-height:1.4;}
+.toc-cat-btn:hover{background:rgba(136,137,205,0.08);}
+.toc-cat-arrow{font-size:9px;color:var(--muted);transition:transform 0.2s;margin-left:auto;}
+.toc-cat-btn.open .toc-cat-arrow{transform:rotate(90deg);}
+.toc-cat-sections{overflow:hidden;max-height:0;transition:max-height 0.4s ease;}
+.toc-cat-sections.open{max-height:6000px;}
 
 /* 콘텐츠 영역 */
 .content-area{flex:1;overflow-y:auto;padding:30px 40px;max-width:900px;margin:0 auto;width:100%;}
@@ -200,9 +212,16 @@ details.ref-item .ref-body{padding:0 16px 14px 30px;font-size:12px;color:var(--t
         </button>
         <div class="toc-sections">
           <button class="toc-sec-btn" onclick="jumpTo('lb-lorebook')">로어북 키워드</button>
+          <button class="toc-cat-btn" onclick="toggleTocCat(this)">✍️ 서술·모드 <span class="toc-cat-arrow">▸</span></button>
+          <div class="toc-cat-sections">
+          <button class="toc-subgroup-btn" onclick="toggleTocSub(this)">🖋️ 문체 <span class="toc-sub-arrow">▸</span></button>
+          <div class="toc-subsections">
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-1')">🖋️ !문체</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-77')">🖋️ !문체2</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-78')">🖋️ !문체3</button>
+          </div>
+          <button class="toc-subgroup-btn" onclick="toggleTocSub(this)">♊ 제미니 <span class="toc-sub-arrow">▸</span></button>
+          <div class="toc-subsections">
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-2')">♊ !제미니</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-79')">♊ !제미니2</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-80')">♊ !제미니3</button>
@@ -211,7 +230,25 @@ details.ref-item .ref-body{padding:0 16px 14px 30px;font-size:12px;color:var(--t
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-83')">♊ !제미니6</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-84')">♊ !제미니7</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-85')">♊ !제미니8</button>
-          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-3')">🔞 !하드</button>
+          </div>
+          </div>
+          <button class="toc-cat-btn" onclick="toggleTocCat(this)">📝 포맷 <span class="toc-cat-arrow">▸</span></button>
+          <div class="toc-cat-sections">
+          <button class="toc-subgroup-btn" onclick="toggleTocSub(this)">📘 요약 <span class="toc-sub-arrow">▸</span></button>
+          <div class="toc-subsections">
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-11')">📘 !요약1</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-12')">📘 !요약2</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-13')">📘 !요약3</button>
+          </div>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-14')">💘 !스킵</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-15')">👁️ !1인칭</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-26')">✉️ !편지</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-27')">📔 !일기</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-28')">📑 !보고서</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-31')">🔄 !시점전환</button>
+          </div>
+          <button class="toc-cat-btn" onclick="toggleTocCat(this)">🌍 세계관 <span class="toc-cat-arrow">▸</span></button>
+          <div class="toc-cat-sections">
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-4')">⚧️ !오메가버스</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-5')">⛓️ !센티넬버스</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-6')">🐾 !수인</button>
@@ -241,50 +278,55 @@ details.ref-item .ref-body{padding:0 16px 14px 30px;font-size:12px;color:var(--t
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-69')">😈 !마계</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-70')">😇 !천계</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-71')">💀 !데스게임</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-17')">🎬 !연예인</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-20')">🕯️ !괴이</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-57')">🕷️ !호러</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-72')">🌫️ !느와르</button>
+          </div>
+          <button class="toc-cat-btn" onclick="toggleTocCat(this)">💞 관계 <span class="toc-cat-arrow">▸</span></button>
+          <div class="toc-cat-sections">
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-7')">🔇 !억까</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-8')">💋 !바람</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-9')">🖤 !나쁜남자</button>
-          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-56')">🫣 !럭키스케베</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-42')">💢 !혐관</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-43')">💐 !역하렘</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-44')">♾️ !폴리아모리</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-74')">🫂 !연인</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-75')">👪 !가족</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-10')">💬 !의사소통</button>
-          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-11')">📘 !요약1</button>
-          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-12')">📘 !요약2</button>
-          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-13')">📘 !요약3</button>
-          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-14')">💘 !스킵</button>
-          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-15')">👁️ !1인칭</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-16')">🐕‍🦺 !충견</button>
-          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-17')">🎬 !연예인</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-18')">🐺 !개과</button>
+          </div>
+          <button class="toc-cat-btn" onclick="toggleTocCat(this)">🎲 전개 <span class="toc-cat-arrow">▸</span></button>
+          <div class="toc-cat-sections">
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-56')">🫣 !럭키스케베</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-19')">☠️ !악의</button>
-          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-20')">🕯️ !괴이</button>
-          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-57')">🕷️ !호러</button>
-          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-72')">🌫️ !느와르</button>
-          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-61')">💗 !음란</button>
-          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-21')">📹 !녹화</button>
-          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-22')">🔧 !교정</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-23')">⏩ !시간도약</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-24')">🔭 !관전</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-25')">⌛ !공백기</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-73')">💤 !꿈</button>
-          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-33')">🧊 !stop</button>
-          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-34')">🌊 !flow</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-38')">🕰️ !회귀</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-39')">💭 !독심</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-40')">🔮 !예지</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-45')">🎰 !랜덤능력배정</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-46')">🎲 !랜덤이벤트</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-47')">🌀 !카오스이벤트</button>
-          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-26')">✉️ !편지</button>
-          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-27')">📔 !일기</button>
-          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-28')">📑 !보고서</button>
+          </div>
+          <button class="toc-cat-btn" onclick="toggleTocCat(this)">🔞 수위 <span class="toc-cat-arrow">▸</span></button>
+          <div class="toc-cat-sections">
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-3')">🔞 !하드</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-61')">💗 !음란</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-21')">📹 !녹화</button>
+          </div>
+          <button class="toc-cat-btn" onclick="toggleTocCat(this)">⚙️ 제어 <span class="toc-cat-arrow">▸</span></button>
+          <div class="toc-cat-sections">
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-22')">🔧 !교정</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-33')">🧊 !stop</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-34')">🌊 !flow</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-29')">🚧 !OOC</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-30')">▶️ !재개</button>
-          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-31')">🔄 !시점전환</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-76')">🎛️ !커스텀</button>
+          </div>
           <button class="toc-sec-btn" onclick="jumpTo('st-style')">문체 / 서술 스타일</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('st-1')">🖋️ 핵심요약</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('st-2')">🇰🇷 500자</button>
@@ -5394,6 +5436,22 @@ function toggleTocCh(btn){
   const sections=btn.nextElementSibling;
   if(sections&&sections.classList.contains('toc-sections')){
     sections.classList.toggle('open');
+  }
+}
+
+function toggleTocSub(btn){
+  btn.classList.toggle('open');
+  const subs=btn.nextElementSibling;
+  if(subs&&subs.classList.contains('toc-subsections')){
+    subs.classList.toggle('open');
+  }
+}
+
+function toggleTocCat(btn){
+  btn.classList.toggle('open');
+  const subs=btn.nextElementSibling;
+  if(subs&&subs.classList.contains('toc-cat-sections')){
+    subs.classList.toggle('open');
   }
 }
 

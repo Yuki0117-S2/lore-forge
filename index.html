@@ -1221,6 +1221,7 @@ function normalizeCharacterData(char){
 function normalizeAllData(){
   Object.values(projects||{}).forEach(p=>{
     (p.characters||[]).forEach(normalizeCharacterData);
+    (p.lorebook||[]).forEach(it=>{if(it&&!Array.isArray(it.keywords))it.keywords=[];});
   });
 }
 
@@ -1736,7 +1737,7 @@ function renderLorebook(){
       <div style="margin-bottom:8px;">
         <div class="field-label">트리거 키워드 <span style="color:var(--muted)">(엔터)</span></div>
         <div class="tag-input-container" id="lb-kw-${idx}" onclick="document.getElementById('lb-kw-input-${idx}').focus()">
-          ${item.keywords.map((k,ki)=>`<div class="tag">${k}<span class="tag-remove" onclick="removeLbKeyword(${idx},${ki})">×</span></div>`).join('')}
+          ${(item.keywords||[]).map((k,ki)=>`<div class="tag">${k}<span class="tag-remove" onclick="removeLbKeyword(${idx},${ki})">×</span></div>`).join('')}
           <div style="display:flex;gap:6px;align-items:center;"><input type="text" class="tag-input" id="lb-kw-input-${idx}" placeholder="예: 마나, 오크, 왕도..." onkeydown="addLbKeyword(event,${idx})" onkeyup="addLbKeyword(event,${idx})"><button onclick="addLbKeywordBtn(${idx})" class="tag-add-btn">＋</button></div>
         </div>
       </div>
@@ -1794,7 +1795,7 @@ function toggleLbPreview(idx){
   if(box.style.display!=='none'){box.style.display='none';return;}
   const p=getProject();if(!p||!p.lorebook[idx])return;
   const item=p.lorebook[idx];
-  const text=`# 로어북: ${item.title}\n트리거 키워드: ${item.keywords.join(', ')||'(없음)'}\n\n${item.content||'(내용 없음)'}`;
+  const text=`# 로어북: ${item.title}\n트리거 키워드: ${(item.keywords||[]).join(', ')||'(없음)'}\n\n${item.content||'(내용 없음)'}`;
   document.getElementById('lb-preview-text-'+idx).textContent=text;
   const stats=document.getElementById('lb-preview-stats-'+idx);
   if(stats){
@@ -1916,7 +1917,7 @@ function buildCharPrompt(char){
     p('## 행동 규칙');
     if(cuserTitle)p(`{{user}} 호칭: ${cuserTitle}`);
     if(cuserRole)p(`{{user}} 역할 인식: ${cuserRole}`);
-    if(ctalkStyle)p(`{{user}}와의 {{user}}와의 대화 방식: ${ctalkStyle}`);
+    if(ctalkStyle)p(`{{user}}와의 대화 방식: ${ctalkStyle}`);
     if(cm.length){p('반드시 할 것:');cm.forEach(t=>p(`- ${t}`));}
     if(cn.length){p('절대 하지 말 것:');cn.forEach(t=>p(`- ${t}`));}
     if(cspecial){p('');p('[특수 상황 대응]');p(cspecial);}
@@ -1933,7 +1934,7 @@ function buildWorldPrompt(){
   const at=gd['atmo']||[];const wr=gd['world-rule']||[];const pt=gd['place']||[];
   const tvEl=document.getElementById('tone-slider');const tv=parseInt(tvEl?tvEl.value:50);
   const wt2Check=(proj.world&&Array.isArray(proj.world.worldTraits))?proj.world.worldTraits.filter(t=>(t.label&&t.label.trim())||(t.content&&t.content.trim())):[];
-  if(!wn&&!wd&&!gc.length&&!wm&&!ws&&!at.length&&!wr.length&&!wp&&!wt2Check.length)return'';
+  if(!wn&&!we&&!wd&&!gc.length&&!wm&&!ws&&!wt&&!at.length&&!wr.length&&!wp&&!wt2Check.length)return'';
   p('# 세계관 설정');p('');
   if(wn)p(`세계 이름: ${wn}`);if(gc.length)p(`장르: ${gc.join(', ')}`);if(we)p(`시대: ${we}`);p('');
   if(wd){p('## 세계 개요');p(wd);p('');}if(wm){p('## 마법/기술 체계');p(wm);p('');}if(ws){p('## 사회 구조');p(ws);p('');}
@@ -2017,7 +2018,7 @@ function buildFullPrompt(){
   if(previewMode==='lorebook'){
     const lb=proj.lorebook||[];
     if(!lb.length)return'// 로어북 항목이 없어.';
-    return lb.map(item=>`# 로어북: ${item.title}\n트리거 키워드: ${item.keywords.join(', ')||'(없음)'}\n\n${item.content||'(내용 없음)'}`).join('\n\n---\n\n');
+    return lb.map(item=>`# 로어북: ${item.title}\n트리거 키워드: ${(item.keywords||[]).join(', ')||'(없음)'}\n\n${item.content||'(내용 없음)'}`).join('\n\n---\n\n');
   }
   if(previewMode==='all'){
     const parts=proj.characters.map(c=>buildCharPrompt(c)).filter(Boolean);

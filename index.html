@@ -1377,6 +1377,7 @@ function addCustomChip(groupId,group){
     const name=label.trim();
     customChips[groupId]=customChips[groupId]||[];
     if(customChips[groupId].includes(name)){showToast('⚠️ 이미 있는 항목이야!');return;}
+    if(getBaseChips(groupId).includes(name)){showToast('⚠️ 기본칩에 이미 있는 항목이야!');return;}
     customChips[groupId].push(name);
     saveCustomChips();
     if(groupId==='c-outfit-chips')injectOutfitChips();
@@ -2537,6 +2538,15 @@ const CHIP_APPLY_MAP={
   'c-outfit-chips':'outfitChips',
   'c-speech-chips':'speechChips'
 };
+// 프로젝트 단위 칩: [프로젝트 객체 키, 필드명]. 여기 추가하면 출력 칩도 보호됨.
+const CHIP_PROJ_APPLY_MAP={
+  'genre-chips':['world','genreChips'],
+  'pov-chips':['output','povChips'],
+  'style-chips':['output','styleChips'],
+  'density-chips':['output','densityChips'],
+  'length-chips':['output','lengthChips'],
+  'action-chips':['output','actionChips']
+};
 const CHIP_CAT_LABELS={
   'c-outfit-chips':'의상','c-speech-chips':'말투',
   'genre-chips':'장르','pov-chips':'시점','style-chips':'스타일',
@@ -2544,24 +2554,40 @@ const CHIP_CAT_LABELS={
 };
 
 // incomingCC: 가져온 파일의 customChips, importedProjects: 이번에 병합되는 project 객체 배열
+// 특정 칩 그룹의 "기본칩"(커스텀 제외) 라벨 목록을 화면에서 수집.
+// 의상은 JS 상수, 나머지는 DOM(.chip-custom/.chip-add 제외)에서 긁음.
+function getBaseChips(groupId){
+  if(groupId==='c-outfit-chips')return [...new Set([...OUTFIT_CHIPS_F,...OUTFIT_CHIPS_M])];
+  const el=document.getElementById(groupId);
+  if(!el)return [];
+  return Array.from(el.querySelectorAll('.chip:not(.chip-custom):not(.chip-add)')).map(c=>c.textContent.replace('×','').trim()).filter(Boolean);
+}
+
 async function mergeIncomingCustomChips(incomingCC,importedProjects){
   if(!incomingCC||typeof incomingCC!=='object')return;
   importedProjects=importedProjects||[];
 
-  // 1) 대상 카테고리별 "적용칩"(캐릭터가 실제로 쓰는 값) 수집
+  // 1) 대상 카테고리별 "적용칩"(실제로 쓰는 값) 수집
   const appliedByCat={};
   Object.keys(CHIP_APPLY_MAP).forEach(cat=>{
     const field=CHIP_APPLY_MAP[cat];const set=new Set();
     importedProjects.forEach(p=>{(p&&p.characters||[]).forEach(ch=>{(ch[field]||[]).forEach(v=>set.add(v));});});
     appliedByCat[cat]=set;
   });
+  // 프로젝트 단위 칩(출력/세계관)도 적용칩 수집
+  Object.keys(CHIP_PROJ_APPLY_MAP).forEach(cat=>{
+    const [objKey,field]=CHIP_PROJ_APPLY_MAP[cat];const set=new Set();
+    importedProjects.forEach(p=>{((p&&p[objKey]&&p[objKey][field])||[]).forEach(v=>set.add(v));});
+    appliedByCat[cat]=set;
+  });
 
   // 2) 카테고리별 병합 + 신규 순수후보 추리기
   const newCandidatesByCat={};
   Object.keys(incomingCC).forEach(cat=>{
-    const incoming=incomingCC[cat]||[];
-    if(!(cat in CHIP_APPLY_MAP)){
-      // 비대상(장르 등): 기존과 100% 동일하게 무조건 합집합
+    const base=new Set(getBaseChips(cat));
+    const incoming=(incomingCC[cat]||[]).filter(v=>!base.has(v)); // 기본칩과 겹치는 커스텀은 후보 등록 차단(1)
+    if(!(cat in CHIP_APPLY_MAP)&&!(cat in CHIP_PROJ_APPLY_MAP)){
+      // 매핑 없는 카테고리: 기존과 100% 동일하게 무조건 합집합
       customChips[cat]=[...new Set([...(customChips[cat]||[]),...incoming])];
       return;
     }

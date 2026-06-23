@@ -2105,6 +2105,7 @@ function applyStateFromSync(state){
   projects=state.projects||{};
   currentProjectId=state.currentProjectId||Object.keys(projects)[0]||null;
   if(state.customChips){customChips=state.customChips;saveCustomChips();}
+  normalizeCustomChips();
   try{localStorage.setItem('loreforge_v3',JSON.stringify({projects,currentProjectId,customChips}));}
   catch(e){console.error('[LoreForge] 동기화 데이터 저장 실패:',e);}
   renderProjectDropdown();loadProjectUI();updatePreview();
@@ -2357,6 +2358,7 @@ function showSlotPicker(slots, token, gistId){
       projects=slot.projects;
       currentProjectId=slot.currentProjectId||Object.keys(slot.projects||{})[0]||null;
       if(slot.customChips){customChips=slot.customChips;saveCustomChips();}
+      normalizeCustomChips();
       renderProjectDropdown();loadProjectUI();saveAll();
       localStorage.setItem('loreforge_gist_token',token);
       localStorage.setItem('loreforge_gist_id',gistId);
@@ -2563,6 +2565,21 @@ function scrapeBaseChips(groupId){
 }
 function snapshotBaseChips(){
   BASE_CHIP_GROUPS.forEach(gid=>{const base=scrapeBaseChips(gid);if(base.length)BASE_CHIPS_CACHE[gid]=base;});
+}
+// 현재 customChips에서 기본칩과 이름이 겹치는 커스텀을 제거(후보 정리). 적용값은 안 건드림.
+// 동기화/슬롯복원/백업복구처럼 외부 데이터를 통째로 들여온 직후 호출해 중복 부활을 막음.
+function normalizeCustomChips(){
+  if(!customChips||typeof customChips!=='object')return;
+  let changed=false;
+  Object.keys(customChips).forEach(cat=>{
+    const base=new Set(getBaseChips(cat));
+    if(!base.size)return; // 기본칩 목록을 못 구하면(캐시 없음) 건드리지 않음 — 안전 우선
+    const before=customChips[cat]||[];
+    const after=before.filter(v=>!base.has(v));
+    if(after.length!==before.length){customChips[cat]=after;changed=true;}
+  });
+  if(changed)saveCustomChips();
+  return changed;
 }
 // 특정 칩 그룹의 "기본칩"(커스텀 제외) 목록. 의상은 상수, 나머지는 캐시 우선 → 없으면 DOM 폴백.
 function getBaseChips(groupId){
@@ -3077,7 +3094,7 @@ function init(){
       sessionStorage.setItem('lf_session_backup','1');
     }
   }
-  renderProjectDropdown();loadProjectUI();snapshotBaseChips();
+  renderProjectDropdown();loadProjectUI();snapshotBaseChips();if(normalizeCustomChips())loadProjectUI();
   startAutoSave();
   driveTrySilentReconnect();
   console.log('[LoreForge] 데이터 손실 시 F12 콘솔에서 loreForgeDebug.listBackups() 입력으로 백업 확인 가능');

@@ -625,6 +625,7 @@
           </div>
           <button class="btn btn-primary" onclick="addLorebook()">＋ 항목 추가</button>
         </div>
+        <input type="text" id="lb-search" placeholder="🔍 제목·키워드·내용 검색" oninput="filterLorebook()" style="width:100%;box-sizing:border-box;margin-bottom:12px;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;">
         <div id="lorebook-list"></div>
         <div id="lorebook-empty" style="display:none;">
           <div class="empty-state" style="height:200px;">
@@ -723,6 +724,37 @@ const COLORS=[
 
 const OUTFIT_CHIPS_F=['원피스','교복','와이셔츠+스커트','캐주얼','운동복','수영복','전통 한복','드레스','후드집업','제복'];
 const OUTFIT_CHIPS_M=['교복(남)','정장','캐주얼','후드+청바지','운동복','전통 한복','군복','제복'];
+const SPEECH_CHIPS=['반말체','존댓말','사투리','고어체','무뚝뚝','수다스러움','시적인 표현','짧고 단호함'];
+const BDSM_CHIPS=[
+              {label:'도미넌트',val:'도미넌트: 상대방에게 명령하고 지시하는 것을 즐기며, 여러 수단과 방법으로 상대를 자신의 의지대로 지배함'},
+              {label:'서브미시브',val:'서브미시브: 상대방의 명령과 지시에 따르며 복종하는 것에 즐거움을 느낌. 복종·순종·굴복·반항 등 다양한 형태로 나타남'},
+              {label:'탑',val:'탑: 플레이 중 능동적으로 행동하며 상황과 상대를 주도함. 명령보다 행동으로 이끌며 상대의 복종이나 소유에는 관심 없음'},
+              {label:'바텀',val:'바텀: 플레이 중 수동적으로 행동하며 상대가 능동적으로 이끌어주기를 바람. 저항이 아니라 먼저 나서는 것이 망설여지는 것이며 순종이나 소속에는 관심 없음'},
+              {label:'사디스트',val:'사디스트: 상대방에게 고통을 주는 것을 즐기며, 상대가 고통스러워하거나 두려워하는 모습에 흥분함. 정신적 가학을 포함하기도 함'},
+              {label:'마조히스트',val:'마조히스트: 상대방에게 피학 당하면서 느껴지는 고통을 통해 쾌락을 느낌. 고통을 짜릿하게 여기며 정신적 피학을 포함하기도 함'},
+              {label:'마스터/미스트레스',val:'마스터/미스트레스: 상대방에게 존경받기를 원하며, 상대의 정신과 육체를 통제·지배할 자격을 갖추기 위해 노력함. 상대가 더 나은 사람이 될 수 있도록 이끎'},
+              {label:'슬레이브',val:'슬레이브: 존경하는 상대에게 모든 의사결정권을 맡기고, 정신과 육체를 완전히 통제·지배받기를 원함. 상대를 통해 배우고 더 나은 사람이 되는 것을 추구함'},
+              {label:'대디/마미',val:'대디/마미: 상대방을 관심과 애정으로 부드럽게 보살피며, 상대가 자신에게 의지하기를 원함. 지배 수단은 주로 대화와 부탁으로 이루어짐'},
+              {label:'리틀',val:'리틀: 상대방에게 보살핌을 받고 싶어 하며, 의지할 때 가장 안정감을 느낌. 관심을 끌기 위해 투정을 부리기도 하지만 혼나고 싶은 것이 아니라 안아주기를 바라는 것'},
+              {label:'브랫테이머',val:'브랫테이머: 순종하는 상대에게 흥미를 느끼지 못하며, 반항하고 저항하는 상대를 강제로 굴복시키는 것에 흥미를 느낌. 평소엔 상냥하지만 선을 넘으면 180도 돌변함'},
+              {label:'브랫',val:'브랫: 이유 없이 순종하지 않으며 상대가 강제로 굴복시켜 주기를 바람. 장난과 말썽으로 상대를 곤란하게 만들고, 상대가 돌변하는 모습을 보고 싶어함. 굴복이 순종보다 짜릿하다고 생각함'},
+              {label:'헌터',val:'헌터: 상대방을 육체적으로 완벽하게 제압하고 싶어함. 명령이나 순종에 관심 없으며, 상대가 저항하고 반항할수록 더 흥분함. 제압하는 과정 자체를 즐김'},
+              {label:'프레이',val:'프레이: 거칠게 저항하면서 상대가 무참하게 제압해주기를 바람. 명령이나 순종에는 관심 없으며, 있는 힘껏 저항하고 밀어내는 과정에서 흥분과 쾌감을 느낌'},
+              {label:'오너',val:'오너: 강한 유대감과 교감을 통해 상대를 소유하고 싶어함. 소유욕이 강하며 상대가 다른 것에 관심 갖는 것을 싫어함. 훈육 안에 애정이 담겨 있음'},
+              {label:'펫',val:'펫: 상대방과 강한 유대감을 가지며 소유되고 싶어함. 소속 욕구가 강하며 상대를 기쁘게 하는 행동을 살피고 끝없이 애정과 관심을 갈구함'},
+              {label:'리거',val:'리거: 로프나 수갑 등으로 상대를 움직이지 못하도록 구속하는 것을 즐김. 아름다운 형태로 묶으면서 동시에 완전히 속박하는 예술가적 성향'},
+              {label:'로프버니',val:'로프버니: 로프나 수갑 등으로 움직이지 못하게 구속될 때 흥분함. 예쁜 모양으로 묶여 움직이지 못하는 상태에서 짜릿한 흥분감을 느낌'},
+              {label:'스팽커',val:'스팽커: 상대의 신체 부위(특히 엉덩이)를 찰싹 소리가 나도록 때리는 행위에 흥분함. 소리·상대의 반응·자국 모양을 중요하게 여김'},
+              {label:'스팽키',val:'스팽키: 신체 부위(특히 엉덩이)를 찰싹 소리가 나도록 맞으면서 흥분과 쾌감을 느낌. 소리와 고통이 주는 쾌감, 자국 모양을 중요하게 여김'},
+              {label:'디그레이더',val:'디그레이더: 상대가 수치스러워하거나 부끄러워하는 것을 보며 흥분함. 음란하고 저속한 말과 행동, 수치스러운 상황에 노출시키는 것 자체를 즐김'},
+              {label:'디그레이디',val:'디그레이디: 상대에게 수치스럽고 부끄러운 모습을 보여주면서 흥분함. 음담패설이나 수치스러운 호칭으로 불리는 것을 좋아하며 다양한 형태로 나타남'},
+              {label:'보스',val:'보스: 특별히 명령이나 지시를 내리지 않으며, 상대가 주도적으로 알아서 봉사하고 원하는 것을 해주기를 바람'},
+              {label:'서번트',val:'서번트: 상대를 모시고 봉사하면서 즐거움을 느낌. 명령이나 지시를 기다리지 않고 주도적으로 행동하며 상대에게 복종하는 모습을 보임'},
+              {label:'스위치',val:'스위치: 항상 지배적이거나 항상 복종하는 역할을 원하지 않음. 상황이나 상대에 따라 성향이 변화하며 역할 전환을 통해 만족을 얻음'},
+              {label:'프린세스/프린스',val:'프린세스/프린스: 애정과 존중을 바탕으로 귀하게 대접받기를 원함. 공주·왕자처럼 떠받들어지는 것을 즐기되, 받은 만큼 상대에게 헌신하고 보답하는 마음이 강함'},
+              {label:'버틀러/메이드',val:'버틀러/메이드: 상대를 정성껏 모시고 시중드는 것에서 만족을 느낌. 집사·메이드처럼 정중하고 품위 있게 케어하며 에스코트하는 예의 바른 성향'},
+              {label:'바닐라',val:'바닐라: 무성향자. 일반적이고 보통의 플레이를 즐기며 지배나 복종 없이 서로 배려하고 만족을 주기 위해 노력함'},
+            ];
 
 // ===== 프로젝트 =====
 function getProject(){return projects[currentProjectId]||null;}
@@ -884,6 +916,22 @@ function addCharacter(){
   proj.currentCharId=id;saveAll();renderSidebar();renderCharEditor();switchTab('character');
 }
 
+async function duplicateCurrentChar(){
+  const proj=getProject();if(!proj)return;
+  const char=getCurrentChar();if(!char)return;
+  const nm=(char.data&&char.data.name)?char.data.name:'이름 없음';
+  if(!(await showConfirm(`「${nm}」을(를) 이 프로젝트에 복제할까?`,{title:'⧉ 캐릭터 복제'})))return;
+  const copy=JSON.parse(JSON.stringify(char));
+  copy.id='c'+Date.now();
+  copy.colorIdx=proj.characters.length%COLORS.length;
+  copy.data=copy.data||{};
+  copy.data.name=nm+' (사본)';
+  proj.characters.push(copy);
+  proj.currentCharId=copy.id;
+  saveAll();renderSidebar();renderCharEditor();switchTab('character');
+  showToast('⧉ 캐릭터를 복제했어!');
+}
+
 function selectCharacter(id){const proj=getProject();if(!proj)return;proj.currentCharId=id;saveAll();renderSidebar();renderCharEditor();switchTab('character');}
 
 function deleteCharacter(id,e){
@@ -925,7 +973,8 @@ function renderCharEditor(){
       <div class="panel-header" onclick="togglePanel('cp-basic')">
         <div class="panel-icon" style="background:${bg}">🎭</div><div class="panel-title">기본 정보</div>
         <span class="panel-badge">BASIC</span>
-        <button onclick="event.stopPropagation();openCopyCharModal()" style="margin-left:auto;margin-right:6px;font-size:10px;padding:3px 8px;background:rgba(136,137,205,0.15);border:1px solid rgba(136,137,205,0.35);color:#8888CC;border-radius:6px;cursor:pointer;">📋 복사</button>
+        <button onclick="event.stopPropagation();duplicateCurrentChar()" style="margin-left:auto;margin-right:6px;font-size:10px;padding:3px 8px;background:rgba(221,170,204,0.15);border:1px solid rgba(221,170,204,0.35);color:#DDAACC;border-radius:6px;cursor:pointer;">⧉ 복제</button>
+        <button onclick="event.stopPropagation();openCopyCharModal()" style="margin-right:6px;font-size:10px;padding:3px 8px;background:rgba(136,137,205,0.15);border:1px solid rgba(136,137,205,0.35);color:#8888CC;border-radius:6px;cursor:pointer;">📋 복사</button>
         <span class="panel-arrow">▾</span>
       </div>
       <div class="panel-body">
@@ -953,7 +1002,7 @@ function renderCharEditor(){
         <div>
           <div class="field-label">말투 스타일</div>
           <div class="chip-group" id="c-speech-chips">
-            ${['반말체','존댓말','사투리','고어체','무뚝뚝','수다스러움','시적인 표현','짧고 단호함'].map(s=>`<div class="chip${(char.speechChips||[]).includes(s)?' active':''}" onclick="toggleSpeechChip(this,'${s}')" ontouchend="event.preventDefault();toggleSpeechChip(this,'${s}')">${s}</div>`).join('')}
+            ${SPEECH_CHIPS.map(s=>`<div class="chip${(char.speechChips||[]).includes(s)?' active':''}" onclick="toggleSpeechChip(this,'${s}')" ontouchend="event.preventDefault();toggleSpeechChip(this,'${s}')">${s}</div>`).join('')}
             <div class="chip chip-add" onclick="addCustomChip('c-speech-chips','speech')">＋</div>
           </div>
         </div>
@@ -1047,34 +1096,7 @@ function renderCharEditor(){
         <div>
           <div class="field-label" style="margin-bottom:6px;">성향 유형 <span style="color:var(--muted);font-size:10px;">(클릭으로 토글)</span></div>
           <div class="chip-group" id="c-bdsm-chips" style="gap:5px;">
-            ${[
-              {label:'도미넌트',val:'도미넌트: 상대방에게 명령하고 지시하는 것을 즐기며, 여러 수단과 방법으로 상대를 자신의 의지대로 지배함'},
-              {label:'서브미시브',val:'서브미시브: 상대방의 명령과 지시에 따르며 복종하는 것에 즐거움을 느낌. 복종·순종·굴복·반항 등 다양한 형태로 나타남'},
-              {label:'탑',val:'탑: 플레이 중 능동적으로 행동하며 상황과 상대를 주도함. 명령보다 행동으로 이끌며 상대의 복종이나 소유에는 관심 없음'},
-              {label:'바텀',val:'바텀: 플레이 중 수동적으로 행동하며 상대가 능동적으로 이끌어주기를 바람. 저항이 아니라 먼저 나서는 것이 망설여지는 것이며 순종이나 소속에는 관심 없음'},
-              {label:'사디스트',val:'사디스트: 상대방에게 고통을 주는 것을 즐기며, 상대가 고통스러워하거나 두려워하는 모습에 흥분함. 정신적 가학을 포함하기도 함'},
-              {label:'마조히스트',val:'마조히스트: 상대방에게 피학 당하면서 느껴지는 고통을 통해 쾌락을 느낌. 고통을 짜릿하게 여기며 정신적 피학을 포함하기도 함'},
-              {label:'마스터/미스트레스',val:'마스터/미스트레스: 상대방에게 존경받기를 원하며, 상대의 정신과 육체를 통제·지배할 자격을 갖추기 위해 노력함. 상대가 더 나은 사람이 될 수 있도록 이끎'},
-              {label:'슬레이브',val:'슬레이브: 존경하는 상대에게 모든 의사결정권을 맡기고, 정신과 육체를 완전히 통제·지배받기를 원함. 상대를 통해 배우고 더 나은 사람이 되는 것을 추구함'},
-              {label:'대디/마미',val:'대디/마미: 상대방을 관심과 애정으로 부드럽게 보살피며, 상대가 자신에게 의지하기를 원함. 지배 수단은 주로 대화와 부탁으로 이루어짐'},
-              {label:'리틀',val:'리틀: 상대방에게 보살핌을 받고 싶어 하며, 의지할 때 가장 안정감을 느낌. 관심을 끌기 위해 투정을 부리기도 하지만 혼나고 싶은 것이 아니라 안아주기를 바라는 것'},
-              {label:'브랫테이머',val:'브랫테이머: 순종하는 상대에게 흥미를 느끼지 못하며, 반항하고 저항하는 상대를 강제로 굴복시키는 것에 흥미를 느낌. 평소엔 상냥하지만 선을 넘으면 180도 돌변함'},
-              {label:'브랫',val:'브랫: 이유 없이 순종하지 않으며 상대가 강제로 굴복시켜 주기를 바람. 장난과 말썽으로 상대를 곤란하게 만들고, 상대가 돌변하는 모습을 보고 싶어함. 굴복이 순종보다 짜릿하다고 생각함'},
-              {label:'헌터',val:'헌터: 상대방을 육체적으로 완벽하게 제압하고 싶어함. 명령이나 순종에 관심 없으며, 상대가 저항하고 반항할수록 더 흥분함. 제압하는 과정 자체를 즐김'},
-              {label:'프레이',val:'프레이: 거칠게 저항하면서 상대가 무참하게 제압해주기를 바람. 명령이나 순종에는 관심 없으며, 있는 힘껏 저항하고 밀어내는 과정에서 흥분과 쾌감을 느낌'},
-              {label:'오너',val:'오너: 강한 유대감과 교감을 통해 상대를 소유하고 싶어함. 소유욕이 강하며 상대가 다른 것에 관심 갖는 것을 싫어함. 훈육 안에 애정이 담겨 있음'},
-              {label:'펫',val:'펫: 상대방과 강한 유대감을 가지며 소유되고 싶어함. 소속 욕구가 강하며 상대를 기쁘게 하는 행동을 살피고 끝없이 애정과 관심을 갈구함'},
-              {label:'리거',val:'리거: 로프나 수갑 등으로 상대를 움직이지 못하도록 구속하는 것을 즐김. 아름다운 형태로 묶으면서 동시에 완전히 속박하는 예술가적 성향'},
-              {label:'로프버니',val:'로프버니: 로프나 수갑 등으로 움직이지 못하게 구속될 때 흥분함. 예쁜 모양으로 묶여 움직이지 못하는 상태에서 짜릿한 흥분감을 느낌'},
-              {label:'스팽커',val:'스팽커: 상대의 신체 부위(특히 엉덩이)를 찰싹 소리가 나도록 때리는 행위에 흥분함. 소리·상대의 반응·자국 모양을 중요하게 여김'},
-              {label:'스팽키',val:'스팽키: 신체 부위(특히 엉덩이)를 찰싹 소리가 나도록 맞으면서 흥분과 쾌감을 느낌. 소리와 고통이 주는 쾌감, 자국 모양을 중요하게 여김'},
-              {label:'디그레이더',val:'디그레이더: 상대가 수치스러워하거나 부끄러워하는 것을 보며 흥분함. 음란하고 저속한 말과 행동, 수치스러운 상황에 노출시키는 것 자체를 즐김'},
-              {label:'디그레이디',val:'디그레이디: 상대에게 수치스럽고 부끄러운 모습을 보여주면서 흥분함. 음담패설이나 수치스러운 호칭으로 불리는 것을 좋아하며 다양한 형태로 나타남'},
-              {label:'보스',val:'보스: 특별히 명령이나 지시를 내리지 않으며, 상대가 주도적으로 알아서 봉사하고 원하는 것을 해주기를 바람'},
-              {label:'서번트',val:'서번트: 상대를 모시고 봉사하면서 즐거움을 느낌. 명령이나 지시를 기다리지 않고 주도적으로 행동하며 상대에게 복종하는 모습을 보임'},
-              {label:'스위치',val:'스위치: 항상 지배적이거나 항상 복종하는 역할을 원하지 않음. 상황이나 상대에 따라 성향이 변화하며 역할 전환을 통해 만족을 얻음'},
-              {label:'바닐라',val:'바닐라: 무성향자. 일반적이고 보통의 플레이를 즐기며 지배나 복종 없이 서로 배려하고 만족을 주기 위해 노력함'},
-            ].map(({label,val})=>`<div class="chip${(char.bdsmChips||[]).some(c=>c===val)?' active':''}" data-val="${val}" onclick="toggleBdsmChipByEl(this)"><span style="font-size:10px;">${label}</span></div>`).join('')}
+            ${BDSM_CHIPS.map(({label,val})=>`<div class="chip${(char.bdsmChips||[]).some(c=>c===val)?' active':''}" data-val="${val}" onclick="toggleBdsmChipByEl(this)"><span style="font-size:10px;">${label}</span></div>`).join('')}
           </div>
         </div>
         <div style="margin-top:10px;">
@@ -1112,7 +1134,7 @@ function renderCharEditor(){
   renderRelations();renderTraits();updatePreviewBar();
 
   // 유령 칩 자동 청소: UI에 존재하는 칩만 데이터에 유지 + 경고
-  const validSpeech=['반말체','존댓말','사투리','고어체','무뚝뚝','수다스러움','시적인 표현','짧고 단호함',...(customChips['c-speech-chips']||[])];
+  const validSpeech=[...SPEECH_CHIPS,...(customChips['c-speech-chips']||[])];
   const validOutfit=[...new Set([...OUTFIT_CHIPS_F,...OUTFIT_CHIPS_M,...(customChips['c-outfit-chips']||[])])];
   const validBdsm=document.querySelectorAll('#c-bdsm-chips .chip[data-val]');
   const validBdsmVals=[...validBdsm].map(el=>el.getAttribute('data-val'));
@@ -1754,6 +1776,17 @@ function renderLorebook(){
       </div>
     `;
     list.appendChild(div);
+  });
+  filterLorebook();
+}
+
+function filterLorebook(){
+  const q=((document.getElementById('lb-search')||{}).value||'').trim().toLowerCase();
+  const proj=getProject();const lb=proj?(proj.lorebook||[]):[];
+  document.querySelectorAll('#lorebook-list .lorebook-item').forEach((el,idx)=>{
+    const it=lb[idx]||{};
+    const hay=((it.title||'')+' '+((it.keywords||[]).join(' '))+' '+(it.content||'')).toLowerCase();
+    el.style.display=(!q||hay.includes(q))?'':'none';
   });
 }
 
@@ -2588,6 +2621,8 @@ function normalizeCustomChips(){
 // 특정 칩 그룹의 "기본칩"(커스텀 제외) 목록. 의상은 상수, 나머지는 캐시 우선 → 없으면 DOM 폴백.
 function getBaseChips(groupId){
   if(groupId==='c-outfit-chips')return [...new Set([...OUTFIT_CHIPS_F,...OUTFIT_CHIPS_M])];
+  if(groupId==='c-speech-chips')return [...SPEECH_CHIPS];
+  if(groupId==='c-bdsm-chips')return BDSM_CHIPS.map(x=>x.val);
   if(BASE_CHIPS_CACHE[groupId]&&BASE_CHIPS_CACHE[groupId].length)return BASE_CHIPS_CACHE[groupId];
   const base=scrapeBaseChips(groupId);
   if(base.length)BASE_CHIPS_CACHE[groupId]=base; // 폴백으로 긁은 것도 캐시 갱신

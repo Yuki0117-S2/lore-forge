@@ -2554,13 +2554,23 @@ const CHIP_CAT_LABELS={
 };
 
 // incomingCC: 가져온 파일의 customChips, importedProjects: 이번에 병합되는 project 객체 배열
-// 특정 칩 그룹의 "기본칩"(커스텀 제외) 라벨 목록을 화면에서 수집.
-// 의상은 JS 상수, 나머지는 DOM(.chip-custom/.chip-add 제외)에서 긁음.
+// 기본칩 스냅샷 캐시: 페이지 로드 때 한 번 긁어두고, 이후엔 화면 상태와 무관하게 캐시 사용.
+let BASE_CHIPS_CACHE={};
+const BASE_CHIP_GROUPS=['genre-chips','pov-chips','style-chips','density-chips','length-chips','action-chips','c-speech-chips','c-bdsm-chips'];
+function scrapeBaseChips(groupId){
+  const el=document.getElementById(groupId);if(!el)return [];
+  return Array.from(el.querySelectorAll('.chip:not(.chip-custom):not(.chip-add)')).map(c=>c.textContent.replace('×','').trim()).filter(Boolean);
+}
+function snapshotBaseChips(){
+  BASE_CHIP_GROUPS.forEach(gid=>{const base=scrapeBaseChips(gid);if(base.length)BASE_CHIPS_CACHE[gid]=base;});
+}
+// 특정 칩 그룹의 "기본칩"(커스텀 제외) 목록. 의상은 상수, 나머지는 캐시 우선 → 없으면 DOM 폴백.
 function getBaseChips(groupId){
   if(groupId==='c-outfit-chips')return [...new Set([...OUTFIT_CHIPS_F,...OUTFIT_CHIPS_M])];
-  const el=document.getElementById(groupId);
-  if(!el)return [];
-  return Array.from(el.querySelectorAll('.chip:not(.chip-custom):not(.chip-add)')).map(c=>c.textContent.replace('×','').trim()).filter(Boolean);
+  if(BASE_CHIPS_CACHE[groupId]&&BASE_CHIPS_CACHE[groupId].length)return BASE_CHIPS_CACHE[groupId];
+  const base=scrapeBaseChips(groupId);
+  if(base.length)BASE_CHIPS_CACHE[groupId]=base; // 폴백으로 긁은 것도 캐시 갱신
+  return base;
 }
 
 async function mergeIncomingCustomChips(incomingCC,importedProjects){
@@ -3067,7 +3077,7 @@ function init(){
       sessionStorage.setItem('lf_session_backup','1');
     }
   }
-  renderProjectDropdown();loadProjectUI();
+  renderProjectDropdown();loadProjectUI();snapshotBaseChips();
   startAutoSave();
   driveTrySilentReconnect();
   console.log('[LoreForge] 데이터 손실 시 F12 콘솔에서 loreForgeDebug.listBackups() 입력으로 백업 확인 가능');

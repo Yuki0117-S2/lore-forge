@@ -2440,7 +2440,7 @@ function handleImport(e){
         if(projects[proj.id]){if(!(await showConfirm(`"${proj.name}" 프로젝트가 이미 있어. 덮어쓸까?`,{danger:true,title:'⚠️ 프로젝트 덮어쓰기'})))return;}
         safetyBackup('JSON 가져오기: '+proj.name);
         projects[proj.id]=proj;currentProjectId=proj.id;
-        if(data.customChips){Object.keys(data.customChips).forEach(k=>{customChips[k]=[...new Set([...(customChips[k]||[]),...data.customChips[k]])];});saveCustomChips();}
+        await mergeIncomingCustomChips(data.customChips,[proj]);
         renderProjectDropdown();loadProjectUI();saveAll();showToast('✅ 프로젝트 불러옴!');
       }
     }catch(err){console.error('[LoreForge] Import 오류:',err);alert('JSON 파일이 잘못됐어.');}
@@ -2470,13 +2470,9 @@ async function importAllProjects(data){
   newOnes.forEach(id=>{projects[id]=data.projects[id];});
   overwriteIds.forEach(id=>{projects[id]=data.projects[id];});
 
-  // customChips 병합 (기존 단일 import와 동일 패턴)
-  if(data.customChips){
-    Object.keys(data.customChips).forEach(k=>{
-      customChips[k]=[...new Set([...(customChips[k]||[]),...data.customChips[k]])];
-    });
-    saveCustomChips();
-  }
+  // customChips 선택 병합 (적용칩 보호 + 신규 순수후보만 선택)
+  const importedProjs=[...newOnes,...overwriteIds].map(id=>data.projects[id]);
+  await mergeIncomingCustomChips(data.customChips,importedProjs);
 
   // currentProjectId 결정
   if(data.currentProjectId&&projects[data.currentProjectId]){
@@ -2528,6 +2524,97 @@ function showImportConflictModal(conflictIds,incomingProjects){
     overlay.querySelector('[data-act="ok"]').onclick=()=>{
       const selected=Array.from(checkboxes()).filter(c=>c.checked).map(c=>c.dataset.pid);
       overlay.remove();resolve(selected);
+    };
+    overlay.querySelector('[data-act="cancel"]').onclick=()=>{overlay.remove();resolve(null);};
+    overlay.onclick=(e)=>{if(e.target===overlay){overlay.remove();resolve(null);}};
+  });
+}
+
+// ===== 커스텀칩 선택 병합 (import) =====
+// 선택 병합 대상 카테고리 → 캐릭터 적용 필드 매핑.
+// 여기에 한 줄 추가하면 다른 칩 종류로 확장됨 (단, 캐릭터 필드 기준인 것만).
+const CHIP_APPLY_MAP={
+  'c-outfit-chips':'outfitChips',
+  'c-speech-chips':'speechChips'
+};
+const CHIP_CAT_LABELS={
+  'c-outfit-chips':'의상','c-speech-chips':'말투',
+  'genre-chips':'장르','pov-chips':'시점','style-chips':'스타일',
+  'density-chips':'밀도','length-chips':'분량','action-chips':'액션'
+};
+
+// incomingCC: 가져온 파일의 customChips, importedProjects: 이번에 병합되는 project 객체 배열
+async function mergeIncomingCustomChips(incomingCC,importedProjects){
+  if(!incomingCC||typeof incomingCC!=='object')return;
+  importedProjects=importedProjects||[];
+
+  // 1) 대상 카테고리별 "적용칩"(캐릭터가 실제로 쓰는 값) 수집
+  const appliedByCat={};
+  Object.keys(CHIP_APPLY_MAP).forEach(cat=>{
+    const field=CHIP_APPLY_MAP[cat];const set=new Set();
+    importedProjects.forEach(p=>{(p&&p.characters||[]).forEach(ch=>{(ch[field]||[]).forEach(v=>set.add(v));});});
+    appliedByCat[cat]=set;
+  });
+
+  // 2) 카테고리별 병합 + 신규 순수후보 추리기
+  const newCandidatesByCat={};
+  Object.keys(incomingCC).forEach(cat=>{
+    const incoming=incomingCC[cat]||[];
+    if(!(cat in CHIP_APPLY_MAP)){
+      // 비대상(장르 등): 기존과 100% 동일하게 무조건 합집합
+      customChips[cat]=[...new Set([...(customChips[cat]||[]),...incoming])];
+      return;
+    }
+    const applied=appliedByCat[cat]||new Set();
+    const existing=new Set(customChips[cat]||[]);
+    const toAsk=[];
+    incoming.forEach(v=>{
+      if(applied.has(v)){existing.add(v);}            // 적용칩 → 무조건 등록(데이터 보호)
+      else if(!existing.has(v)){toAsk.push(v);}        // 순수후보 중 신규 → 물어봄
+      // 이미 가진 순수후보 → 그대로 둠
+    });
+    customChips[cat]=[...existing];
+    if(toAsk.length)newCandidatesByCat[cat]=toAsk;
+  });
+
+  // 3) 신규 순수후보가 있으면 선택 모달
+  if(Object.keys(newCandidatesByCat).length){
+    const selected=await showChipSelectModal(newCandidatesByCat);
+    if(selected){Object.keys(selected).forEach(cat=>{customChips[cat]=[...new Set([...(customChips[cat]||[]),...selected[cat]])];});}
+  }
+  saveCustomChips();
+}
+
+function showChipSelectModal(newByCat){
+  return new Promise(resolve=>{
+    const overlay=document.createElement('div');overlay.className='modal-overlay';
+    const cats=Object.keys(newByCat);
+    const total=cats.reduce((s,c)=>s+newByCat[c].length,0);
+    const sections=cats.map(cat=>{
+      const label=CHIP_CAT_LABELS[cat]||cat;
+      const chips=newByCat[cat].map(v=>`<label style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;cursor:pointer;margin-bottom:5px;">
+        <input type="checkbox" data-cat="${esc(cat)}" data-val="${esc(v)}" checked style="flex-shrink:0;cursor:pointer;">
+        <span style="font-size:13px;color:var(--text);word-break:break-all;">${esc(v)}</span>
+      </label>`).join('');
+      return `<div style="margin-bottom:12px;"><div style="font-weight:bold;color:var(--accent);font-size:12px;margin-bottom:6px;">${esc(label)} (${newByCat[cat].length})</div>${chips}</div>`;
+    }).join('');
+    overlay.innerHTML=`<div class="modal" style="min-width:340px;max-width:480px;max-height:80vh;display:flex;flex-direction:column;">
+      <div class="modal-title">✨ 새 커스텀칩 발견 (${total}개)</div>
+      <div class="modal-msg" style="font-size:12px;color:var(--text-dim);">가져온 파일에 네 팔레트엔 없던 칩이 있어. 체크한 것만 후보로 추가해. 체크 안 한 건 버려.</div>
+      <div style="display:flex;gap:6px;margin-bottom:10px;">
+        <button class="btn btn-ghost" data-act="all-on" style="font-size:11px;padding:5px 10px;">전부 선택</button>
+        <button class="btn btn-ghost" data-act="all-off" style="font-size:11px;padding:5px 10px;">전부 해제</button>
+      </div>
+      <div style="overflow-y:auto;max-height:50vh;padding-right:4px;">${sections}</div>
+      <div class="modal-btns" style="margin-top:14px;"><button class="btn btn-ghost" data-act="cancel">취소</button><button class="btn btn-primary" data-act="ok">추가</button></div>
+    </div>`;
+    document.body.appendChild(overlay);
+    const cbs=()=>overlay.querySelectorAll('input[type="checkbox"]');
+    overlay.querySelector('[data-act="all-on"]').onclick=()=>{cbs().forEach(c=>c.checked=true);};
+    overlay.querySelector('[data-act="all-off"]').onclick=()=>{cbs().forEach(c=>c.checked=false);};
+    overlay.querySelector('[data-act="ok"]').onclick=()=>{
+      const out={};cbs().forEach(c=>{if(c.checked){const cat=c.dataset.cat;(out[cat]=out[cat]||[]).push(c.dataset.val);}});
+      overlay.remove();resolve(out);
     };
     overlay.querySelector('[data-act="cancel"]').onclick=()=>{overlay.remove();resolve(null);};
     overlay.onclick=(e)=>{if(e.target===overlay){overlay.remove();resolve(null);}};

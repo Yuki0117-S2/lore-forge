@@ -801,16 +801,16 @@ function saveCurrentProjectFromUI(){
     toneVal:(document.getElementById('tone-slider')||{value:'50'}).value,
     ruleTags:proj.globalTagData['world-rule']||[],atmoTags:proj.globalTagData['atmo']||[],
     placeTags:proj.globalTagData['place']||[],
-    genreChips:getActiveChips(document.getElementById('genre-chips')),
+    genreChips:uniqStrings(getActiveChips(document.getElementById('genre-chips'))),
     worldTraits:Array.isArray(prevWorld.worldTraits)?prevWorld.worldTraits:[],
   };
   const prevOutput=proj.output||{};
   proj.output={
-    povChips:getActiveChips(document.getElementById('pov-chips')),
-    styleChips:getActiveChips(document.getElementById('style-chips')),
-    densityChips:getActiveChips(document.getElementById('density-chips')),
-    lengthChips:getActiveChips(document.getElementById('length-chips')),
-    actionChips:getActiveChips(document.getElementById('action-chips')),
+    povChips:uniqStrings(getActiveChips(document.getElementById('pov-chips'))),
+    styleChips:uniqStrings(getActiveChips(document.getElementById('style-chips'))),
+    densityChips:uniqStrings(getActiveChips(document.getElementById('density-chips'))),
+    lengthChips:uniqStrings(getActiveChips(document.getElementById('length-chips'))),
+    actionChips:uniqStrings(getActiveChips(document.getElementById('action-chips'))),
     narrDetail:gv('out-narr-detail'),lengthDetail:gv('out-length-detail'),
     status:gv('out-status'),affection:gv('out-affection'),
     affectionFactor:gv('out-affection-factor'),
@@ -1874,9 +1874,9 @@ function buildCharPrompt(char){
   const bp=[];if(d.name)bp.push(`이름: ${d.name}`);if(d.age)bp.push(`나이: ${d.age}`);if(d.gender)bp.push(`성별: ${d.gender}`);if(d.role)bp.push(`직업/역할: ${d.role}`);
   if(bp.length)p(bp.join(' | '));p('');
   const pt=td.personality||[];const sp=char.speechChips||[];const ev=parseInt(d.emotionVal||50);
-  const et=ev<30?'감정 표현이 절제되어 있음':ev>70?'감정 표현이 풍부하고 즉각적임':'감정 표현은 상황에 따라 달라짐';
+  const et=ev<30?'감정 표현이 절제되어 있음':ev>70?'감정 표현이 풍부하고 즉각적임':null;
   if(pt.length||sp.length||d.personality||d.values){
-    p('## 성격 & 말투');if(pt.length)p(`성격 키워드: ${pt.join(', ')}`);if(sp.length)p(`말투: ${sp.join(', ')}`);p(`감정 표현: ${et}`);if(d.personality)p('\n'+d.personality);if(d.values)p('\n[가치관/행동원리] '+d.values);p('');
+    p('## 성격 & 말투');if(pt.length)p(`성격 키워드: ${pt.join(', ')}`);if(sp.length)p(`말투: ${sp.join(', ')}`);if(et)p(`감정 표현: ${et}`);if(d.personality)p('\n'+d.personality);if(d.values)p('\n[가치관/행동원리] '+d.values);p('');
   }
   const ht=td.habit||[];const oc=char.outfitChips||[];
   if(d.appearance||ht.length||oc.length||d.outfit){
@@ -1954,7 +1954,8 @@ function buildWorldPrompt(){
     }
   }
   if(wp||pt.length){p('## 주요 장소');if(wp)p(wp);if(pt.length)p(`장소 태그: ${pt.join(', ')}`);p('');}
-  if(at.length||tv!==50){p('## 분위기');p(tv<30?'전반적으로 어둡고 무거운 분위기':tv>70?'전반적으로 밝고 경쾌한 분위기':'밝음과 어둠이 공존하는 분위기');if(at.length)p(`분위기 키워드: ${at.join(', ')}`);p('');}
+  const toneDir=tv<30?'전반적으로 어둡고 무거운 분위기':tv>70?'전반적으로 밝고 경쾌한 분위기':null;
+  if(at.length||toneDir){p('## 분위기');if(toneDir)p(toneDir);if(at.length)p(`분위기 키워드: ${at.join(', ')}`);p('');}
   if(wt){p('## 금기사항');p(wt);p('');}
   return L.join('\n').trim();
 }
@@ -2412,11 +2413,13 @@ function showExportChoice(){
 
 function exportCurrentProject(){
   const proj=getProject();if(!proj){alert('프로젝트가 없어!');return;}
+  normalizeCustomChips();
   const blob=new Blob([JSON.stringify({version:3,project:proj,customChips},null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(proj.name||'project').replace(/[^\w가-힣]/g,'_')+'.json';a.click();
 }
 
 function exportAllProjects(){
+  normalizeCustomChips();
   const projectCount=Object.keys(projects).length;
   const dump={version:3,type:'all',exportedAt:new Date().toISOString(),projects,currentProjectId,customChips};
   const blob=new Blob([JSON.stringify(dump,null,2)],{type:'application/json'});

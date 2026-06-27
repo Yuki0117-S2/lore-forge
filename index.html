@@ -262,6 +262,7 @@
     <button class="btn btn-ghost" onclick="newProject()">＋</button>
     <button class="btn btn-ghost" onclick="renameProject()">✏️</button>
     <button class="btn btn-danger" onclick="deleteProject()">🗑</button>
+    <button class="btn btn-ghost" onclick="openArchiveModal()" title="보관함" style="position:relative;">📦<span id="archive-count" style="display:none;position:absolute;top:-5px;right:-5px;min-width:16px;height:16px;padding:0 4px;background:#BB6688;color:#fff;border-radius:8px;font-size:10px;font-weight:bold;line-height:16px;text-align:center;align-items:center;justify-content:center;"></span></button>
   </div>
   <div class="header-right">
     <button class="btn btn-danger" onclick="resetProject()">↺ 초기화</button>
@@ -761,7 +762,7 @@ function getProject(){return projects[currentProjectId]||null;}
 function getCurrentChar(){const p=getProject();if(!p)return null;return p.characters.find(c=>c.id===p.currentCharId)||null;}
 
 function newProjectData(name){
-  return{id:'proj_'+Date.now(),name:name||'새 프로젝트',characters:[],currentCharId:null,
+  return{id:'proj_'+Date.now(),name:name||'새 프로젝트',characters:[],currentCharId:null,archived:false,
     globalTagData:{},lorebook:[],
     world:{name:'',era:'',desc:'',magic:'',society:'',taboo:'',places:'',toneVal:'50',ruleTags:[],atmoTags:[],placeTags:[],genreChips:[],worldTraits:[]},
     output:{povChips:[],styleChips:[],densityChips:[],lengthChips:[],actionChips:[],narrDetail:'',lengthDetail:'',status:'',affection:'',affectionFactor:'',extra:'',outputTraits:[]},
@@ -818,9 +819,104 @@ function resetProject(){
 
 function renderProjectDropdown(){
   const sel=document.getElementById('project-dropdown');sel.innerHTML='';
-  Object.values(projects).forEach(proj=>{
+  getActiveProjects().forEach(proj=>{
     const opt=document.createElement('option');opt.value=proj.id;opt.textContent=proj.name;opt.selected=proj.id===currentProjectId;sel.appendChild(opt);
   });
+  updateArchiveBadge();
+}
+
+// ===== 프로젝트 보관함 =====
+function getActiveProjects(){return Object.values(projects).filter(p=>!p.archived);}
+function getArchivedProjects(){return Object.values(projects).filter(p=>p.archived);}
+
+function updateArchiveBadge(){
+  const el=document.getElementById('archive-count');if(!el)return;
+  const cnt=getArchivedProjects().length;
+  el.textContent=cnt>0?cnt:'';
+  el.style.display=cnt>0?'inline-flex':'none';
+}
+
+function archiveProject(id){
+  const proj=projects[id];if(!proj)return;
+  if(getActiveProjects().length<=1){alert('마지막 활성 프로젝트는 보관할 수 없어! 최소 하나는 남겨둬.');return;}
+  proj.archived=true;
+  if(currentProjectId===id){
+    const next=getActiveProjects()[0];
+    if(next){currentProjectId=next.id;loadProjectUI();}
+  }
+  saveAll();renderProjectDropdown();refreshArchiveModal();showToast('📦 보관함으로 이동!');
+}
+
+function unarchiveProject(id){
+  const proj=projects[id];if(!proj)return;
+  proj.archived=false;
+  saveAll();renderProjectDropdown();refreshArchiveModal();showToast('↩️ 활성으로 복귀!');
+}
+
+function deleteArchivedProject(id){
+  const proj=projects[id];if(!proj)return;
+  (async()=>{
+    if(!(await showConfirm(`"${proj.name}" 프로젝트를 완전히 삭제할까?\n복구 안 돼.`,{danger:true,title:'⚠️ 프로젝트 삭제'})))return;
+    safetyBackup('보관함 프로젝트 삭제: '+proj.name);
+    delete projects[id];
+    saveAll();renderProjectDropdown();refreshArchiveModal();showToast('🗑 삭제됨 (실수면 F12 콘솔에서 loreForgeDebug.listBackups())');
+  })();
+}
+
+let archiveOverlay=null;
+function openArchiveModal(){
+  if(archiveOverlay){archiveOverlay.remove();archiveOverlay=null;}
+  const overlay=document.createElement('div');
+  overlay.className='modal-overlay';
+  overlay.innerHTML=`<div class="modal" style="min-width:340px;max-width:520px;max-height:80vh;display:flex;flex-direction:column;">
+    <div class="modal-title">📦 프로젝트 보관함</div>
+    <div class="modal-msg" style="font-size:12px;color:var(--text-dim);">자주 안 쓰는 프로젝트를 보관하면 드롭다운에서 숨겨져. 데이터는 그대로 유지되니까 언제든 꺼낼 수 있어.</div>
+    <div id="archive-lists" style="overflow-y:auto;max-height:56vh;padding-right:4px;margin-top:4px;"></div>
+    <div class="modal-btns" style="margin-top:14px;"><button class="btn btn-primary" data-act="close">닫기</button></div>
+  </div>`;
+  document.body.appendChild(overlay);
+  archiveOverlay=overlay;
+  overlay.querySelector('[data-act="close"]').onclick=()=>{overlay.remove();archiveOverlay=null;};
+  overlay.onclick=(e)=>{if(e.target===overlay){overlay.remove();archiveOverlay=null;}};
+  renderArchiveLists();
+}
+
+function refreshArchiveModal(){if(archiveOverlay)renderArchiveLists();}
+
+function renderArchiveLists(){
+  const box=document.getElementById('archive-lists');if(!box)return;
+  const active=getActiveProjects();
+  const archived=getArchivedProjects();
+  const activeRows=active.map(p=>{
+    const chars=(p.characters&&p.characters.length)||0;
+    const isCur=p.id===currentProjectId;
+    return `<div style="display:flex;align-items:center;gap:8px;padding:9px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;">
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:bold;color:var(--accent);font-size:13px;word-break:break-all;">${esc(p.name)}${isCur?' <span style="color:#8888CC;font-size:10px;font-weight:normal;">● 사용 중</span>':''}</div>
+        <div style="font-size:11px;color:var(--text-dim);">캐릭터 ${chars}개</div>
+      </div>
+      <button class="btn btn-ghost" data-archive="${esc(p.id)}" style="font-size:11px;padding:5px 10px;flex-shrink:0;">📥 보관</button>
+    </div>`;
+  }).join('');
+  const archivedRows=archived.length?archived.map(p=>{
+    const chars=(p.characters&&p.characters.length)||0;
+    return `<div style="display:flex;align-items:center;gap:8px;padding:9px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;opacity:0.82;">
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:bold;color:var(--text-dim);font-size:13px;word-break:break-all;">${esc(p.name)}</div>
+        <div style="font-size:11px;color:var(--text-dim);">캐릭터 ${chars}개</div>
+      </div>
+      <button class="btn btn-ghost" data-unarchive="${esc(p.id)}" style="font-size:11px;padding:5px 10px;flex-shrink:0;border-color:rgba(136,136,204,0.5);color:#8888CC;">↩️ 꺼내기</button>
+      <button class="btn btn-danger" data-del="${esc(p.id)}" style="font-size:11px;padding:5px 10px;flex-shrink:0;">🗑</button>
+    </div>`;
+  }).join(''):`<div style="font-size:12px;color:var(--text-dim);text-align:center;padding:14px;">보관된 프로젝트가 없어.</div>`;
+  box.innerHTML=`
+    <div style="font-size:11px;font-weight:bold;color:var(--text-dim);margin:4px 0 8px;letter-spacing:0.5px;">활성 프로젝트 (${active.length})</div>
+    ${activeRows}
+    <div style="font-size:11px;font-weight:bold;color:var(--text-dim);margin:14px 0 8px;letter-spacing:0.5px;">📦 보관함 (${archived.length})</div>
+    ${archivedRows}`;
+  box.querySelectorAll('[data-archive]').forEach(b=>b.onclick=()=>archiveProject(b.dataset.archive));
+  box.querySelectorAll('[data-unarchive]').forEach(b=>b.onclick=()=>unarchiveProject(b.dataset.unarchive));
+  box.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>deleteArchivedProject(b.dataset.del));
 }
 
 // ===== UI 저장/로드 =====

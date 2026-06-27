@@ -3295,7 +3295,7 @@ function openCopyTabModal(){
   document.getElementById('copy-tab-modal-title').textContent=label+'을(를) 다른 프로젝트로 복사';
   const list=document.getElementById('copy-tab-project-list');
   list.innerHTML='';
-  const others=Object.values(projects).filter(p=>p.id!==currentProjectId);
+  const others=Object.values(projects).filter(p=>p.id!==currentProjectId&&!p.archived);
   if(!others.length){
     list.innerHTML='<div style="color:var(--muted);font-size:12px;text-align:center;padding:16px;">다른 프로젝트가 없어!</div>';
   }else{
@@ -3341,7 +3341,7 @@ function openCopyCharModal(){
   document.getElementById('copy-char-modal-title').textContent='「'+( char.data.name||'이름 없음')+'」를 복사';
   const list=document.getElementById('copy-char-project-list');
   list.innerHTML='';
-  const others=Object.values(projects).filter(p=>p.id!==currentProjectId);
+  const others=Object.values(projects).filter(p=>p.id!==currentProjectId&&!p.archived);
   if(!others.length){
     list.innerHTML='<div style="color:var(--muted);font-size:12px;text-align:center;padding:16px;">다른 프로젝트가 없어!</div>';
   }else{

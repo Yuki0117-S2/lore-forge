@@ -850,7 +850,12 @@ function archiveProject(id){
 function unarchiveProject(id){
   const proj=projects[id];if(!proj)return;
   proj.archived=false;
-  saveAll();renderProjectDropdown();refreshArchiveModal();showToast('↩️ 활성으로 복귀!');
+  const allIds=Object.keys(projects).filter(k=>k!==id);
+  allIds.push(id);
+  const next={};
+  allIds.forEach(k=>{next[k]=projects[k];});
+  projects=next;
+  saveAll();renderProjectDropdown();refreshArchiveModal();showToast('↩️ 활성으로 복귀! (맨 아래에 추가됨)');
 }
 
 function deleteArchivedProject(id){
@@ -888,10 +893,17 @@ function renderArchiveLists(){
   const box=document.getElementById('archive-lists');if(!box)return;
   const active=getActiveProjects();
   const archived=getArchivedProjects();
-  const activeRows=active.map(p=>{
+  const arrowBase='width:30px;height:22px;padding:0;font-size:10px;line-height:1;display:flex;align-items:center;justify-content:center;background:var(--bg);border:1px solid var(--border);border-radius:5px;color:var(--text-dim);cursor:pointer;';
+  const arrowOff='opacity:0.28;cursor:default;pointer-events:none;';
+  const activeRows=active.map((p,i)=>{
     const chars=(p.characters&&p.characters.length)||0;
     const isCur=p.id===currentProjectId;
+    const isFirst=i===0, isLast=i===active.length-1;
     return `<div style="display:flex;align-items:center;gap:8px;padding:9px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;">
+      <div style="display:flex;flex-direction:column;gap:3px;flex-shrink:0;">
+        <button data-up="${esc(p.id)}" title="위로" style="${arrowBase}${isFirst?arrowOff:''}">▲</button>
+        <button data-down="${esc(p.id)}" title="아래로" style="${arrowBase}${isLast?arrowOff:''}">▼</button>
+      </div>
       <div style="flex:1;min-width:0;">
         <div style="font-weight:bold;color:var(--accent);font-size:13px;word-break:break-all;">${esc(p.name)}${isCur?' <span style="color:#8888CC;font-size:10px;font-weight:normal;">● 사용 중</span>':''}</div>
         <div style="font-size:11px;color:var(--text-dim);">캐릭터 ${chars}개</div>
@@ -923,12 +935,31 @@ function renderArchiveLists(){
   box.querySelectorAll('[data-archive]').forEach(b=>b.onclick=()=>archiveProject(b.dataset.archive));
   box.querySelectorAll('[data-unarchive]').forEach(b=>b.onclick=()=>unarchiveProject(b.dataset.unarchive));
   box.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>deleteArchivedProject(b.dataset.del));
+  box.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>reorderActiveProject(b.dataset.up,-1));
+  box.querySelectorAll('[data-down]').forEach(b=>b.onclick=()=>reorderActiveProject(b.dataset.down,1));
 }
 
 function toggleArchiveSection(which){
   if(!(which in archiveCollapsed))return;
   archiveCollapsed[which]=!archiveCollapsed[which];
   renderArchiveLists();
+}
+
+function reorderActiveProject(id,dir){
+  const activeIds=getActiveProjects().map(p=>p.id);
+  const pos=activeIds.indexOf(id);
+  if(pos<0)return;
+  const target=pos+dir;
+  if(target<0||target>=activeIds.length)return;
+  const otherId=activeIds[target];
+  const allIds=Object.keys(projects);
+  const i=allIds.indexOf(id), j=allIds.indexOf(otherId);
+  if(i<0||j<0)return;
+  [allIds[i],allIds[j]]=[allIds[j],allIds[i]];
+  const next={};
+  allIds.forEach(k=>{next[k]=projects[k];});
+  projects=next;
+  saveAll();renderProjectDropdown();refreshArchiveModal();
 }
 
 // ===== UI 저장/로드 =====
@@ -3297,7 +3328,7 @@ function openCopyTabModal(){
   list.innerHTML='';
   const others=Object.values(projects).filter(p=>p.id!==currentProjectId&&!p.archived);
   if(!others.length){
-    list.innerHTML='<div style="color:var(--muted);font-size:12px;text-align:center;padding:16px;">다른 프로젝트가 없어!</div>';
+    list.innerHTML='<div style="color:var(--muted);font-size:12px;text-align:center;padding:16px;">복사할 다른 프로젝트가 없어. 📦 보관함에서 꺼내면 여기 떠!</div>';
   }else{
     others.forEach(p=>{
       const btn=document.createElement('button');
@@ -3343,7 +3374,7 @@ function openCopyCharModal(){
   list.innerHTML='';
   const others=Object.values(projects).filter(p=>p.id!==currentProjectId&&!p.archived);
   if(!others.length){
-    list.innerHTML='<div style="color:var(--muted);font-size:12px;text-align:center;padding:16px;">다른 프로젝트가 없어!</div>';
+    list.innerHTML='<div style="color:var(--muted);font-size:12px;text-align:center;padding:16px;">복사할 다른 프로젝트가 없어. 📦 보관함에서 꺼내면 여기 떠!</div>';
   }else{
     others.forEach(p=>{
       const btn=document.createElement('button');

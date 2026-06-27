@@ -3180,7 +3180,9 @@ function showDriveSlotPicker(slots){
     btn.onmouseover=()=>btn.style.borderColor='var(--accent)';
     btn.onmouseout=()=>btn.style.borderColor='var(--border)';
     btn.onclick=async()=>{
-      if(!(await showConfirm(`Drive 슬롯 #${i+1}을 불러올까?\n현재 로컬 데이터는 덮어씌워져.`,{danger:true,title:'⚠️ Drive 슬롯 불러오기'})))return;
+      overlay.style.display='none';
+      const ok=await showConfirm(`Drive 슬롯 #${i+1}을 불러올까?\n현재 로컬 데이터는 덮어씌워져.`,{danger:true,title:'⚠️ Drive 슬롯 불러오기'});
+      if(!ok){overlay.style.display='flex';return;}
       safetyBackup('Drive 불러오기 직전');
       applyStateFromSync(slot);
       overlay.remove();closeDriveModal();

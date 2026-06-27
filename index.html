@@ -864,6 +864,7 @@ function deleteArchivedProject(id){
 }
 
 let archiveOverlay=null;
+let archiveCollapsed={active:true,archived:true};
 function openArchiveModal(){
   if(archiveOverlay){archiveOverlay.remove();archiveOverlay=null;}
   const overlay=document.createElement('div');
@@ -909,14 +910,25 @@ function renderArchiveLists(){
       <button class="btn btn-danger" data-del="${esc(p.id)}" style="font-size:11px;padding:5px 10px;flex-shrink:0;">🗑</button>
     </div>`;
   }).join(''):`<div style="font-size:12px;color:var(--text-dim);text-align:center;padding:14px;">보관된 프로젝트가 없어.</div>`;
+  const aCol=archiveCollapsed.active, rCol=archiveCollapsed.archived;
+  const secHeader=(which,label,count,collapsed)=>`<div onclick="toggleArchiveSection('${which}')" style="display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;padding:9px 4px;margin:2px 0 6px;font-size:11px;font-weight:bold;color:var(--text-dim);letter-spacing:0.5px;">
+      <span style="font-size:13px;width:20px;text-align:center;flex-shrink:0;display:inline-block;transition:transform 0.2s;transform:rotate(${collapsed?'-90deg':'0deg'});">▾</span>
+      <span>${label} (${count})</span>
+    </div>`;
   box.innerHTML=`
-    <div style="font-size:11px;font-weight:bold;color:var(--text-dim);margin:4px 0 8px;letter-spacing:0.5px;">활성 프로젝트 (${active.length})</div>
-    ${activeRows}
-    <div style="font-size:11px;font-weight:bold;color:var(--text-dim);margin:14px 0 8px;letter-spacing:0.5px;">📦 보관함 (${archived.length})</div>
-    ${archivedRows}`;
+    ${secHeader('active','활성 프로젝트',active.length,aCol)}
+    ${aCol?'':activeRows}
+    ${secHeader('archived','📦 보관함',archived.length,rCol)}
+    ${rCol?'':archivedRows}`;
   box.querySelectorAll('[data-archive]').forEach(b=>b.onclick=()=>archiveProject(b.dataset.archive));
   box.querySelectorAll('[data-unarchive]').forEach(b=>b.onclick=()=>unarchiveProject(b.dataset.unarchive));
   box.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>deleteArchivedProject(b.dataset.del));
+}
+
+function toggleArchiveSection(which){
+  if(!(which in archiveCollapsed))return;
+  archiveCollapsed[which]=!archiveCollapsed[which];
+  renderArchiveLists();
 }
 
 // ===== UI 저장/로드 =====

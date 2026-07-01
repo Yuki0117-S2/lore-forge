@@ -1672,6 +1672,7 @@ st — 스타일 키 (생략 시 vn)
 • <strong>seed</strong> — 던전 형태 고정 키 (16자). 같은 seed+floor면 항상 같은 던전<br>
 • <strong>floor</strong> — 현재 층 (1~999). 자동으로 크기·보스 등급 조정<br>
 • <strong>type</strong> — short=10층 / medium=25층 / long=50층 (기본 short)<br>
+• <strong>max</strong> — 최대 층수 직접 지정 (type 대신, 예: max=100)<br>
 • <strong>enter=on</strong> — 입구방 중앙에 플레이어 자동 배치 + 보스 방향 자동 회전<br>
 • <strong>coords=on</strong> — 그리드 위/왼쪽에 좌표 헤더(A·B·C / 1·2·3) 표시<br>
 • <strong>px, py</strong> — 플레이어 좌표 (1부터, 숫자). enter=on보다 우선<br>
@@ -1967,6 +1968,64 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
 <div class="desc"><strong>등급(rarity)</strong>은 「장비 등급 공통」 섹션 참고 (모든 라우트 공통, 입력 표기 그대로 표시). <strong>인코딩:</strong> 공백 → +, + 기호 → %2B, % → %25, ( → %28, ) → %29</div>`
       },
       {
+        id:'t-st-stat', title:'능력치 상태창 (?t=stat)',
+        body:`<div class="label label-use">용도</div>
+<div class="desc">발더스게이트풍 능력치 상태창. STR/DEX 같은 능력치를 수정치 배지와 함께 표시. <strong>list</strong>(세로 리스트) / <strong>hex</strong>(다각형 레이더) / <strong>hybrid</strong>(레이더+리스트 혼합) 세 스타일. 능력치 개수 자유(레이더는 개수만큼 다각형 자동), 값 없는 항목은 자동 생략. 로드 시 배지 팝·HP 차오름·레이더 펼침 애니 1회 재생.</div>
+<hr class="divider">
+<div class="label label-use">URL 파라미터 형식</div>
+<pre>/?t=stat&st=스타일
+&p=이름§직업§레벨
+&stats=STR§14|DEX§16|...
+&hp=현재§최대  &ac=13  &init=+3  &spd=9
+&extras=저항§화염|상태§집중</pre>
+<hr class="divider">
+<div class="label label-example">예시 — 세 스타일</div>
+<pre>/?t=stat&st=list&p=카엘렌§엘프+위저드§5
+&stats=STR§8|DEX§16|CON§14|INT§18|WIS§12|CHA§10
+&hp=24§32&ac=13&init=+3&spd=9&extras=저항§화염|상태§집중
+
+/?t=stat&st=hex&p=성기사§§7&stats=STR§15|DEX§11|CON§16|INT§9|WIS§13|CHA§14
+
+/?t=stat&st=hybrid&p=카엘렌§엘프+위저드§5&stats=STR§8|DEX§16|CON§14|INT§18|WIS§12|CHA§10&hp=24§32&ac=13&init=+3&spd=9</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명:</strong><br>
+• <strong>st</strong> — <code>list</code>(세로 리스트, 기본값) / <code>hex</code>(다각형 레이더) / <code>hybrid</code>(레이더+리스트 혼합)<br>
+• <strong>p</strong> — 이름§직업§레벨 (직업·레벨 생략 가능)<br>
+• <strong>stats</strong> — 능력치 목록 (| 로 구분, 각 <code>라벨§수치</code>). STR/DEX/CON/INT/WIS/CHA는 한글(근력·민첩…) 자동 병기, 그 외 라벨은 그대로. 수정치 배지 자동 계산 ((수치−10)÷2). hex는 3개 이상 권장 (개수만큼 다각형)<br>
+• <strong>hp</strong> — 현재§최대 (바 + 숫자, 차오름 애니)<br>
+• <strong>ac</strong> — 방어도(방패) / <strong>init</strong> — 이니셔티브 / <strong>spd</strong> — 이동 (각각 값 없으면 생략)<br>
+• <strong>extras</strong> — 커스텀 칩 (| 로 구분, 각 <code>라벨§값</code>). 저항·상태·특성 등 자유<br>
+<strong>인코딩:</strong> 공백 → +, + 기호 → %2B, ( → %28, ) → %29</div>`
+      },
+      {
+        id:'t-st-roll', title:'주사위 판정 / 데미지 (?t=roll)',
+        body:`<div class="label label-use">용도</div>
+<div class="desc">NdM+K 주사위를 굴려 판정·데미지를 연출. 결과가 뜨고 텀을 둔 뒤 무한 반복 굴림. <strong>dc</strong>가 있으면 성공/실패 판정, <strong>dmg</strong>가 있으면 데미지 합산, 둘 다 없으면 순수 굴림값. 1d20은 자연20 대성공(황금 파티클 분출)·자연1 대실패(크랙) 연출. 면수(d4~d20)마다 주사위 모양 자동, 비표준 면수는 범용 폴백 + 숫자.</div>
+<hr class="divider">
+<div class="label label-use">URL 파라미터 형식</div>
+<pre>/?t=roll&d=2d8+3
+&r=5§6        (굴림값 지정, 생략 시 랜덤)
+&dc=15        (있으면 판정)
+&dmg=화염      (있으면 데미지)
+&label=파이어볼</pre>
+<hr class="divider">
+<div class="label label-example">예시 — 판정 / 데미지 / 굴림</div>
+<pre>/?t=roll&d=1d20&r=20&dc=15&label=설득+판정      (자연20 대성공)
+/?t=roll&d=1d20&r=14&dc=15&label=자물쇠+해제    (DC 판정)
+/?t=roll&d=2d8+3&r=5§6&dmg=화염&label=파이어볼   (데미지 합산)
+/?t=roll&d=1d20&dc=12&label=은신               (r 생략 → 서버 랜덤)
+/?t=roll&d=2d6&r=3§5                          (순수 합계)</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명:</strong><br>
+• <strong>d</strong> — 주사위 식 <code>NdM+K</code> (예: <code>2d8+3</code>, <code>1d20</code>). N=개수, M=면수, +K=보정. 주사위 식의 <code>+</code>는 그대로 둬도 파서가 복원<br>
+• <strong>r</strong> — 굴림값 지정 (§ 로 구분). 생략하면 서버가 랜덤으로 굴림<br>
+• <strong>dc</strong> — 목표 난이도. 있으면 <strong>판정 모드</strong> (성공/실패 + "목표 DC N 이상" 표기)<br>
+• <strong>dmg</strong> — 데미지 타입/이름. 있으면 <strong>데미지 모드</strong> ("○○ 데미지" 표기). <strong>dc가 있으면 dc 우선</strong><br>
+• <strong>label</strong> — 상단 제목 (판정 이름·스킬명 등)<br>
+• <strong>모드 정리:</strong> dc 있음 → 판정 / dmg 있음 → 데미지 / 둘 다 없음 → 굴림값. 1d20 자연20·자연1 대성공·대실패는 데미지 모드에선 미표시<br>
+<strong>인코딩:</strong> 공백 → +, ( → %28, ) → %29</div>`
+      },
+      {
         id:'t-st-8', title:'바베챗 프롬프트 (복사용)',
         body:`<div class="label label-use">RPG/VN 상태창 + 엔딩 프롬프트</div>
 <div class="desc">바베챗에 복사하여 사용. 도메인은 <strong>st.winter0.workers.dev</strong></div>
@@ -2047,6 +2106,7 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
 - seed: 던전 고정 키 (16자 이내). 같은 시드+층이면 항상 같은 던전
 - floor: 1~999, 자동으로 크기·보스 등급 결정
 - type: short(10)/medium(25)/long(50) — maxFloor 결정
+- max=숫자: 최대 층수 직접 지정 (type 프리셋 대신, 예: max=100)
 - enter=on: 입구방 중앙에 플레이어 자동 배치 (입장 컷)
 - coords=on: 좌표 헤더 표시 (디버그/탐색 시)
 - 플레이어 이동: px=숫자&py=숫자&dir=n/s/e/w
@@ -2092,6 +2152,18 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
 - 보스 처치 후 단일 전설 무기, 보물상자에서 다중 보상 등 상황에 맞게 헤더 라벨 선택
 - 스탯의 + 기호는 %2B로, % 기호는 %25로 인코딩
 
+### 게임오버 화면
+![](https://st.winter0.workers.dev/?t=gameover&st=스타일&title=제목&cause=사유&n=이름&sub=부가설명&d=대사&ach=아이콘§제목§설명|...&count=횟수)
+- st: modern(기본, 우아한 세리프) / pixel(8비트 도트)
+- title: 큰 제목 (생략 시 'GAME OVER')
+- cause: 사망/실패 사유 (예: 보스에게 패배, 던전 탐험 실패)
+- n: 캐릭터 이름 / sub: 부가설명 (동료, 보스, ???)
+- d: 캐릭터 한마디 대사
+- ach: 업적 1~3개 (|로 구분). 아이콘§제목§설명 형식
+- 아이콘 키 (16종): trophy / star / heart / skull / crown / sword / shield / flame / key / book / hourglass / coin / potion / note / eye / mask
+- count: 사망/도전 횟수 (선택)
+- 죽음의 비극성·실패의 회한·재도전의 의지 등을 캐릭터 성격에 맞춰 대사로 작성
+
 ### 인벤토리 / 장비창
 ![](https://st.winter0.workers.dev/?t=inv&st=스타일&p=주인§소지금§최대칸수&col=가로열수&items=[*]이름§등급§타입§스탯§설명§수량|...&eq=무기§등급§방어구§등급§장신구§등급)
 - st: mmo(인디고 격자, 기본) / dark(양피지 세리프) / pixel(8비트 도트)
@@ -2107,17 +2179,20 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
 - legend/epic 칸은 테두리 펄스 자동, * 칸은 빛 스윕 자동 (둘 다 SMIL)
 - 용도 구분: reward=방금 획득한 보상 목록 / inv=가방에 보관 중인 소지품 전체
 
-### 게임오버 화면
-![](https://st.winter0.workers.dev/?t=gameover&st=스타일&title=제목&cause=사유&n=이름&sub=부가설명&d=대사&ach=아이콘§제목§설명|...&count=횟수)
-- st: modern(기본, 우아한 세리프) / pixel(8비트 도트)
-- title: 큰 제목 (생략 시 'GAME OVER')
-- cause: 사망/실패 사유 (예: 보스에게 패배, 던전 탐험 실패)
-- n: 캐릭터 이름 / sub: 부가설명 (동료, 보스, ???)
-- d: 캐릭터 한마디 대사
-- ach: 업적 1~3개 (|로 구분). 아이콘§제목§설명 형식
-- 아이콘 키 (16종): trophy / star / heart / skull / crown / sword / shield / flame / key / book / hourglass / coin / potion / note / eye / mask
-- count: 사망/도전 횟수 (선택)
-- 죽음의 비극성·실패의 회한·재도전의 의지 등을 캐릭터 성격에 맞춰 대사로 작성
+### 능력치 상태창
+![](https://st.winter0.workers.dev/?t=stat&st=list&p=이름§직업§레벨&stats=STR§수치|DEX§수치|CON§수치|INT§수치|WIS§수치|CHA§수치&hp=현재§최대&ac=방어도&init=이니셔티브&spd=이동&extras=라벨§값|...)
+- st: list(세로 리스트, 기본) / hex(다각형 레이더) / hybrid(레이더+리스트)
+- p: 이름§직업§레벨 (직업·레벨 생략 가능)
+- stats: 라벨§수치 (|로 구분). STR/DEX/CON/INT/WIS/CHA는 한글 자동 병기, 수정치 배지 자동 계산
+- hp/ac/init/spd/extras: 값 없으면 자동 생략. extras는 라벨§값 커스텀 칩 (|로 구분)
+- hex는 능력치 3개 이상 권장 (개수만큼 다각형 자동)
+
+### 주사위 판정 / 데미지
+![](https://st.winter0.workers.dev/?t=roll&d=NdM+K&r=굴림값§...&dc=목표난이도&dmg=데미지타입&label=제목)
+- d: 주사위 식 NdM+K (예: 2d8+3, 1d20). 식의 +는 그대로 둬도 됨
+- r: 굴림값 지정 (§구분), 생략 시 서버가 랜덤으로 굴림
+- 모드: dc 있음=판정(성공/실패) / dmg 있음=데미지 / 둘 다 없음=굴림값 (dc 우선)
+- 1d20 자연20 대성공(황금 파티클)·자연1 대실패(크랙), label=상단 제목
 
 ### 장비 등급 공통 (rarity)
 영문 대문자 표준, 한글 alias 자동 매핑, 입력 표기 그대로 표시
@@ -2217,7 +2292,7 @@ export default {
 /?t=letter        편지 ✉️           /?t=menu          메뉴판 🍽️
 /?t=dm            인스타 DM</pre>
 <hr class="divider">
-<div class="label label-example">st.winter0.workers.dev — RPG / VN 상태창 + 엔딩 + 선택지 + 던전 + MMO + 보상 + 게임오버 (11종)</div>
+<div class="label label-example">st.winter0.workers.dev — RPG / VN 상태창 + 엔딩 + 선택지 + 던전 + MMO + 보상 + 게임오버 + 인벤 + 능력치 + 주사위 (14종)</div>
 <pre># URL 형식 — 모두 /?t=타입&파라미터 형식
 /?t=vn            미연시 상태창
 /?t=vn2           미연시 상태창 v2 (상대 정보 풍부형, 1~6명 자동 레이아웃)
@@ -2229,7 +2304,10 @@ export default {
 /?t=dungeon       던전 맵 (시드 기반, enter=on/coords=on)
 /?t=mmo           MMORPG 상태창 (SAO 아인크라드 톤)
 /?t=reward        보상 / 드랍 화면 (mmo/pixel 스타일)
-/?t=gameover      게임오버 화면 (modern/pixel 스타일)</pre>
+/?t=gameover      게임오버 화면 (modern/pixel 스타일)
+/?t=inv           인벤토리 / 장비창 (mmo/dark/pixel 스타일)
+/?t=stat          능력치 상태창 (list/hex/hybrid)
+/?t=roll          주사위 판정 / 데미지 (NdM+K, dc/dmg)</pre>
 <hr class="divider">
 <div class="desc"><strong>무료 한도:</strong> 하루 10만 건 요청까지 무료 (Worker 당). 롤플레이용으로는 충분.</div>`
       }

@@ -3446,6 +3446,323 @@ function renderInv(params) {
 }
 
 
+
+// ════════════════════════════════════════════
+//  STAT (능력치 상태창) — ?t=stat & st=list|hex|hybrid
+//  &p=이름§직업§레벨
+//  &stats=STR§14|DEX§16|...   (§ 라벨/수치, | 구분, 표준약자는 한글 자동)
+//  &hp=현재§최대  &ac=13  &init=+3  &spd=9
+//  &extras=저항§화염|상태§집중   (커스텀 칩, 자유)
+//
+//  ROLL (주사위 판정) — ?t=roll
+//  &d=2d8+3  (NdM±K)   &r=5§6 (굴림값 지정, 생략 시 랜덤)
+//  &dc=15  (있으면 성공/실패 판정, 없으면 데미지 합산)
+//  &label=설득 판정
+//  · 1d20 = 판정(자연20 대성공 / 자연1 대실패) · 그 외 = 데미지 합산
+//  · 면수(d4~d20)마다 주사위 모양 자동, 비표준은 범용 폴백
+// ════════════════════════════════════════════
+
+const SD_C = {
+  bg: '#14100c', panel: '#1c1712', slot: '#120e0a', line: '#2e2418',
+  sand: '#CCAA88', indigo: '#8888CC', rose: '#BB6688', pink: '#DDAACC',
+  purple: '#884499', red: '#EE1166', cyan: '#00BBDD', orange: '#FF7722',
+  dim: '#8a7a68', txt: '#e8ddcc',
+};
+const SD_ABBR = { STR: '근력', DEX: '민첩', CON: '건강', INT: '지능', WIS: '지혜', CHA: '매력' };
+
+function sdMod(v) { const m = Math.floor((v - 10) / 2); return (m >= 0 ? '+' : '') + m; }
+function sdWrap(w, h, inner) {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" font-family="'Noto Serif KR',Georgia,serif">${inner}</svg>`;
+}
+function sdFrame(w, h) {
+  const p = 6;
+  return `<rect x="1.5" y="1.5" width="${w - 3}" height="${h - 3}" rx="6" fill="none" stroke="${SD_C.line}" stroke-width="1"/>`
+    + `<rect x="4" y="4" width="${w - 8}" height="${h - 8}" rx="4" fill="none" stroke="${SD_C.sand}" stroke-width="1" opacity="0.35"/>`
+    + [[p, p, 1, 1], [w - p, p, -1, 1], [p, h - p, 1, -1], [w - p, h - p, -1, -1]].map(([x, y, dx, dy]) =>
+      `<path d="M${x} ${y + dy * 12} L${x} ${y} L${x + dx * 12} ${y}" fill="none" stroke="${SD_C.sand}" stroke-width="1.4" opacity="0.7"/>`).join('');
+}
+function sdHeader(x, y, name, job, lv) {
+  let s = `<text x="${x}" y="${y}" font-size="21" font-weight="bold" fill="${SD_C.sand}">${esc(name)}</text>`;
+  const meta = [job, lv ? ('Lv.' + lv) : ''].filter(Boolean).join(' · ');
+  if (meta) s += `<text x="${x}" y="${y + 18}" font-family="'Noto Sans KR',sans-serif" font-size="12" fill="${SD_C.dim}">${esc(meta)}</text>`;
+  return s;
+}
+function sdHpBar(x, y, w, cur, max) {
+  const r = Math.max(0, Math.min(1, cur / max)), fw = Math.round(w * r);
+  return `<text x="${x}" y="${y - 6}" font-family="monospace" font-size="10" font-weight="bold" fill="${SD_C.dim}" letter-spacing="1">HP</text>`
+    + `<text x="${x + w}" y="${y - 6}" font-family="monospace" font-size="11" font-weight="bold" fill="${SD_C.rose}" text-anchor="end">${cur} / ${max}</text>`
+    + `<rect x="${x}" y="${y}" width="${w}" height="9" rx="4.5" fill="${SD_C.slot}" stroke="${SD_C.line}" stroke-width="1"/>`
+    + `<rect x="${x}" y="${y}" width="${fw}" height="9" rx="4.5" fill="${SD_C.rose}"><animate attributeName="width" values="0;${fw}" dur="0.8s" fill="freeze" keySplines="0.2 0.8 0.2 1" calcMode="spline"/><animate attributeName="opacity" values="0.7;1;0.7" dur="2.2s" repeatCount="indefinite"/></rect>`;
+}
+function sdShield(x, y, val) {
+  return `<g transform="translate(${x},${y})"><path d="M0 -13 L11 -8 L11 3 Q11 12 0 17 Q-11 12 -11 3 L-11 -8 Z" fill="${SD_C.slot}" stroke="${SD_C.sand}" stroke-width="1.5"/><text x="0" y="4" font-size="15" font-weight="bold" fill="${SD_C.sand}" text-anchor="middle">${val}</text><text x="0" y="30" font-family="monospace" font-size="9" fill="${SD_C.dim}" text-anchor="middle" letter-spacing="1">AC</text></g>`;
+}
+function sdChip(x, y, label, val, w) {
+  return `<rect x="${x}" y="${y}" width="${w}" height="34" rx="6" fill="${SD_C.slot}" stroke="${SD_C.line}" stroke-width="1"/><text x="${x + w / 2}" y="${y + 14}" font-family="monospace" font-size="9" fill="${SD_C.dim}" text-anchor="middle" letter-spacing="1">${esc(label)}</text><text x="${x + w / 2}" y="${y + 28}" font-size="13" font-weight="bold" fill="${SD_C.pink}" text-anchor="middle">${esc(val)}</text>`;
+}
+function sdNPoint(cx, cy, R, i, n) { const a = (-90 + i * (360 / n)) * Math.PI / 180; return [cx + R * Math.cos(a), cy + R * Math.sin(a)]; }
+
+function sdParseStats(raw) {
+  if (!raw) return [];
+  return raw.split('|').map(s => { const i = s.indexOf('§'); if (i < 0) return null; const label = s.slice(0, i).trim(); const val = parseInt(s.slice(i + 1)); if (!label || isNaN(val)) return null; return { label, val }; }).filter(Boolean).slice(0, 12);
+}
+function sdParseHp(raw) { if (!raw) return null; const a = raw.split('§'); const c = parseInt(a[0]), m = parseInt(a[1]); if (isNaN(c) || isNaN(m) || m <= 0) return null; return [c, m]; }
+function sdParseExtras(raw) { if (!raw) return []; return raw.split('|').map(s => { const i = s.indexOf('§'); if (i < 0) return null; const label = s.slice(0, i).trim(); const value = s.slice(i + 1).trim(); if (!label) return null; return { label, value }; }).filter(Boolean).slice(0, 8); }
+
+function renderStat(params) {
+  const st = (params.get('st') || 'list').toLowerCase();
+  const pp = (params.get('p') || '§§').split('§');
+  const ch = {
+    name: (pp[0] || '').trim() || '이름 없음',
+    job: (pp[1] || '').trim(),
+    lv: (pp[2] || '').trim(),
+    stats: sdParseStats(params.get('stats')),
+    hp: sdParseHp(params.get('hp')),
+    ac: (params.get('ac') || '').trim(),
+    init: (params.get('init') || '').trim(),
+    spd: (params.get('spd') || '').trim(),
+    extras: sdParseExtras(params.get('extras')),
+  };
+  if (st === 'hex') return sdStatHex(ch);
+  if (st === 'hybrid') return sdStatHybrid(ch);
+  return sdStatList(ch);
+}
+
+function sdStatList(ch) {
+  const W = 300, PAD = 18, rows = ch.stats;
+  const hasBot = ch.ac || ch.init || ch.spd;
+  const listTop = ch.hp ? 118 : 96;
+  const H = listTop + rows.length * 34 + 14 + (hasBot ? 52 : 0) + (ch.extras.length ? 30 : 0) + 12;
+  let b = `<rect width="${W}" height="${H}" fill="${SD_C.bg}"/>` + sdFrame(W, H) + sdHeader(PAD, 42, ch.name, ch.job, ch.lv);
+  let y = 64;
+  if (ch.hp) { b += sdHpBar(PAD, y + 20, W - PAD * 2, ch.hp[0], ch.hp[1]); y += 44; }
+  rows.forEach((it, i) => {
+    const ry = listTop - 14 + i * 34;
+    const kor = SD_ABBR[it.label.toUpperCase()] || '';
+    b += `<rect x="${PAD}" y="${ry}" width="${W - PAD * 2}" height="28" rx="6" fill="${SD_C.slot}" stroke="${SD_C.line}" stroke-width="1"/>`;
+    b += `<text x="${PAD + 12}" y="${ry + 19}" font-family="monospace" font-size="11" font-weight="bold" fill="${SD_C.sand}" letter-spacing="1">${esc(it.label)}</text>`;
+    if (kor) b += `<text x="${PAD + 46}" y="${ry + 19}" font-family="'Noto Sans KR',sans-serif" font-size="12" fill="${SD_C.txt}">${kor}</text>`;
+    b += `<text x="${W - PAD - 52}" y="${ry + 20}" font-size="17" font-weight="bold" fill="${SD_C.txt}" text-anchor="end">${it.val}</text>`;
+    const mv = sdMod(it.val), pos = !mv.startsWith('-');
+    b += `<circle cx="${W - PAD - 22}" cy="${ry + 14}" r="0" fill="${SD_C.slot}" stroke="${pos ? SD_C.indigo : SD_C.rose}" stroke-width="1.5"><animate attributeName="r" values="0;13" dur="0.4s" begin="${(0.3 + i * 0.08).toFixed(2)}s" fill="freeze" keySplines="0.3 1.4 0.5 1" calcMode="spline"/></circle>`;
+    b += `<text x="${W - PAD - 22}" y="${ry + 18}" font-size="12" font-weight="bold" fill="${pos ? SD_C.indigo : SD_C.rose}" text-anchor="middle" opacity="0">${mv}<animate attributeName="opacity" values="0;1" dur="0.3s" begin="${(0.4 + i * 0.08).toFixed(2)}s" fill="freeze"/></text>`;
+  });
+  let y2 = listTop - 14 + rows.length * 34 + 6;
+  if (hasBot) {
+    let bx = PAD;
+    if (ch.ac) { b += sdShield(bx + 13, y2 + 16, esc(ch.ac)); bx += 44; }
+    const chips = [];
+    if (ch.init) chips.push(['이니셔티브', ch.init]);
+    if (ch.spd) chips.push(['이동', ch.spd]);
+    if (chips.length) {
+      const cw = (W - PAD * 2 - (ch.ac ? 44 : 0) - (chips.length - 1) * 8) / chips.length;
+      chips.forEach(([lab, val]) => { b += sdChip(bx, y2, lab, val, cw); bx += cw + 8; });
+    }
+    y2 += 52;
+  }
+  if (ch.extras.length) {
+    let ex = PAD;
+    ch.extras.forEach(e => {
+      const tw = (e.label.length + e.value.length) * 8 + 30;
+      b += `<rect x="${ex}" y="${y2}" width="${tw}" height="20" rx="10" fill="${SD_C.slot}" stroke="${SD_C.purple}" stroke-width="1"/>`;
+      b += `<text x="${ex + 10}" y="${y2 + 14}" font-family="'Noto Sans KR',sans-serif" font-size="11" fill="${SD_C.pink}">${esc(e.label)} <tspan fill="${SD_C.sand}" font-weight="bold">${esc(e.value)}</tspan></text>`;
+      ex += tw + 8;
+    });
+  }
+  return sdWrap(W, H, b);
+}
+
+function sdStatHex(ch) {
+  const W = 300, H = 340, cx = W / 2, cy = 150, R = 92;
+  const keys = ch.stats, n = keys.length;
+  let b = `<rect width="${W}" height="${H}" fill="${SD_C.bg}"/>` + sdFrame(W, H) + sdHeader(18, 36, ch.name, ch.job, ch.lv);
+  if (n < 3) { b += `<text x="${cx}" y="${cy}" font-family="'Noto Sans KR',sans-serif" font-size="13" fill="${SD_C.dim}" text-anchor="middle">능력치 3개 이상 필요 · 리스트형 권장</text>`; return sdWrap(W, H, b); }
+  [1, 0.66, 0.33].forEach(f => { const pts = keys.map((_, i) => sdNPoint(cx, cy, R * f, i, n).map(v => v.toFixed(1)).join(',')).join(' '); b += `<polygon points="${pts}" fill="none" stroke="${SD_C.line}" stroke-width="1"/>`; });
+  keys.forEach((_, i) => { const [x, y] = sdNPoint(cx, cy, R, i, n); b += `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="${SD_C.line}" stroke-width="0.8"/>`; });
+  const dpts = keys.map((it, i) => { const r = R * Math.max(0.08, Math.min(1, it.val / 20)); return sdNPoint(0, 0, r, i, n).map(v => v.toFixed(1)).join(','); }).join(' ');
+  b += `<g transform="translate(${cx},${cy})"><polygon points="${dpts}" fill="${SD_C.indigo}" fill-opacity="0.28" stroke="${SD_C.indigo}" stroke-width="2"><animateTransform attributeName="transform" type="scale" values="0;1.08;1" dur="0.7s" fill="freeze" keySplines="0.2 0.8 0.3 1;0.4 0 0.6 1" calcMode="spline"/></polygon>`;
+  keys.forEach((it, i) => { const r = R * Math.max(0.08, Math.min(1, it.val / 20)); const [px, py] = sdNPoint(0, 0, r, i, n); b += `<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="3" fill="${SD_C.pink}" opacity="0"><animate attributeName="opacity" values="0;1" dur="0.3s" begin="0.6s" fill="freeze"/></circle>`; });
+  b += `</g>`;
+  keys.forEach((it, i) => { const [lx, ly] = sdNPoint(cx, cy, R + 22, i, n); b += `<text x="${lx.toFixed(1)}" y="${(ly - 2).toFixed(1)}" font-family="monospace" font-size="10" font-weight="bold" fill="${SD_C.sand}" text-anchor="middle">${esc(it.label)}</text><text x="${lx.toFixed(1)}" y="${(ly + 10).toFixed(1)}" font-size="12" font-weight="bold" fill="${SD_C.txt}" text-anchor="middle">${it.val} <tspan fill="${SD_C.indigo}" font-size="10">${sdMod(it.val)}</tspan></text>`; });
+  let y = 278;
+  const hpW = ch.ac ? W - 102 : W - 48;
+  if (ch.hp) b += sdHpBar(24, y + 20, hpW, ch.hp[0], ch.hp[1]);
+  if (ch.ac) b += sdShield(W - 36, y + 8, esc(ch.ac));
+  return sdWrap(W, H, b);
+}
+
+function sdStatHybrid(ch) {
+  const W = 440, H = 290, cx = 110, cy = 150, R = 58;
+  const keys = ch.stats, n = keys.length;
+  let b = `<rect width="${W}" height="${H}" fill="${SD_C.bg}"/>` + sdFrame(W, H) + sdHeader(20, 40, ch.name, ch.job, ch.lv);
+  if (n >= 3) {
+    [1, 0.55].forEach(f => { const pts = keys.map((_, i) => sdNPoint(cx, cy, R * f, i, n).map(v => v.toFixed(1)).join(',')).join(' '); b += `<polygon points="${pts}" fill="none" stroke="${SD_C.line}" stroke-width="1"/>`; });
+    keys.forEach((_, i) => { const [x, y] = sdNPoint(cx, cy, R, i, n); b += `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="${SD_C.line}" stroke-width="0.7"/>`; });
+    const dpts = keys.map((it, i) => { const r = R * Math.max(0.08, Math.min(1, it.val / 20)); return sdNPoint(0, 0, r, i, n).map(v => v.toFixed(1)).join(','); }).join(' ');
+    b += `<g transform="translate(${cx},${cy})"><polygon points="${dpts}" fill="${SD_C.indigo}" fill-opacity="0.28" stroke="${SD_C.indigo}" stroke-width="2"><animateTransform attributeName="transform" type="scale" values="0;1.08;1" dur="0.7s" fill="freeze" keySplines="0.2 0.8 0.3 1;0.4 0 0.6 1" calcMode="spline"/></polygon></g>`;
+    keys.forEach((it, i) => { const [lx, ly] = sdNPoint(cx, cy, R + 13, i, n); b += `<text x="${lx.toFixed(1)}" y="${(ly + 3).toFixed(1)}" font-family="monospace" font-size="9" font-weight="bold" fill="${SD_C.sand}" text-anchor="middle">${esc(it.label)}</text>`; });
+  }
+  const lx = 232, lw = W - lx - 20;
+  keys.slice(0, 6).forEach((it, i) => {
+    const ry = 64 + i * 23, mv = sdMod(it.val), pos = !mv.startsWith('-');
+    const kor = SD_ABBR[it.label.toUpperCase()] || '';
+    b += `<text x="${lx}" y="${ry}" font-family="monospace" font-size="11" font-weight="bold" fill="${SD_C.sand}">${esc(it.label)}</text>`;
+    if (kor) b += `<text x="${lx + 34}" y="${ry}" font-family="'Noto Sans KR',sans-serif" font-size="11" fill="${SD_C.dim}">${kor}</text>`;
+    b += `<text x="${lx + lw - 34}" y="${ry}" font-size="14" font-weight="bold" fill="${SD_C.txt}" text-anchor="end">${it.val}</text><text x="${lx + lw}" y="${ry}" font-size="12" font-weight="bold" fill="${pos ? SD_C.indigo : SD_C.rose}" text-anchor="end">${mv}</text>`;
+  });
+  let y = 256;
+  if (ch.hp) b += sdHpBar(20, y, 200, ch.hp[0], ch.hp[1]);
+  if (ch.ac) b += sdShield(258, y - 18, esc(ch.ac));
+  if (ch.init) b += sdChip(298, y - 22, '이니셔티브', ch.init, 66);
+  if (ch.spd) b += sdChip(372, y - 22, '이동', ch.spd, 46);
+  return sdWrap(W, H, b);
+}
+
+// ──── 주사위 ────
+function sdD20Body(R, stroke, fill) {
+  const pts = [[0, -R], [0.866 * R, -0.5 * R], [0.866 * R, 0.5 * R], [0, R], [-0.866 * R, 0.5 * R], [-0.866 * R, -0.5 * R]].map(p => p.map(v => v.toFixed(1)).join(',')).join(' ');
+  const LS = (a, b) => `<line x1="${(a[0] * R).toFixed(1)}" y1="${(a[1] * R).toFixed(1)}" x2="${(b[0] * R).toFixed(1)}" y2="${(b[1] * R).toFixed(1)}" stroke="${stroke}" stroke-width="1" opacity="0.55"/>`;
+  const A = [0, -1], BL = [-0.866, -0.5], BR = [0.866, -0.5], D = [0, 1];
+  return `<polygon points="${pts}" fill="${fill}" stroke="${stroke}" stroke-width="2.5" stroke-linejoin="round"/>` + LS(BL, BR) + LS(BL, D) + LS(BR, D) + LS(A, BL) + LS(A, BR);
+}
+function sdDieShape(faces, R, st, showPips) {
+  showPips = showPips !== false;
+  const f = Number(faces);
+  if (f === 4) { const p = [[0, -R], [0.87 * R, 0.6 * R], [-0.87 * R, 0.6 * R]].map(a => a.map(v => v.toFixed(1)).join(',')).join(' '); return `<polygon points="${p}" fill="${SD_C.slot}" stroke="${st}" stroke-width="2.5" stroke-linejoin="round"/><line x1="0" y1="${(-R).toFixed(1)}" x2="0" y2="${(0.6 * R).toFixed(1)}" stroke="${st}" stroke-width="1" opacity="0.5"/>`; }
+  if (f === 6) { const s = R * 0.82; let g = `<rect x="${(-s).toFixed(1)}" y="${(-s).toFixed(1)}" width="${(2 * s).toFixed(1)}" height="${(2 * s).toFixed(1)}" rx="${(R * 0.18).toFixed(1)}" fill="${SD_C.slot}" stroke="${st}" stroke-width="2.5"/>`; if (showPips) { const pr = R * 0.11, o = s * 0.45;[[-o, -o], [o, -o], [0, 0], [-o, o], [o, o]].forEach(([px, py]) => { g += `<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="${pr.toFixed(1)}" fill="${st}"/>`; }); } return g; }
+  if (f === 8) { return `<polygon points="0,${(-R).toFixed(1)} ${(R * 0.8).toFixed(1)},0 0,${R.toFixed(1)} ${(-R * 0.8).toFixed(1)},0" fill="${SD_C.slot}" stroke="${st}" stroke-width="2.5" stroke-linejoin="round"/><line x1="${(-R * 0.8).toFixed(1)}" y1="0" x2="${(R * 0.8).toFixed(1)}" y2="0" stroke="${st}" stroke-width="1" opacity="0.5"/>`; }
+  if (f === 10) { const p = [[0, -R], [0.72 * R, -0.08 * R], [0.45 * R, 0.78 * R], [-0.45 * R, 0.78 * R], [-0.72 * R, -0.08 * R]].map(a => a.map(v => v.toFixed(1)).join(',')).join(' '); return `<polygon points="${p}" fill="${SD_C.slot}" stroke="${st}" stroke-width="2.5" stroke-linejoin="round"/><line x1="0" y1="${(-R).toFixed(1)}" x2="${(0.45 * R).toFixed(1)}" y2="${(0.78 * R).toFixed(1)}" stroke="${st}" stroke-width="1" opacity="0.5"/><line x1="0" y1="${(-R).toFixed(1)}" x2="${(-0.45 * R).toFixed(1)}" y2="${(0.78 * R).toFixed(1)}" stroke="${st}" stroke-width="1" opacity="0.5"/><line x1="${(-0.72 * R).toFixed(1)}" y1="${(-0.08 * R).toFixed(1)}" x2="${(0.72 * R).toFixed(1)}" y2="${(-0.08 * R).toFixed(1)}" stroke="${st}" stroke-width="1" opacity="0.5"/>`; }
+  if (f === 12) { const p = [0, 1, 2, 3, 4].map(i => { const a = (-90 + i * 72) * Math.PI / 180; return `${(R * Math.cos(a)).toFixed(1)},${(R * Math.sin(a)).toFixed(1)}`; }).join(' '); return `<polygon points="${p}" fill="${SD_C.slot}" stroke="${st}" stroke-width="2.5" stroke-linejoin="round"/>`; }
+  return sdD20Body(R, st, SD_C.slot);
+}
+function sdParseDice(raw) {
+  const s = (raw || '').trim().replace(/\s+/g, '+');
+  const m = s.match(/^(\d+)d(\d+)([+-]\d+)?$/i);
+  if (!m) return null;
+  const n = Math.min(20, Math.max(1, parseInt(m[1])));
+  const faces = Math.min(1000, Math.max(2, parseInt(m[2])));
+  const bonus = m[3] ? parseInt(m[3]) : 0;
+  return { n, faces, bonus };
+}
+
+function renderRoll(params) {
+  const dice = sdParseDice(params.get('d') || '1d20');
+  if (!dice) return sdRollError();
+  const { n, faces, bonus } = dice;
+  let rolls = [];
+  const rRaw = params.get('r');
+  if (rRaw) rolls = rRaw.split('§').map(x => parseInt(x)).filter(x => !isNaN(x));
+  while (rolls.length < n) rolls.push(1 + Math.floor(Math.random() * faces));
+  rolls = rolls.slice(0, n).map(v => Math.min(faces, Math.max(1, v)));
+  const dcRaw = params.get('dc');
+  const dc = (dcRaw != null && dcRaw !== '' && !isNaN(parseInt(dcRaw))) ? parseInt(dcRaw) : null;
+  const label = (params.get('label') || '').trim();
+  const dmgRaw = params.get('dmg');
+  let mode;
+  if (dc != null) mode = { kind: 'judge', dc };
+  else if (dmgRaw != null) mode = { kind: 'damage', name: dmgRaw.trim() };
+  else mode = { kind: 'plain' };
+  if (n === 1 && faces === 20) return sdRenderJudge(rolls[0], bonus, label, mode);
+  return sdRenderDamage(n, faces, bonus, rolls, label, mode);
+}
+
+function sdRenderJudge(val, bonus, label, mode) {
+  const W = 300, H = 280, cx = W / 2, cy = 128, R = 62;
+  const total = val + bonus;
+  const isJudge = mode.kind === 'judge', isDmg = mode.kind === 'damage';
+  const crit = val === 20 && !isDmg, fumble = val === 1 && !isDmg;
+  const color = crit ? SD_C.sand : fumble ? SD_C.red : (isDmg ? SD_C.orange : SD_C.indigo);
+  const CY = 4.2, x0 = cx - 70, y0 = cy - 120;
+  let b = `<rect width="${W}" height="${H}" fill="${SD_C.bg}"/>` + sdFrame(W, H);
+  const dieLabel = `d20${bonus ? (bonus > 0 ? '+' + bonus : bonus) : ''}`;
+  let info = dieLabel;
+  if (isJudge) info += ` · 목표 DC ${mode.dc} 이상`;
+  else if (isDmg) info += mode.name ? ` · ${esc(mode.name)} 데미지` : ' · 데미지';
+  let infoY = 28;
+  if (label) { b += `<text x="${cx}" y="28" font-family="'Noto Sans KR',sans-serif" font-size="14" font-weight="bold" fill="${SD_C.txt}" text-anchor="middle">${esc(label)}</text>`; infoY = 46; }
+  b += `<text x="${cx}" y="${infoY}" font-family="monospace" font-size="11" fill="${SD_C.sand}" text-anchor="middle" letter-spacing="1">${info}</text>`;
+  // 그림자
+  b += `<ellipse cx="${cx}" cy="${cy + R + 8}" rx="43" ry="7" fill="#000" opacity="0"><animate attributeName="opacity" values="0;0;0.4;0.4;0" keyTimes="0;0.18;0.24;0.9;1" dur="${CY}s" repeatCount="indefinite"/></ellipse>`;
+  // 대성공 글로우
+  if (crit) b += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${SD_C.sand}" stroke-width="3" opacity="0"><animate attributeName="r" values="${R};${R};${R + 40};${R + 40}" keyTimes="0;0.24;0.42;1" dur="${CY}s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;0;0.9;0;0" keyTimes="0;0.24;0.33;0.5;1" dur="${CY}s" repeatCount="indefinite"/></circle>`;
+  // 몸체 (opacity 사이클 → translate → rotate)
+  b += `<g opacity="0"><animate attributeName="opacity" values="0;1;1;1;0" keyTimes="0;0.05;0.24;0.9;1" dur="${CY}s" repeatCount="indefinite"/>`
+    + `<g><animateTransform attributeName="transform" type="translate" values="${x0} ${y0};${cx} ${cy + 6};${cx} ${cy};${cx} ${cy}" keyTimes="0;0.14;0.22;1" keySplines="0.4 0 0.7 1;0.3 0 0.4 1;0 0 1 1" calcMode="spline" dur="${CY}s" repeatCount="indefinite"/>`
+    + `<g><animateTransform attributeName="transform" type="rotate" values="0;720;720" keyTimes="0;0.22;1" keySplines="0.1 0.6 0.3 1;0 0 1 1" calcMode="spline" dur="${CY}s" repeatCount="indefinite"/>`
+    + sdD20Body(R, color, SD_C.slot)
+    + `</g></g></g>`;
+  // 대성공 황금 파티클 분출
+  if (crit) {
+    const parts = [[-32, 1.9, 0.00], [-16, 1.4, 0.05], [-4, 1.7, 0.02], [12, 1.5, 0.08], [26, 1.9, 0.03], [34, 1.3, 0.11], [-24, 1.5, 0.09], [4, 2.0, 0.06]];
+    parts.forEach(([px, pr, dl]) => {
+      const sy = cy + 6, ey = cy - 78, t0 = 0.24 + dl;
+      b += `<circle cx="${cx + px}" cy="${sy}" r="${pr}" fill="${SD_C.sand}" opacity="0"><animate attributeName="cy" values="${sy};${sy};${ey};${ey}" keyTimes="0;${t0.toFixed(3)};${(t0 + 0.32).toFixed(3)};1" dur="${CY}s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;0;1;0;0" keyTimes="0;${t0.toFixed(3)};${(t0 + 0.13).toFixed(3)};${(t0 + 0.32).toFixed(3)};1" dur="${CY}s" repeatCount="indefinite"/></circle>`;
+    });
+  }
+  // 대실패 크랙 (착지 후)
+  if (fumble) b += `<path transform="translate(${cx},${cy})" d="M-9 ${(-R * 0.5).toFixed(0)} L4 -8 L-6 6 L9 ${(R * 0.5).toFixed(0)}" fill="none" stroke="${SD_C.red}" stroke-width="1.5" opacity="0"><animate attributeName="opacity" values="0;0;0.85;0.85;0" keyTimes="0;0.24;0.28;0.9;1" dur="${CY}s" repeatCount="indefinite"/></path>`;
+  // 숫자 룰렛
+  const roulette = [7, 14, 3, 19, 11, 5, 16, 9];
+  roulette.forEach((nn, i) => { const t = 0.04 + i * 0.02; b += `<text x="${cx}" y="${cy + 9}" font-size="30" font-weight="bold" fill="${SD_C.dim}" text-anchor="middle" opacity="0">${nn}<animate attributeName="opacity" values="0;0;0.8;0;0" keyTimes="0;${(t - 0.015).toFixed(3)};${t.toFixed(3)};${(t + 0.015).toFixed(3)};1" dur="${CY}s" repeatCount="indefinite"/></text>`; });
+  // 최종 숫자 (배경 외곽선으로 크랙 위에 선명)
+  b += `<text x="${cx}" y="${cy + 11}" font-size="36" font-weight="bold" fill="${color}" text-anchor="middle" paint-order="stroke" stroke="${SD_C.bg}" stroke-width="5" stroke-linejoin="round" opacity="0">${isDmg ? total : val}<animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.21;0.24;0.9;1" dur="${CY}s" repeatCount="indefinite"/><animate attributeName="font-size" values="46;36;36;36" keyTimes="0;0.3;0.9;1" dur="${CY}s" repeatCount="indefinite"/></text>`;
+  // 판정
+  let verdict, vcolor;
+  if (crit) { verdict = 'CRITICAL · 대성공'; vcolor = SD_C.sand; }
+  else if (fumble) { verdict = 'FUMBLE · 대실패'; vcolor = SD_C.red; }
+  else if (isJudge) { const ok = total >= mode.dc; verdict = `${ok ? '성공' : '실패'} · ${total} vs DC ${mode.dc}`; vcolor = ok ? SD_C.cyan : SD_C.rose; }
+  else if (isDmg) { verdict = (mode.name ? esc(mode.name) + ' ' : '') + '데미지'; vcolor = SD_C.orange; }
+  else { verdict = `굴림 ${total}`; vcolor = SD_C.indigo; }
+  const boxPulse = crit ? `<animate attributeName="stroke-width" values="1.5;1.5;3.5;1.5;1.5" keyTimes="0;0.34;0.43;0.58;1" dur="${CY}s" repeatCount="indefinite"/>` : '';
+  const stamp = crit ? `<animate attributeName="font-size" values="26;26;14;14;14" keyTimes="0;0.34;0.42;0.9;1" dur="${CY}s" repeatCount="indefinite"/>` : '';
+  b += `<rect x="30" y="${H - 58}" width="${W - 60}" height="34" rx="8" fill="${SD_C.slot}" stroke="${vcolor}" stroke-width="1.5" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.3;0.34;0.9;1" dur="${CY}s" repeatCount="indefinite"/>${boxPulse}</rect>`;
+  b += `<text x="${cx}" y="${H - 36}" font-size="14" font-weight="bold" fill="${vcolor}" text-anchor="middle" opacity="0">${esc(verdict)}<animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.3;0.34;0.9;1" dur="${CY}s" repeatCount="indefinite"/>${stamp}</text>`;
+  return sdWrap(W, H, b);
+}
+
+function sdRenderDamage(n, faces, bonus, rolls, label, mode) {
+  const W = 340, H = 210, color = mode.kind === 'judge' ? SD_C.indigo : SD_C.orange, CY = 4.4;
+  const gap = Math.min(88, (W - 60) / n), startX = (W - (n - 1) * gap) / 2, dy = 82, R = 30;
+  const sum = rolls.reduce((a, c) => a + c, 0), total = sum + bonus;
+  let b = `<rect width="${W}" height="${H}" fill="${SD_C.bg}"/>` + sdFrame(W, H);
+  if (label) b += `<text x="${W / 2}" y="26" font-family="'Noto Sans KR',sans-serif" font-size="14" font-weight="bold" fill="${SD_C.txt}" text-anchor="middle">${esc(label)}</text>`;
+  let dinfo = `${n}d${faces}${bonus ? (bonus > 0 ? '+' + bonus : bonus) : ''}`;
+  if (mode.kind === 'judge') dinfo += ` · 목표 DC ${mode.dc}`;
+  else if (mode.kind === 'damage') dinfo += mode.name ? ` · ${esc(mode.name)} 데미지` : ' · 데미지';
+  b += `<text x="${W / 2}" y="${label ? 44 : 30}" font-family="monospace" font-size="13" font-weight="bold" fill="${SD_C.sand}" text-anchor="middle" letter-spacing="1">${dinfo}</text>`;
+  rolls.forEach((val, i) => {
+    const dx = startX + i * gap;
+    const land = 0.10 + i * 0.06, t0 = Math.max(0, land - 0.10);
+    b += `<ellipse cx="${dx}" cy="${dy + R + 6}" rx="21" ry="5" fill="#000" opacity="0"><animate attributeName="opacity" values="0;0;0.35;0.35;0" keyTimes="0;${land.toFixed(3)};${(land + 0.03).toFixed(3)};0.9;1" dur="${CY}s" repeatCount="indefinite"/></ellipse>`;
+    b += `<g opacity="0"><animate attributeName="opacity" values="0;0;1;1;1;0" keyTimes="0;${t0.toFixed(3)};${(t0 + 0.03).toFixed(3)};${land.toFixed(3)};0.9;1" dur="${CY}s" repeatCount="indefinite"/>`
+      + `<g><animateTransform attributeName="transform" type="translate" values="${(dx - 40).toFixed(0)} ${(dy - 90).toFixed(0)};${dx} ${dy + 6};${dx} ${dy};${dx} ${dy}" keyTimes="0;${(land - 0.03).toFixed(3)};${land.toFixed(3)};1" keySplines="0.4 0 0.7 1;0.4 0 0.6 1;0 0 1 1" calcMode="spline" dur="${CY}s" repeatCount="indefinite"/>`
+      + `<g><animateTransform attributeName="transform" type="rotate" values="0;360;360" keyTimes="0;${land.toFixed(3)};1" keySplines="0.1 0.6 0.3 1;0 0 1 1" calcMode="spline" dur="${CY}s" repeatCount="indefinite"/>`
+      + sdDieShape(faces, R, color, false)
+      + `</g></g></g>`;
+    for (let r = 0; r < 4; r++) { const rn = 1 + ((val + r * 3) % faces); const tt = t0 + 0.02 + r * 0.02; b += `<text x="${dx}" y="${dy + 7}" font-size="20" font-weight="bold" fill="${SD_C.dim}" text-anchor="middle" opacity="0">${rn}<animate attributeName="opacity" values="0;0;0.7;0;0" keyTimes="0;${(tt - 0.012).toFixed(3)};${tt.toFixed(3)};${(tt + 0.012).toFixed(3)};1" dur="${CY}s" repeatCount="indefinite"/></text>`; }
+    b += `<text x="${dx}" y="${dy + 8}" font-size="24" font-weight="bold" fill="${color}" text-anchor="middle" paint-order="stroke" stroke="${SD_C.bg}" stroke-width="4" stroke-linejoin="round" opacity="0">${val}<animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;${(land - 0.01).toFixed(3)};${(land + 0.02).toFixed(3)};0.9;1" dur="${CY}s" repeatCount="indefinite"/></text>`;
+  });
+  const rev = 0.10 + n * 0.06 + 0.05;
+  const parts = rolls.join(' + ') + (bonus ? ` + ${bonus}` : '');
+  b += `<line x1="30" y1="150" x2="${W - 30}" y2="150" stroke="${SD_C.line}" stroke-width="1" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;${rev.toFixed(3)};${(rev + 0.03).toFixed(3)};0.9;1" dur="${CY}s" repeatCount="indefinite"/></line>`;
+  b += `<text x="30" y="176" font-family="monospace" font-size="13" fill="${SD_C.dim}" opacity="0">${esc(parts)} =<animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;${rev.toFixed(3)};${(rev + 0.03).toFixed(3)};0.9;1" dur="${CY}s" repeatCount="indefinite"/></text>`;
+  let rlabel, rcolor;
+  if (mode.kind === 'judge') { const ok = total >= mode.dc; rlabel = ok ? `성공 · DC ${mode.dc}` : `실패 · DC ${mode.dc}`; rcolor = ok ? SD_C.cyan : SD_C.rose; }
+  else if (mode.kind === 'damage') { rlabel = mode.name ? `${esc(mode.name)} 데미지` : '데미지'; rcolor = SD_C.orange; }
+  else { rlabel = '합계'; rcolor = SD_C.orange; }
+  b += `<text x="${W - 30}" y="180" font-size="26" font-weight="bold" fill="${rcolor}" text-anchor="end" opacity="0">${total}<animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;${rev.toFixed(3)};${(rev + 0.02).toFixed(3)};0.9;1" dur="${CY}s" repeatCount="indefinite"/><animate attributeName="font-size" values="34;26;26" keyTimes="0;${(rev + 0.06).toFixed(3)};1" dur="${CY}s" repeatCount="indefinite"/></text>`;
+  b += `<text x="${W - 30}" y="196" font-family="'Noto Sans KR',sans-serif" font-size="10" fill="${SD_C.dim}" text-anchor="end" opacity="0">${rlabel}<animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;${rev.toFixed(3)};${(rev + 0.03).toFixed(3)};0.9;1" dur="${CY}s" repeatCount="indefinite"/></text>`;
+  return sdWrap(W, H, b);
+}
+
+function sdRollError() {
+  const W = 300, H = 120;
+  let b = `<rect width="${W}" height="${H}" fill="${SD_C.bg}"/>` + sdFrame(W, H);
+  b += `<text x="${W / 2}" y="50" font-family="'Noto Sans KR',sans-serif" font-size="13" fill="${SD_C.rose}" text-anchor="middle">주사위 형식 오류</text>`;
+  b += `<text x="${W / 2}" y="74" font-family="monospace" font-size="12" fill="${SD_C.dim}" text-anchor="middle">예: d=2d8+3</text>`;
+  return sdWrap(W, H, b);
+}
+
 // ════════════════════════════════════════════
 //  FETCH
 // ════════════════════════════════════════════
@@ -3468,8 +3785,10 @@ export default {
     else if (t === 'reward') svg = renderReward(params);
     else if (t === 'gameover') svg = renderGameover(params);
     else if (t === 'inv') svg = renderInv(params);
+    else if (t === 'stat') svg = renderStat(params);
+    else if (t === 'roll') svg = renderRoll(params);
     else {
-      return new Response('사용 가능: ?t=vn / ?t=vn2 / ?t=dark / ?t=pixel / ?t=ending / ?t=rpg2k / ?t=choice / ?t=dungeon / ?t=mmo / ?t=reward / ?t=gameover / ?t=inv', {
+      return new Response('사용 가능: ?t=vn / ?t=vn2 / ?t=dark / ?t=pixel / ?t=ending / ?t=rpg2k / ?t=choice / ?t=dungeon / ?t=mmo / ?t=reward / ?t=gameover / ?t=inv / ?t=stat / ?t=roll', {
         status: 400, headers: { 'Content-Type': 'text/plain; charset=utf-8' }
       });
     }

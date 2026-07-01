@@ -322,7 +322,11 @@ details.ref-item .ref-body{padding:0 16px 14px 30px;font-size:12px;color:var(--t
           </div>
           <button class="toc-cat-btn" onclick="toggleTocCat(this)">⚙️ 제어 <span class="toc-cat-arrow">▸</span></button>
           <div class="toc-cat-sections">
+          <button class="toc-subgroup-btn" onclick="toggleTocSub(this)">🔧 교정 <span class="toc-sub-arrow">▸</span></button>
+          <div class="toc-subsections">
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-22')">🔧 !교정</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-88')">🔧 !교정2</button>
+          </div>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-33')">🧊 !stop</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-34')">🌊 !flow</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-29')">🚧 !OOC</button>
@@ -2185,6 +2189,27 @@ yyyy/MM/dd/요일:
             <div class="lb-bar-left">
               <span class="lb-count"></span>
               <button class="lb-tag" data-copy="!교정" onclick="lbCopyChip(this)">!교정</button>
+              <button class="lb-tag" data-copy="🔧" onclick="lbCopyChip(this)">🔧</button>
+            </div>
+            <button class="lb-copy" onclick="lbCopy(this)">복사</button>
+          </div>
+        </div>
+      </details>
+      <details class="ref-item" id="lb-kw-88">
+        <summary><span class="lb-kw">🔧 !교정2</span></summary>
+        <div class="ref-body">
+          <div class="lb-code">### !교정2 (전체 양식 자동 복구)
+- 별도 안내·사과·해설·중단 없이, 다음 출력부터 기준 양식으로 즉시 복구해 그대로 이어간다. 이 규칙은 RP 진행보다 우선한다.
+- 상태창: 항목 순서·수치 표기·이모지·정렬·누락 항목을 원래 포맷 기준으로 복구한다.
+- 대사: 지정된 대사 표기만 사용한다.
+- 문단: 지정된 들여쓰기·기울임체·줄바꿈·공백 규칙을 따른다.
+- 서술: 지정된 말투·어미·시점·대화 양식을 유지한다.
+- 금지: 오류 설명, 메타 발언, 사과문(예: &quot;수정했습니다&quot;), 시점 변경, 장면 리셋.
+- 출력 전 내부 점검: ①상태창 포맷 ②대사 양식 ③서술 시점·어미 ④문단 들여쓰기·기울임체·줄바꿈 ⑤불필요한 설명·사과 유무 — 하나라도 어긋나면 설명 없이 고쳐 출력한다.</div>
+          <div class="lb-bar">
+            <div class="lb-bar-left">
+              <span class="lb-count"></span>
+              <button class="lb-tag" data-copy="!교정2" onclick="lbCopyChip(this)">!교정2</button>
               <button class="lb-tag" data-copy="🔧" onclick="lbCopyChip(this)">🔧</button>
             </div>
             <button class="lb-copy" onclick="lbCopy(this)">복사</button>

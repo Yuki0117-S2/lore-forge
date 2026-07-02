@@ -317,6 +317,10 @@ details.ref-item .ref-body{padding:0 16px 14px 30px;font-size:12px;color:var(--t
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-45')">🎰 !랜덤능력배정</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-46')">🎲 !랜덤이벤트</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-47')">🌀 !카오스이벤트</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-94')">🪪 !유저페소</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-95')">🧮 !랜덤능력치</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-96')">🎭 !랜덤페르소나</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-97')">🃏 !랜덤배경</button>
           </div>
           <button class="toc-cat-btn" onclick="toggleTocCat(this)">🔞 수위 <span class="toc-cat-arrow">▸</span></button>
           <div class="toc-cat-sections">
@@ -2550,6 +2554,86 @@ yyyy/MM/dd/요일:
               <span class="lb-count"></span>
               <button class="lb-tag" data-copy="!카오스이벤트" onclick="lbCopyChip(this)">!카오스이벤트</button>
               <button class="lb-tag" data-copy="🌀" onclick="lbCopyChip(this)">🌀</button>
+            </div>
+            <button class="lb-copy" onclick="lbCopy(this)">복사</button>
+          </div>
+        </div>
+      </details>
+      <details class="ref-item" id="lb-kw-94">
+        <summary><span class="lb-kw">🪪 !유저페소</span></summary>
+        <div class="ref-body">
+          <div class="lb-code">### 페르소나 제안 모드
+- 이 트리거가 호출되면 현재 적용된 세계관·캐릭터 설정·서사 톤을 읽고, 거기에 어울리는 유저 페르소나 후보 2~3개를 제안하라.
+- 트리거 뒤에 덧붙인 조건(예: 여자, 20대, 기사, 소심한 성격)이 있으면 모든 후보에 최우선으로 반영하라.
+- 각 후보는 〈이름 / 나이 / 신분·직업 / 성격 한 줄 / 캐릭터와의 접점〉으로 간결히 제시하라. 후보끼리는 결이 겹치지 않게 뚜렷이 달라야 한다.
+- 캐릭터와의 접점은 갈등이나 끌림이 생길 여지로 설계하라. 무난한 행인 말고, 서사가 시작될 수 있는 위치를 줘라.
+- 제안만 하고 멈춰라. 유저가 고르거나 수정하기 전까지 어떤 후보도 확정·적용하지 마라. 일부만 취해 섞는 것도 허용하라.
+- 유저노트에 이미 지정된 페르소나 요소가 있으면 그것을 유지한 채 빈 부분만 채워 제안하라.</div>
+          <div class="lb-bar">
+            <div class="lb-bar-left">
+              <span class="lb-count"></span>
+              <button class="lb-tag" data-copy="!유저페소" onclick="lbCopyChip(this)">!유저페소</button>
+              <button class="lb-tag" data-copy="🪪" onclick="lbCopyChip(this)">🪪</button>
+            </div>
+            <button class="lb-copy" onclick="lbCopy(this)">복사</button>
+          </div>
+        </div>
+      </details>
+      <details class="ref-item" id="lb-kw-95">
+        <summary><span class="lb-kw">🧮 !랜덤능력치</span></summary>
+        <div class="ref-body">
+          <div class="lb-code">### 랜덤 능력치 배정 모드
+- 이 트리거가 호출되면 대상에게 6대 능력치(힘·민첩·건강·지능·지혜·매력)를 무작위로 굴려 부여하라. 각 능력치는 3~18 범위이며, 좋은 쪽으로 보정하지 마라 — 평균 이하 굴림도 동등하게 나온다.
+- 출력은 〈능력치표 / 최고치 / 최저치 / 총평 한 줄〉로 간결히 제시하라.
+- 수치를 성격과 행동으로 번역하라: 최고 능력치는 강점이자 자부심으로, 최저 능력치는 콤플렉스나 극복 과제로 서술하라. 예: 지능 17·매력 5는 "명석하지만 말주변이 없어 오해받는" 식.
+- 이후 서사에서 능력치를 판정 근거로 삼아라. 낮은 능력치의 행동은 실패하거나 어설프게, 높은 능력치는 능숙하게 굴러가야 한다.
+- 트리거 뒤에 덧붙인 조건(특정 능력치 고정 등)이 있으면 그 부분만 반영하고 나머지를 굴려라.
+- 세계관에 능력치 개념이 없어도 성향·재능의 지표로 번역해 적용하라. 세부 규칙은 유저노트 지정을 우선하라.</div>
+          <div class="lb-bar">
+            <div class="lb-bar-left">
+              <span class="lb-count"></span>
+              <button class="lb-tag" data-copy="!랜덤능력치" onclick="lbCopyChip(this)">!랜덤능력치</button>
+              <button class="lb-tag" data-copy="🧮" onclick="lbCopyChip(this)">🧮</button>
+            </div>
+            <button class="lb-copy" onclick="lbCopy(this)">복사</button>
+          </div>
+        </div>
+      </details>
+      <details class="ref-item" id="lb-kw-96">
+        <summary><span class="lb-kw">🎭 !랜덤페르소나</span></summary>
+        <div class="ref-body">
+          <div class="lb-code">### 랜덤 페르소나 생성 모드
+- 이 트리거가 호출되면 유저 페르소나 1인을 무작위로 생성하라. 이상형 보정을 넣지 마라 — 평범함도 결함도 동등하게 나온다.
+- 통짜로 정하지 말고 축을 나눠 굴려라: ① 성별·나이 ② 신분·직업 ③ 성격 기질 ④ 말투·버릇 ⑤ 남모르는 비밀 하나.
+- 축끼리 어긋나는 조합도 버리지 말고 살려라. "소심한 용병", "수다스러운 수도사" 같은 모순이 곧 개성이다.
+- 현재 세계관의 톤에 맞는 어휘로, 〈이름 / 나이 / 직업 / 성격 / 말버릇 / 비밀〉 형식으로 간결히 제시하라.
+- 트리거 뒤에 덧붙인 조건(예: 여자, 귀족)이 있으면 해당 축만 고정하고 나머지를 굴려라. 생성 후 유저가 일부 수정을 원하면 그 축만 다시 굴려라.
+- 유저노트에 이미 지정된 요소는 고정 축으로 삼아라. 확정 적용은 유저의 승인 후에 하라.</div>
+          <div class="lb-bar">
+            <div class="lb-bar-left">
+              <span class="lb-count"></span>
+              <button class="lb-tag" data-copy="!랜덤페르소나" onclick="lbCopyChip(this)">!랜덤페르소나</button>
+              <button class="lb-tag" data-copy="🎭" onclick="lbCopyChip(this)">🎭</button>
+            </div>
+            <button class="lb-copy" onclick="lbCopy(this)">복사</button>
+          </div>
+        </div>
+      </details>
+      <details class="ref-item" id="lb-kw-97">
+        <summary><span class="lb-kw">🃏 !랜덤배경</span></summary>
+        <div class="ref-body">
+          <div class="lb-code">### 랜덤 배경 생성 모드
+- 이 트리거가 호출되면 유저 페르소나의 과거를 무작위로 굴려 부여하라. 미화하지 마라 — 평온한 과거도 얼룩진 과거도 동등하게 나온다.
+- 통짜로 정하지 말고 축을 나눠 굴려라: ① 출신(지역·계층·가정환경) ② 인생을 바꾼 결정적 사건 ③ 지금도 숨기는 비밀 ④ 캐릭터와의 초기 관계(초면·구면·악연·은인 등).
+- 결정적 사건과 비밀은 현재 서사에 갈고리가 되게 설계하라. 언젠가 들통나거나 되짚게 될 여지를 남겨라.
+- 출력은 〈출신 / 결정적 사건 / 비밀 / 캐릭터와의 관계〉로 간결히 제시하라. 확정 적용은 유저의 승인 후에 하라.
+- 트리거 뒤에 덧붙인 조건이 있으면 해당 축만 고정하고 나머지를 굴려라.
+- 유저노트에 이미 지정된 배경 요소가 있으면 고정 축으로 삼고 빈 부분만 채워라. 세계관의 톤과 시대에 맞는 디테일을 사용하라.</div>
+          <div class="lb-bar">
+            <div class="lb-bar-left">
+              <span class="lb-count"></span>
+              <button class="lb-tag" data-copy="!랜덤배경" onclick="lbCopyChip(this)">!랜덤배경</button>
+              <button class="lb-tag" data-copy="🃏" onclick="lbCopyChip(this)">🃏</button>
             </div>
             <button class="lb-copy" onclick="lbCopy(this)">복사</button>
           </div>

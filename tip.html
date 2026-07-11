@@ -696,35 +696,84 @@ EXP ████████████░░ 85%
       {
         id:'t-6-1', title:'트위터 (X) 포스트',
         body:`<div class="label label-use">URL 파라미터 형식</div>
-<pre>/?t=twitter&p=@handle§표시이름§시간§본문§[번역]§이미지설명§답글수§리트윗수§인용수§좋아요수§북마크수§[verified]
-&r=표시이름§@handle§시간§내용§좋아요수|표시이름§@handle§시간§내용§좋아요수</pre>
+<pre>/?t=twitter&p=@handle§표시이름§시간§본문§[번역]§이미지설명§답글수§리트윗수§인용수§좋아요수§북마크수§[verified,lock]§[조회수]
+&r=표시이름§@handle§시간§내용§좋아요수§리트윗수§조회수§답글수§[@대상|-]|...</pre>
 <hr class="divider">
 <div class="label label-example">예시</div>
-<pre>/?t=twitter&p=@jaymccoy§Jay+McCoy§오후+3:14§시즌+시작+전+마지막+해변+🏈§[Last+beach+day]§해변+풋볼+역광§24§187§12§2847§341§verified
-&r=Blair§@blairkingsley§3분+전§나도+해변+가고+싶다+😭§89|Noxym§@noxymc§5분+전§시즌+화이팅+🏈§234</pre>
+<pre>/?t=twitter&p=@jaymccoy§Jay+McCoy§오후+3:14+·+7월+12일§시즌+시작+전+마지막+해변+🏈§[Last+beach+day]§해변+풋볼+역광§24§187§12§2847§341§verified§15.2천
+&r=Blair§@blairkingsley§3분+전§나도+해변+가고+싶다+😭§89§2§1.1천|Noxym§@noxymc§5분+전§시즌+화이팅+🏈§234§-</pre>
 <hr class="divider">
 <div class="desc"><strong>파라미터 설명:</strong><br>
+• 실제 X 상세페이지 레이아웃: 이름/@핸들 2줄 헤더, <strong>시간은 본문 아래 메타줄</strong>에 표시 — "오후 3:14 · 7월 12일" 형태 권장<br>
 • <strong>[번역]</strong>과 <strong>이미지설명</strong>은 선택사항<br>
-• 마지막에 <strong>verified</strong> 추가하면 파란 인증 배지 표시<br>
+• <strong>verified</strong> = 인증배지, <strong>lock</strong> = 비공개 자물쇠 — 콤마로 결합 가능 (<strong>verified,lock</strong>)<br>
+• <strong>조회수</strong>는 verified 뒤 (선택) — 시간 옆에 "조회수 N회"로 표시, "13.3천" 축약 표기 그대로 통과<br>
+• 통계는 <strong>0이면 자동 숨김</strong> (전부 0이면 통계줄 자체 제거), 리트윗은 "재게시물"로 표기<br>
 • 번역은 대괄호 <strong>[ ]</strong>로 감싸야 인식됨<br>
 • 이미지설명은 대괄호 <strong>없이</strong> 작성 (대괄호 쓰면 번역으로 인식됨)<br>
 • ⚠️ 번역·이미지설명이 없으면 해당 필드를 <strong>빈칸(§§)으로 넣지 말고 아예 생략</strong> — 빈칸은 파서가 무시하여 숫자 매핑이 어긋남<br>
-• <strong>&r=</strong> 답글은 <strong>|</strong>로 구분, 스레드 연결선으로 이어짐<br>
+• <strong>&r=</strong> 답글은 <strong>|</strong>로 구분, 미니 트윗 구조(대상줄+본문+액션바)로 표시<br>
+• 답글의 좋아요 뒤 <strong>리트윗§조회수§답글수</strong>는 전부 선택 — 0이거나 생략하면 아이콘만 표시<br>
+• 답글 필드에 <strong>@핸들</strong>을 넣으면 "OO 님에게 보내는 답글" 대상 지정 (기본: 원글 작성자), <strong>-</strong>를 넣으면 대상줄 숨김 — 숫자들 사이 어디에 있어도 인식<br>
 • <strong>&r=</strong> 없으면 답글 섹션 미표시</div>
 <hr class="divider">
 <div class="label label-example">필드 설명</div>
 <pre>@핸들       — @포함 아이디
 표시이름    — 프로필에 보이는 이름
-시간        — 트윗 시각 ("오후 3:14" 등)
+시간        — 본문 아래 메타줄 표시 ("오후 3:14 · 7월 12일" 등)
 본문        — 트윗 내용
 [번역]      — 대괄호 감싸면 번역 표시 (선택, 없으면 생략)
 이미지설명  — 대괄호 없이 작성, 있으면 이미지 영역 표시 (선택, 없으면 생략)
-답글/RT/인용/좋아요/북마크 — 각각 숫자
-verified    — 마지막에 쓰면 인증배지 표시 (선택)
+답글/RT/인용/좋아요/북마크 — 각각 숫자 (0은 자동 숨김)
+verified,lock — 인증배지 / 비공개 자물쇠 (선택, 콤마 결합)
+조회수      — 메타줄 "조회수 N회" (선택, 축약 표기 가능)
 
-&r= 답글:
-  표시이름§@핸들§시간§내용§좋아요
-  |로 구분하여 여러 답글 가능</pre>`
+&r= 답글 (|로 구분):
+  표시이름§@핸들§시간§내용§좋아요§리트윗§조회수§답글수
+  좋아요 이후는 전부 선택 (순서대로 인식)
+  @대상  — 답글 대상 핸들 지정 (기본: 원글 작성자)
+  -      — "님에게 보내는 답글" 줄 숨김</pre>`
+      },
+      {
+        id:'t-6-1b', title:'트위터 (X) 타임라인',
+        body:`<div class="label label-use">URL 파라미터 형식</div>
+<pre>/?t=tl&h=이름§게시물수§활성탭
+&m=이름§@핸들§시간§본문§답글수§RT수§좋아요수§조회수§[플래그들]|...</pre>
+<hr class="divider">
+<div class="label label-example">예시 (프로필 뷰 + 재게시 + 이미지 + 인용)</div>
+<pre>/?t=tl&h=껌머§5622§게시물
+&m=껌머§@Kkam_Luv§7시§리쿠랑+유우+저런+트윗보면+당분간+거리두기+할듯§0§0§7§84§verified§lock
+|BN§@sundaejoayo§7시§알페스나오고+리쿠+화남§0§1§4§155§rt:껌머§re:@sundaejoayo§img:픽션+캡처;반응+캡처
+|껌머§@Kkam_Luv§7시§새벽에+이거보고+또+욺§0§0§3§121§verified§qt:껌머;@Kkam_Luv;06월+30일;편지+내용</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명:</strong><br>
+• <strong>&h=</strong> 있으면 프로필 뷰(← 이름·게시물 N개 헤더 + 탭바), <strong>없으면 홈 피드</strong> — 트윗만 표시<br>
+• 활성탭: 게시물 / 답글 / 하이라이트 / 미디어 중 하나 (기본: 게시물)<br>
+• 본문 뒤 필드는 <strong>타입 감지</strong> — 순서 무관, 전부 선택, 빈칸(§§) 불필요:<br>
+&nbsp;&nbsp;— 숫자 4개는 순서대로 답글·RT·좋아요·조회수 (0은 자동 숨김, "13.3천" 축약 가능)<br>
+&nbsp;&nbsp;— <strong>verified</strong> 인증배지 / <strong>lock</strong> 자물쇠 / <strong>thread</strong> 아래 트윗과 연결선<br>
+&nbsp;&nbsp;— <strong>rt:이름</strong> → "이름 님이 재게시함" 회색 줄<br>
+&nbsp;&nbsp;— <strong>re:@핸들</strong> → "@핸들 님에게 보내는 답글" 파란 줄<br>
+&nbsp;&nbsp;— <strong>img:설명</strong> 1장 와이드(16:9) / <strong>img:설명1;설명2</strong> 2장 정사각 그리드<br>
+&nbsp;&nbsp;— <strong>qt:이름;@핸들;시간;내용</strong> 인용 트윗 카드 (시간 생략 시 3필드: 이름;@핸들;내용)<br>
+• ⚠️ qt 내용에 <strong>;</strong>를 쓰려면 시간 필드를 반드시 포함 (3필드형은 내용의 ;를 구분자로 오인)<br>
+• 상세 라우트(t=twitter)와 별개 — 피드/프로필 화면은 tl, 단일 트윗+답글은 twitter</div>
+<hr class="divider">
+<div class="label label-example">필드 설명</div>
+<pre>&h= (선택 — 생략하면 홈 피드):
+  이름        — 프로필 표시 이름
+  게시물수    — "게시물 N개" (자동 콤마)
+  활성탭      — 밑줄 표시할 탭 (선택, 기본 게시물)
+
+&m= 트윗 (|로 구분):
+  이름§@핸들§시간§본문 — 필수 4필드
+  이후 필드 (전부 선택, 순서 무관):
+  답글§RT§좋아요§조회수 — 숫자, 0 숨김
+  verified / lock / thread — 키워드 플래그
+  rt:이름   — 재게시 표시줄
+  re:@핸들  — 답글 대상 줄
+  img:a(;b) — 이미지 1~2장
+  qt:이름;@핸들;(시간;)내용 — 인용 카드</pre>`
       },
       {
         id:'t-6-2', title:'카카오톡 채팅',
@@ -1230,10 +1279,19 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
 ![](https://i.winter0.workers.dev/?t=story&p=@유저§시간§이미지설명§[캡션])
 
 ### 트위터
-![](https://i.winter0.workers.dev/?t=twitter&p=@handle§표시이름§시간§본문§[번역]§이미지설명§답글수§RT수§인용수§좋아요수§북마크수§[verified]&r=표시이름§@handle§시간§내용§좋아요|표시이름§@handle§시간§내용§좋아요)
-- &r= 없으면 답글 미표시
+![](https://i.winter0.workers.dev/?t=twitter&p=@handle§표시이름§시간§본문§[번역]§이미지설명§답글수§RT수§인용수§좋아요수§북마크수§[verified,lock]§[조회수]&r=표시이름§@handle§시간§내용§좋아요§[RT수]§[조회수]§[답글수]§[@대상|-]|...)
+- &r= 없으면 답글 미표시, 답글 대상은 기본 원글 작성자 — @핸들로 지정, -로 숨김
+- verified,lock(비공개)·조회수·답글의 RT/조회수/답글수는 전부 선택, 통계 0은 자동 숨김
+- 시간은 본문 아래 표시 — "오후 3:14 · 7월 12일" 형태 권장
 - 번역은 [대괄호] 필수, 이미지설명은 대괄호 없이 작성
 - 번역·이미지설명이 없으면 빈칸(§§) 넣지 말고 해당 필드 자체를 생략
+
+### 트위터 타임라인 (피드/프로필)
+![](https://i.winter0.workers.dev/?t=tl&h=이름§게시물수§활성탭&m=이름§@핸들§시간§본문§답글§RT§좋아요§조회수§[verified]§[lock]§[thread]§[rt:이름]§[re:@핸들]§[img:설명(;설명2)]§[qt:이름;@핸들;(시간;)내용]|...)
+- &h= 생략하면 홈 피드(헤더·탭 없음), 있으면 프로필 뷰 — 활성탭: 게시물/답글/하이라이트/미디어
+- 본문 뒤 필드는 전부 선택·순서 무관: 숫자 4개(답글·RT·좋아요·조회수 순, 0 숨김), 나머지는 키워드/접두어
+- thread = 아래 트윗과 연결선, rt: = 재게시줄, re: = 답글대상줄, img: 1~2장, qt: 인용 카드
+- 단일 트윗 상세+답글은 t=twitter, 피드 화면은 t=tl 사용
 
 ### 카카오톡
 ![](https://i.winter0.workers.dev/?t=kakao&r=방이름§날짜§인원수&m=이름§내용§시간§읽음수|이름§내용§시간§읽음수§me)
@@ -1311,7 +1369,8 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
 ### 길이 제한 (이미지 높이 제한 — 실측 기반 v14)
 이미지가 잘리지 않도록 아래 제한을 지킨다:
 - insta: 댓글 최대 10개 (댓글에 번역 포함시 최대 8개)
-- twitter: 답글 최대 8개 (이미지 포함 가능)
+- twitter: 답글 최대 7개, 이미지 포함 시 최대 6개 (답글이 미니 트윗 구조로 높이 증가)
+- tl: 트윗 최대 8개, 이미지·인용 포함 트윗은 화면당 2~3개 권장 (이미지 1장 ≈ 트윗 3개 높이)
 - kakao: 메시지 최대 13개 (고정 사이즈)
 - dm: 메시지 최대 13개 (고정 사이즈)
 - reddit: 본문 400자 이내, 댓글 최대 8개
@@ -2279,7 +2338,7 @@ export default {
         body:`<div class="label label-use">확장 방법</div>
 <div class="desc">새로운 UI를 추가할 때마다 해당 Worker에 경로 한 줄 + HTML 함수 추가. Worker가 2개로 분리되어 있으므로 용도에 맞는 쪽에 추가.</div>
 <hr class="divider">
-<div class="label label-example">i.winter0.workers.dev — SNS / 메신저 / 문서 UI (19종)</div>
+<div class="label label-example">i.winter0.workers.dev — SNS / 메신저 / 문서 UI (20종)</div>
 <pre># URL 형식 — 모두 /?t=타입&파라미터 형식
 /?t=insta         인스타 피드        /?t=email         이메일
 /?t=story         인스타 스토리      /?t=search        검색 결과
@@ -2290,7 +2349,7 @@ export default {
 /?t=voice         디스코드 음성      /?t=discord       디스코드 채팅
 /?t=discord-full  디스코드 풀       /?t=stream        인터넷 방송
 /?t=letter        편지 ✉️           /?t=menu          메뉴판 🍽️
-/?t=dm            인스타 DM</pre>
+/?t=dm            인스타 DM         /?t=tl            트위터 타임라인</pre>
 <hr class="divider">
 <div class="label label-example">st.winter0.workers.dev — RPG / VN 상태창 + 엔딩 + 선택지 + 던전 + MMO + 보상 + 게임오버 + 인벤 + 능력치 + 주사위 (14종)</div>
 <pre># URL 형식 — 모두 /?t=타입&파라미터 형식

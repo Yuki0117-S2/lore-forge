@@ -10,7 +10,7 @@ const TEMPLATES = {
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   :root {
-    --col-indigo: #8888CC;
+    --col-indigo: #8889CD;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
@@ -436,7 +436,7 @@ parseParams();
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   :root {
-    --col-indigo: #8888CC;
+    --col-indigo: #8889CD;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
@@ -450,85 +450,97 @@ parseParams();
   .tweet-wrap { width: 100%; max-width: 598px; color: #e7e9ea; }
   .tweet {
     background: #0d0d14; border: 1px solid #2a2535;
-    border-radius: 16px 16px 0 0; padding: 12px; border-bottom: none;
+    border-radius: 16px 16px 0 0; padding: 14px 16px 4px; border-bottom: none;
   }
-  .tweet.no-replies { border-radius: 16px; border-bottom: 1px solid #2a2535; }
-  .tweet-header { display: flex; gap: 8px; margin-bottom: 4px; }
+  .tweet.no-replies { border-radius: 16px; border-bottom: 1px solid #2a2535; padding-bottom: 6px; }
+  .tweet-header { display: flex; gap: 10px; margin-bottom: 10px; }
   .avatar {
-    width: 40px; height: 40px; border-radius: 50%;
+    width: 44px; height: 44px; border-radius: 50%;
     background: linear-gradient(135deg, var(--col-indigo), var(--col-rose));
     flex-shrink: 0; display: flex; align-items: center; justify-content: center;
   }
   .avatar svg { width: 60%; height: 60%; fill: #fff; opacity: 0.85; }
-  .header-right { flex: 1; min-width: 0; }
-  .name-row { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
-  .display-name { font-size: 15px; font-weight: 700; color: #e7e9ea; }
+  .header-right { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 1px; }
+  .name-row { display: flex; align-items: center; gap: 4px; }
+  .display-name { font-size: 16px; font-weight: 700; color: #e7e9ea; }
   .verified { width: 18px; height: 18px; fill: var(--col-indigo); flex-shrink: 0; }
-  .handle-time { font-size: 14px; color: #71767b; }
+  .lock-icon { width: 15px; height: 15px; fill: #e7e9ea; flex-shrink: 0; opacity: 0.9; }
+  .handle-row { font-size: 14px; color: #71767b; }
   .more-btn {
     margin-left: auto; background: none; border: none;
     color: #71767b; cursor: pointer; font-size: 18px; padding: 0 4px; align-self: flex-start;
   }
   .tweet-body {
-    font-size: 14px; line-height: 1.35; color: #e7e9ea;
-    margin: 6px 0 8px; white-space: pre-wrap; word-break: break-word;
+    font-size: 17px; line-height: 1.45; color: #e7e9ea;
+    margin: 2px 0 12px; white-space: pre-wrap; word-break: break-word;
   }
-  .tweet-body .translation { color: #71767b; font-size: 13px; display: block; margin-top: 4px; }
+  .tweet-body .translation { color: #71767b; font-size: 14px; display: block; margin-top: 6px; }
   .tweet-image {
-    width: 100%; aspect-ratio: 16/5; background: #18141e;
+    width: 100%; aspect-ratio: 16/9; background: #18141e;
     border-radius: 16px; border: 1px solid #2a2535;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 8px; margin-bottom: 8px;
+    gap: 8px; margin-bottom: 12px;
   }
   .tweet-image svg { width: 40px; height: 40px; fill: var(--col-indigo); opacity: 0.4; }
   .tweet-image .img-desc { font-size: 13px; color: var(--col-pink); opacity: 0.5; text-align: center; padding: 0 20px; }
+  .tweet-meta {
+    font-size: 14px; color: #71767b; padding-bottom: 12px;
+    display: flex; gap: 5px; flex-wrap: wrap; align-items: baseline;
+  }
+  .tweet-meta .views-num { color: #e7e9ea; font-weight: 700; }
   .tweet-stats {
-    display: flex; gap: 4px; flex-wrap: wrap;
-    padding: 8px 0; font-size: 14px; color: #e7e9ea;
+    display: flex; gap: 20px; flex-wrap: wrap; row-gap: 10px;
+    padding: 12px 0; font-size: 15px; color: #e7e9ea;
     border-top: 1px solid #2f3336;
   }
-  .stat-item { display: flex; gap: 4px; }
-  .stat-item span { color: #71767b; }
-  .stat-divider { color: #71767b; margin: 0 4px; }
+  .stat-item { display: flex; gap: 5px; align-items: baseline; }
+  .stat-item strong { font-weight: 700; font-size: 16px; }
+  .stat-item span { color: #71767b; font-size: 14px; }
   .tweet-actions {
-    display: flex; justify-content: space-between;
-    padding: 4px 0; border-top: 1px solid #2f3336;
+    display: flex; justify-content: space-around;
+    padding: 6px 0; border-top: 1px solid #2f3336;
   }
   .action {
     display: flex; align-items: center; gap: 6px;
     color: #71767b; font-size: 13px; cursor: pointer;
-    padding: 6px 8px; border-radius: 999px;
+    padding: 8px 10px; border-radius: 999px;
   }
   .action svg {
-    width: 18px; height: 18px; fill: none; stroke: #71767b;
+    width: 20px; height: 20px; fill: none; stroke: #71767b;
     stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
   }
   .replies-section {
     border: 1px solid #2a2535; border-top: 1px solid #2f3336;
     border-radius: 0 0 16px 16px; overflow: hidden;
   }
+  .replies-sort {
+    padding: 12px 16px 6px; font-size: 14px; font-weight: 700; color: #e7e9ea;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .replies-sort svg { width: 16px; height: 16px; fill: none; stroke: #71767b; stroke-width: 2; stroke-linecap: round; }
   .reply-item {
-    padding: 10px 12px; display: flex; gap: 8px;
+    padding: 12px 16px 6px; display: flex; gap: 10px;
     border-bottom: 1px solid #1a1724; background: #0d0d14;
   }
   .reply-item:last-child { border-bottom: none; }
-  .reply-avatar-col { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
   .reply-avatar {
-    width: 34px; height: 34px; border-radius: 50%;
+    width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
-    font-size: 13px; font-weight: 700; color: #fff;
+    font-size: 15px; font-weight: 700; color: #fff;
   }
-  .thread-line { width: 2px; flex: 1; min-height: 6px; background: #2f3336; margin-top: 4px; }
   .reply-content { flex: 1; min-width: 0; }
-  .reply-header { display: flex; align-items: baseline; gap: 5px; margin-bottom: 2px; flex-wrap: wrap; }
-  .reply-name { font-size: 14px; font-weight: 700; color: #e7e9ea; }
-  .reply-handle { font-size: 13px; color: #71767b; }
-  .reply-body { font-size: 14px; line-height: 1.4; color: #e7e9ea; word-break: break-word; margin-bottom: 4px; }
-  .reply-likes { font-size: 12px; color: #71767b; display: flex; align-items: center; gap: 4px; }
-  .reply-likes svg {
-    width: 14px; height: 14px; fill: none; stroke: #71767b;
-    stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+  .reply-header { display: flex; align-items: baseline; gap: 5px; flex-wrap: wrap; }
+  .reply-name { font-size: 15px; font-weight: 700; color: #e7e9ea; }
+  .reply-handle { font-size: 14px; color: #71767b; }
+  .replying-to { font-size: 14px; color: #71767b; margin: 1px 0 2px; }
+  .replying-to .mention { color: #1d9bf0; }
+  .reply-body { font-size: 15px; line-height: 1.4; color: #e7e9ea; word-break: break-word; margin: 2px 0 4px; white-space: pre-wrap; }
+  .reply-actions {
+    display: flex; justify-content: space-between; max-width: 425px;
+    padding: 2px 0;
   }
+  .reply-actions .action { padding: 5px 6px; font-size: 12px; gap: 5px; }
+  .reply-actions .action svg { width: 17px; height: 17px; }
 </style>
 </head>
 <body>
@@ -542,8 +554,9 @@ parseParams();
         <div class="name-row">
           <span class="display-name" id="display-name">Display Name</span>
           <svg class="verified" id="verified-badge" viewBox="0 0 24 24" style="display:none"><path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.9-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.46-2.91-.2-3.92.81s-1.26 2.52-.8 3.91C2.88 9.33 2 10.57 2 12s.88 2.67 2.19 3.34c-.46 1.39-.2 2.9.81 3.91s2.52 1.27 3.91.81c.66 1.31 1.9 2.19 3.34 2.19s2.67-.88 3.33-2.19c1.4.46 2.91.2 3.92-.81s1.26-2.52.8-3.91C21.37 14.67 22.25 13.43 22.25 12zm-6.12-1.26l-4.5 4.5a.75.75 0 01-1.06 0l-2.25-2.25a.75.75 0 011.06-1.06l1.72 1.72 3.97-3.97a.75.75 0 011.06 1.06z"/></svg>
-          <span class="handle-time" id="handle-time">@handle · 시간</span>
+          <svg class="lock-icon" id="lock-icon" viewBox="0 0 24 24" style="display:none"><path d="M17 9V7a5 5 0 00-10 0v2H5.5A1.5 1.5 0 004 10.5v9A1.5 1.5 0 005.5 21h13a1.5 1.5 0 001.5-1.5v-9A1.5 1.5 0 0018.5 9H17zm-8-2a3 3 0 016 0v2H9V7z"/></svg>
         </div>
+        <div class="handle-row" id="handle-row">@handle</div>
       </div>
       <button class="more-btn">···</button>
     </div>
@@ -552,24 +565,18 @@ parseParams();
       <svg viewBox="0 0 24 24"><path d="M12 15.2a3.2 3.2 0 100-6.4 3.2 3.2 0 000 6.4z"/><path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>
       <div class="img-desc" id="img-desc"></div>
     </div>
-    <div class="tweet-stats" id="tweet-stats">
-      <div class="stat-item"><strong id="retweets">0</strong><span>리트윗</span></div>
-      <span class="stat-divider">·</span>
-      <div class="stat-item"><strong id="quotes">0</strong><span>인용</span></div>
-      <span class="stat-divider">·</span>
-      <div class="stat-item"><strong id="likes">0</strong><span>마음에 들어요</span></div>
-      <span class="stat-divider">·</span>
-      <div class="stat-item"><strong id="bookmarks">0</strong><span>북마크</span></div>
-    </div>
+    <div class="tweet-meta" id="tweet-meta"></div>
+    <div class="tweet-stats" id="tweet-stats" style="display:none"></div>
     <div class="tweet-actions">
       <div class="action"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
       <div class="action"><svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg></div>
       <div class="action like"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></div>
-      <div class="action"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+      <div class="action"><svg viewBox="0 0 24 24"><path d="M19 21l-7-4-7 4V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg></div>
       <div class="action"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></div>
     </div>
   </div>
   <div class="replies-section" id="replies-section" style="display:none">
+    <div class="replies-sort">관련성이 가장 높은 답글 <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
     <div id="replies-container"></div>
   </div>
 </div>
@@ -585,7 +592,7 @@ parseParams();
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   :root {
-    --col-indigo: #8888CC;
+    --col-indigo: #8889CD;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
@@ -981,7 +988,7 @@ parseParams();
 <title>Reddit Thread</title>
 <style>
   :root {
-    --col-indigo: #8888CC;
+    --col-indigo: #8889CD;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
@@ -1183,7 +1190,7 @@ parseParams();
 <title>Lock Screen</title>
 <style>
   :root {
-    --col-indigo: #8888CC;
+    --col-indigo: #8889CD;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
@@ -1427,7 +1434,7 @@ parseParams();
 <title>Email</title>
 <style>
   :root {
-    --col-indigo: #8888CC;
+    --col-indigo: #8889CD;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
@@ -1626,7 +1633,7 @@ parseParams();
 <title>Instagram Story</title>
 <style>
   :root {
-    --col-indigo: #8888CC;
+    --col-indigo: #8889CD;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
@@ -1663,14 +1670,9 @@ parseParams();
   }
   .progress-fill {
     height: 100%;
-    width: 0%;
+    width: 70%;
     background: #fff;
     border-radius: 2px;
-    animation: story-progress 5s linear infinite;
-  }
-  @keyframes story-progress {
-    from { width: 0%; }
-    to   { width: 100%; }
   }
 
   /* Header */
@@ -1861,7 +1863,7 @@ parseParams();
 <title>Search Results</title>
 <style>
   :root {
-    --col-indigo: #8888CC;
+    --col-indigo: #8889CD;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
@@ -2095,7 +2097,7 @@ parseParams();
 <title>News Article</title>
 <style>
   :root {
-    --col-indigo: #8888CC;
+    --col-indigo: #8889CD;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
@@ -2326,7 +2328,7 @@ parseParams();
 <title>Document</title>
 <style>
   :root {
-    --col-indigo: #8888CC;
+    --col-indigo: #8889CD;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
@@ -2572,7 +2574,7 @@ parseParams();
 <title>Board</title>
 <style>
   :root {
-    --col-indigo: #8888CC;
+    --col-indigo: #8889CD;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
@@ -2800,7 +2802,7 @@ parseParams();
 <title>Discord</title>
 <style>
   :root {
-    --col-indigo: #8888CC;
+    --col-indigo: #8889CD;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
@@ -3008,7 +3010,7 @@ parseParams();
 
 function roleColor(c) {
   const map = {
-    '인디고': '#8888CC', '핑크': '#DDAACC', '샌드': '#CCAA88',
+    '인디고': '#8889CD', '핑크': '#DDAACC', '샌드': '#CCAA88',
     '로즈': '#BB6688', '빨강': '#ed4245', '초록': '#57f287',
     '파랑': '#5865f2', '노랑': '#fee75c'
   };
@@ -3016,7 +3018,7 @@ function roleColor(c) {
 }
 
 function avatarBg(name) {
-  const colors = ['#5865f2','#FF6699','#57f287','#fee75c','#ed4245','#8888CC','#BB6688','#CCAA88','#3ba55c','#FF7722','#0077DD','#e8a44d','#9b84ec','#00BBDD'];
+  const colors = ['#5865f2','#FF6699','#57f287','#fee75c','#ed4245','#8889CD','#BB6688','#CCAA88','#3ba55c','#FF7722','#0077DD','#e8a44d','#9b84ec','#00BBDD'];
   let h = 7;
   let _i=0; for (const c of name) { h = (h * 31 + c.charCodeAt(0) + _i * 17) | 0; _i++; }
   return colors[((h % colors.length) + colors.length) % colors.length];
@@ -3113,7 +3115,7 @@ parseParams();
 <title>Discord Voice</title>
 <style>
   :root {
-    --col-indigo: #8888CC;
+    --col-indigo: #8889CD;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
@@ -3459,7 +3461,7 @@ parseParams();
 // &active=현재접속중인음성채널이름  (선택 - 하단 연결 바 표시)
 
 function avatarBg(name) {
-  const colors = ['#5865f2','#FF6699','#57f287','#fee75c','#ed4245','#8888CC','#BB6688','#CCAA88','#3ba55c','#FF7722','#0077DD','#e8a44d','#9b84ec','#00BBDD'];
+  const colors = ['#5865f2','#FF6699','#57f287','#fee75c','#ed4245','#8889CD','#BB6688','#CCAA88','#3ba55c','#FF7722','#0077DD','#e8a44d','#9b84ec','#00BBDD'];
   let h = 7;
   let _i=0; for (const c of name) { h = (h * 31 + c.charCodeAt(0) + _i * 17) | 0; _i++; }
   return colors[((h % colors.length) + colors.length) % colors.length];
@@ -3467,7 +3469,7 @@ function avatarBg(name) {
 
 function roleColor(c) {
   const map = {
-    '인디고': '#8888CC', '핑크': '#DDAACC', '샌드': '#CCAA88',
+    '인디고': '#8889CD', '핑크': '#DDAACC', '샌드': '#CCAA88',
     '로즈': '#BB6688', '빨강': '#ed4245', '초록': '#57f287',
     '파랑': '#5865f2', '노랑': '#fee75c', '흰색': '#f2f3f5'
   };
@@ -3599,7 +3601,7 @@ parseParams();
 <title>Discord Full</title>
 <style>
   :root {
-    --col-indigo: #8888CC;
+    --col-indigo: #8889CD;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
@@ -3888,14 +3890,14 @@ parseParams();
 // &m=닉네임,역할색,시간,내용|닉네임,...
 
 function avatarBg(name) {
-  const colors = ['#5865f2','#FF6699','#57f287','#fee75c','#ed4245','#8888CC','#BB6688','#CCAA88','#3ba55c','#FF7722','#0077DD','#e8a44d','#9b84ec','#00BBDD'];
+  const colors = ['#5865f2','#FF6699','#57f287','#fee75c','#ed4245','#8889CD','#BB6688','#CCAA88','#3ba55c','#FF7722','#0077DD','#e8a44d','#9b84ec','#00BBDD'];
   let h = 7;
   let _i=0; for (const c of name) { h = (h * 31 + c.charCodeAt(0) + _i * 17) | 0; _i++; }
   return colors[((h % colors.length) + colors.length) % colors.length];
 }
 function roleColor(c) {
   const map = {
-    '인디고':'#8888CC','핑크':'#DDAACC','샌드':'#CCAA88',
+    '인디고':'#8889CD','핑크':'#DDAACC','샌드':'#CCAA88',
     '로즈':'#BB6688','빨강':'#ed4245','초록':'#57f287',
     '파랑':'#5865f2','노랑':'#fee75c','흰색':'#f2f3f5'
   };
@@ -4053,7 +4055,7 @@ parseParams();
 <title>Live Stream</title>
 <style>
   :root {
-    --col-indigo: #8888CC;
+    --col-indigo: #8889CD;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
@@ -4190,87 +4192,8 @@ parseParams();
     width: 8px; height: 8px;
     border-radius: 50%;
     background: #e91916;
-    animation: live-blink 1s ease-in-out infinite;
-  }
-  @keyframes live-blink {
-    0%, 100% { opacity: 1; }
-    50%      { opacity: 0.3; }
   }
   .live-text { font-size: 12px; color: #fff; font-weight: 600; }
-
-  /* Donation alert */
-  .donation-alert {
-    position: absolute;
-    top: 48px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 92%;
-    max-width: 340px;
-    background: rgba(26, 20, 34, 0.95);
-    border: 2px solid var(--col-pink);
-    border-radius: 12px;
-    padding: 14px 16px 12px;
-    text-align: center;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(221, 170, 204, 0.2);
-    opacity: 0;
-    animation: donation-pop 6s ease-in-out forwards;
-    z-index: 20;
-  }
-  .donation-header {
-    font-size: 10px;
-    color: var(--col-pink);
-    letter-spacing: 2px;
-    font-weight: 700;
-    margin-bottom: 4px;
-    opacity: 0.85;
-  }
-  .donation-amount {
-    font-size: 22px;
-    font-weight: 800;
-    color: var(--col-rose);
-    text-shadow: 0 0 8px rgba(187, 102, 136, 0.4);
-    line-height: 1.1;
-    margin-bottom: 4px;
-  }
-  .donation-nick {
-    font-size: 13px;
-    color: var(--col-indigo);
-    font-weight: 700;
-    margin-bottom: 8px;
-  }
-  .donation-message {
-    font-size: 13px;
-    color: var(--col-sand);
-    line-height: 1.4;
-    word-break: break-word;
-  }
-  @keyframes donation-pop {
-    0%   { opacity: 0; transform: translate(-50%, -16px) scale(0.85); }
-    10%  { opacity: 1; transform: translate(-50%, 0) scale(1.06); }
-    18%  {            transform: translate(-50%, 0) scale(1); }
-    90%  { opacity: 1; transform: translate(-50%, 0) scale(1); }
-    100% { opacity: 0; transform: translate(-50%, -10px) scale(0.96); }
-  }
-  .donation-sparkles {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    overflow: visible;
-  }
-  .donation-spark {
-    position: absolute;
-    bottom: 4px;
-    font-size: 18px;
-    opacity: 0;
-    line-height: 1;
-    animation: donation-spark-rise 1.8s ease-out infinite;
-  }
-  @keyframes donation-spark-rise {
-    0%   { transform: translateY(0)     scale(0.5); opacity: 0; }
-    20%  {                                          opacity: 1; }
-    40%  { transform: translateY(-25px) scale(1.05); }
-    100% { transform: translateY(-78px) scale(0.85); opacity: 0; }
-  }
 
   /* Stream info */
   .stream-info {
@@ -4410,7 +4333,6 @@ parseParams();
           <div class="viewer-dot"></div>
           <span id="viewer-count">0</span>
         </div>
-        <div id="donation-slot"></div>
         <div class="player-controls">
           <button class="ctrl-btn">▶</button>
           <button class="ctrl-btn">🔊</button>
@@ -4451,7 +4373,7 @@ parseParams();
 
 function roleColor(c) {
   const map = {
-    '인디고':'#8888CC','핑크':'#DDAACC','샌드':'#CCAA88',
+    '인디고':'#8889CD','핑크':'#DDAACC','샌드':'#CCAA88',
     '로즈':'#BB6688','빨강':'#ed4245','초록':'#57f287',
     '파랑':'#5865f2','노랑':'#fee75c','구독자':'#BB6688',
     '매니저':'#CCAA88'
@@ -4530,7 +4452,7 @@ parseParams();
 <title>Board Post</title>
 <style>
   :root {
-    --col-indigo: #8888CC;
+    --col-indigo: #8889CD;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
@@ -4833,7 +4755,7 @@ parseParams();
 <title>Letter</title>
 <style>
   :root {
-    --col-indigo: #8888CC;
+    --col-indigo: #8889CD;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
@@ -5171,7 +5093,7 @@ parseParams();
 <title>Menu</title>
 <style>
   :root {
-    --col-indigo: #8888CC;
+    --col-indigo: #8889CD;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
@@ -5530,7 +5452,7 @@ parseParams();
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   :root {
-    --col-indigo: #8888CC;
+    --col-indigo: #8889CD;
     --col-pink:   #DDAACC;
     --col-sand:   #CCAA88;
     --col-rose:   #BB6688;
@@ -5820,6 +5742,112 @@ parseParams();
 </body>
 </html>
 `,
+  'tl': `<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Twitter Timeline</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --col-indigo: #8889CD;
+    --col-pink:   #DDAACC;
+    --col-sand:   #CCAA88;
+    --col-rose:   #BB6688;
+  }
+  body {
+    background: #0d0d14;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+    display: flex; justify-content: center; align-items: flex-start;
+    min-height: 100vh; padding: 20px 0;
+  }
+  .tl-wrap {
+    width: 100%; max-width: 598px; color: #e7e9ea;
+    background: #0d0d14; border: 1px solid #2a2535; border-radius: 16px; overflow: hidden;
+  }
+  .tl-header { display: flex; align-items: center; gap: 24px; padding: 10px 16px; }
+  .tl-back { font-size: 20px; color: #e7e9ea; }
+  .tl-title { display: flex; flex-direction: column; }
+  .tl-name { font-size: 18px; font-weight: 800; }
+  .tl-count { font-size: 13px; color: #71767b; }
+  .tl-tabs { display: flex; border-bottom: 1px solid #2f3336; }
+  .tl-tab { flex: 1; text-align: center; padding: 12px 0 10px; font-size: 14px; color: #71767b; font-weight: 500; position: relative; }
+  .tl-tab.active { color: #e7e9ea; font-weight: 700; }
+  .tl-tab.active::after {
+    content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 52px; height: 4px; border-radius: 999px; background: #1d9bf0;
+  }
+  .tl-item-outer { border-bottom: 1px solid #1a1724; padding: 12px 16px 4px; }
+  .tl-item-outer:last-child { border-bottom: none; }
+  .tl-item-outer.threaded { border-bottom: none; padding-bottom: 0; }
+  .tl-repost {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; font-weight: 700; color: #71767b;
+    padding-left: 30px; margin-bottom: 4px;
+  }
+  .tl-repost svg { width: 15px; height: 15px; fill: none; stroke: #71767b; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .tl-item { display: flex; gap: 10px; }
+  .tl-avatar-col { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+  .tl-avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 700; color: #fff;
+  }
+  .tl-thread-line { width: 2px; flex: 1; min-height: 8px; background: #2f3336; margin-top: 4px; }
+  .tl-content { flex: 1; min-width: 0; }
+  .tl-item-header { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .tl-item-name { font-size: 15px; font-weight: 700; }
+  .tl-item-header .verified { width: 16px; height: 16px; fill: var(--col-indigo); flex-shrink: 0; }
+  .tl-item-header .lock-icon { width: 13px; height: 13px; fill: #e7e9ea; flex-shrink: 0; opacity: 0.9; }
+  .tl-item-handle { font-size: 14px; color: #71767b; }
+  .tl-item-more { margin-left: auto; color: #71767b; font-size: 16px; }
+  .tl-replying { font-size: 14px; color: #71767b; margin-top: 1px; }
+  .tl-replying .mention { color: #1d9bf0; }
+  .tl-body { font-size: 15px; line-height: 1.4; margin: 2px 0 8px; white-space: pre-wrap; word-break: break-word; }
+  .tl-img-grid { display: flex; gap: 3px; margin-bottom: 8px; border-radius: 14px; overflow: hidden; }
+  .tl-img {
+    flex: 1; aspect-ratio: 1/1; background: #18141e; border: 1px solid #2a2535;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  }
+  .tl-img-grid.single .tl-img { aspect-ratio: 16/9; }
+  .tl-img svg { width: 32px; height: 32px; fill: var(--col-indigo); opacity: 0.4; }
+  .tl-img .img-desc { font-size: 12px; color: var(--col-pink); opacity: 0.5; text-align: center; padding: 0 14px; }
+  .tl-quote { border: 1px solid #2f3336; border-radius: 14px; padding: 10px 12px; margin-bottom: 8px; }
+  .tl-quote-header { display: flex; align-items: center; gap: 5px; margin-bottom: 3px; flex-wrap: wrap; }
+  .tl-quote-avatar {
+    width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 700; color: #fff;
+  }
+  .tl-quote-name { font-size: 13px; font-weight: 700; }
+  .tl-quote-handle { font-size: 13px; color: #71767b; }
+  .tl-quote-body { font-size: 14px; line-height: 1.4; color: #e7e9ea; word-break: break-word; white-space: pre-wrap; }
+  .tl-actions { display: flex; justify-content: space-between; max-width: 425px; padding: 2px 0; }
+  .tl-actions .action {
+    display: flex; align-items: center; gap: 5px;
+    color: #71767b; font-size: 12px; padding: 5px 6px; border-radius: 999px;
+  }
+  .tl-actions .action svg {
+    width: 17px; height: 17px; fill: none; stroke: #71767b;
+    stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+  }
+</style>
+</head>
+<body>
+<div class="tl-wrap">
+  <div class="tl-header" id="tl-header" style="display:none">
+    <div class="tl-back">←</div>
+    <div class="tl-title">
+      <span class="tl-name" id="tl-name"></span>
+      <span class="tl-count" id="tl-count"></span>
+    </div>
+  </div>
+  <div class="tl-tabs" id="tl-tabs" style="display:none"></div>
+  <div id="tl-feed"></div>
+</div>
+</body>
+</html>`,
 };
 
 const SIZES = {
@@ -5833,6 +5861,7 @@ const SIZES = {
   'letter': [480, 700],
   'menu': [480, 850],
   'dm': [420, 900],
+  'tl': [598, 600],
 };
 
 
@@ -5854,14 +5883,14 @@ function avatarColor(name) {
 }
 
 function avatarBg(name) {
-  const colors = ['#5865f2','#FF6699','#57f287','#fee75c','#ed4245','#8888CC','#BB6688','#CCAA88','#3ba55c','#FF7722','#0077DD','#e8a44d','#9b84ec','#00BBDD'];
+  const colors = ['#5865f2','#FF6699','#57f287','#fee75c','#ed4245','#8889CD','#BB6688','#CCAA88','#3ba55c','#FF7722','#0077DD','#e8a44d','#9b84ec','#00BBDD'];
   let h = 7;
   let _i=0; for (const c of name) { h = (h * 31 + c.charCodeAt(0) + _i * 17) | 0; _i++; }
   return colors[((h % colors.length) + colors.length) % colors.length];
 }
 
 function roleColor(c) {
-  const map = {'인디고':'#8888CC','핑크':'#DDAACC','샌드':'#CCAA88','로즈':'#BB6688','빨강':'#ed4245','초록':'#57f287','파랑':'#5865f2','노랑':'#fee75c','흰색':'#f2f3f5','구독자':'#BB6688','매니저':'#CCAA88'};
+  const map = {'인디고':'#8889CD','핑크':'#DDAACC','샌드':'#CCAA88','로즈':'#BB6688','빨강':'#ed4245','초록':'#57f287','파랑':'#5865f2','노랑':'#fee75c','흰색':'#f2f3f5','구독자':'#BB6688','매니저':'#CCAA88'};
   return map[c] || '#b5bac1';
 }
 
@@ -5920,29 +5949,63 @@ function renderTwitter(html, url) {
   if (parts[idx]&&parts[idx].startsWith('[')) { translation=parts[idx]; idx++; }
   if (parts[idx]&&isNaN(Number(parts[idx]))&&!(parts[idx]||'').startsWith('[')) { imgDesc=parts[idx]; idx++; }
   const replies=parts[idx]||'0',retweets=parts[idx+1]||'0',quotes=parts[idx+2]||'0',likes=parts[idx+3]||'0',bookmarks=parts[idx+4]||'0';
-  const verified = parts[idx+5]==='verified';
+  const verified = (parts[idx+5]||'').split(',').includes('verified');
+  const flags=(parts[idx+5]||'').split(',');
+  const lock=flags.includes('lock');
+  const views=parts[idx+6]||'';
+  const fmtNum=v=>{const n=Number(v);return isNaN(n)?v:n.toLocaleString();};
   html = html.replace('>Display Name<', '>'+displayName+'<');
-  html = html.replace('>@handle · 시간<', '>'+handle+' · '+time+'<');
+  html = html.replace('>@handle<', '>'+handle+'<');
   html = html.replace('>트윗 내용<', '>'+body+(translation?'<span class="translation">'+translation+'</span>':'')+'<');
   if (imgDesc) { html=html.replace('id="tweet-image" style="display:none"','id="tweet-image"'); html=html.replace('id="img-desc"></div>','id="img-desc">'+imgDesc+'</div>'); }
-  if (verified) html=html.replace('id="verified-badge" style="display:none"','id="verified-badge"');
-  html=html.replace('id="retweets">0<','id="retweets">'+Number(retweets).toLocaleString()+'<');
-  html=html.replace('id="quotes">0<','id="quotes">'+Number(quotes).toLocaleString()+'<');
-  html=html.replace('id="likes">0<','id="likes">'+Number(likes).toLocaleString()+'<');
-  html=html.replace('id="bookmarks">0<','id="bookmarks">'+Number(bookmarks).toLocaleString()+'<');
+  if (verified) html=html.replace('id="verified-badge" viewBox="0 0 24 24" style="display:none"','id="verified-badge" viewBox="0 0 24 24"');
+  if (lock) html=html.replace('id="lock-icon" viewBox="0 0 24 24" style="display:none"','id="lock-icon" viewBox="0 0 24 24"');
+  // 메타줄: 시간 (+ 조회수)
+  let metaHtml='<span>'+time+'</span>';
+  if (views) metaHtml+='<span>·</span><span>조회수</span><span class="views-num">'+fmtNum(views)+'</span><span>회</span>';
+  html=html.replace('id="tweet-meta"></div>','id="tweet-meta">'+metaHtml+'</div>');
+  // 통계: 0인 항목 숨김, 전부 0이면 줄 자체 숨김
+  const statDefs=[[retweets,'재게시물'],[quotes,'인용'],[likes,'마음에 들어요'],[bookmarks,'북마크']];
+  let statHtml='';
+  statDefs.forEach(d=>{ if(d[0]&&d[0]!=='0') statHtml+='<div class="stat-item"><strong>'+fmtNum(d[0])+'</strong><span>'+d[1]+'</span></div>'; });
+  if (statHtml) html=html.replace('id="tweet-stats" style="display:none"></div>','id="tweet-stats">'+statHtml+'</div>');
   // 답글 트윗 렌더링
   if (r) {
     html=html.replace('class="tweet no-replies"','class="tweet"');
     html=html.replace('id="replies-section" style="display:none"','id="replies-section"');
-    const colors=['#5865f2','#FF6699','#57f287','#fee75c','#ed4245','#8888CC','#BB6688','#CCAA88','#3ba55c','#FF7722','#0077DD','#e8a44d','#9b84ec','#00BBDD'];
+    const colors=['#5865f2','#FF6699','#57f287','#fee75c','#ed4245','#8889CD','#BB6688','#CCAA88','#3ba55c','#FF7722','#0077DD','#e8a44d','#9b84ec','#00BBDD'];
     const abg=name=>{let h=7;let _i=0;for(const c of name){h=(h*31+c.charCodeAt(0)+_i*17)|0;_i++;}return colors[((h%colors.length)+colors.length)%colors.length];};
+    const icoReply='<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>';
+    const icoRT='<svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>';
+    const icoLike='<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>';
+    const icoViews='<svg viewBox="0 0 24 24"><line x1="4" y1="20" x2="4" y2="12"/><line x1="10" y1="20" x2="10" y2="6"/><line x1="16" y1="20" x2="16" y2="10"/><line x1="22" y1="20" x2="22" y2="4"/></svg>';
+    const icoBm='<svg viewBox="0 0 24 24"><path d="M19 21l-7-4-7 4V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>';
+    const icoShare='<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>';
     const replyList=r.split('|');
     let rh='';
     replyList.forEach((raw,i)=>{
       const seg=raw.split('§');
-      const rName=seg[0]||'',rHandle=seg[1]||'',rTime=seg[2]||'',rBody=seg[3]||'',rLikes=Number(seg[4]||'0').toLocaleString();
-      const isLast=i===replyList.length-1;
-      rh+='<div class="reply-item"><div class="reply-avatar-col"><div class="reply-avatar" style="background:'+abg(rName)+'">'+rName.charAt(0)+'</div>'+(isLast?'':'<div class="thread-line"></div>')+'</div><div class="reply-content"><div class="reply-header"><span class="reply-name">'+rName+'</span><span class="reply-handle">'+rHandle+' · '+rTime+'</span></div><div class="reply-body">'+rBody+'</div><div class="reply-likes"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>'+rLikes+'</div></div></div>';
+      const rName=seg[0]||'',rHandle=seg[1]||'',rTime=seg[2]||'',rBody=seg[3]||'';
+      // 5번째 필드부터: @핸들=답글대상 지정, -=대상줄 숨김, 숫자=좋아요/리트윗/조회수/답글수 순
+      let rTo=handle; const nums=[];
+      for(let s=4;s<seg.length;s++){
+        const f=seg[s]||'';
+        if(f==='-') rTo='';
+        else if(f.startsWith('@')) rTo=f;
+        else if(f) nums.push(f);
+      }
+      const numTxt=v=>(v&&v!=='0')?fmtNum(v):'';
+      const rLikes=numTxt(nums[0]),rRT=numTxt(nums[1]),rViews=numTxt(nums[2]),rReplies=numTxt(nums[3]);
+      rh+='<div class="reply-item"><div class="reply-avatar" style="background:'+abg(rName)+'">'+rName.charAt(0)+'</div><div class="reply-content"><div class="reply-header"><span class="reply-name">'+rName+'</span><span class="reply-handle">'+rHandle+' · '+rTime+'</span></div>'
+        +(rTo?'<div class="replying-to"><span class="mention">'+rTo+'</span> 님에게 보내는 답글</div>':'')
+        +'<div class="reply-body">'+rBody+'</div><div class="reply-actions">'
+        +'<div class="action">'+icoReply+rReplies+'</div>'
+        +'<div class="action">'+icoRT+rRT+'</div>'
+        +'<div class="action">'+icoLike+rLikes+'</div>'
+        +'<div class="action">'+icoViews+rViews+'</div>'
+        +'<div class="action">'+icoBm+'</div>'
+        +'<div class="action">'+icoShare+'</div>'
+        +'</div></div></div>';
     });
     html=html.replace('id="replies-container"></div>','id="replies-container">'+rh+'</div>');
   }
@@ -6415,34 +6478,12 @@ function renderStream(html, url) {
   if(p){
     const pp=p.split('§');
     const streamer=pp[0]||'스트리머',title=pp[1]||'',viewers=pp[2]||'0',desc=pp[3]||'',tags=pp[4]||'';
-    const dnick=pp[5]||'',damount=pp[6]||'',dmsg=pp[7]||'';
     html=html.replace('>스트리머<','>'+streamer+'<');
     html=html.replace('id="streamer-avatar">S<','id="streamer-avatar">'+streamer.charAt(0)+'<');
     html=html.replace('>방송 제목<','>'+title+'<');
     html=html.replace('id="viewer-count">0<','id="viewer-count">'+Number(viewers).toLocaleString()+'<');
     if(desc) html=html.replace('>방송 화면<','>'+desc+'<');
     if(tags){let th='';tags.split(' ').forEach(t=>{th+='<span class="stream-tag">'+t+'</span>';});html=html.replace('id="stream-tags"></div>','id="stream-tags">'+th+'</div>');}
-    if(dnick&&damount&&dmsg){
-      const sparks=[
-        {l:'4%',  d:'0.6s', e:'🎉'},
-        {l:'22%', d:'1.0s', e:'💰'},
-        {l:'42%', d:'1.3s', e:'✨'},
-        {l:'62%', d:'0.9s', e:'💖'},
-        {l:'80%', d:'1.4s', e:'⭐'},
-        {l:'94%', d:'1.1s', e:'🎁'},
-      ];
-      let sHtml='<div class="donation-sparkles">';
-      sparks.forEach(s=>{sHtml+='<span class="donation-spark" style="left:'+s.l+';animation-delay:'+s.d+'">'+s.e+'</span>';});
-      sHtml+='</div>';
-      const dHtml='<div class="donation-alert">'
-        +'<div class="donation-header">★ DONATION ★</div>'
-        +'<div class="donation-amount">'+damount+'</div>'
-        +'<div class="donation-nick">'+dnick+' 님</div>'
-        +'<div class="donation-message">'+dmsg+'</div>'
-        +sHtml
-        +'</div>';
-      html=html.replace('<div id="donation-slot"></div>',dHtml);
-    }
   }
   if(c){
     let ch='';
@@ -6571,6 +6612,87 @@ function renderMenu(html, url) {
 }
 
 function renderDefault(html, url) { return html; }
+// ── 🐦 트위터 타임라인 (tl) ──
+function renderTimeline(html, url) {
+  const hP = url.searchParams.get('h');
+  const mP = url.searchParams.get('m');
+  const fmtNum = v => { const n = Number(v); return isNaN(n) ? v : n.toLocaleString(); };
+  const colors=['#5865f2','#FF6699','#57f287','#fee75c','#ed4245','#8889CD','#BB6688','#CCAA88','#3ba55c','#FF7722','#0077DD','#e8a44d','#9b84ec','#00BBDD'];
+  const abg=name=>{let hh=7;let _i=0;for(const c of name){hh=(hh*31+c.charCodeAt(0)+_i*17)|0;_i++;}return colors[((hh%colors.length)+colors.length)%colors.length];};
+  // 프로필 헤더 + 탭 (h= 있을 때만)
+  if (hP) {
+    const hp = hP.split('§');
+    const hName = hp[0]||'', hCount = hp[1]||'', hTab = hp[2]||'게시물';
+    html = html.replace('id="tl-header" style="display:none"','id="tl-header"');
+    html = html.replace('id="tl-name"></span>','id="tl-name">'+hName+'</span>');
+    if (hCount) html = html.replace('id="tl-count"></span>','id="tl-count">게시물 '+fmtNum(hCount)+'개</span>');
+    let th='';
+    ['게시물','답글','하이라이트','미디어'].forEach(t=>{ th+='<div class="tl-tab'+(t===hTab?' active':'')+'">'+t+'</div>'; });
+    html = html.replace('id="tl-tabs" style="display:none"></div>','id="tl-tabs">'+th+'</div>');
+  }
+  if (!mP) return html;
+  const icoReply='<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>';
+  const icoRT='<svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>';
+  const icoLike='<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>';
+  const icoViews='<svg viewBox="0 0 24 24"><line x1="4" y1="20" x2="4" y2="12"/><line x1="10" y1="20" x2="10" y2="6"/><line x1="16" y1="20" x2="16" y2="10"/><line x1="22" y1="20" x2="22" y2="4"/></svg>';
+  const icoBm='<svg viewBox="0 0 24 24"><path d="M19 21l-7-4-7 4V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>';
+  const icoShare='<svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>';
+  const icoVerified='<svg class="verified" viewBox="0 0 24 24"><path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.9-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.46-2.91-.2-3.92.81s-1.26 2.52-.8 3.91C2.88 9.33 2 10.57 2 12s.88 2.67 2.19 3.34c-.46 1.39-.2 2.9.81 3.91s2.52 1.27 3.91.81c.66 1.31 1.9 2.19 3.34 2.19s2.67-.88 3.33-2.19c1.4.46 2.91.2 3.92-.81s1.26-2.52.8-3.91C21.37 14.67 22.25 13.43 22.25 12zm-6.12-1.26l-4.5 4.5a.75.75 0 01-1.06 0l-2.25-2.25a.75.75 0 011.06-1.06l1.72 1.72 3.97-3.97a.75.75 0 011.06 1.06z"/></svg>';
+  const icoLock='<svg class="lock-icon" viewBox="0 0 24 24"><path d="M17 9V7a5 5 0 00-10 0v2H5.5A1.5 1.5 0 004 10.5v9A1.5 1.5 0 005.5 21h13a1.5 1.5 0 001.5-1.5v-9A1.5 1.5 0 0018.5 9H17zm-8-2a3 3 0 016 0v2H9V7z"/></svg>';
+  const icoCam='<svg viewBox="0 0 24 24"><path d="M12 15.2a3.2 3.2 0 100-6.4 3.2 3.2 0 000 6.4z"/><path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>';
+  const items = mP.split('|');
+  let fh='';
+  items.forEach(raw=>{
+    const seg=raw.split('§');
+    const iName=seg[0]||'', iHandle=seg[1]||'', iTime=seg[2]||'', iBody=seg[3]||'';
+    // 5번째 필드부터 타입 감지: 숫자(답글·RT·좋아요·조회수 순), verified/lock/thread, rt:/re:/img:/qt:
+    let verified=false,lock=false,thread=false,rtBy='',reTo='',imgs=null,qt='';
+    const nums=[];
+    for(let s=4;s<seg.length;s++){
+      const f=seg[s]||''; if(!f) continue;
+      if(f==='verified') verified=true;
+      else if(f==='lock') lock=true;
+      else if(f==='thread') thread=true;
+      else if(f.startsWith('rt:')) rtBy=f.slice(3);
+      else if(f.startsWith('re:')) reTo=f.slice(3);
+      else if(f.startsWith('img:')) imgs=f.slice(4).split(';');
+      else if(f.startsWith('qt:')) qt=f.slice(3);
+      else nums.push(f);
+    }
+    const numTxt=v=>(v&&v!=='0')?fmtNum(v):'';
+    const nReply=numTxt(nums[0]),nRT=numTxt(nums[1]),nLike=numTxt(nums[2]),nViews=numTxt(nums[3]);
+    let ih='<div class="tl-item-outer'+(thread?' threaded':'')+'">';
+    if(rtBy) ih+='<div class="tl-repost">'+icoRT+rtBy+' 님이 재게시함</div>';
+    ih+='<div class="tl-item"><div class="tl-avatar-col"><div class="tl-avatar" style="background:'+abg(iName)+'">'+iName.charAt(0)+'</div>'+(thread?'<div class="tl-thread-line"></div>':'')+'</div><div class="tl-content">';
+    ih+='<div class="tl-item-header"><span class="tl-item-name">'+iName+'</span>'+(verified?icoVerified:'')+(lock?icoLock:'')+'<span class="tl-item-handle">'+iHandle+' · '+iTime+'</span><span class="tl-item-more">···</span></div>';
+    if(reTo) ih+='<div class="tl-replying"><span class="mention">'+reTo+'</span> 님에게 보내는 답글</div>';
+    ih+='<div class="tl-body">'+iBody+'</div>';
+    if(imgs&&imgs.length){
+      ih+='<div class="tl-img-grid'+(imgs.length===1?' single':'')+'">';
+      imgs.slice(0,2).forEach(d=>{ ih+='<div class="tl-img">'+icoCam+'<div class="img-desc">'+d+'</div></div>'; });
+      ih+='</div>';
+    }
+    if(qt){
+      const qp=qt.split(';');
+      const qName=qp[0]||'', qHandle=qp[1]||'';
+      let qTime='', qBody='';
+      if(qp.length>=4){ qTime=qp[2]; qBody=qp.slice(3).join(';'); } else { qBody=qp[2]||''; }
+      ih+='<div class="tl-quote"><div class="tl-quote-header"><div class="tl-quote-avatar" style="background:'+abg(qName)+'">'+qName.charAt(0)+'</div><span class="tl-quote-name">'+qName+'</span><span class="tl-quote-handle">'+qHandle+(qTime?' · '+qTime:'')+'</span></div><div class="tl-quote-body">'+qBody+'</div></div>';
+    }
+    ih+='<div class="tl-actions">'
+      +'<div class="action">'+icoReply+nReply+'</div>'
+      +'<div class="action">'+icoRT+nRT+'</div>'
+      +'<div class="action">'+icoLike+nLike+'</div>'
+      +'<div class="action">'+icoViews+nViews+'</div>'
+      +'<div class="action">'+icoBm+'</div>'
+      +'<div class="action">'+icoShare+'</div>'
+      +'</div></div></div></div>';
+    fh+=ih;
+  });
+  html = html.replace('id="tl-feed"></div>','id="tl-feed">'+fh+'</div>');
+  return html;
+}
+
 
 const RENDERERS = {
   'insta': renderInsta, 'twitter': renderTwitter, 'kakao': renderKakao,
@@ -6579,6 +6701,7 @@ const RENDERERS = {
   'doc': renderDoc, 'board': renderBoard, 'discord': renderDiscord,
   'voice': renderVoice, 'discord-full': renderDiscordFull, 'stream': renderStream, 'post': renderPost,
   'letter': renderLetter, 'menu': renderMenu, 'dm': renderDm,
+  'tl': renderTimeline,
 };
 
 
@@ -6621,7 +6744,7 @@ export default {
       ).join('');
       return new Response(
         '<html><body style="font-family:sans-serif;padding:40px;background:#1a1a2e;color:#e0e0e0;">'
-        + '<h1 style="color:#8888CC;">겨울의 SNS UI v13</h1>'
+        + '<h1 style="color:#8889CD;">겨울의 SNS UI v13</h1>'
         + '<p>사용 가능한 타입 (19종):</p><ul>' + links + '</ul>'
         + '</body></html>',
         { headers: { 'content-type': 'text/html;charset=UTF-8' } }
@@ -6723,25 +6846,70 @@ export default {
         let hasImg = false;
         if (parts[idx] && isNaN(Number(parts[idx])) && !(parts[idx] || '').startsWith('[')) { hasImg = true; idx++; }
 
-        // body padding(40) + tweet padding(24) + header(44) + stats(40) + actions(36) + borders(4)
-        let base = 40 + 24 + 44 + 40 + 36 + 4; // = 188
+        // body padding(40) + tweet padding(20) + header(54) + meta(26) + actions(40) + borders(4)
+        let base = 40 + 20 + 54 + 26 + 40 + 4; // = 184
 
-        // 본문 (font 14px, line-height 1.35 → ~19px, 컨테이너 ~530px) + margin 14
-        const bodyLines = calcLines(body, 530);
-        base += Math.max(bodyLines, 1) * 19 + 14;
+        // 통계: 0 아닌 항목이 하나라도 있으면 표시 (retweets~bookmarks = idx+1..idx+4)
+        const hasStats = [parts[idx+1],parts[idx+2],parts[idx+3],parts[idx+4]].some(v => v && v !== '0');
+        if (hasStats) base += 46;
 
-        if (hasTranslation) base += 18;
-        if (hasImg) base += 120;
+        // 본문 (font 17px, line-height 1.45 → ~25px, 컨테이너 ~555px) + margin 14
+        const bodyLines = calcLines(body, 555);
+        base += Math.max(bodyLines, 1) * 25 + 14;
 
-        // 리플라이
+        if (hasTranslation) base += 22;
+        if (hasImg) base += 330;
+
+        // 리플라이 (미니 트윗: 헤더 + 답글대상줄 + 본문 + 액션바)
         if (r) {
           const replies = r.split('|');
-          base += 2;
+          base += 40; // 정렬 라벨
           replies.forEach(raw => {
             const seg = raw.split('§');
             const rBody = seg[3] || '';
-            const rLines = Math.max(calcLines(rBody, 500), 1);
-            base += 20 + 16 + rLines * 20 + 4 + 16 + 8;
+            let rTo = true;
+            for (let s = 4; s < seg.length; s++) { if (seg[s] === '-') rTo = false; }
+            const rLines = Math.max(calcLines(rBody, 495), 1);
+            base += 80 + (rTo ? 20 : 0) + rLines * 21;
+          });
+        }
+
+        h = base + MARGIN;
+        h = Math.max(h, 300); h = Math.min(h, MAX_H);
+      }
+
+      // ── 🐦 TWITTER 타임라인 (tl) ──
+      // body padding 20px 0 → 상하 40px, wrap 테두리 2
+      if (t === 'tl') {
+        const hParam = url.searchParams.get('h') || '';
+        const mParam = url.searchParams.get('m') || '';
+        let base = 40 + 2;
+        if (hParam) base += 62 + 45; // 프로필 헤더 + 탭바
+
+        if (mParam) {
+          mParam.split('|').forEach(raw => {
+            const seg = raw.split('§');
+            const iBody = seg[3] || '';
+            let hasRt = false, hasRe = false, imgN = 0, qtBody = '';
+            for (let s = 4; s < seg.length; s++) {
+              const f = seg[s] || '';
+              if (f.startsWith('rt:')) hasRt = true;
+              else if (f.startsWith('re:')) hasRe = true;
+              else if (f.startsWith('img:')) imgN = Math.min(f.slice(4).split(';').length, 2);
+              else if (f.startsWith('qt:')) {
+                const qp = f.slice(3).split(';');
+                qtBody = qp.length >= 4 ? qp.slice(3).join(';') : (qp[2] || '');
+              }
+            }
+            // 패딩(16) + 헤더(22) + 액션바(30) + 본문 여백
+            const bLines = Math.max(calcLines(iBody, 500), 1);
+            let ih = 70 + bLines * 21;
+            if (hasRt) ih += 22;
+            if (hasRe) ih += 20;
+            if (imgN === 1) ih += 320; // 16/9 와이드
+            if (imgN === 2) ih += 285; // 정사각 2칸 그리드
+            if (qtBody) ih += 58 + Math.max(calcLines(qtBody, 470), 1) * 20;
+            base += ih;
           });
         }
 

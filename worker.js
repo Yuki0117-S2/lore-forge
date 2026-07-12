@@ -6644,7 +6644,7 @@ function renderTimeline(html, url) {
   items.forEach(raw=>{
     const seg=raw.split('§');
     const iName=seg[0]||'', iHandle=seg[1]||'', iTime=seg[2]||'', iBody=seg[3]||'';
-    // 5번째 필드부터 타입 감지: 숫자(답글·RT·좋아요·조회수 순), verified/lock/thread, rt:/re:/img:/qt:
+    // 5번째 필드부터 타입 감지: 숫자(답글·RT·좋아요·조회수 순), verified/lock/thread, rt:/re:/pic:/qt: (img:·= 병행 인식)
     let verified=false,lock=false,thread=false,rtBy='',reTo='',imgs=null,qt='';
     const nums=[];
     for(let s=4;s<seg.length;s++){

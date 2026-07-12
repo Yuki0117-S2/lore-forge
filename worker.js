@@ -6630,7 +6630,6 @@ function renderTimeline(html, url) {
     ['게시물','답글','하이라이트','미디어'].forEach(t=>{ th+='<div class="tl-tab'+(t===hTab?' active':'')+'">'+t+'</div>'; });
     html = html.replace('id="tl-tabs" style="display:none"></div>','id="tl-tabs">'+th+'</div>');
   }
-  if (!mP) return html;
   const icoReply='<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>';
   const icoRT='<svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>';
   const icoLike='<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>';
@@ -6640,7 +6639,7 @@ function renderTimeline(html, url) {
   const icoVerified='<svg class="verified" viewBox="0 0 24 24"><path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.9-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.46-2.91-.2-3.92.81s-1.26 2.52-.8 3.91C2.88 9.33 2 10.57 2 12s.88 2.67 2.19 3.34c-.46 1.39-.2 2.9.81 3.91s2.52 1.27 3.91.81c.66 1.31 1.9 2.19 3.34 2.19s2.67-.88 3.33-2.19c1.4.46 2.91.2 3.92-.81s1.26-2.52.8-3.91C21.37 14.67 22.25 13.43 22.25 12zm-6.12-1.26l-4.5 4.5a.75.75 0 01-1.06 0l-2.25-2.25a.75.75 0 011.06-1.06l1.72 1.72 3.97-3.97a.75.75 0 011.06 1.06z"/></svg>';
   const icoLock='<svg class="lock-icon" viewBox="0 0 24 24"><path d="M17 9V7a5 5 0 00-10 0v2H5.5A1.5 1.5 0 004 10.5v9A1.5 1.5 0 005.5 21h13a1.5 1.5 0 001.5-1.5v-9A1.5 1.5 0 0018.5 9H17zm-8-2a3 3 0 016 0v2H9V7z"/></svg>';
   const icoCam='<svg viewBox="0 0 24 24"><path d="M12 15.2a3.2 3.2 0 100-6.4 3.2 3.2 0 000 6.4z"/><path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>';
-  const items = mP.split('|');
+  const items = (mP || '이름§@handle§방금§트윗 내용§0§0§0§0').split('|');
   let fh='';
   items.forEach(raw=>{
     const seg=raw.split('§');
@@ -6653,10 +6652,10 @@ function renderTimeline(html, url) {
       if(f==='verified') verified=true;
       else if(f==='lock') lock=true;
       else if(f==='thread') thread=true;
-      else if(f.startsWith('rt:')) rtBy=f.slice(3);
-      else if(f.startsWith('re:')) reTo=f.slice(3);
-      else if(f.startsWith('img:')) imgs=f.slice(4).split(';');
-      else if(f.startsWith('qt:')) qt=f.slice(3);
+      else if(f.startsWith('rt:')||f.startsWith('rt=')) rtBy=f.slice(3);
+      else if(f.startsWith('re:')||f.startsWith('re=')) reTo=f.slice(3);
+      else if(f.startsWith('pic:')||f.startsWith('pic=')||f.startsWith('img:')||f.startsWith('img=')) imgs=f.slice(4).split(';');
+      else if(f.startsWith('qt:')||f.startsWith('qt=')) qt=f.slice(3);
       else nums.push(f);
     }
     const numTxt=v=>(v&&v!=='0')?fmtNum(v):'';
@@ -6719,7 +6718,8 @@ function wrapInSVG(html, width, height, isFixed) {
   const { styles, body } = stripToBody(html);
   const escapeBareAmp = (s) => s.replace(/&(?!amp;|lt;|gt;|quot;|#39;|#[0-9]+;|#x[0-9a-fA-F]+;)/g, '&amp;');
   const safeStyles = escapeBareAmp(styles);
-  const safeBody = escapeBareAmp(body);
+  // XHTML 네임스페이스 안에서 내부 svg가 SVG로 렌더링되도록 xmlns 자동 주입
+  const safeBody = escapeBareAmp(body).replace(/<svg\s(?![^>]*xmlns=)/g, '<svg xmlns="http://www.w3.org/2000/svg" ');
   // body 배경색 추출하여 wrapper div에 적용
   const bgMatch = styles.match(/body\s*\{[^}]*background\s*:\s*([^;}]+)/);
   const bgStyle = bgMatch ? `background:${bgMatch[1].trim()};` : '';
@@ -6745,7 +6745,7 @@ export default {
       return new Response(
         '<html><body style="font-family:sans-serif;padding:40px;background:#1a1a2e;color:#e0e0e0;">'
         + '<h1 style="color:#8889CD;">겨울의 SNS UI v13</h1>'
-        + '<p>사용 가능한 타입 (19종):</p><ul>' + links + '</ul>'
+        + '<p>사용 가능한 타입 (' + Object.keys(TEMPLATES).length + '종):</p><ul>' + links + '</ul>'
         + '</body></html>',
         { headers: { 'content-type': 'text/html;charset=UTF-8' } }
       );
@@ -6893,10 +6893,10 @@ export default {
             let hasRt = false, hasRe = false, imgN = 0, qtBody = '';
             for (let s = 4; s < seg.length; s++) {
               const f = seg[s] || '';
-              if (f.startsWith('rt:')) hasRt = true;
-              else if (f.startsWith('re:')) hasRe = true;
-              else if (f.startsWith('img:')) imgN = Math.min(f.slice(4).split(';').length, 2);
-              else if (f.startsWith('qt:')) {
+              if (f.startsWith('rt:') || f.startsWith('rt=')) hasRt = true;
+              else if (f.startsWith('re:') || f.startsWith('re=')) hasRe = true;
+              else if (f.startsWith('pic:') || f.startsWith('pic=') || f.startsWith('img:') || f.startsWith('img=')) imgN = Math.min(f.slice(4).split(';').length, 2);
+              else if (f.startsWith('qt:') || f.startsWith('qt=')) {
                 const qp = f.slice(3).split(';');
                 qtBody = qp.length >= 4 ? qp.slice(3).join(';') : (qp[2] || '');
               }

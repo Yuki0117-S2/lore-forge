@@ -743,7 +743,7 @@ verified,lock — 인증배지 / 비공개 자물쇠 (선택, 콤마 결합)
 <div class="label label-example">예시 (프로필 뷰 + 재게시 + 이미지 + 인용)</div>
 <pre>/?t=tl&h=껌머§5622§게시물
 &m=껌머§@Kkam_Luv§7시§리쿠랑+유우+저런+트윗보면+당분간+거리두기+할듯§0§0§7§84§verified§lock
-|BN§@sundaejoayo§7시§알페스나오고+리쿠+화남§0§1§4§155§rt:껌머§re:@sundaejoayo§img:픽션+캡처;반응+캡처
+|BN§@sundaejoayo§7시§알페스나오고+리쿠+화남§0§1§4§155§rt:껌머§re:@sundaejoayo§pic:픽션+캡처;반응+캡처
 |껌머§@Kkam_Luv§7시§새벽에+이거보고+또+욺§0§0§3§121§verified§qt:껌머;@Kkam_Luv;06월+30일;편지+내용</pre>
 <hr class="divider">
 <div class="desc"><strong>파라미터 설명:</strong><br>
@@ -754,8 +754,9 @@ verified,lock — 인증배지 / 비공개 자물쇠 (선택, 콤마 결합)
 &nbsp;&nbsp;— <strong>verified</strong> 인증배지 / <strong>lock</strong> 자물쇠 / <strong>thread</strong> 아래 트윗과 연결선<br>
 &nbsp;&nbsp;— <strong>rt:이름</strong> → "이름 님이 재게시함" 회색 줄<br>
 &nbsp;&nbsp;— <strong>re:@핸들</strong> → "@핸들 님에게 보내는 답글" 파란 줄<br>
-&nbsp;&nbsp;— <strong>img:설명</strong> 1장 와이드(16:9) / <strong>img:설명1;설명2</strong> 2장 정사각 그리드<br>
+&nbsp;&nbsp;— <strong>pic:설명</strong> 1장 와이드(16:9) / <strong>pic:설명1;설명2</strong> 2장 정사각 그리드<br>
 &nbsp;&nbsp;— <strong>qt:이름;@핸들;시간;내용</strong> 인용 트윗 카드 (시간 생략 시 3필드: 이름;@핸들;내용)<br>
+• ⚠️ 이미지는 반드시 <strong>pic:</strong> 사용 — <strong>img:</strong>는 바베챗 마크다운 파서와 충돌해 URL이 깨짐 (실측 확인, 다른 콜론 접두어는 안전). img:/img=/pic=도 코드상 인식되지만 바베챗에선 pic: 권장<br>
 • ⚠️ qt 내용에 <strong>;</strong>를 쓰려면 시간 필드를 반드시 포함 (3필드형은 내용의 ;를 구분자로 오인)<br>
 • 상세 라우트(t=twitter)와 별개 — 피드/프로필 화면은 tl, 단일 트윗+답글은 twitter</div>
 <hr class="divider">
@@ -772,7 +773,7 @@ verified,lock — 인증배지 / 비공개 자물쇠 (선택, 콤마 결합)
   verified / lock / thread — 키워드 플래그
   rt:이름   — 재게시 표시줄
   re:@핸들  — 답글 대상 줄
-  img:a(;b) — 이미지 1~2장
+  pic:a(;b) — 이미지 1~2장 (img: 금지 — 바베챗에서 깨짐)
   qt:이름;@핸들;(시간;)내용 — 인용 카드</pre>`
       },
       {
@@ -1287,10 +1288,11 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
 - 번역·이미지설명이 없으면 빈칸(§§) 넣지 말고 해당 필드 자체를 생략
 
 ### 트위터 타임라인 (피드/프로필)
-![](https://i.winter0.workers.dev/?t=tl&h=이름§게시물수§활성탭&m=이름§@핸들§시간§본문§답글§RT§좋아요§조회수§[verified]§[lock]§[thread]§[rt:이름]§[re:@핸들]§[img:설명(;설명2)]§[qt:이름;@핸들;(시간;)내용]|...)
+![](https://i.winter0.workers.dev/?t=tl&h=이름§게시물수§활성탭&m=이름§@핸들§시간§본문§답글§RT§좋아요§조회수§[verified]§[lock]§[thread]§[rt:이름]§[re:@핸들]§[pic:설명(;설명2)]§[qt:이름;@핸들;(시간;)내용]|...)
 - &h= 생략하면 홈 피드(헤더·탭 없음), 있으면 프로필 뷰 — 활성탭: 게시물/답글/하이라이트/미디어
 - 본문 뒤 필드는 전부 선택·순서 무관: 숫자 4개(답글·RT·좋아요·조회수 순, 0 숨김), 나머지는 키워드/접두어
-- thread = 아래 트윗과 연결선, rt: = 재게시줄, re: = 답글대상줄, img: 1~2장, qt: 인용 카드
+- thread = 아래 트윗과 연결선, rt:이름 재게시줄, re:@핸들 답글대상줄, pic: 이미지 1~2장, qt: 인용 카드
+- ⚠️ 이미지 접두어는 반드시 pic: — img:는 바베챗 파서와 충돌해 URL이 깨짐 (다른 콜론 접두어는 안전)
 - 단일 트윗 상세+답글은 t=twitter, 피드 화면은 t=tl 사용
 
 ### 카카오톡
@@ -1364,6 +1366,7 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
 - # → URL에서 사용 금지 (fragment로 인식됨). hex 색상은 # 제외하고 입력
 - # 포함이 불가피한 경우 → %23으로 변환하여 사용
 - 괄호 → 내용에 ( ) 포함 시 반드시 ( → %28, ) → %29 로 인코딩 (마크다운 ![](URL) 파서가 괄호 매칭을 깨뜨림)
+- img: → 바베챗 파서와 충돌해 URL 전체가 깨짐 (실측). tl 이미지는 pic: 사용. 그 외 콜론(rt: qt: cd: 닉:색, 1:17 등)은 전부 안전 확인됨
 - URL은 절대 줄바꿈하지 않는다
 
 ### 길이 제한 (이미지 높이 제한 — 실측 기반 v14)

@@ -6693,6 +6693,193 @@ function renderTimeline(html, url) {
 }
 
 
+// ══════════════════════════════════════════════════════════
+// 테마 시스템 (th= 파라미터) — 순수 추가, th 없으면 기존 출력과 100% 동일
+//
+// 공통 형식: th=색1§색2§색3  (# 없이 헥스 3/6자리, 뒤에서부터 생략 가능)
+// · kakao/dm (말풍선형): th=배경§내말풍선§상대말풍선
+//     단, 색 1개만 주면 → 내말풍선 = 그 색, 배경 = 자동 연화 (B규칙)
+//     말풍선 글자색은 밝기 계산으로 검정/흰색 자동 선택
+//     배경이 어두우면 이름·시간·헤더·인풋바 글자 자동 반전
+// · lock/story (무드형): th=색1[§색2]
+//     1색 → 명암 자동 그라데이션 / 2색 → 색1→색2 그라데이션
+//     밝은 배경이면 시계·알림·UI 글자 자동 반전
+// · letter: th=봉투색[§종이색] — 종이색은 글자 가독성 위해 밝기 자동 보정
+// · menu: th=악센트[§보드색] — 보드색은 어두운 쪽으로 자동 보정
+// ══════════════════════════════════════════════════════════
+
+function themeParse(url) {
+  const th = url.searchParams.get('th');
+  if (!th) return null;
+  const parts = th.split('§').map(s => {
+    s = (s || '').trim().replace(/^#/, '');
+    if (/^[0-9a-fA-F]{3}$/.test(s)) s = s.split('').map(c => c + c).join('');
+    return /^[0-9a-fA-F]{6}$/.test(s) ? '#' + s.toLowerCase() : null;
+  });
+  return parts[0] ? parts : null; // 첫 색이 유효하지 않으면 테마 미적용
+}
+
+function themeRGB(hex) {
+  return [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)];
+}
+
+// 체감 밝기 0~255 (ITU-R BT.601 가중치)
+function themeLum(hex) {
+  const c = themeRGB(hex);
+  return 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2];
+}
+
+// 배경 밝기에 따른 글자색 자동 선택
+function themeText(hex) {
+  return themeLum(hex) > 150 ? '#1a1a1a' : '#ffffff';
+}
+
+// A색을 B색 방향으로 ratio(0~1)만큼 이동
+function themeMix(hexA, hexB, ratio) {
+  const a = themeRGB(hexA), b = themeRGB(hexB);
+  return '#' + a.map((v, i) => Math.round(v + (b[i] - v) * ratio).toString(16).padStart(2, '0')).join('');
+}
+
+// 첫 </style> 직전에 오버라이드 블록 삽입 — 기존 CSS는 건드리지 않음
+function themeInject(html, css) {
+  return html.replace('</style>', '\n/* ── th 테마 오버라이드 ── */\n' + css + '</style>');
+}
+
+// ── 말풍선형 공통 (kakao / dm) ──
+function themeBubbleCSS(t, bgSel, darkUI) {
+  let bg, me, other = null;
+  if (!t[1]) { // 1색 = 내 말풍선 + 배경 자동 연화
+    me = t[0];
+    bg = themeMix(t[0], '#ffffff', 0.55);
+  } else {
+    bg = t[0]; me = t[1]; other = t[2] || null;
+  }
+  let css = bgSel + ' { background: ' + bg + ' !important; }\n';
+  css += '.msg-row.me .bubble { background: ' + me + ' !important; color: ' + themeText(me) + ' !important; }\n';
+  css += '.send-btn { background: ' + me + ' !important; }\n';
+  if (other) {
+    css += '.msg-row.other .bubble { background: ' + other + ' !important; color: ' + themeText(other) + ' !important; }\n';
+  }
+  if (themeLum(bg) <= 150) css += darkUI(bg);
+  return css;
+}
+
+function themeKakao(html, url) {
+  const t = themeParse(url);
+  if (!t) return html;
+  const css = themeBubbleCSS(t, 'body, .chat-wrap', function (bg) {
+    const bar = themeMix(bg, '#ffffff', 0.08);
+    const field = themeMix(bg, '#ffffff', 0.16);
+    return '.chat-title, .back-btn { color: #ececf2 !important; }\n'
+      + '.header-actions svg { stroke: #ececf2 !important; }\n'
+      + '.chat-header { background: rgba(255,255,255,0.06) !important; }\n'
+      + '.member-count, .msg-name, .msg-time, .date-divider { color: rgba(255,255,255,0.55) !important; }\n'
+      + '.input-bar { background: ' + bar + ' !important; border-top-color: rgba(255,255,255,0.08) !important; }\n'
+      + '.input-field { background: ' + field + ' !important; color: #ececf2 !important; }\n'
+      + '.input-btn { color: rgba(255,255,255,0.6) !important; }\n';
+  });
+  return themeInject(html, css);
+}
+
+function themeDm(html, url) {
+  const t = themeParse(url);
+  if (!t) return html;
+  const css = themeBubbleCSS(t, 'body, .chat-wrap, .chat-header', function (bg) {
+    const bar = themeMix(bg, '#ffffff', 0.08);
+    const field = themeMix(bg, '#ffffff', 0.16);
+    return '.header-username, .back-btn { color: #ececf2 !important; }\n'
+      + '.header-actions svg { stroke: #ececf2 !important; }\n'
+      + '.chat-header { border-bottom-color: rgba(255,255,255,0.1) !important; }\n'
+      + '.header-status, .msg-name, .msg-time, .seen-label { color: rgba(255,255,255,0.55) !important; }\n'
+      + '.msg-row.other .bubble { background: ' + themeMix(bg, '#ffffff', 0.14) + ' !important; color: #ececf2 !important; }\n'
+      + '.input-bar { background: ' + bar + ' !important; border-top-color: rgba(255,255,255,0.08) !important; }\n'
+      + '.input-field { background: ' + field + ' !important; color: #ececf2 !important; }\n';
+  });
+  return themeInject(html, css);
+}
+
+function themeLock(html, url) {
+  const t = themeParse(url);
+  if (!t) return html;
+  const c1 = t[0], c2 = t[1] || null;
+  let grad, avgLum;
+  if (c2) {
+    grad = 'linear-gradient(180deg, ' + c1 + ' 0%, ' + c2 + ' 100%)';
+    avgLum = (themeLum(c1) + themeLum(c2)) / 2;
+  } else { // 1색 → 명암 3단 자동 그라데이션 (기존 잠금화면 무드 유지)
+    const top = themeMix(c1, '#000000', 0.45);
+    const mid = themeMix(c1, '#000000', 0.25);
+    const bot = themeMix(c1, '#000000', 0.55);
+    grad = 'linear-gradient(180deg, ' + top + ' 0%, ' + mid + ' 40%, ' + bot + ' 100%)';
+    avgLum = themeLum(mid);
+  }
+  let css = 'body { background: ' + themeMix(c1, '#000000', 0.7) + ' !important; }\n'
+    + '.phone { background: ' + grad + ' !important; }\n';
+  if (avgLum > 150) { // 밝은 배경 → 글자·알림 카드 반전
+    css += '.status-bar, .lock-time, .notif-title { color: #1a1a1a !important; }\n'
+      + '.lock-date { color: rgba(0,0,0,0.65) !important; }\n'
+      + '.notif { background: rgba(0,0,0,0.06) !important; }\n'
+      + '.notif-app { color: rgba(0,0,0,0.85) !important; }\n'
+      + '.notif-time { color: rgba(0,0,0,0.45) !important; }\n'
+      + '.notif-body { color: rgba(0,0,0,0.6) !important; }\n'
+      + '.bottom-btn { background: rgba(0,0,0,0.08) !important; }\n';
+  }
+  return themeInject(html, css);
+}
+
+function themeStory(html, url) {
+  const t = themeParse(url);
+  if (!t) return html;
+  const c1 = t[0];
+  const c2 = t[1] || themeMix(t[0], '#000000', 0.45); // 1색 → 은은한 명암 그라데이션
+  const grad = 'linear-gradient(160deg, ' + c1 + ' 0%, ' + c2 + ' 100%)';
+  const avgLum = (themeLum(c1) + themeLum(c2)) / 2;
+  let css = '.story { background: ' + grad + ' !important; }\n';
+  if (avgLum > 150) { // 밝은 배경 → 상단 UI 반전
+    css += '.story-user, .story-close { color: #1a1a1a !important; }\n'
+      + '.story-time { color: rgba(0,0,0,0.55) !important; }\n'
+      + '.progress-bar { background: rgba(0,0,0,0.2) !important; }\n'
+      + '.progress-fill { background: #1a1a1a !important; }\n'
+      + '.story-image svg { fill: rgba(0,0,0,0.35) !important; }\n'
+      + '.story-image-desc { color: rgba(0,0,0,0.5) !important; }\n'
+      + '.story-avatar-inner { border-color: rgba(0,0,0,0.15) !important; }\n';
+  }
+  return themeInject(html, css);
+}
+
+function themeLetter(html, url) {
+  const t = themeParse(url);
+  if (!t) return html;
+  const env = t[0]; // 봉투색
+  let css = 'body { background: ' + themeMix(env, '#ffffff', 0.55) + ' !important; }\n'
+    + '.envelope-flap { background: linear-gradient(135deg, ' + env + ', ' + themeMix(env, '#000000', 0.12) + ') !important; }\n'
+    + '.envelope-bottom { background: linear-gradient(180deg, ' + env + ', ' + themeMix(env, '#000000', 0.2) + ') !important; }\n';
+  if (t[1]) { // 종이색 — 어두우면 글자(고정 갈색톤)가 안 보이므로 밝기 자동 보정
+    const paper = themeLum(t[1]) < 160 ? themeMix(t[1], '#ffffff', 0.78) : t[1];
+    css += '.letter { background: ' + paper + ' !important; }\n';
+  }
+  return themeInject(html, css);
+}
+
+function themeMenu(html, url) {
+  const t = themeParse(url);
+  if (!t) return html;
+  const accent = t[0];
+  // 보드는 밝은 글자 고정이라 어두운 쪽으로 자동 보정
+  let board = t[1] || themeMix(accent, '#000000', 0.82);
+  if (themeLum(board) > 120) board = themeMix(board, '#000000', 0.72);
+  let css = 'body { background: ' + themeMix(accent, '#ffffff', 0.55) + ' !important; }\n'
+    + '.menu { background: ' + board + ' !important; }\n'
+    + ':root { --col-rose: ' + accent + '; --col-indigo: ' + themeMix(accent, '#ffffff', 0.25) + '; }\n';
+  return themeInject(html, css);
+}
+
+// th= 지원 타입 매핑 (renderer 통과 후 적용)
+const THEME_RENDERERS = {
+  'kakao': themeKakao, 'dm': themeDm, 'lock': themeLock,
+  'story': themeStory, 'letter': themeLetter, 'menu': themeMenu,
+};
+
 const RENDERERS = {
   'insta': renderInsta, 'twitter': renderTwitter, 'kakao': renderKakao,
   'reddit': renderReddit, 'lock': renderLock, 'email': renderEmail,
@@ -6754,6 +6941,7 @@ export default {
     if (html) {
       const renderer = RENDERERS[t] || renderDefault;
       html = renderer(html, url);
+      if (THEME_RENDERERS[t]) html = THEME_RENDERERS[t](html, url); // th= 테마 (없으면 no-op)
       let [w, h] = SIZES[t] || [600, 700];
 
       // ══════════════════════════════════════════════════════════

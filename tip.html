@@ -803,7 +803,27 @@ m 파라미터 (|로 구분):
   내용      — 메시지 텍스트
   시간      — 시각 표시
   읽음수    — 안 읽은 사람 수 (0이면 미표시)
-  me        — 마지막에 쓰면 내 메시지 (분홍 말풍선)</pre>`
+  me        — 마지막에 쓰면 내 메시지 (분홍 말풍선)</pre>
+<hr class="divider">
+<div class="label label-use">🎨 테마 색상 (선택) — &th=</div>
+<pre>&th=배경§내말풍선§상대말풍선   ← # 없이 헥스 3/6자리
+&th=색1개만 → 내말풍선 = 그 색, 배경 자동 연화
+th 생략 = 기본색 (기존 URL 무변화)</pre>
+<div class="desc">• 말풍선 글자색은 밝기 계산으로 검정/흰색 <strong>자동 선택</strong> — 지정 불필요<br>
+• 배경이 어두우면 이름·시간·헤더·인풋바 글자 <strong>자동 반전</strong><br>
+• 첫 색이 잘못된 형식이면 테마 무시 → 기본색으로 안전 출력</div>
+<div class="label label-example">프리셋표 (dm에도 동일 적용)</div>
+<pre>기본        (th 생략)                보라 배경 + 핑크 말풍선
+리얼카톡    th=b2c7d9§fee500         노란 말풍선 진짜 카톡
+라인        th=8cabd8§06c755         파란 배경 + 초록 말풍선
+아이메시지  th=ffffff§0b93f6§e9e9eb   흰 배경 + 파랑/회색
+다크        th=1a1a22§8888cc§2e2d3a   다크모드
+
+── 팔레트 단색 (1색 자동 코디) ──
+인디고 th=8888cc   핑크 th=ddaacc
+샌드   th=ccaa88   로즈 th=bb6688</pre>
+<div class="label label-example">예시</div>
+<pre>/?t=kakao&th=b2c7d9§fee500&r=...&m=...</pre>`
       },
       {
         id:'t-6-2b', title:'인스타그램 DM',
@@ -831,7 +851,16 @@ m 파라미터 (|로 구분):
   발신자    — 이름
   내용      — 메시지 텍스트
   시간      — 시각 표시 ("오후 3:22" 등)
-  me        — 마지막에 쓰면 내 메시지 (인디고 말풍선)</pre>`
+  me        — 마지막에 쓰면 내 메시지 (인디고 말풍선)</pre>
+<hr class="divider">
+<div class="label label-use">🎨 테마 색상 (선택) — &th=</div>
+<pre>&th=배경§내말풍선§상대말풍선   ← # 없이 헥스 3/6자리
+&th=색1개만 → 내말풍선 = 그 색, 배경 자동 연화
+th 생략 = 기본색 (흰 배경 + 인디고 말풍선)</pre>
+<div class="desc">• 말풍선 글자색 자동 선택, 어두운 배경이면 UI 글자 자동 반전 (카카오와 동일 규칙)<br>
+• 프리셋표는 <strong>카카오톡 채팅</strong> 카드 참고 — dm에도 그대로 적용됨</div>
+<div class="label label-example">예시</div>
+<pre>/?t=dm&th=1a1a22§8888cc&r=...&m=...   ← 다크 DM</pre>`
       },
       {
         id:'t-6-3', title:'레딧 스레드',
@@ -888,7 +917,16 @@ n 파라미터 (|로 알림 구분, §로 필드 구분):
   앱이름    — 알림 헤더
   제목      — 알림 제목 (굵게)
   내용      — 알림 본문 (2줄까지)
-  시간      — 알림 시각 ("1분 전" 등)</pre>`
+  시간      — 알림 시각 ("1분 전" 등)</pre>
+<hr class="divider">
+<div class="label label-use">🎨 테마 색상 (선택) — &th=</div>
+<pre>&th=색1        → 그 색 기반 명암 3단 배경 그라데이션 자동 생성
+&th=색1§색2    → 색1→색2 그라데이션 (위→아래)
+th 생략 = 기본 다크 배경</pre>
+<div class="desc">• 배경이 밝으면 시계·날짜·알림 카드 글자 <strong>자동 반전</strong><br>
+• 알림 아이콘 색(msg/call/insta 등)은 테마와 무관하게 유지</div>
+<div class="label label-example">예시</div>
+<pre>/?t=lock&th=8888cc&time=...&n=...   ← 인디고 잠금화면</pre>`
       },
       {
         id:'t-6-5', title:'이메일',
@@ -931,7 +969,15 @@ n 파라미터 (|로 알림 구분, §로 필드 구분):
   @유저       — @포함 계정명
   시간        — "14분 전" 등
   이미지설명  — 이미지 영역 텍스트
-  [캡션]      — 하단 오버레이 텍스트 (선택)</pre>`
+  [캡션]      — 하단 오버레이 텍스트 (선택)</pre>
+<hr class="divider">
+<div class="label label-use">🎨 테마 색상 (선택) — &th=</div>
+<pre>&th=색1        → 그 색의 은은한 명암 그라데이션 (스토리 캔버스 배경)
+&th=색1§색2    → 색1→색2 그라데이션
+th 생략 = 기본 다크 배경</pre>
+<div class="desc">• 배경이 밝으면 상단 유저명·시간·진행바 <strong>자동 반전</strong></div>
+<div class="label label-example">예시</div>
+<pre>/?t=story&th=ddaacc§8888cc&...   ← 핑크→인디고 스토리</pre>`
       },
       {
         id:'t-6-7', title:'검색 결과 페이지',
@@ -1233,7 +1279,16 @@ m 파라미터 (|로 메시지, §로 필드 구분):
 
 &b= 본문 (별도 파라미터, 특수문자 자유)
 &ps= 추신 P.S. (선택)
-&w= 워터마크 이모지 (선택, 기본 ♥)</pre>`
+&w= 워터마크 이모지 (선택, 기본 ♥)</pre>
+<hr class="divider">
+<div class="label label-use">🎨 테마 색상 (선택) — &th=</div>
+<pre>&th=봉투색         → 봉투 + 바깥 배경 자동 코디
+&th=봉투색§종이색   → 편지지 색까지 지정
+th 생략 = 기본 (베이지 봉투 + 크림 편지지)</pre>
+<div class="desc">• 종이색이 너무 어두우면 글자(갈색 고정) 가독성 위해 <strong>밝기 자동 보정</strong><br>
+• 캐릭터별로 봉투색 다르게 쓰면 발신자 구분에 활용 가능</div>
+<div class="label label-example">예시</div>
+<pre>/?t=letter&th=bb6688&p=...   ← 로즈 봉투 편지</pre>`
       },
       {
         id:'t-6-12e', title:'🍽️ 메뉴판 (menu)',
@@ -1261,7 +1316,16 @@ m 파라미터 (|로 메시지, §로 필드 구분):
 &s= 메뉴 데이터:
   카테고리§아이콘|메뉴§설명§가격§뱃지|...
   카테고리 구분: ;;  아이템 구분: |
-  뱃지: best/new/hot (선택)</pre>`
+  뱃지: best/new/hot (선택)</pre>
+<hr class="divider">
+<div class="label label-use">🎨 테마 색상 (선택) — &th=</div>
+<pre>&th=악센트색         → 구분선·포인트 색 교체 + 보드 틴트 자동
+&th=악센트색§보드색   → 메뉴판 보드 색까지 지정
+th 생략 = 기본 (다크 보드 + 로즈 악센트)</pre>
+<div class="desc">• 보드 글자가 밝은색 고정이라 보드색은 <strong>어두운 쪽으로 자동 보정</strong>됨<br>
+• 가게 분위기별로 악센트만 바꾸면 다른 가게 연출 가능</div>
+<div class="label label-example">예시</div>
+<pre>/?t=menu&th=ee1166&p=...   ← 네온핑크 바(bar) 메뉴판</pre>`
       },
       {
         id:'t-6-13', title:'바베챗 프롬프트 (복사용)',
@@ -1355,6 +1419,14 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
 
 ### 🍽️ 메뉴판
 ![](https://i.winter0.workers.dev/?t=menu&p=가게이름§부제§공지문구§영업시간&s=카테고리§아이콘|메뉴명§설명§가격§뱃지|메뉴명§설명§가격;;카테고리2§아이콘|...)
+
+### 테마 색상 th= (선택 — kakao/dm/lock/story/letter/menu 공통)
+URL에 &th= 를 추가하면 색상 테마 변경, 생략하면 기본색 (# 없이 헥스코드만)
+- kakao/dm: th=배경§내말풍선§상대말풍선 — 색 1개만 주면 말풍선색 + 배경 자동 연화
+- lock/story: th=색1 하나로 배경 그라데이션 자동 생성 (색2 주면 색1→색2)
+- letter: th=봉투색§종이색 / menu: th=악센트§보드색
+- 프리셋: 리얼카톡 b2c7d9§fee500 · 라인 8cabd8§06c755 · 아이메시지 ffffff§0b93f6§e9e9eb · 다크 1a1a22§8888cc§2e2d3a
+- 글자색은 밝기 기반 자동 선택이라 지정 불필요
 
 ### 공통 규칙
 - 필드 구분자: § (섹션 기호)

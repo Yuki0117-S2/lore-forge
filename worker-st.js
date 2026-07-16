@@ -1440,8 +1440,35 @@ function rpg2kDeadIcon(mode) {
   return '';
 }
 
+// ── rpg2k 윈도우 컬러 (th=창색[§제목색]) — th 없으면 기본색 그대로 ──
+function rpg2kTheme(raw) {
+  const DEF = { bg:'#110d18', frame:'#8888CC', light:'#DDAACC', sub:'#BB6688', accent:'#8888CC', label:'#8a7a90', div:'#2a2030' };
+  if (!raw) return DEF;
+  const norm = s => {
+    s = (s || '').trim().replace(/^#/, '');
+    if (/^[0-9a-fA-F]{3}$/.test(s)) s = s.split('').map(c => c + c).join('');
+    return /^[0-9a-fA-F]{6}$/.test(s) ? '#' + s.toLowerCase() : null;
+  };
+  const parts = raw.split('§').map(norm);
+  const c = parts[0];
+  if (!c) return DEF; // 불량값 → 기본색 안전 폴백
+  const rgb = h => [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)];
+  const mix = (a, b, r) => { const A = rgb(a), B = rgb(b);
+    return '#' + A.map((v,i) => Math.round(v + (B[i]-v)*r).toString(16).padStart(2,'0')).join(''); };
+  return {
+    bg:     mix(c, '#000000', 0.85),  // 배경 틴트
+    frame:  c,                         // 외곽 프레임
+    light:  parts[1] || mix(c, '#ffffff', 0.40), // 이름·코너 (2번째 색으로 별도 지정 가능)
+    sub:    c,                         // 부제
+    accent: mix(c, '#ffffff', 0.15),   // 챕터·하단 인용문
+    label:  mix(c, '#808080', 0.55),   // 섹션 라벨·위치
+    div:    mix(c, '#000000', 0.60),   // 구분선
+  };
+}
+
 function renderRpg2k(params) {
   const W = 600, PAD = 32;
+  const wc = rpg2kTheme(params.get('th')); // th 없으면 기본색
 
   const pp = (params.get('p') || '이름§§§').split('§');
   const name    = esc(pp[0] || '???');
@@ -1478,22 +1505,22 @@ function renderRpg2k(params) {
   let y = 0;
   let body = '';
 
-  body += `<text x="${PAD}" y="52" font-family="Georgia,'Noto Serif KR',serif" font-size="24" font-weight="bold" fill="#DDAACC">${name}</text>`;
+  body += `<text x="${PAD}" y="52" font-family="Georgia,'Noto Serif KR',serif" font-size="24" font-weight="bold" fill="${wc.light}">${name}</text>`;
   if (subtitle) {
-    body += `<text x="${PAD}" y="74" font-family="Georgia,serif" font-size="13" fill="#BB6688" font-style="italic">${subtitle}</text>`;
+    body += `<text x="${PAD}" y="74" font-family="Georgia,serif" font-size="13" fill="${wc.sub}" font-style="italic">${subtitle}</text>`;
   }
   if (chapter) {
-    body += `<text x="${W-PAD}" y="52" font-family="monospace" font-size="11" font-weight="bold" fill="#8888CC" text-anchor="end" letter-spacing="2">${chapter}</text>`;
+    body += `<text x="${W-PAD}" y="52" font-family="monospace" font-size="11" font-weight="bold" fill="${wc.accent}" text-anchor="end" letter-spacing="2">${chapter}</text>`;
   }
   if (loc) {
-    body += `<text x="${W-PAD}" y="72" font-family="monospace" font-size="11" fill="#8a7a90" text-anchor="end">▸ ${loc}</text>`;
+    body += `<text x="${W-PAD}" y="72" font-family="monospace" font-size="11" fill="${wc.label}" text-anchor="end">▸ ${loc}</text>`;
   }
-  body += `<line x1="${PAD}" y1="92" x2="${W-PAD}" y2="92" stroke="#2a2030" stroke-width="0.8"/>`;
+  body += `<line x1="${PAD}" y1="92" x2="${W-PAD}" y2="92" stroke="${wc.div}" stroke-width="0.8"/>`;
   y = HEADER_H;
 
   const modeLabel = mode.toUpperCase();
   const hpColor = rpg2kIconColor(mode);
-  body += `<text x="${PAD}" y="${y+24}" font-family="monospace" font-size="12" font-weight="bold" fill="#8a7a90" letter-spacing="2">VITALITY · ${modeLabel}</text>`;
+  body += `<text x="${PAD}" y="${y+24}" font-family="monospace" font-size="12" font-weight="bold" fill="${wc.label}" letter-spacing="2">VITALITY · ${modeLabel}</text>`;
   body += `<text x="${W-PAD}" y="${y+24}" font-family="monospace" font-size="13" font-weight="bold" fill="${hpColor}" text-anchor="end">${hpCur} / ${hpMax}</text>`;
 
   const iconStartX = PAD + 8;
@@ -1507,12 +1534,12 @@ function renderRpg2k(params) {
       body += `<g transform="translate(${ix}, ${iy})">${rpg2kDeadIcon(mode)}</g>`;
     }
   }
-  body += `<line x1="${PAD}" y1="${y+HP_H-2}" x2="${W-PAD}" y2="${y+HP_H-2}" stroke="#2a2030" stroke-width="0.8"/>`;
+  body += `<line x1="${PAD}" y1="${y+HP_H-2}" x2="${W-PAD}" y2="${y+HP_H-2}" stroke="${wc.div}" stroke-width="0.8"/>`;
   y += HP_H;
 
   if (items.length > 0) {
-    body += `<text x="${PAD}" y="${y+22}" font-family="monospace" font-size="12" font-weight="bold" fill="#8a7a90" letter-spacing="2">ITEMS</text>`;
-    body += `<text x="${W-PAD}" y="${y+22}" font-family="monospace" font-size="10" fill="#8a7a90" text-anchor="end">${items.length} / 12</text>`;
+    body += `<text x="${PAD}" y="${y+22}" font-family="monospace" font-size="12" font-weight="bold" fill="${wc.label}" letter-spacing="2">ITEMS</text>`;
+    body += `<text x="${W-PAD}" y="${y+22}" font-family="monospace" font-size="10" fill="${wc.label}" text-anchor="end">${items.length} / 12</text>`;
     const colX = [PAD + 12, PAD + 188, PAD + 364];
     items.forEach((item, i) => {
       const col = i % 3;
@@ -1522,34 +1549,34 @@ function renderRpg2k(params) {
       const display = item.length > 9 ? item.slice(0, 9) + '…' : item;
       body += `<text x="${ix}" y="${iy}" font-family="Georgia,'Noto Serif KR',serif" font-size="13" fill="#CCAA88">◆ ${display}</text>`;
     });
-    body += `<line x1="${PAD}" y1="${y+ITEM_H-2}" x2="${W-PAD}" y2="${y+ITEM_H-2}" stroke="#2a2030" stroke-width="0.8"/>`;
+    body += `<line x1="${PAD}" y1="${y+ITEM_H-2}" x2="${W-PAD}" y2="${y+ITEM_H-2}" stroke="${wc.div}" stroke-width="0.8"/>`;
     y += ITEM_H;
   }
 
   if (logs.length > 0) {
-    body += `<text x="${PAD}" y="${y+22}" font-family="monospace" font-size="12" font-weight="bold" fill="#8a7a90" letter-spacing="2">JOURNAL</text>`;
+    body += `<text x="${PAD}" y="${y+22}" font-family="monospace" font-size="12" font-weight="bold" fill="${wc.label}" letter-spacing="2">JOURNAL</text>`;
     logs.forEach((line, i) => {
       const ly = y + 44 + i * 20;
       const display = line.length > 36 ? line.slice(0, 36) + '…' : line;
       body += `<text x="${PAD+12}" y="${ly}" font-family="Georgia,serif" font-size="13" fill="#d8c8b0" font-style="italic">· ${display}</text>`;
     });
-    body += `<line x1="${PAD}" y1="${y+LOG_H-2}" x2="${W-PAD}" y2="${y+LOG_H-2}" stroke="#2a2030" stroke-width="0.8"/>`;
+    body += `<line x1="${PAD}" y1="${y+LOG_H-2}" x2="${W-PAD}" y2="${y+LOG_H-2}" stroke="${wc.div}" stroke-width="0.8"/>`;
     y += LOG_H;
   }
 
   if (note) {
-    body += `<text x="${W/2}" y="${y+24}" font-family="Georgia,serif" font-size="13" fill="#8888CC" font-style="italic" text-anchor="middle">" ${note} "</text>`;
+    body += `<text x="${W/2}" y="${y+24}" font-family="Georgia,serif" font-size="13" fill="${wc.accent}" font-style="italic" text-anchor="middle">" ${note} "</text>`;
     y += NOTE_H;
   }
 
-  const corners = `<path d="M${PAD+8} 20 L20 20 L20 ${PAD+8}" fill="none" stroke="#DDAACC" stroke-width="1" opacity="0.6"/>
-<path d="M${W-PAD-8} 20 L${W-20} 20 L${W-20} ${PAD+8}" fill="none" stroke="#DDAACC" stroke-width="1" opacity="0.6"/>
-<path d="M${PAD+8} ${TOTAL_H-20} L20 ${TOTAL_H-20} L20 ${TOTAL_H-PAD-8}" fill="none" stroke="#DDAACC" stroke-width="1" opacity="0.6"/>
-<path d="M${W-PAD-8} ${TOTAL_H-20} L${W-20} ${TOTAL_H-20} L${W-20} ${TOTAL_H-PAD-8}" fill="none" stroke="#DDAACC" stroke-width="1" opacity="0.6"/>`;
+  const corners = `<path d="M${PAD+8} 20 L20 20 L20 ${PAD+8}" fill="none" stroke="${wc.light}" stroke-width="1" opacity="0.6"/>
+<path d="M${W-PAD-8} 20 L${W-20} 20 L${W-20} ${PAD+8}" fill="none" stroke="${wc.light}" stroke-width="1" opacity="0.6"/>
+<path d="M${PAD+8} ${TOTAL_H-20} L20 ${TOTAL_H-20} L20 ${TOTAL_H-PAD-8}" fill="none" stroke="${wc.light}" stroke-width="1" opacity="0.6"/>
+<path d="M${W-PAD-8} ${TOTAL_H-20} L${W-20} ${TOTAL_H-20} L${W-20} ${TOTAL_H-PAD-8}" fill="none" stroke="${wc.light}" stroke-width="1" opacity="0.6"/>`;
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${TOTAL_H}" viewBox="0 0 ${W} ${TOTAL_H}">
-<rect width="${W}" height="${TOTAL_H}" fill="#110d18"/>
-<rect x="2" y="2" width="${W-4}" height="${TOTAL_H-4}" rx="3" fill="none" stroke="#8888CC" stroke-width="1" opacity="0.4"/>
+<rect width="${W}" height="${TOTAL_H}" fill="${wc.bg}"/>
+<rect x="2" y="2" width="${W-4}" height="${TOTAL_H-4}" rx="3" fill="none" stroke="${wc.frame}" stroke-width="1" opacity="0.4"/>
 ${corners}
 ${body}
 </svg>`;

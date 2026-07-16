@@ -1718,7 +1718,20 @@ items (|로 구분, 최대 12개)
 log   (§로 구분, 최대 4줄)
 say   — 하단 대사 (선택)
 
-mode  — heart / rose / moon / eye / spark</pre>`
+mode  — heart / rose / moon / eye / spark</pre>
+<hr class="divider">
+<div class="label label-use">🎨 윈도우 컬러 (선택) — &th=</div>
+<pre>&th=창색          → 배경 틴트·프레임·제목·구분선 자동 파생
+&th=창색§제목색   → 이름·코너 색만 별도 지정
+th 생략 = 기본 보라 창 (기존 URL 무변화)   ← # 없이 헥스 3/6자리</pre>
+<div class="desc">• RPG Maker 원작의 '윈도우 컬러 설정' 고증 — 창색 하나로 전체 자동 코디<br>
+• <strong>고정 유지:</strong> VITALITY 아이콘(하트 등 모드별 색), 아이템 골드, 저널 텍스트는 테마와 무관<br>
+• 잘못된 색 형식이면 테마 무시 → 기본색으로 안전 출력</div>
+<div class="label label-example">추천 창색</div>
+<pre>클래식 블루 th=4466bb   로즈   th=bb6688
+포레스트    th=44aa77   세피아 th=ccaa88</pre>
+<div class="label label-example">예시</div>
+<pre>/?t=rpg2k&th=4466bb&p=겨울§...   ← 그 시절 파란 창</pre>`
       },
       {
         id:'t-st-5', title:'엔딩 카드 (?t=ending)',
@@ -2216,6 +2229,7 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
 - items: 아이템 목록 (|로 구분, 최대 12개). ◆ 아이콘 자동 추가, 3열 그리드 정렬
 - log: 일지/메모 (§로 줄바꿈, 최대 4줄). · 점 자동 추가, 이탤릭
 - say: 하단 대사/독백 (선택). 양쪽에 " " 따옴표 자동 추가됨 — 따옴표를 또 쓰지 말 것
+- th: 윈도우 컬러 (선택). th=창색 또는 th=창색§제목색, # 없이 헥스만. 생략하면 기본 보라 창. HP 아이콘·아이템 색은 테마와 무관하게 유지
 - p의 부제목/위치/장은 비워도 됨 (§로 자리만 유지)
 - 일지/메모/독백을 분위기에 맞게 1~3인칭 자유롭게 작성
 

@@ -251,6 +251,7 @@ details.ref-item .ref-body{padding:0 16px 14px 30px;font-size:12px;color:var(--t
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-27')">📔 !일기</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-28')">📑 !보고서</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-31')">🔄 !시점전환</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-99')">🇰🇷 !한국어</button>
           </div>
           <button class="toc-cat-btn" onclick="toggleTocCat(this)">🌍 세계관 <span class="toc-cat-arrow">▸</span></button>
           <div class="toc-cat-sections">
@@ -2876,6 +2877,24 @@ yyyy/MM/dd/요일 또는 장면 기준(예: 합숙 이튿날 밤):
               <span class="lb-count"></span>
               <button class="lb-tag" data-copy="!시점전환" onclick="lbCopyChip(this)">!시점전환</button>
               <button class="lb-tag" data-copy="🔄" onclick="lbCopyChip(this)">🔄</button>
+            </div>
+            <button class="lb-copy" onclick="lbCopy(this)">복사</button>
+          </div>
+        </div>
+      </details>
+      <details class="ref-item" id="lb-kw-99">
+        <summary><span class="lb-kw">🇰🇷 !한국어</span></summary>
+        <div class="ref-body">
+          <div class="lb-code">### 한국어 전용 모드
+- 다른 지침에서 외국어 병기 대사 형식(예: 外国語(한국어))이 지정되어 있어도 이 모드가 우선한다. 외국어 원문·발음 표기·병기 괄호를 전부 제거하고 자연스러운 한국어 의역으로만 출력하라.
+- 대사·독백·상태창·시스템 메시지 등 모든 텍스트에 적용된다. 언어 외의 형식(지문 구조, 상태창 레이아웃, 항목 순서)은 원래 지침을 그대로 따른다.
+- 유지 예외: 요일·시간 축약(Fri, AM/PM), 단위(km, %), 수치, 고유명사(인명·지명·브랜드) 같은 형식 요소나 명칭으로 쓰인 외국어 표기는 삭제하지 않는다.
+- 세계관·국적·설정 자체는 유지된다. 인물들은 각자의 언어로 말하고 있는 것으로 인지하되, 출력만 한국어로 한다.</div>
+          <div class="lb-bar">
+            <div class="lb-bar-left">
+              <span class="lb-count"></span>
+              <button class="lb-tag" data-copy="!한국어" onclick="lbCopyChip(this)">!한국어</button>
+              <button class="lb-tag" data-copy="🇰🇷" onclick="lbCopyChip(this)">🇰🇷</button>
             </div>
             <button class="lb-copy" onclick="lbCopy(this)">복사</button>
           </div>

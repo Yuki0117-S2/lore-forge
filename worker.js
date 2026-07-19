@@ -6444,6 +6444,92 @@ parseParams();
 </div>
 </body>
 </html>`,
+  'wiki': `<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Wiki</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#ffffff; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif; }
+  .wk-app {
+    width:390px; overflow:hidden;
+    --wk-bg:#ffffff; --wk-fg:#212529; --wk-sub:#666a70; --wk-line:#d5d9dd;
+    --wk-accent:#00A478; --wk-top:#00A478; --wk-box:#f6f7f8; --wk-boxline:#c8ccd1;
+    background:var(--wk-bg); color:var(--wk-fg);
+    font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+    font-size:13.5px; line-height:1.6;
+  }
+  .wk-top {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:10px 14px; background:var(--wk-top);
+  }
+  .wk-logo { font-weight:800; font-size:17px; color:#fff; letter-spacing:.5px; display:flex; align-items:center; gap:7px; }
+  .wk-topic { display:flex; gap:14px; opacity:.9; }
+  .wk-body { padding:14px 16px 24px; }
+  .wk-title { font-size:23px; font-weight:800; display:flex; align-items:baseline; justify-content:space-between; gap:8px;
+    border-bottom:1px solid var(--wk-line); padding-bottom:8px; }
+  .wk-tbtns { display:flex; gap:5px; flex-shrink:0; }
+  .wk-tbtn { font-size:11px; font-weight:400; color:var(--wk-sub); border:1px solid var(--wk-line);
+    padding:2.5px 8px; border-radius:4px; white-space:nowrap; }
+  .wk-cats { margin-top:8px; font-size:12px; color:var(--wk-sub); }
+  .wk-cats a { color:var(--wk-accent); text-decoration:none; }
+  .wk-info { margin-top:14px; border:1px solid var(--wk-boxline); border-radius:6px; overflow:hidden; }
+  .wk-info-img {
+    height:150px; background:linear-gradient(160deg, #8889CD, #BB6688);
+    display:flex; align-items:center; justify-content:center; font-size:64px;
+    background-size:cover; background-position:center;
+  }
+  .wk-info-name { text-align:center; font-weight:800; font-size:15px; padding:9px 10px;
+    background:var(--wk-box); border-bottom:1px solid var(--wk-boxline); }
+  .wk-irow { display:flex; border-bottom:1px solid var(--wk-boxline); font-size:12.5px; }
+  .wk-irow:last-child { border-bottom:none; }
+  .wk-ilab { width:88px; flex-shrink:0; background:var(--wk-box); padding:7px 10px; font-weight:700; color:var(--wk-sub); }
+  .wk-ival { padding:7px 11px; }
+  .wk-ival a { color:var(--wk-accent); text-decoration:none; }
+  .wk-toc { margin-top:16px; border:1px solid var(--wk-boxline); background:var(--wk-box);
+    border-radius:6px; padding:11px 14px; display:inline-block; min-width:200px; }
+  .wk-toc-t { font-weight:800; font-size:13px; margin-bottom:6px; }
+  .wk-toc a { display:block; color:var(--wk-accent); text-decoration:none; font-size:12.5px; padding:1.5px 0; }
+  .wk-toc a .n { color:var(--wk-sub); margin-right:6px; }
+  .wk-sec { margin-top:22px; }
+  .wk-h2 { font-size:18px; font-weight:800; border-bottom:1px solid var(--wk-line); padding-bottom:6px; margin-bottom:10px; }
+  .wk-h2 .n { color:var(--wk-accent); margin-right:7px; font-weight:700; }
+  .wk-p a { color:var(--wk-accent); text-decoration:none; }
+  .wk-p del { color:var(--wk-sub); }
+  .wk-p sup { color:var(--wk-accent); font-size:10px; margin-left:1px; }
+  .wk-quote { margin:10px 0 0; padding:9px 13px; border-left:3px solid var(--wk-accent);
+    background:var(--wk-box); font-style:italic; color:var(--wk-sub); font-size:13px; }
+  .wk-foot { margin-top:26px; border-top:1px solid var(--wk-line); padding-top:10px; font-size:11.5px; color:var(--wk-sub); }
+  .wk-foot .fn { color:var(--wk-accent); margin-right:6px; }
+  .wk-foot div { padding:2px 0; }
+  .wk-last { margin-top:18px; font-size:11px; color:var(--wk-sub); text-align:right; }
+</style>
+</head>
+<body>
+<div class="wk-app" id="wk-app">
+  <div class="wk-top">
+    <div class="wk-logo">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><path d="M4 5h16M4 5v6c0 5 3.6 8 8 8s8-3 8-8V5" stroke-linecap="round"/><path d="M12 19v-8" stroke-linecap="round"/></svg>
+      위키위키
+    </div>
+    <div class="wk-topic">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </div>
+  </div>
+  <div class="wk-body">
+    <div class="wk-title">⟦TITLE⟧ <div class="wk-tbtns"><span class="wk-tbtn">편집</span><span class="wk-tbtn">역사</span><span class="wk-tbtn">토론</span></div></div>
+    ⟦CATS⟧
+    ⟦INFO⟧
+    ⟦TOC⟧
+    ⟦SECS⟧
+    ⟦FOOT⟧
+    ⟦LAST⟧
+  </div>
+</div>
+</body>
+</html>`,
 };
 
 const SIZES = {
@@ -6460,6 +6546,7 @@ const SIZES = {
   'tl': [598, 600],
   'shorts': [390, 693],
   'match': [390, 693],
+  'wiki': [390, 800],
 };
 
 
@@ -7744,12 +7831,133 @@ function themeMatch(html, url) {
   return themeInject(html, css);
 }
 
+
+// ── 📖 WIKI (위키위키 문서) ──
+function wikiRep(html, token, val) {
+  return html.split('\u27e6' + token + '\u27e7').join(val);
+}
+function wikiFmt(text) {
+  return (text || '')
+    .replace(/\[\[([^\]]+)\]\]/g, '<a>$1</a>')
+    .replace(/~~([^~]+)~~/g, '<del>$1</del>')
+    .replace(/\[(\d+)\]/g, '<sup>[$1]</sup>')
+    .split('//').join('<br/>');
+}
+function renderWiki(html, url) {
+  var p = url.searchParams.get('p') || '';
+  var iP = url.searchParams.get('i') || '';
+  var sP = url.searchParams.get('s') || '';
+  var qP = url.searchParams.get('q') || '';
+  var fP = url.searchParams.get('f') || '';
+  var b = url.searchParams.get('b') || '';
+  var e = url.searchParams.get('e') || '';
+
+  var seg = p.split('\u00a7');
+  var title = seg[0] || '\ubb38\uc11c \uc81c\ubaa9';
+  var cats = seg[1] || '';
+  var last = seg[2] || '';
+
+  html = wikiRep(html, 'TITLE', title);
+
+  // 분류
+  if (cats) {
+    var catLinks = cats.split(',').map(function (c) { return '<a>' + c.trim() + '</a>'; }).join(' \u00b7 ');
+    html = wikiRep(html, 'CATS', '<div class="wk-cats">\ubd84\ub958: ' + catLinks + '</div>');
+  } else {
+    html = wikiRep(html, 'CATS', '');
+  }
+
+  // 인포박스
+  var info = '';
+  if (iP || b || e) {
+    info = '<div class="wk-info">';
+    if (b) info += '<div class="wk-info-img" style="background-image:url(' + b.replace(/'/g, '') + ')"></div>';
+    else if (e) info += '<div class="wk-info-img">' + e + '</div>';
+    info += '<div class="wk-info-name">' + title + '</div>';
+    if (iP) {
+      iP.split('|').forEach(function (row) {
+        var f2 = row.split('\u00a7');
+        var lab = f2[0] || '';
+        var val = f2[1] || '';
+        if (!lab) return;
+        info += '<div class="wk-irow"><div class="wk-ilab">' + lab + '</div><div class="wk-ival">' + wikiFmt(val) + '</div></div>';
+      });
+    }
+    info += '</div>';
+  }
+  html = wikiRep(html, 'INFO', info);
+
+  // 섹션 + 목차
+  var toc = '', secs = '';
+  if (sP) {
+    var items = sP.split('|');
+    var tocLinks = '';
+    items.forEach(function (raw, idx) {
+      var f3 = raw.split('\u00a7');
+      var sName = f3[0] || (idx + 1) + '\ubc88 \uc139\uc158';
+      var sBody = f3[1] || '';
+      var n = idx + 1;
+      tocLinks += '<a><span class="n">' + n + '.</span>' + sName + '</a>';
+      secs += '<div class="wk-sec"><div class="wk-h2"><span class="n">' + n + '.</span>' + sName + '</div>'
+        + '<div class="wk-p">' + wikiFmt(sBody) + '</div>';
+      if (idx === 0 && qP) {
+        secs += '<div class="wk-quote">"' + qP + '"</div>';
+      }
+      secs += '</div>';
+    });
+    toc = '<div class="wk-toc"><div class="wk-toc-t">\ubaa9\ucc28</div>' + tocLinks + '</div>';
+  }
+  html = wikiRep(html, 'TOC', toc);
+  html = wikiRep(html, 'SECS', secs);
+
+  // 각주
+  if (fP) {
+    var foot = '<div class="wk-foot">';
+    fP.split('|').forEach(function (fn, idx) {
+      foot += '<div><span class="fn">[' + (idx + 1) + ']</span>' + wikiFmt(fn) + '</div>';
+    });
+    foot += '</div>';
+    html = wikiRep(html, 'FOOT', foot);
+  } else {
+    html = wikiRep(html, 'FOOT', '');
+  }
+
+  // 최근 수정 시각
+  html = wikiRep(html, 'LAST', last ? '<div class="wk-last">\ucd5c\uadfc \uc218\uc815 \uc2dc\uac01: ' + last + '</div>' : '');
+  return html;
+}
+
+// · wiki: th=wiki(기본 라이트)/dark 또는 th=악센트헥스 / th=dark§악센트헥스
+function themeWiki(html, url) {
+  var raw = (url.searchParams.get('th') || '').trim();
+  if (!raw || raw.toLowerCase() === 'wiki') return html;
+  var parts = raw.split('\u00a7');
+  var dark = parts[0].toLowerCase() === 'dark';
+  var accRaw = dark ? parts[1] : parts[0];
+  var acc = '';
+  if (accRaw) {
+    var hx = accRaw.replace('#', '').trim();
+    if (/^[0-9a-fA-F]{6}$/.test(hx)) acc = '#' + hx;
+  }
+  var css = '';
+  if (dark) {
+    // wrapper 배경은 body 규칙 첫 매치를 긁어가므로 직접 치환
+    html = html.replace('body { background:#ffffff;', 'body { background:#1b1b22;');
+    css += '.wk-app { --wk-bg:#1b1b22; --wk-fg:#e3e0ea; --wk-sub:#9a96a8; --wk-line:#3a3844;'
+      + ' --wk-accent:' + (acc || '#8889CD') + '; --wk-top:#2c2b38; --wk-box:#24232d; --wk-boxline:#3a3844; }\n';
+  } else if (acc) {
+    css += '.wk-app { --wk-accent:' + acc + '; --wk-top:' + acc + '; }\n';
+  }
+  return css ? themeInject(html, css) : html;
+}
+
 // th= 지원 타입 매핑 (renderer 통과 후 적용)
 const THEME_RENDERERS = {
   'kakao': themeKakao, 'dm': themeDm, 'lock': themeLock,
   'story': themeStory, 'letter': themeLetter, 'menu': themeMenu,
   'shorts': themeShorts,
   'match': themeMatch,
+  'wiki': themeWiki,
 };
 
 const RENDERERS = {
@@ -7762,6 +7970,7 @@ const RENDERERS = {
   'tl': renderTimeline,
   'shorts': renderShorts,
   'match': renderMatch,
+  'wiki': renderWiki,
 };
 
 
@@ -7877,6 +8086,47 @@ export default {
           h = base + MARGIN;
           h = Math.max(h, 560); h = Math.min(h, MAX_H);
         } else { h = 693; }
+      }
+      if (t === 'wiki') {
+        const pW = url.searchParams.get('p') || '';
+        const iW = url.searchParams.get('i') || '';
+        const sW = url.searchParams.get('s') || '';
+        const qW = url.searchParams.get('q') || '';
+        const fW = url.searchParams.get('f') || '';
+        const bW = url.searchParams.get('b') || '';
+        const eW = url.searchParams.get('e') || '';
+        const gW = pW.split('§');
+        const stripW = x => x.replace(/\[\[|\]\]|~~/g, '');
+        let base = 44 + 14 + 24; // 상단바 + body 패딩
+        base += 42; // 제목줄
+        if (gW[1]) base += calcLines('분류: ' + gW[1], 358) * 19 + 8;
+        if (iW || bW || eW) {
+          base += 14 + 2; // margin + border
+          if (bW || eW) base += 150;
+          base += 37; // 이름 칸
+          if (iW) iW.split('|').forEach(row => {
+            const v = row.split('§')[1] || '';
+            const brN = v.split('//').length;
+            base += Math.max(calcLines(stripW(v).split('//').join(' '), 250), brN) * 19 + 15;
+          });
+        }
+        if (sW) {
+          const items = sW.split('|');
+          base += 16 + 24 + items.length * 19 + 22; // 목차 박스
+          items.forEach((raw, idx) => {
+            const f3 = raw.split('§');
+            base += 22 + 41; // 섹션 margin + h2
+            base += Math.max(calcLines(stripW(f3[1] || ''), 358), 1) * 22;
+            if (idx === 0 && qW) base += 28 + calcLines(qW, 330) * 20;
+          });
+        }
+        if (fW) {
+          base += 26 + 11;
+          fW.split('|').forEach(fn => { base += Math.max(calcLines(stripW(fn), 340), 1) * 18 + 4; });
+        }
+        if (gW[2]) base += 36;
+        h = base + MARGIN + 14; // 하단 여유 소폭 보강
+        h = Math.max(h, 300); h = Math.min(h, MAX_H);
       }
       // story: SIZES 기본값 420×900 그대로
 

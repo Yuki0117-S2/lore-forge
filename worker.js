@@ -6339,7 +6339,7 @@ parseParams();
   </div>
   <div class="mc-actions">
     <div class="ma-btn s">
-      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#CCAA88" stroke-width="2.4"><path d="M3 12a9 9 0 109-9"/><path d="M3 4v8h8" stroke-linejoin="round"/></svg>
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#CCAA88" stroke-width="2.2"><path d="M5.5 8.25A7.5 7.5 0 1 0 12 4.5" stroke-linecap="round"/><path d="M13.8 1.8L10.6 4.6L13.6 7.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </div>
     <div class="ma-btn m nope">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#EE1166" stroke-width="2.6"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg>

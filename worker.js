@@ -5848,6 +5848,302 @@ parseParams();
 </div>
 </body>
 </html>`,
+  'shorts': `<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Shorts</title>
+<style>
+  :root {
+    --col-indigo: #8889CD;
+    --col-pink:   #DDAACC;
+    --col-sand:   #CCAA88;
+    --col-rose:   #BB6688;
+    --tt-red: #FE2C55;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#000; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif; color:#fff; }
+  .sh-app {
+    width:390px; height:693px;
+    position:relative; overflow:hidden;
+    background:linear-gradient(160deg, #2a2440 0%, #16121f 55%, #241a2e 100%);
+    color:#fff;
+    font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+  }
+  .sh-bgimg {
+    position:absolute; inset:0;
+    background-size:cover; background-position:center;
+  }
+  .sh-deco {
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:96px; opacity:.25;
+  }
+  .sh-shade-top { position:absolute; top:0; left:0; right:0; height:100px; background:linear-gradient(rgba(0,0,0,.45), transparent); }
+  .sh-shade-bot { position:absolute; bottom:0; left:0; right:0; height:200px; background:linear-gradient(transparent, rgba(0,0,0,.65)); }
+
+  .tt-top {
+    position:absolute; top:16px; left:0; right:0;
+    display:flex; justify-content:center; gap:20px;
+    font-size:16px; color:rgba(255,255,255,.6); font-weight:600;
+    text-shadow:0 1px 3px rgba(0,0,0,.5);
+  }
+  .tt-top .on { color:#fff; position:relative; }
+  .tt-top .on::after { content:''; position:absolute; left:20%; right:20%; bottom:-7px; height:3px; background:#fff; border-radius:2px; }
+  .tt-search { position:absolute; top:15px; right:16px; }
+
+  .sh-actions {
+    position:absolute; right:11px; bottom:126px;
+    display:flex; flex-direction:column; align-items:center; gap:19px;
+    z-index:3;
+  }
+  .sh-act { display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .sh-act .num { font-size:12px; font-weight:600; text-shadow:0 1px 2px rgba(0,0,0,.6); }
+  .sh-avwrap { position:relative; margin-bottom:5px; }
+  .sh-avatar {
+    width:47px; height:47px; border-radius:50%;
+    border:1.5px solid #fff;
+    background:linear-gradient(135deg, var(--col-indigo), var(--col-rose));
+    display:flex; align-items:center; justify-content:center;
+    font-size:21px; font-weight:700;
+  }
+  .sh-plus {
+    position:absolute; left:50%; bottom:-8px; transform:translateX(-50%);
+    width:19px; height:19px; border-radius:50%;
+    background:var(--tt-red); color:#fff;
+    font-size:14px; line-height:18px; text-align:center; font-weight:700;
+  }
+  .sh-disc { margin-top:6px; }
+
+  .sh-caption {
+    position:absolute; left:14px; right:76px; bottom:72px; z-index:3;
+    text-shadow:0 1px 3px rgba(0,0,0,.6);
+  }
+  .sh-caption .uid { font-size:16px; font-weight:700; margin-bottom:6px; }
+  .sh-caption .txt { font-size:14px; line-height:1.45; }
+  .sh-caption .tag { font-weight:700; }
+  .sh-music { display:flex; align-items:center; gap:6px; margin-top:8px; }
+
+  .tt-nav {
+    position:absolute; bottom:0; left:0; right:0; height:52px;
+    background:#000;
+    display:flex; align-items:center; justify-content:space-around;
+    font-size:9.5px; color:rgba(255,255,255,.7); z-index:4;
+  }
+  .tt-nav .ni { display:flex; flex-direction:column; align-items:center; gap:2px; font-size:15px; }
+  .tt-nav .ni div { font-size:9.5px; }
+  .tt-nav .on { color:#fff; font-weight:700; }
+  .tt-plusbtn {
+    width:41px; height:28px; border-radius:8px; background:#fff;
+    position:relative; display:flex; align-items:center; justify-content:center;
+    color:#000; font-size:18px; font-weight:700;
+  }
+  .tt-plusbtn::before, .tt-plusbtn::after { content:''; position:absolute; top:0; bottom:0; width:41px; border-radius:8px; z-index:-1; }
+  .tt-plusbtn::before { left:-4px; background:#25F4EE; }
+  .tt-plusbtn::after  { right:-4px; background:var(--tt-red); }
+
+  .rl-top {
+    position:absolute; top:16px; left:16px; right:16px;
+    display:flex; justify-content:space-between; align-items:center;
+    font-size:20px; font-weight:700; text-shadow:0 1px 3px rgba(0,0,0,.5); z-index:3;
+  }
+  .rl-userline { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+  .rl-ava {
+    width:32px; height:32px; border-radius:50%;
+    background:linear-gradient(135deg, var(--col-pink), var(--col-sand));
+    display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:700;
+    border:1px solid rgba(255,255,255,.7);
+  }
+  .rl-follow { font-size:12.5px; font-weight:600; border:1px solid rgba(255,255,255,.85); border-radius:7px; padding:4px 11px; }
+  .rl-audio {
+    width:36px; height:36px; border-radius:7px;
+    border:1.5px solid #fff;
+    background:linear-gradient(135deg, var(--col-indigo), #241a2e);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .rl-nav {
+    position:absolute; bottom:0; left:0; right:0; height:50px;
+    background:#000; display:flex; align-items:center; justify-content:space-around; z-index:4;
+  }
+  .rl-profile { width:23px; height:23px; border-radius:50%; border:1.7px solid #fff; background:linear-gradient(135deg, var(--col-pink), var(--col-indigo)); }
+
+  .sh-sheet {
+    position:absolute; left:0; right:0; bottom:0; height:54%;
+    background:#fff; color:#161823;
+    border-radius:14px 14px 0 0; z-index:5;
+    display:none; flex-direction:column;
+  }
+  .sh-app.cmt-open .sh-sheet { display:flex; }
+  .sh-app.cmt-open .sh-actions,
+  .sh-app.cmt-open .tt-nav,
+  .sh-app.cmt-open .rl-nav,
+  .sh-app.cmt-open .sh-shade-bot { display:none; }
+  .sh-app.cmt-open .sh-caption { bottom:auto; top:190px; right:14px; }
+  .sh-app.cmt-open .sh-music { display:none; }
+  .sheet-head { text-align:center; font-size:13.5px; font-weight:600; padding:13px 0 10px; border-bottom:1px solid #f0f0f0; position:relative; }
+  .sheet-head .x { position:absolute; right:15px; top:11px; color:#999; font-size:15px; }
+  .sh-cmts { flex:1; overflow:hidden; padding:4px 0; }
+  .sh-cmt { display:flex; gap:10px; padding:10px 15px; }
+  .sh-cava {
+    width:34px; height:34px; border-radius:50%; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:15px; font-weight:700; color:#fff;
+  }
+  .sh-cbody { flex:1; min-width:0; }
+  .sh-cnick { font-size:12.5px; font-weight:600; color:#8a8b91; }
+  .sh-ctxt { font-size:14px; line-height:1.4; margin:2px 0 3px; }
+  .sh-cmeta { font-size:11.5px; color:#8a8b91; display:flex; gap:12px; }
+  .sh-clike { display:flex; flex-direction:column; align-items:center; gap:1px; color:#8a8b91; font-size:11px; padding-top:3px; }
+  .sh-cinput { display:flex; align-items:center; gap:9px; padding:10px 15px; border-top:1px solid #f0f0f0; }
+  .sh-cinput .field { flex:1; background:#f1f1f2; border-radius:18px; padding:9px 14px; font-size:13.5px; color:#999; }
+</style>
+</head>
+<body>
+<div class="sh-app" id="sh-app">
+  <div class="sh-bgimg" id="sh-bgimg" style="display:none"></div>
+  <div class="sh-deco" id="sh-deco" style="display:none">⟦EMO⟧</div>
+  <div class="sh-shade-top"></div>
+  <div class="sh-shade-bot"></div>
+
+  <div id="skin-tt">
+    <div class="tt-top"><div>라이브</div><div>팔로잉</div><div class="on">추천</div></div>
+    <div class="tt-search">
+      <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+    </div>
+
+    <div class="sh-actions">
+      <div class="sh-avwrap">
+        <div class="sh-avatar">⟦AVA⟧</div>
+        <div class="sh-plus">+</div>
+      </div>
+      <div class="sh-act">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="30" viewBox="0 0 24 24" fill="#fff">
+          <path d="M12 21s-7.5-4.9-9.7-9.1C.7 8.7 2.6 5 6.2 5c2.1 0 3.5 1.1 4.3 2.4l1.5 2.3 1.5-2.3C14.3 6.1 15.7 5 17.8 5c3.6 0 5.5 3.7 3.9 6.9C19.5 16.1 12 21 12 21z">
+            <animateTransform attributeName="transform" type="scale" values="1;1.12;1" dur="1.6s" repeatCount="indefinite" additive="sum" calcMode="spline" keySplines="0.4 0 0.2 1;0.4 0 0.2 1"/>
+          </path>
+        </svg>
+        <div class="num">⟦LIKES⟧</div>
+      </div>
+      <div class="sh-act">
+        <svg xmlns="http://www.w3.org/2000/svg" width="29" height="29" viewBox="0 0 24 24" fill="#fff"><path d="M12 3C6.5 3 2 6.9 2 11.7c0 2.6 1.3 4.9 3.4 6.5-.2 1-.7 2.3-1.6 3.3 1.9-.2 3.6-.9 4.8-1.6 1.1.3 2.2.5 3.4.5 5.5 0 10-3.9 10-8.7S17.5 3 12 3z"/></svg>
+        <div class="num">⟦CMTN⟧</div>
+      </div>
+      <div class="sh-act">
+        <svg xmlns="http://www.w3.org/2000/svg" width="27" height="27" viewBox="0 0 24 24" fill="#fff"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4.5L5 21V4a1 1 0 0 1 1-1z"/></svg>
+        <div class="num">⟦BOOKN⟧</div>
+      </div>
+      <div class="sh-act">
+        <svg xmlns="http://www.w3.org/2000/svg" width="29" height="29" viewBox="0 0 24 24" fill="#fff"><path d="M13 4l8 7-8 7v-4.4C7.8 13.6 4.6 15.3 3 18c0-5.6 3.7-9.4 10-9.7V4z"/></svg>
+        <div class="num">⟦SHARES⟧</div>
+      </div>
+      <div class="sh-disc">
+        <svg xmlns="http://www.w3.org/2000/svg" width="45" height="45" viewBox="0 0 42 42">
+          <g>
+            <circle cx="21" cy="21" r="20" fill="#161616" stroke="#3a3a3a" stroke-width="1"/>
+            <circle cx="21" cy="21" r="12" fill="none" stroke="#2c2c2c" stroke-width="1"/>
+            <circle cx="21" cy="21" r="7.5" fill="url(#sh-dgrad)"/>
+            <text x="21" y="24.5" font-size="9" fill="#fff" text-anchor="middle">♪</text>
+            <animateTransform attributeName="transform" type="rotate" from="0 21 21" to="360 21 21" dur="4s" repeatCount="indefinite"/>
+          </g>
+          <defs>
+            <linearGradient id="sh-dgrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#8889CD"/><stop offset="1" stop-color="#BB6688"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+    </div>
+
+    <div class="sh-caption">
+      <div class="uid">@⟦UID⟧</div>
+      <div class="txt">⟦CAP⟧</div>
+      <div class="sh-music">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M9 18.5A2.5 2.5 0 1 1 6.5 16c.5 0 1 .15 1.5.4V5l11-2v12.5A2.5 2.5 0 1 1 16.5 13c.5 0 1 .15 1.5.4V6.4L9 8v10.5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="170" height="17" viewBox="0 0 170 17">
+          <clipPath id="sh-mq1"><rect x="0" y="0" width="170" height="17"/></clipPath>
+          <g clip-path="url(#sh-mq1)">
+            <text y="13" font-size="12.5" fill="#fff" font-family="-apple-system,'Noto Sans KR',sans-serif">⟦MUSIC⟧ · ⟦MUSIC⟧ · <animateTransform attributeName="transform" type="translate" from="0 0" to="-⟦MQW⟧ 0" dur="⟦MQD⟧s" repeatCount="indefinite"/></text>
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <div class="tt-nav">
+      <div class="ni on">⌂<div>홈</div></div>
+      <div class="ni">👥<div>친구</div></div>
+      <div class="tt-plusbtn">＋</div>
+      <div class="ni">✉<div>메시지</div></div>
+      <div class="ni">👤<div>프로필</div></div>
+    </div>
+  </div>
+
+  <div id="skin-rl" style="display:none">
+    <div class="rl-top">
+      <div>릴스</div>
+      <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><rect x="2.5" y="5.5" width="13" height="13" rx="3"/><path d="M15.5 10.5 21 7v10l-5.5-3.5z"/></svg>
+    </div>
+
+    <div class="sh-actions" style="bottom:112px;">
+      <div class="sh-act">
+        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="28" viewBox="0 0 24 24" fill="#fff">
+          <path d="M12 21s-7.5-4.9-9.7-9.1C.7 8.7 2.6 5 6.2 5c2.1 0 3.5 1.1 4.3 2.4l1.5 2.3 1.5-2.3C14.3 6.1 15.7 5 17.8 5c3.6 0 5.5 3.7 3.9 6.9C19.5 16.1 12 21 12 21z">
+            <animateTransform attributeName="transform" type="scale" values="1;1.1;1" dur="1.8s" repeatCount="indefinite" additive="sum"/>
+          </path>
+        </svg>
+        <div class="num">⟦LIKES⟧</div>
+      </div>
+      <div class="sh-act">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9"><path d="M21 11.5c0 4.1-4 7.5-9 7.5-1.1 0-2.2-.17-3.2-.5L4 20l1.3-3.2C3.9 15.4 3 13.5 3 11.5 3 7.4 7 4 12 4s9 3.4 9 7.5z"/></svg>
+        <div class="num">⟦CMTN⟧</div>
+      </div>
+      <div class="sh-act">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9"><path d="M21 3 3 10.5l6.7 2.6L12.3 20 21 3z"/><path d="M9.7 13.1 21 3"/></svg>
+        <div class="num">⟦SHARES⟧</div>
+      </div>
+      <div class="sh-act" style="font-weight:700; font-size:19px;">⋮</div>
+      <div class="rl-audio">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="#fff"><path d="M9 18.5A2.5 2.5 0 1 1 6.5 16c.5 0 1 .15 1.5.4V5l11-2v12.5A2.5 2.5 0 1 1 16.5 13c.5 0 1 .15 1.5.4V6.4L9 8v10.5z"><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="5s" repeatCount="indefinite"/></path></svg>
+      </div>
+    </div>
+
+    <div class="sh-caption" style="bottom:64px;">
+      <div class="rl-userline">
+        <div class="rl-ava">⟦AVA⟧</div>
+        <div class="uid" style="margin:0; font-size:14px;">⟦UID⟧</div>
+        <div class="rl-follow">팔로우</div>
+      </div>
+      <div class="txt">⟦CAP⟧</div>
+      <div class="sh-music">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M9 18.5A2.5 2.5 0 1 1 6.5 16c.5 0 1 .15 1.5.4V5l11-2v12.5A2.5 2.5 0 1 1 16.5 13c.5 0 1 .15 1.5.4V6.4L9 8v10.5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="170" height="17" viewBox="0 0 170 17">
+          <clipPath id="sh-mq2"><rect x="0" y="0" width="170" height="17"/></clipPath>
+          <g clip-path="url(#sh-mq2)">
+            <text y="13" font-size="12.5" fill="#fff" font-family="-apple-system,'Noto Sans KR',sans-serif">⟦MUSIC⟧ · ⟦MUSIC⟧ · <animateTransform attributeName="transform" type="translate" from="0 0" to="-⟦MQW⟧ 0" dur="⟦MQD⟧s" repeatCount="indefinite"/></text>
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <div class="rl-nav">
+      <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9"><path d="M3 10.5 12 3l9 7.5V21h-6v-6h-6v6H3V10.5z"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><path d="M3.5 9.5h17M9.5 3.5l2 6M14.5 3.5l2 6"/><path d="m10.5 12.5 4 2.5-4 2.5v-5z" fill="#fff" stroke="none"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4.5L5 21V4a1 1 0 0 1 1-1z"/></svg>
+      <div class="rl-profile"></div>
+    </div>
+  </div>
+
+  <div class="sh-sheet">
+    <div class="sheet-head">댓글 ⟦CMTN⟧개 <span class="x">✕</span></div>
+    <div class="sh-cmts">⟦CMTS⟧</div>
+    <div class="sh-cinput">
+      <div class="sh-cava" style="background:linear-gradient(135deg,#8889CD,#BB6688); width:30px; height:30px; font-size:14px;">⟦AVA⟧</div>
+      <div class="field">댓글 추가...</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>`,
 };
 
 const SIZES = {
@@ -5862,6 +6158,7 @@ const SIZES = {
   'menu': [480, 850],
   'dm': [420, 900],
   'tl': [598, 600],
+  'shorts': [390, 693],
 };
 
 
@@ -6611,6 +6908,90 @@ function renderMenu(html, url) {
   return html;
 }
 
+
+// ── SHORTS (틱톡/릴스) ──
+function shortsRep(html, token, val) {
+  return html.split('\u27e6' + token + '\u27e7').join(val);
+}
+function shortsTag(text) {
+  return (text || '').replace(/(#[^\s#<]+)/g, '<span class="tag">$1</span>');
+}
+function shortsMqWidth(s) {
+  let w = 0;
+  for (const ch of s) w += ch.charCodeAt(0) > 255 ? 12.5 : 7;
+  return Math.max(Math.round(w + 14), 60); // ' · ' 포함 한 유닛 폭
+}
+function renderShorts(html, url) {
+  const p = url.searchParams.get('p') || '';
+  const s = url.searchParams.get('s') || 'tt';
+  const b = url.searchParams.get('b') || '';
+  const e = url.searchParams.get('e') || '';
+  const c = url.searchParams.get('c') || '';
+
+  const seg = p.split('§');
+  const uid    = (seg[0] || 'winter').replace(/^@/, '');
+  const cap    = seg[1] || '캡션을 입력하세요';
+  const music  = seg[2] || '노래 제목';
+  const likes  = seg[3] || '1.2만';
+  const cmtn   = seg[4] || '328';
+  const shares = seg[5] || '96';
+  const bookn  = seg[6] || '541';
+
+  // 스킨 전환
+  if (s === 'reels') {
+    html = html.replace('<div id="skin-tt">', '<div id="skin-tt" style="display:none">');
+    html = html.replace('<div id="skin-rl" style="display:none">', '<div id="skin-rl">');
+  }
+
+  // 배경 이미지 / 이모지
+  if (b) {
+    html = html.replace('class="sh-bgimg" id="sh-bgimg" style="display:none"',
+      'class="sh-bgimg" id="sh-bgimg" style="background-image:url(' + b.replace(/'/g, '') + ')"');
+  } else if (e) {
+    html = html.replace('class="sh-deco" id="sh-deco" style="display:none"', 'class="sh-deco" id="sh-deco"');
+  }
+
+  // 댓글 시트
+  if (c) {
+    html = html.replace('class="sh-app" id="sh-app"', 'class="sh-app cmt-open" id="sh-app"');
+    const rows = c.split('|').map(raw => {
+      const f = raw.split('§');
+      const nick = f[0] || '익명';
+      const txt  = f[1] || '';
+      const lk   = f[2] || '';
+      const initial = [...nick][0] || '?';
+      return '<div class="sh-cmt">'
+        + '<div class="sh-cava" style="background:' + avatarBg(nick) + '">' + initial + '</div>'
+        + '<div class="sh-cbody"><div class="sh-cnick">' + nick + '</div>'
+        + '<div class="sh-ctxt">' + txt + '</div>'
+        + '<div class="sh-cmeta"><span>방금 전</span><span>답글 달기</span></div></div>'
+        + '<div class="sh-clike">'
+        + '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="14" viewBox="0 0 24 24" fill="none" stroke="#8a8b91" stroke-width="2"><path d="M12 21s-7.5-4.9-9.7-9.1C.7 8.7 2.6 5 6.2 5c2.1 0 3.5 1.1 4.3 2.4l1.5 2.3 1.5-2.3C14.3 6.1 15.7 5 17.8 5c3.6 0 5.5 3.7 3.9 6.9C19.5 16.1 12 21 12 21z"/></svg>'
+        + (lk || '&#8203;') + '</div></div>';
+    }).join('');
+    html = shortsRep(html, 'CMTS', rows);
+  } else {
+    html = shortsRep(html, 'CMTS', '');
+  }
+
+  // marquee 폭·주기
+  const mqw = shortsMqWidth(music + ' · ');
+  const mqd = Math.max(Math.round(mqw / 25 * 10) / 10, 4);
+
+  html = shortsRep(html, 'UID', uid);
+  html = shortsRep(html, 'CAP', shortsTag(cap));
+  html = shortsRep(html, 'MUSIC', music);
+  html = shortsRep(html, 'LIKES', likes);
+  html = shortsRep(html, 'CMTN', cmtn);
+  html = shortsRep(html, 'SHARES', shares);
+  html = shortsRep(html, 'BOOKN', bookn);
+  html = shortsRep(html, 'AVA', [...uid][0] ? [...uid][0].toUpperCase() : 'W');
+  html = shortsRep(html, 'MQW', String(mqw));
+  html = shortsRep(html, 'MQD', String(mqd));
+  if (e) html = shortsRep(html, 'EMO', e); else html = shortsRep(html, 'EMO', '');
+  return html;
+}
+
 function renderDefault(html, url) { return html; }
 // ── 🐦 트위터 타임라인 (tl) ──
 function renderTimeline(html, url) {
@@ -6874,10 +7255,39 @@ function themeMenu(html, url) {
   return themeInject(html, css);
 }
 
+
+// · shorts (배경 그라데이션형): th=프리셋명 또는 th=색1[§색2]
+//     프리셋: indigo(기본)·rose·sand·pink·night·dawn / 1색 → 어두운 쪽 자동 생성
+const SHORTS_PRESETS = {
+  'indigo': ['#2a2440', '#16121f'],
+  'rose':   ['#40242f', '#1f1216'],
+  'sand':   ['#3d3222', '#1c1710'],
+  'pink':   ['#3f2a3a', '#1d141b'],
+  'night':  ['#101014', '#000000'],
+  'dawn':   ['#1b2a40', '#0e1420'],
+};
+function themeShorts(html, url) {
+  const raw = url.searchParams.get('th');
+  if (!raw) return html;
+  let c1, c2;
+  const preset = SHORTS_PRESETS[raw.trim().toLowerCase()];
+  if (preset) { c1 = preset[0]; c2 = preset[1]; }
+  else {
+    const t = themeParse(url);
+    if (!t) return html;
+    c1 = t[0];
+    c2 = t[1] || themeMix(t[0], '#000000', 0.68);
+  }
+  const mid = themeMix(c1, c2, 0.5);
+  const css = '.sh-app { background: linear-gradient(160deg, ' + c1 + ' 0%, ' + c2 + ' 55%, ' + mid + ' 100%) !important; }\n';
+  return themeInject(html, css);
+}
+
 // th= 지원 타입 매핑 (renderer 통과 후 적용)
 const THEME_RENDERERS = {
   'kakao': themeKakao, 'dm': themeDm, 'lock': themeLock,
   'story': themeStory, 'letter': themeLetter, 'menu': themeMenu,
+  'shorts': themeShorts,
 };
 
 const RENDERERS = {
@@ -6888,6 +7298,7 @@ const RENDERERS = {
   'voice': renderVoice, 'discord-full': renderDiscordFull, 'stream': renderStream, 'post': renderPost,
   'letter': renderLetter, 'menu': renderMenu, 'dm': renderDm,
   'tl': renderTimeline,
+  'shorts': renderShorts,
 };
 
 
@@ -6973,6 +7384,7 @@ export default {
       if (t === 'discord') { h = 900; }
       if (t === 'discord-full') { h = 900; }
       if (t === 'voice') { h = 900; }
+      if (t === 'shorts') { h = 693; }
       // story: SIZES 기본값 420×900 그대로
 
       // ── 📸 INSTA ──
@@ -7362,7 +7774,7 @@ export default {
         h = Math.max(h, 350); h = Math.min(h, MAX_H);
       }
 
-      const FIXED_TYPES = ['kakao', 'lock', 'stream', 'story', 'discord', 'discord-full', 'voice', 'dm'];
+      const FIXED_TYPES = ['kakao', 'lock', 'stream', 'story', 'discord', 'discord-full', 'voice', 'dm', 'shorts'];
       const isFixed = FIXED_TYPES.includes(t);
       const svg = wrapInSVG(html, w, h, isFixed);
       return new Response(svg, {

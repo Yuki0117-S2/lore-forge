@@ -660,7 +660,7 @@ EXP ████████████░░ 85%
     ]
   },
   {
-    id:'cat-6', icon:'📱', title:'HTML UI 출력', sub:'19종 UI — SNS / 메신저 / 문서 / 게시판 / 디스코드 / 방송 / 편지 / 메뉴판',
+    id:'cat-6', icon:'📱', title:'HTML UI 출력', sub:'21종 UI — SNS / 메신저 / 문서 / 게시판 / 디스코드 / 방송 / 편지 / 메뉴판 / 쇼츠',
     items:[
       {
         id:'t-6-0', title:'인스타그램 피드',
@@ -1328,6 +1328,44 @@ th 생략 = 기본 (다크 보드 + 로즈 악센트)</pre>
 <pre>/?t=menu&th=ee1166&p=...   ← 네온핑크 바(bar) 메뉴판</pre>`
       },
       {
+        id:'t-6-12f', title:'📱 틱톡/릴스 (shorts)',
+        body:`<div class="label label-use">URL 파라미터 형식</div>
+<pre>/?t=shorts&p=아이디§캡션§음악제목§좋아요§댓글수§공유수§북마크수&s=tt|reels&b=이미지URL&e=이모지&c=닉§내용§좋아요|...</pre>
+<hr class="divider">
+<div class="label label-example">예시 — 틱톡 기본</div>
+<pre>/?t=shorts&e=⚔️&p=winter_official§오늘도+평화로운+아인크라드+1층+%23SAO§Lo-fi+beats§12.4K§892§3.1K</pre>
+<div class="label label-example">예시 — 댓글 시트</div>
+<pre>/?t=shorts&p=winter_official§캡션§노래§12.4K§892&c=검은검사§1층부터+솔플+미쳤다§2.4K|힐러본가§어떻게+올라감%3F§891</pre>
+<div class="label label-example">예시 — 릴스 스킨</div>
+<pre>/?t=shorts&s=reels&e=🌙&th=dawn&p=lucidvia.dreamer§밤은+두+번+온다§Midnight+Bloom§8,921§412§156</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명:</strong><br>
+• s=tt(기본) 틱톡 / s=reels 릴스 스킨 — 뼈대 공유, 상단·아이콘·네비만 전환<br>
+• c= 있으면 댓글 시트 열린 레이아웃 (액션바·네비 자동 숨김), 없으면 풀스크린<br>
+• b= 배경 이미지 URL (꽉 채움) / e= 배경 데코 이모지 — b가 있으면 e 무시<br>
+• 해시태그(#→%23)는 캡션 안에서 자동 볼드<br>
+• 디스크 회전 · 음악 marquee · 하트 pulse 는 SMIL 자동 적용 (음악 제목 길이에 맞춰 속도 자동 계산)</div>
+<hr class="divider">
+<div class="label label-example">필드 설명</div>
+<pre>p 파라미터 (§로 구분, 뒤에서부터 생략 가능):
+  아이디      — @ 없이 (자동 부착)
+  캡션        — 본문 (해시태그 %23 인코딩)
+  음악제목    — marquee로 흐르는 텍스트
+  좋아요/댓글수/공유수/북마크수 — 표기 그대로 출력 ("12.4K", "1.2만" 등)
+
+c 파라미터 (댓글, |로 구분):
+  닉§내용§좋아요 — 좋아요는 선택, 아바타는 닉 해시 자동색</pre>
+<hr class="divider">
+<div class="label label-use">🎨 테마 색상 (선택) — &th=</div>
+<pre>&th=프리셋명    → indigo(기본)·rose·sand·pink·night·dawn
+&th=색1        → 그 색 기반 그라데이션 (어두운 쪽 자동 생성)
+&th=색1§색2    → 색1→색2 그라데이션
+th 생략 = indigo 기본 배경</pre>
+<div class="desc">• UI 껍데기(하트 빨강·네비·흰 글씨)는 앱 정체성 유지를 위해 고정 — 테마는 배경만 변경</div>
+<div class="label label-example">예시</div>
+<pre>/?t=shorts&th=8888cc§16121f&...   ← 인디고→다크 커스텀</pre>`
+      },
+      {
         id:'t-6-13', title:'바베챗 프롬프트 (복사용)',
         body:`<div class="label label-use">캐릭터 상세설정에 붙여넣기</div>
 <div class="desc">아래 전체를 프롬프트에 삽입하면 AI가 장면에 맞는 SNS UI를 자동 생성합니다. 도메인은 <strong>i.winter0.workers.dev</strong></div>
@@ -1342,6 +1380,13 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
 
 ### 인스타그램 스토리
 ![](https://i.winter0.workers.dev/?t=story&p=@유저§시간§이미지설명§[캡션])
+
+### 틱톡/릴스 (쇼츠)
+![](https://i.winter0.workers.dev/?t=shorts&p=아이디§캡션§음악제목§좋아요§댓글수§공유수&s=reels&e=이모지&c=닉§내용§좋아요|닉§내용§좋아요)
+- s=tt(기본, 생략 가능) 틱톡 / s=reels 릴스 — 아이디는 @ 없이 입력
+- c= 있으면 댓글 시트 열린 화면, 없으면 풀스크린 기본 화면
+- e=배경 이모지 / b=배경 이미지URL (b 우선), 수치 필드는 뒤에서부터 생략 가능
+- 캡션 해시태그는 %23으로 (자동 볼드), 음악 제목은 자동 marquee
 
 ### 트위터
 ![](https://i.winter0.workers.dev/?t=twitter&p=@handle§표시이름§시간§본문§[번역]§이미지설명§답글수§RT수§인용수§좋아요수§북마크수§[verified,lock]§[조회수]&r=표시이름§@handle§시간§내용§좋아요§[RT수]§[조회수]§[답글수]§[@대상|-]|...)
@@ -1420,11 +1465,12 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
 ### 🍽️ 메뉴판
 ![](https://i.winter0.workers.dev/?t=menu&p=가게이름§부제§공지문구§영업시간&s=카테고리§아이콘|메뉴명§설명§가격§뱃지|메뉴명§설명§가격;;카테고리2§아이콘|...)
 
-### 테마 색상 th= (선택 — kakao/dm/lock/story/letter/menu 공통)
+### 테마 색상 th= (선택 — kakao/dm/lock/story/letter/menu/shorts 공통)
 URL에 &th= 를 추가하면 색상 테마 변경, 생략하면 기본색 (# 없이 헥스코드만)
 - kakao/dm: th=배경§내말풍선§상대말풍선 — 색 1개만 주면 말풍선색 + 배경 자동 연화
 - lock/story: th=색1 하나로 배경 그라데이션 자동 생성 (색2 주면 색1→색2)
 - letter: th=봉투색§종이색 / menu: th=악센트§보드색
+- shorts: th=프리셋명(indigo/rose/sand/pink/night/dawn) 또는 th=색1[§색2] — 배경 그라데이션만 변경
 - 프리셋: 리얼카톡 b2c7d9§fee500 · 라인 8cabd8§06c755 · 아이메시지 ffffff§0b93f6§e9e9eb · 다크 1a1a22§8888cc§2e2d3a
 - 글자색은 밝기 기반 자동 선택이라 지정 불필요
 
@@ -1461,6 +1507,7 @@ URL에 &th= 를 추가하면 색상 테마 변경, 생략하면 기본색 (# 없
 - stream: 채팅 최대 30개 (고정 사이즈)
 - letter: 본문 약 1300자 이내 (PS 포함시 동일)
 - menu: 카테고리 4개 기준 아이템 16개 (설명 포함)
+- shorts: 캡션 100자 이내, 댓글 최대 4개 (고정 사이즈, 초과분 잘림), 음악 제목 길이 무관
 - 위 제한 초과 시 여러 이미지로 분리하여 출력</pre>`
       }
     ]
@@ -2427,7 +2474,7 @@ export default {
         body:`<div class="label label-use">확장 방법</div>
 <div class="desc">새로운 UI를 추가할 때마다 해당 Worker에 경로 한 줄 + HTML 함수 추가. Worker가 2개로 분리되어 있으므로 용도에 맞는 쪽에 추가.</div>
 <hr class="divider">
-<div class="label label-example">i.winter0.workers.dev — SNS / 메신저 / 문서 UI (20종)</div>
+<div class="label label-example">i.winter0.workers.dev — SNS / 메신저 / 문서 UI (21종)</div>
 <pre># URL 형식 — 모두 /?t=타입&파라미터 형식
 /?t=insta         인스타 피드        /?t=email         이메일
 /?t=story         인스타 스토리      /?t=search        검색 결과
@@ -2438,7 +2485,8 @@ export default {
 /?t=voice         디스코드 음성      /?t=discord       디스코드 채팅
 /?t=discord-full  디스코드 풀       /?t=stream        인터넷 방송
 /?t=letter        편지 ✉️           /?t=menu          메뉴판 🍽️
-/?t=dm            인스타 DM         /?t=tl            트위터 타임라인</pre>
+/?t=dm            인스타 DM         /?t=tl            트위터 타임라인
+/?t=shorts        틱톡/릴스 📱</pre>
 <hr class="divider">
 <div class="label label-example">st.winter0.workers.dev — RPG / VN 상태창 + 엔딩 + 선택지 + 던전 + MMO + 보상 + 게임오버 + 인벤 + 능력치 + 주사위 (14종)</div>
 <pre># URL 형식 — 모두 /?t=타입&파라미터 형식

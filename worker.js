@@ -6144,6 +6144,306 @@ parseParams();
 </div>
 </body>
 </html>`,
+  'match': `<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Match</title>
+<style>
+  :root {
+    --col-indigo: #8889CD;
+    --col-pink:   #DDAACC;
+    --col-sand:   #CCAA88;
+    --col-rose:   #BB6688;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#161221; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif; color:#fff; }
+  .ma-app {
+    width:390px; position:relative; overflow:hidden;
+    background:linear-gradient(165deg, #221d33 0%, #161221 60%, #251a2c 100%);
+    color:#fff;
+    font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+  }
+  .ma-app.fx { height:693px; }
+
+  /* ── 공통 버튼 ── */
+  .ma-btn {
+    border-radius:50%; display:flex; align-items:center; justify-content:center;
+    background:rgba(30,25,44,.92); box-shadow:0 3px 12px rgba(0,0,0,.4);
+    border:1.5px solid rgba(255,255,255,.14);
+  }
+  .ma-btn.s { width:44px; height:44px; }
+  .ma-btn.m { width:54px; height:54px; }
+  .ma-btn.l { width:62px; height:62px; }
+  .ma-btn.like { background:linear-gradient(145deg, #FF6699, var(--col-rose)); border:none; }
+  .ma-btn.nope { border-color:rgba(238,17,102,.55); }
+
+  /* ══ ① CARD ══ */
+  .mc-top {
+    position:absolute; top:0; left:0; right:0; height:52px;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 18px; z-index:5;
+  }
+  .mc-logo { display:flex; align-items:center; gap:6px; font-weight:800; font-size:19px;
+    background:linear-gradient(90deg, #FF6699, var(--col-indigo));
+    -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .mc-topicons { display:flex; gap:16px; opacity:.75; }
+  .mc-stack { position:absolute; top:56px; left:14px; right:14px; bottom:108px; }
+  .mc-card-back {
+    position:absolute; inset:0; top:10px; left:10px; right:10px;
+    border-radius:16px; background:#2b2540; transform:rotate(1.6deg);
+  }
+  .mc-card {
+    position:absolute; inset:0; border-radius:16px; overflow:hidden;
+    background:linear-gradient(160deg, var(--col-indigo) 0%, #6a5a9e 45%, var(--col-rose) 100%);
+    box-shadow:0 6px 24px rgba(0,0,0,.45);
+  }
+  .ma-bgimg { position:absolute; inset:0; background-size:cover; background-position:center; }
+  .ma-deco {
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-size:120px; opacity:.32;
+  }
+  .mc-shade { position:absolute; left:0; right:0; bottom:0; height:56%;
+    background:linear-gradient(transparent, rgba(20,14,28,.55) 45%, rgba(16,10,24,.92)); }
+  .mc-info { position:absolute; left:0; right:0; bottom:0; padding:0 18px 18px; z-index:3; }
+  .mc-name { font-size:29px; font-weight:800; display:flex; align-items:center; gap:8px; }
+  .mc-age { font-weight:400; font-size:25px; opacity:.92; }
+  .mc-dist { margin-top:5px; font-size:13px; color:rgba(255,255,255,.82);
+    display:flex; align-items:center; gap:5px; }
+  .mc-bio { margin-top:8px; font-size:14px; line-height:1.45; color:rgba(255,255,255,.94); }
+  .mc-tags { margin-top:11px; display:flex; flex-wrap:wrap; gap:7px; }
+  .mc-tag {
+    font-size:12px; padding:5px 12px; border-radius:99px;
+    border:1px solid rgba(255,255,255,.45); background:rgba(255,255,255,.12);
+  }
+  .mc-tag.hl { border-color:var(--col-pink); background:rgba(221,170,204,.28); }
+  .mc-actions {
+    position:absolute; bottom:24px; left:0; right:0;
+    display:flex; align-items:center; justify-content:center; gap:14px; z-index:5;
+  }
+
+  /* ══ ② MATCH ══ */
+  .mm-bg { position:absolute; inset:0;
+    background:radial-gradient(circle at 50% 30%, #3a2d55 0%, #1c1630 55%, #150f22 100%); }
+  .mm-wrap { position:absolute; inset:0; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; z-index:3; padding-bottom:20px; }
+  .mm-title {
+    font-size:47px; font-weight:800; font-style:italic; letter-spacing:1px;
+    background:linear-gradient(95deg, #FF6699 10%, var(--col-pink) 50%, var(--col-indigo) 95%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    transform:rotate(-4deg);
+  }
+  .mm-sub { margin-top:10px; font-size:14px; color:rgba(255,255,255,.78); }
+  .mm-avas { margin-top:38px; display:flex; align-items:center; }
+  .mm-ava {
+    width:124px; height:124px; border-radius:50%;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+    color:#fff; border:4px solid #fff; box-shadow:0 6px 24px rgba(0,0,0,.5);
+    background-size:cover; background-position:center;
+  }
+  .mm-ava .emo { font-size:44px; line-height:1; }
+  .mm-ava .nm { font-size:14px; font-weight:700; letter-spacing:1px;
+    color:rgba(255,255,255,.95); text-shadow:0 1px 4px rgba(0,0,0,.4); }
+  .mm-ava.a { background-color:var(--col-indigo);
+    background-image:linear-gradient(150deg, var(--col-indigo), #884499);
+    transform:rotate(-7deg); z-index:2; }
+  .mm-ava.b { background-color:var(--col-rose);
+    background-image:linear-gradient(150deg, #FF6699, var(--col-rose));
+    transform:rotate(7deg); margin-left:-26px; }
+  .mm-ava.img { background-image:none; }
+  .mm-heartmid {
+    position:absolute; z-index:4; width:52px; height:52px; border-radius:50%;
+    background:linear-gradient(145deg, #EE1166, #FF6699);
+    display:flex; align-items:center; justify-content:center;
+    left:50%; transform:translateX(-50%); margin-top:86px;
+    box-shadow:0 4px 16px rgba(238,17,102,.55);
+  }
+  .mm-btns { margin-top:64px; display:flex; flex-direction:column; gap:13px; width:270px; }
+  .mm-btn {
+    height:50px; border-radius:99px; display:flex; align-items:center; justify-content:center;
+    font-size:15px; font-weight:700;
+  }
+  .mm-btn.go { background:linear-gradient(90deg, #FF6699, var(--col-rose)); color:#fff;
+    box-shadow:0 4px 18px rgba(187,102,136,.5); }
+  .mm-btn.stay { border:1.5px solid rgba(255,255,255,.4); color:rgba(255,255,255,.88); }
+  .mm-spark { position:absolute; inset:0; z-index:2; }
+
+  /* ══ ③ PROFILE ══ */
+  .mp-photo {
+    position:relative; height:340px;
+    background:linear-gradient(160deg, var(--col-pink) 0%, var(--col-indigo) 60%, #884499 100%);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .mp-photo .ma-deco { font-size:110px; opacity:.34; }
+  .mp-photo-shade { position:absolute; left:0; right:0; bottom:0; height:110px;
+    background:linear-gradient(transparent, #161221); }
+  .mp-back { position:absolute; top:14px; left:14px; width:36px; height:36px; border-radius:50%;
+    background:rgba(20,15,30,.55); display:flex; align-items:center; justify-content:center; z-index:2; }
+  .mp-body { padding:0 20px 26px; margin-top:-34px; position:relative; z-index:2; }
+  .mp-name { font-size:27px; font-weight:800; display:flex; align-items:center; gap:8px; }
+  .mp-name .age { font-weight:400; font-size:23px; opacity:.9; }
+  .mp-sub { margin-top:6px; font-size:13px; color:#b9b3c8; display:flex; flex-direction:column; gap:5px; }
+  .mp-sub .row { display:flex; align-items:center; gap:7px; }
+  .mp-sec { margin-top:20px; }
+  .mp-sec h4 { font-size:12px; letter-spacing:1.5px; color:var(--col-sand); font-weight:700; margin-bottom:9px; }
+  .mp-intro { font-size:14px; line-height:1.6; color:#e8e4f0; }
+  .mp-tags { display:flex; flex-wrap:wrap; gap:7px; }
+  .mp-tag { font-size:12px; padding:6px 13px; border-radius:99px;
+    border:1px solid rgba(136,137,205,.6); background:rgba(136,137,205,.16); color:#d9d7ef; }
+  .mp-life { display:flex; flex-wrap:wrap; gap:9px; }
+  .mp-lf { display:flex; align-items:center; gap:6px; font-size:12.5px; color:#d5d0e2;
+    padding:7px 12px; border-radius:11px; background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.1); }
+  .mp-actions { margin-top:24px; display:flex; justify-content:center; gap:16px; }
+</style>
+</head>
+<body>
+<div class="ma-app fx" id="ma-app">
+
+<div id="ma-card">
+  <div class="mc-top">
+    <div class="mc-logo">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none">
+        <path d="M13.5 2c.6 3.4-.8 5.4-2.4 7.1C9.5 10.8 8 12.6 8 15.4 8 19 10.7 22 14.3 22c3.7 0 6.7-3 6.7-6.9C21 9.5 16.8 4 13.5 2z" fill="#FF6699"/>
+        <path d="M12.2 13.2c-1.1 1.1-1.9 2.2-1.9 3.7 0 2 1.6 3.6 3.7 3.6s3.8-1.7 3.8-3.9c0-2.6-1.7-5-3.5-6.6.2 1.6-.9 2.1-2.1 3.2z" fill="#DDAACC"/>
+      </svg>
+      spark
+    </div>
+    <div class="mc-topicons">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
+    </div>
+  </div>
+  <div class="mc-stack">
+    <div class="mc-card-back"></div>
+    <div class="mc-card">
+      <svg width="338" height="3" viewBox="0 0 338 3" style="position:absolute;top:10px;left:12px;z-index:3">⟦BARS⟧</svg>
+      <div class="ma-bgimg" id="mc-bgimg" style="display:none"></div>
+      <div class="ma-deco" id="mc-deco" style="display:none">⟦EMO⟧</div>
+      <div class="mc-shade"></div>
+      <div class="mc-info">
+        <div class="mc-name">⟦NAME⟧ <span class="mc-age">⟦AGE⟧</span>
+          <svg width="22" height="22" viewBox="0 0 24 24">
+            <path d="M12 1.8l2.4 2 3.1-.3 1 3 2.8 1.4-.7 3.1 2 2.4-2 2.4.7 3.1-2.8 1.4-1 3-3.1-.3-2.4 2-2.4-2-3.1.3-1-3L2.7 18l.7-3.1-2-2.4 2-2.4L2.7 7l2.8-1.4 1-3 3.1.3z" fill="#00BBDD"/>
+            <path d="M8.4 12.2l2.4 2.4 4.8-4.9" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="mc-dist">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#DDAACC" stroke-width="2.4"><path d="M12 21s-7-6.1-7-11a7 7 0 1114 0c0 4.9-7 11-7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>
+          ⟦DIST⟧
+        </div>
+        <div class="mc-bio">⟦BIO⟧</div>
+        <div class="mc-tags">⟦TAGS⟧</div>
+      </div>
+    </div>
+  </div>
+  <div class="mc-actions">
+    <div class="ma-btn s">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#CCAA88" stroke-width="2.4"><path d="M3 12a9 9 0 109-9"/><path d="M3 4v8h8" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="ma-btn m nope">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#EE1166" stroke-width="2.6"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg>
+    </div>
+    <div class="ma-btn s">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="#00BBDD"><path d="M12 2.5l2.6 6 6.4.5-4.9 4.2 1.5 6.3L12 16l-5.6 3.5 1.5-6.3L3 9l6.4-.5z"/></svg>
+    </div>
+    <div class="ma-btn l like">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="#fff">
+        <path d="M12 21s-7.5-4.9-9.7-9.1C.7 8.7 2.6 5 6.2 5c2.1 0 3.5 1.1 4.3 2.4l1.5 2.3 1.5-2.3C14.3 6.1 15.7 5 17.8 5c3.6 0 5.5 3.7 3.9 6.9C19.5 16.1 12 21 12 21z">
+          <animateTransform attributeName="transform" type="scale" values="1;1.14;1" keyTimes="0;.5;1" dur="1.6s" repeatCount="indefinite" additive="sum"/>
+          <animateTransform attributeName="transform" type="translate" values="0 0;-1.7 -1.7;0 0" keyTimes="0;.5;1" dur="1.6s" repeatCount="indefinite" additive="sum"/>
+        </path>
+      </svg>
+    </div>
+    <div class="ma-btn m">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="#884499"><path d="M13 2L4.5 13.5H11l-1 8.5L18.5 10H12z"/></svg>
+    </div>
+  </div>
+</div>
+
+<div id="ma-match" style="display:none">
+  <div class="mm-bg"></div>
+  <svg class="mm-spark" width="390" height="693" viewBox="0 0 390 693">
+    <g fill="#DDAACC">
+      <path d="M60 120l3 8 8 3-8 3-3 8-3-8-8-3 8-3z"><animate attributeName="opacity" values="0;1;0" dur="2.2s" repeatCount="indefinite"/></path>
+      <path d="M330 90l2.5 7 7 2.5-7 2.5-2.5 7-2.5-7-7-2.5 7-2.5z" fill="#8889CD"><animate attributeName="opacity" values="0;1;0" dur="1.8s" begin=".5s" repeatCount="indefinite"/></path>
+      <path d="M320 300l2 6 6 2-6 2-2 6-2-6-6-2 6-2z" fill="#FF6699"><animate attributeName="opacity" values="0;1;0" dur="2.5s" begin=".9s" repeatCount="indefinite"/></path>
+      <path d="M55 330l2 6 6 2-6 2-2 6-2-6-6-2 6-2z" fill="#CCAA88"><animate attributeName="opacity" values="0;1;0" dur="2s" begin="1.3s" repeatCount="indefinite"/></path>
+      <circle cx="120" cy="80" r="2.5" fill="#fff"><animate attributeName="opacity" values=".1;.9;.1" dur="1.7s" repeatCount="indefinite"/></circle>
+      <circle cx="280" cy="170" r="2" fill="#DDAACC"><animate attributeName="opacity" values=".1;.9;.1" dur="2.1s" begin=".4s" repeatCount="indefinite"/></circle>
+      <circle cx="90" cy="230" r="2" fill="#8889CD"><animate attributeName="opacity" values=".1;.8;.1" dur="1.9s" begin=".8s" repeatCount="indefinite"/></circle>
+      <circle cx="310" cy="480" r="2.5" fill="#FF6699"><animate attributeName="opacity" values=".1;.9;.1" dur="2.3s" begin=".2s" repeatCount="indefinite"/></circle>
+      <path d="M195 430c-2-3.5-6-4-8-1.6-1.6 2-1 5 1.4 7.4l6.6 6 6.6-6c2.4-2.4 3-5.4 1.4-7.4-2-2.4-6-1.9-8 1.6z" fill="#EE1166" opacity="0">
+        <animateTransform attributeName="transform" type="translate" values="0 40;0 -60" dur="3.4s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0;.85;0" keyTimes="0;.35;1" dur="3.4s" repeatCount="indefinite"/>
+      </path>
+      <path d="M160 440c-1.6-2.8-4.8-3.2-6.4-1.3-1.3 1.6-.8 4 1.1 5.9l5.3 4.8 5.3-4.8c1.9-1.9 2.4-4.3 1.1-5.9-1.6-1.9-4.8-1.5-6.4 1.3z" fill="#FF6699" opacity="0">
+        <animateTransform attributeName="transform" type="translate" values="0 45;0 -50" dur="4s" begin="1.2s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0;.7;0" keyTimes="0;.35;1" dur="4s" begin="1.2s" repeatCount="indefinite"/>
+      </path>
+      <path d="M232 435c-1.6-2.8-4.8-3.2-6.4-1.3-1.3 1.6-.8 4 1.1 5.9l5.3 4.8 5.3-4.8c1.9-1.9 2.4-4.3 1.1-5.9-1.6-1.9-4.8-1.5-6.4 1.3z" fill="#DDAACC" opacity="0">
+        <animateTransform attributeName="transform" type="translate" values="0 42;0 -55" dur="3.7s" begin="2s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0;.75;0" keyTimes="0;.35;1" dur="3.7s" begin="2s" repeatCount="indefinite"/>
+      </path>
+    </g>
+  </svg>
+  <div class="mm-wrap">
+    <div class="mm-title">It's a Match!</div>
+    <div class="mm-sub">⟦SUB⟧</div>
+    <div class="mm-avas">
+      <div class="mm-ava a⟦AC1⟧" style="⟦AV1S⟧"><span class="emo" style="⟦AE1S⟧">⟦E1⟧</span><span class="nm">⟦N1⟧</span></div>
+      <div class="mm-ava b⟦AC2⟧" style="⟦AV2S⟧"><span class="emo" style="⟦AE2S⟧">⟦E2⟧</span><span class="nm">⟦N2⟧</span></div>
+    </div>
+    <div class="mm-heartmid">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="#fff">
+        <path d="M12 21s-7.5-4.9-9.7-9.1C.7 8.7 2.6 5 6.2 5c2.1 0 3.5 1.1 4.3 2.4l1.5 2.3 1.5-2.3C14.3 6.1 15.7 5 17.8 5c3.6 0 5.5 3.7 3.9 6.9C19.5 16.1 12 21 12 21z">
+          <animateTransform attributeName="transform" type="scale" values="1;1.18;1" keyTimes="0;.5;1" dur="1.1s" repeatCount="indefinite" additive="sum"/>
+          <animateTransform attributeName="transform" type="translate" values="0 0;-2.2 -2.2;0 0" keyTimes="0;.5;1" dur="1.1s" repeatCount="indefinite" additive="sum"/>
+        </path>
+      </svg>
+    </div>
+    <div class="mm-btns">
+      <div class="mm-btn go">메시지 보내기</div>
+      <div class="mm-btn stay">계속 둘러보기</div>
+    </div>
+  </div>
+</div>
+
+<div id="ma-profile" style="display:none">
+  <div class="mp-photo">
+    <div class="mp-back">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4"><path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="ma-bgimg" id="mp-bgimg" style="display:none"></div>
+    <div class="ma-deco" id="mp-deco" style="display:none">⟦EMO⟧</div>
+    <div class="mp-photo-shade"></div>
+  </div>
+  <div class="mp-body">
+    <div class="mp-name">⟦NAME⟧ <span class="age">⟦AGE⟧</span>
+      <svg width="20" height="20" viewBox="0 0 24 24">
+        <path d="M12 1.8l2.4 2 3.1-.3 1 3 2.8 1.4-.7 3.1 2 2.4-2 2.4.7 3.1-2.8 1.4-1 3-3.1-.3-2.4 2-2.4-2-3.1.3-1-3L2.7 18l.7-3.1-2-2.4 2-2.4L2.7 7l2.8-1.4 1-3 3.1.3z" fill="#00BBDD"/>
+        <path d="M8.4 12.2l2.4 2.4 4.8-4.9" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="mp-sub">⟦ROWS⟧</div>
+    ⟦SECS⟧
+    <div class="mp-actions">
+      <div class="ma-btn m nope">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#EE1166" stroke-width="2.6"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg>
+      </div>
+      <div class="ma-btn l like">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="#fff"><path d="M12 21s-7.5-4.9-9.7-9.1C.7 8.7 2.6 5 6.2 5c2.1 0 3.5 1.1 4.3 2.4l1.5 2.3 1.5-2.3C14.3 6.1 15.7 5 17.8 5c3.6 0 5.5 3.7 3.9 6.9C19.5 16.1 12 21 12 21z"/></svg>
+      </div>
+      <div class="ma-btn m">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="#884499"><path d="M13 2L4.5 13.5H11l-1 8.5L18.5 10H12z"/></svg>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+</body>
+</html>`,
 };
 
 const SIZES = {
@@ -6159,6 +6459,7 @@ const SIZES = {
   'dm': [420, 900],
   'tl': [598, 600],
   'shorts': [390, 693],
+  'match': [390, 693],
 };
 
 
@@ -7283,11 +7584,172 @@ function themeShorts(html, url) {
   return themeInject(html, css);
 }
 
+
+// ── 💘 MATCH (데이팅앱) ──
+function matchRep(html, token, val) {
+  return html.split('\u27e6' + token + '\u27e7').join(val);
+}
+function matchClean(html) {
+  // 비활성 스킨에 남은 토큰 일괄 제거
+  return html.replace(/\u27e6[A-Z0-9]+\u27e7/g, '');
+}
+function matchChips(csv, cls, hlFirst) {
+  return (csv || '').split(',').map(function (t, i) {
+    return t.trim();
+  }).filter(Boolean).map(function (t, i) {
+    var h = (hlFirst && i === 0) ? ' hl' : '';
+    return '<div class="' + cls + h + '">' + t + '</div>';
+  }).join('');
+}
+function matchBars(n) {
+  n = Math.max(Math.min(parseInt(n, 10) || 3, 8), 1);
+  var gap = 5, total = 338;
+  var segw = Math.floor((total - gap * (n - 1)) / n);
+  var out = '', x = 0;
+  for (var i = 0; i < n; i++) {
+    out += '<rect x="' + x + '" y="0" width="' + segw + '" height="3" rx="1.5" fill="rgba(255,255,255,.32)"/>';
+    x += segw + gap;
+  }
+  out += '<rect x="0" y="0" width="0" height="3" rx="1.5" fill="#ffffff">'
+    + '<animate attributeName="width" values="0;' + segw + '" dur="6s" repeatCount="indefinite"/></rect>';
+  return out;
+}
+function renderMatch(html, url) {
+  var s = url.searchParams.get('s') || 'card';
+  var p = url.searchParams.get('p') || '';
+  var b = url.searchParams.get('b') || '';
+  var e = url.searchParams.get('e') || '';
+  var seg = p.split('\u00a7');
+
+  if (s === 'match') {
+    html = html.replace('<div id="ma-card">', '<div id="ma-card" style="display:none">');
+    html = html.replace('<div id="ma-match" style="display:none">', '<div id="ma-match">');
+  } else if (s === 'profile') {
+    html = html.replace('<div id="ma-card">', '<div id="ma-card" style="display:none">');
+    html = html.replace('<div id="ma-profile" style="display:none">', '<div id="ma-profile">');
+    html = html.replace('<div class="ma-app fx" id="ma-app">', '<div class="ma-app" id="ma-app">');
+  }
+
+  if (s === 'match') {
+    // p=이름1§이름2§이모지1§이모지2§부제 / b1= b2= 아바타 이미지
+    var n1 = seg[0] || '겨울';
+    var n2 = seg[1] || '지수';
+    var e1 = seg[2] || '\u2764\ufe0f';
+    var e2 = seg[3] || '\ud83c\udf38';
+    var sub = seg[4] || (n1 + '\ub2d8\uacfc ' + n2 + '\ub2d8\uc774 \uc11c\ub85c \uc88b\uc544\ud569\ub2c8\ub2e4 \ud83d\udc97');
+    var b1 = (url.searchParams.get('b1') || '').replace(/'/g, '');
+    var b2 = (url.searchParams.get('b2') || '').replace(/'/g, '');
+    html = matchRep(html, 'N1', n1);
+    html = matchRep(html, 'N2', n2);
+    html = matchRep(html, 'SUB', sub);
+    html = matchRep(html, 'E1', b1 ? '' : e1);
+    html = matchRep(html, 'E2', b2 ? '' : e2);
+    html = matchRep(html, 'AC1', b1 ? ' img' : '');
+    html = matchRep(html, 'AC2', b2 ? ' img' : '');
+    html = matchRep(html, 'AV1S', b1 ? 'background-image:url(' + b1 + ')' : '');
+    html = matchRep(html, 'AV2S', b2 ? 'background-image:url(' + b2 + ')' : '');
+    html = matchRep(html, 'AE1S', b1 ? 'display:none' : '');
+    html = matchRep(html, 'AE2S', b2 ? 'display:none' : '');
+    return matchClean(html);
+  }
+
+  if (s === 'profile') {
+    // p=이름§나이§거리§직업§학교§소개§태그들§라이프들 (빈 필드는 해당 줄/섹션 생략)
+    var name = seg[0] || '\uc9c0\uc218';
+    var age = seg[1] || '24';
+    var dist = seg[2] || '';
+    var job = seg[3] || '';
+    var sch = seg[4] || '';
+    var intro = seg[5] || '';
+    var tags = seg[6] || '';
+    var life = seg[7] || '';
+    var rows = '';
+    if (job) rows += '<div class="row"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#CCAA88" stroke-width="2.2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>' + job + '</div>';
+    if (sch) rows += '<div class="row"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8889CD" stroke-width="2.2"><path d="M12 3L2 8l10 5 10-5-10-5z"/><path d="M6 10v6c0 1 2.7 3 6 3s6-2 6-3v-6"/></svg>' + sch + '</div>';
+    if (dist) rows += '<div class="row"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#DDAACC" stroke-width="2.2"><path d="M12 21s-7-6.1-7-11a7 7 0 1114 0c0 4.9-7 11-7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>' + dist + '</div>';
+    var secs = '';
+    if (intro) secs += '<div class="mp-sec"><h4>\uc18c\uac1c</h4><div class="mp-intro">' + intro + '</div></div>';
+    if (tags) secs += '<div class="mp-sec"><h4>\uad00\uc2ec\uc0ac</h4><div class="mp-tags">' + matchChips(tags, 'mp-tag', false) + '</div></div>';
+    if (life) secs += '<div class="mp-sec"><h4>\ub77c\uc774\ud504\uc2a4\ud0c0\uc77c</h4><div class="mp-life">' + matchChips(life, 'mp-lf', false) + '</div></div>';
+    html = matchRep(html, 'NAME', name);
+    html = matchRep(html, 'AGE', age);
+    html = matchRep(html, 'ROWS', rows);
+    html = matchRep(html, 'SECS', secs);
+    if (b) {
+      html = html.replace('class="ma-bgimg" id="mp-bgimg" style="display:none"',
+        'class="ma-bgimg" id="mp-bgimg" style="background-image:url(' + b.replace(/'/g, '') + ')"');
+      html = matchRep(html, 'EMO', '');
+    } else if (e) {
+      html = html.replace('class="ma-deco" id="mp-deco" style="display:none"', 'class="ma-deco" id="mp-deco"');
+      html = matchRep(html, 'EMO', e);
+    } else {
+      html = matchRep(html, 'EMO', '');
+    }
+    return matchClean(html);
+  }
+
+  // ── card (기본) ──
+  // p=이름§나이§거리§소개§태그들§사진수
+  var cName = seg[0] || '\uc9c0\uc218';
+  var cAge = seg[1] || '24';
+  var cDist = seg[2] || '3km \uac70\ub9ac \u00b7 \uc9c0\uae08 \ud65c\ub3d9 \uc911';
+  var cBio = seg[3] || '\uc8fc\ub9d0\uc5d4 \uce74\ud398\uc5d0\uc11c \ucc45 \uc77d\ub294 \uac8c \ub099\uc774\uc5d0\uc694 \u2615';
+  var cTags = seg[4] || '\ud83d\udcda \ub3c5\uc11c,\u2615 \uce74\ud398\ud22c\uc5b4,\ud83c\udfa8 \uc804\uc2dc\ud68c';
+  var cPh = seg[5] || '3';
+  html = matchRep(html, 'NAME', cName);
+  html = matchRep(html, 'AGE', cAge);
+  html = matchRep(html, 'DIST', cDist);
+  html = matchRep(html, 'BIO', cBio);
+  html = matchRep(html, 'TAGS', matchChips(cTags, 'mc-tag', true));
+  html = matchRep(html, 'BARS', matchBars(cPh));
+  if (b) {
+    html = html.replace('class="ma-bgimg" id="mc-bgimg" style="display:none"',
+      'class="ma-bgimg" id="mc-bgimg" style="background-image:url(' + b.replace(/'/g, '') + ')"');
+    html = matchRep(html, 'EMO', '');
+  } else if (e) {
+    html = html.replace('class="ma-deco" id="mc-deco" style="display:none"', 'class="ma-deco" id="mc-deco"');
+    html = matchRep(html, 'EMO', e);
+  } else {
+    html = matchRep(html, 'EMO', '');
+  }
+  return matchClean(html);
+}
+
+// · match: th=프리셋명 또는 th=색1[§색2] — 카드/프로필 사진 그라데 + 매치 배경 틴트
+const MATCH_PRESETS = {
+  'indigo': ['#8889CD', '#BB6688'],
+  'rose':   ['#BB6688', '#884499'],
+  'sand':   ['#CCAA88', '#BB6688'],
+  'pink':   ['#DDAACC', '#FF6699'],
+  'night':  ['#3a3a55', '#16121f'],
+  'dawn':   ['#1b2a40', '#8889CD'],
+};
+function themeMatch(html, url) {
+  const raw = url.searchParams.get('th');
+  if (!raw) return html;
+  let c1, c2;
+  const preset = MATCH_PRESETS[raw.trim().toLowerCase()];
+  if (preset) { c1 = preset[0]; c2 = preset[1]; }
+  else {
+    const t = themeParse(url);
+    if (!t) return html;
+    c1 = t[0];
+    c2 = t[1] || themeMix(t[0], '#000000', 0.55);
+  }
+  const mid = themeMix(c1, c2, 0.5);
+  const deep = themeMix(c2, '#000000', 0.72);
+  const css = '.mc-card { background: linear-gradient(160deg, ' + c1 + ' 0%, ' + mid + ' 45%, ' + c2 + ' 100%) !important; }\n'
+    + '.mp-photo { background: linear-gradient(160deg, ' + c1 + ' 0%, ' + mid + ' 60%, ' + c2 + ' 100%) !important; }\n'
+    + '.mm-bg { background: radial-gradient(circle at 50% 30%, ' + themeMix(c1, '#000000', 0.45) + ' 0%, ' + deep + ' 60%, #100c18 100%) !important; }\n';
+  return themeInject(html, css);
+}
+
 // th= 지원 타입 매핑 (renderer 통과 후 적용)
 const THEME_RENDERERS = {
   'kakao': themeKakao, 'dm': themeDm, 'lock': themeLock,
   'story': themeStory, 'letter': themeLetter, 'menu': themeMenu,
   'shorts': themeShorts,
+  'match': themeMatch,
 };
 
 const RENDERERS = {
@@ -7299,6 +7761,7 @@ const RENDERERS = {
   'letter': renderLetter, 'menu': renderMenu, 'dm': renderDm,
   'tl': renderTimeline,
   'shorts': renderShorts,
+  'match': renderMatch,
 };
 
 
@@ -7385,6 +7848,36 @@ export default {
       if (t === 'discord-full') { h = 900; }
       if (t === 'voice') { h = 900; }
       if (t === 'shorts') { h = 693; }
+      if (t === 'match') {
+        const sM = url.searchParams.get('s') || 'card';
+        if (sM === 'profile') {
+          const pM = url.searchParams.get('p') || '';
+          const gM = pM.split('§');
+          const distM = gM[2] || '', jobM = gM[3] || '', schM = gM[4] || '';
+          const introM = gM[5] || '', tagsM = gM[6] || '', lifeM = gM[7] || '';
+          // 칩 줄 수 추정 (그리디 랩, 컨테이너 350px)
+          function matchChipRows(csv, padPer) {
+            const items = csv.split(',').map(x => x.trim()).filter(Boolean);
+            if (!items.length) return 0;
+            let rows = 1, x = 0;
+            for (const it of items) {
+              let w = padPer;
+              for (const ch of it) w += ch.charCodeAt(0) > 0x7F ? 13 : 7.2;
+              if (x > 0 && x + w > 350) { rows++; x = w + 7; } else { x += w + 7; }
+            }
+            return rows;
+          }
+          let base = 340 - 34 + 38; // 사진 + 겹침 + 이름줄
+          let rowsN = (jobM ? 1 : 0) + (schM ? 1 : 0) + (distM ? 1 : 0);
+          if (rowsN) base += 6 + rowsN * 19;
+          if (introM) base += 20 + 24 + calcLines(introM, 350) * 23;
+          if (tagsM) base += 20 + 24 + matchChipRows(tagsM, 33) * 36;
+          if (lifeM) base += 20 + 24 + matchChipRows(lifeM, 31) * 42;
+          base += 24 + 62 + 26; // 액션 + 하단 패딩
+          h = base + MARGIN;
+          h = Math.max(h, 560); h = Math.min(h, MAX_H);
+        } else { h = 693; }
+      }
       // story: SIZES 기본값 420×900 그대로
 
       // ── 📸 INSTA ──

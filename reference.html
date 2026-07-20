@@ -252,6 +252,7 @@ details.ref-item .ref-body{padding:0 16px 14px 30px;font-size:12px;color:var(--t
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-28')">📑 !보고서</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-31')">🔄 !시점전환</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-31b')">📺 !에피소드</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-31c')">🎞️ !진행</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-99')">🇰🇷 !한국어</button>
           </div>
           <button class="toc-cat-btn" onclick="toggleTocCat(this)">🌍 세계관 <span class="toc-cat-arrow">▸</span></button>
@@ -2886,21 +2887,43 @@ yyyy/MM/dd/요일 또는 장면 기준(예: 합숙 이튿날 밤):
       <details class="ref-item" id="lb-kw-31b">
         <summary><span class="lb-kw">📺 !에피소드</span></summary>
         <div class="ref-body">
-          <div class="lb-code">### !에피소드 (옴니버스 모드)
-지금부터 에피소드 모드로 전환한다. 하나의 연속된 이야기가 사건 단위 챕터로 진행된다.
+          <div class="lb-code">### !에피소드
+- 에피소드 사이엔 일상이 존재하지만 출력을 사건 위주로 진행하는 모드이다.
+- 일상은 스킵하고, 명확한 사건, 소동, 전환점 등 메인 사건이 일어나는 때로 시간이 이동된다.
 - 매 턴 출력 첫 줄에 아래 헤더를 붙이고 본문과 빈 줄로 구분한다.
-&gt; ─── 『 Ep.A 에피소드 제목 』 ───
-- A는 에피소드 번호. 0에서 시작하고 !다음에피소드 입력 시에만 +1. 그 외엔 직전 턴과 같은 번호·제목을 유지한다.
+&gt; ─── 【 Ep.A 사건명 】 ───
+- A는 에피소드 번호. 0에서 시작하고 !다음 입력 시에만 +1. 그 외엔 직전 턴과 같은 번호·사건명을 유지한다.
 - 지금까지의 모든 사건·대화·관계·기억은 그대로 유효하다. 초기화·재소개 금지. 과거 일을 자연스럽게 언급하라.
-- 각 에피소드는 명확한 사건·소동·전환점으로 시작한다. 평온한 일상 반복 금지. 도입부에서 시간·장소·상황 변화를 제시하라.
+- 도입부에서 지난 턴 대비 흘러간 시간·장소·상황 변화를 제시하라.
 - {{user}}가 반응하는 동안 해당 에피소드를 이어가며, 임의로 종결하거나 새 에피소드로 넘어가지 않는다.
-- !다음에피소드 입력 시 현재 에피소드를 짧게 맺은 뒤, 같은 이야기의 다음 사건으로 새 헤더와 함께 넘어간다.</div>
+- !다음 입력 시 현재 에피소드를 짧게 정리하고 끝맺은 뒤, 같은 이야기의 다음 사건으로 새 헤더와 함께 넘어간다.</div>
           <div class="lb-bar">
             <div class="lb-bar-left">
               <span class="lb-count"></span>
               <button class="lb-tag" data-copy="!에피소드" onclick="lbCopyChip(this)">!에피소드</button>
-              <button class="lb-tag" data-copy="!다음에피소드" onclick="lbCopyChip(this)">!다음에피소드</button>
+              <button class="lb-tag" data-copy="!다음" onclick="lbCopyChip(this)">!다음</button>
               <button class="lb-tag" data-copy="📺" onclick="lbCopyChip(this)">📺</button>
+            </div>
+            <button class="lb-copy" onclick="lbCopy(this)">복사</button>
+          </div>
+        </div>
+      </details>
+      <details class="ref-item" id="lb-kw-31c">
+        <summary><span class="lb-kw">🎞️ !진행</span></summary>
+        <div class="ref-body">
+          <div class="lb-code">### !진행 (다음 사건 이동)
+- 시간과 공간을 다음 메인 사건이 시작되는 시점으로 이동한다.
+- 이동 후 직전 턴과의 시간, 공간의 변화에 따라 한 두 줄 정도 사이 시간동안 있었던 일을 요약·정리하는 것으로 시작한다.
+- 사이의 일상은 스킵한다. 지금까지의 모든 사건·대화·관계·기억은 그대로 유효하다. 초기화·재소개 금지.
+- 도입부에서 지난 턴 대비 흘러간 시간·장소·상황 변화를 제시하고, 명확한 사건·소동·전환점이 일어나는 순간부터 서술을 시작한다.
+- 다음 사건은 기존 서사의 흐름과 복선을 따르되, 직전 사건의 단순 연장이 아닌 새로운 국면이어야 한다.
+- 긍정적, 부정적 사건은 모두 일어날 수 있으며 개연성을 따라서 임신이나 병치레 등 달성을 위한 특수 조건이 있어야 가능한 사건들은 이전 사건 시점이 있어야 서술 가능하다. (예시: 출산한 적이 없는데 육아 상황을 만드는 것은 오류.)
+- 이동 후에는 일반 RP로 진행</div>
+          <div class="lb-bar">
+            <div class="lb-bar-left">
+              <span class="lb-count"></span>
+              <button class="lb-tag" data-copy="!진행" onclick="lbCopyChip(this)">!진행</button>
+              <button class="lb-tag" data-copy="🎞️" onclick="lbCopyChip(this)">🎞️</button>
             </div>
             <button class="lb-copy" onclick="lbCopy(this)">복사</button>
           </div>

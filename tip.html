@@ -2617,6 +2617,59 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
     ]
   },
   {
+    id:'cat-j', icon:'🏠', title:'생활 앱 UI', sub:'j.winter0.workers.dev — 달력 (송금·택배·중고·날씨 예정)',
+    items:[
+      {
+        id:'t-j-0', title:'📅 달력 (cal)',
+        body:`<div class="label label-use">URL 파라미터 형식</div>
+<pre>/?t=cal&p=년§월§[제목]&e=일§내용§[색]|일§내용|...&d=오늘일자&th=[스타일][§배경][§강조색]</pre>
+<hr class="divider">
+<div class="label label-example">예시 — 기본 (일정 4건 + 오늘 표시)</div>
+<pre>/?t=cal&p=2026§7§겨울의+7월&e=3§병원+예약§로즈|11§원고+마감§EE1166|15§정기+회의|24§여행+출발§샌드&d=20</pre>
+<div class="label label-example">예시 — 다크 테마 (배경 프리셋 + 강조색 헥스)</div>
+<pre>/?t=cal&p=2026§8&th=dark§indigo§DDAACC&e=1§월간+계획|14§생일+파티§핑크|29§정산§주황&d=14</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명:</strong><br>
+• <strong>실제 그레고리력 자동 배치</strong> — 년§월만 넣으면 요일 시작 위치·일수(윤년 포함)가 현실 달력과 동일 (420 동적, 5/6행 자동)<br>
+• p 3번째 필드 제목 생략 시 "년 월"이 제목 / p 통째 생략 시 현재 년월<br>
+• e= 일정 — 같은 날 여러 건 가능. 셀에는 칩 최대 2개 + 나머지 +N, 하단 리스트에는 전건 일자순 표시<br>
+• 색(선택) = 이름 10종(인디고/핑크/샌드/로즈/보라/빨강/진핑크/하늘/주황/파랑) <strong>또는 헥스 3/6자리</strong>(예: EE1166, f69) — 생략 시 강조색<br>
+• d= 오늘 날짜 — SMIL 펄스 링 애니메이션 (해당 월 범위 밖이면 무시)</div>
+<hr class="divider">
+<div class="label label-use">🎨 테마 색상 (선택) — &th= (3필드 위치규칙)</div>
+<pre>&th=스타일[§배경][§강조색]
+스타일: light(기본) | dark
+배경:   프리셋명(indigo/pink/sand/rose) 또는 헥스
+강조색: 헥스 — 오늘 링·일정 기본색·아젠다 뱃지 (생략 시 배경색, 둘 다 없으면 인디고)</pre>
+<div class="desc">• 예: th=dark / th=dark§rose§00BBDD / th=884499 (헥스 단독=배경 겸 강조)</div>`
+      },
+      {
+        id:'t-j-1', title:'바베챗 프롬프트 (복사용)',
+        body:`<div class="label label-use">캐릭터 상세설정에 붙여넣기</div>
+<div class="desc">아래 전체를 프롬프트에 삽입하면 AI가 장면에 맞는 생활 앱 UI를 자동 생성합니다. 도메인은 <strong>j.winter0.workers.dev</strong></div>
+<pre>## 생활 앱 UI 출력 규칙 (j 워커 v1 — 구분자 § 통일)
+
+스토리 진행 중 달력·일정 장면이 필요할 때 아래 형식으로 출력한다.
+필드 구분자는 반드시 § (섹션 기호)를 사용한다.
+URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
+
+### 달력 (월간 그리드 + 일정 리스트)
+![](https://j.winter0.workers.dev/?t=cal&p=년§월§[제목]&e=일§내용§[색]|일§내용|...&d=오늘일자&th=[스타일][§배경][§강조색])
+- 실제 그레고리력 자동 배치 — 년§월만 정확히 주면 요일·일수·윤년이 현실과 동일
+- e= 같은 날 중복 가능. 셀엔 칩 2개+나머지 +N, 하단 리스트는 전건 일자순
+- 색: 인디고/핑크/샌드/로즈/보라/빨강/진핑크/하늘/주황/파랑 또는 헥스(예: EE1166)
+- d=일자 넣으면 해당 날짜 펄스 애니메이션 (오늘 강조)
+- th=dark 다크모드 / 배경 프리셋 indigo·pink·sand·rose 또는 헥스 / 강조색 헥스
+
+### 공통 규칙
+- 필드 구분자: § / 아이템 구분자: |
+- 공백 → + / 줄바꿈 → %0A
+- ( → %28, ) → %29 (마크다운 파서 충돌 방지)
+- URL은 절대 줄바꿈하지 않는다</pre>`
+      }
+    ]
+  },
+  {
     id:'cat-7', icon:'☁️', title:'Cloudflare Workers 배포', sub:'HTML UI를 URL로 서빙하는 방법',
     items:[
       {

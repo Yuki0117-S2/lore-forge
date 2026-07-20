@@ -660,7 +660,7 @@ EXP ████████████░░ 85%
     ]
   },
   {
-    id:'cat-6', icon:'📱', title:'HTML UI 출력', sub:'25종 UI — SNS / 메신저 / 문서 / 게시판 / 디스코드 / 방송 / 편지 / 메뉴판 / 쇼츠 / 데이팅앱 / 위키 / 뮤직 / 투표',
+    id:'cat-6', icon:'📱', title:'HTML UI 출력', sub:'26종 UI — SNS / 메신저 / 문서 / 게시판 / 디스코드 / 방송 / 편지 / 메뉴판 / 쇼츠 / 데이팅앱 / 위키 / 뮤직 / 투표 / 질문함',
     items:[
       {
         id:'t-6-0', title:'인스타그램 피드',
@@ -1497,6 +1497,36 @@ th 생략 = indigo 기본 배경</pre>
 • dark+배경 = 틴트 / glass+배경 = 그라데 · s 상관없이 같은 th 문법</div>`
       },
       {
+        id:'t-6-12k', title:'💌 익명 질문함 (ask)',
+        body:`<div class="label label-use">URL 파라미터 형식 — 서브타입 3종</div>
+<pre>① 카드:   /?t=ask&p=질문§[답변]§[익명닉]§[질문시간]§[답변시간]|...&u=이름§핸들§이모지
+② 프로필: /?t=ask&s=profile&u=...&pf=답변완료§팔로워§팔로잉§작성글§새질문수§거절질문수§소개&p=...&tab=[new/rej]
+③ 스토리: /?t=ask&s=story&q=질문&r=응답|응답|...&u=§§이모지</pre>
+<hr class="divider">
+<div class="label label-example">예시 — Q&A 카드 (2번째는 미답변)</div>
+<pre>/?t=ask&p=집사님이랑+무슨+사이예요?§고용주와+피고용인+사이인데요.|다음+워커는+언제+나와요?&u=겨울§winter_rp§❄️</pre>
+<div class="label label-example">예시 — 프로필 새질문 탭 (받은 질문함)</div>
+<pre>/?t=ask&s=profile&tab=new&u=겨울§winter_rp§❄️&pf=100§412§7§0§3§1&p=무슨+사이예요?|월급+얼마+주세요?|리본+비결이+뭐예요?</pre>
+<div class="label label-example">예시 — 인스타 질문 스티커 (응답 3개)</div>
+<pre>/?t=ask&s=story&th=rose&q=제일+맛있는+메뉴는?&r=아아요|딸기케이크|소금빵&u=§§☕</pre>
+<div class="label label-example">예시 — 영어 세계관 (lang=en)</div>
+<pre>/?t=ask&lang=en&p=Are+you+two+dating?§We+have+a+purely+contractual+relationship.&u=Winter§winter_rp§❄️</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명:</strong><br>
+• s 생략=Q&A 카드(520 동적, 다중 지원) / s=profile 프로필+탭(480 동적) / s=story 질문 스티커(420×746 고정)<br>
+• <strong>익명닉 자동 생성</strong> — 질문 텍스트 시드로 형용사+동물 2,304조합("단호한 두루미", "수줍은 뱁새" 등), 같은 질문=항상 같은 닉, 직접 지정 시 우선<br>
+• 질문시간·답변시간도 생략 시 시드 자동 / 답변 자리를 비우면(§§ 또는 뒤 생략) 미답변 상태<br>
+• tab 생략=피드(답변 표시) / tab=new 새질문(질문만 목록=받은 질문함) / tab=rej 거절질문<br>
+• pf 뒤에서부터 생략 가능 / p 없는 profile은 빈 피드 안내 화면 / 브랜딩 없음<br>
+• <strong>lang=en / lang=ja</strong> — 익명닉·시간·UI 문구 전체를 영어/일본어로 전환 (생략=한국어). 닉도 언어별 자동 생성: "Shy Crow-tit", "内気なダルマエナガ" 등 각 48×48조합</div>
+<hr class="divider">
+<div class="label label-use">🎨 테마 색상 (선택) — &th=</div>
+<pre>&th=프리셋명              → 강조색+배경 자동 코디 (indigo/rose/sand/pink/night/dawn)
+&th=스타일[§배경][§강조색] → 스타일 light(기본)/dark · 배경 헥스(light 자동연화/dark 틴트) · 강조색 헥스
+강조색 = 팔로우 버튼·질문하기 테두리·탭 언더라인 (기본 에스크 블루)
+story는 배경이 폰 그라데로 적용 (스타일 무관, 흰 스티커 카드 고정)</pre>`
+      },
+      {
         id:'t-6-13', title:'바베챗 프롬프트 (복사용)',
         body:`<div class="label label-use">캐릭터 상세설정에 붙여넣기</div>
 <div class="desc">아래 전체를 프롬프트에 삽입하면 AI가 장면에 맞는 SNS UI를 자동 생성합니다. 도메인은 <strong>i.winter0.workers.dev</strong></div>
@@ -1626,7 +1656,16 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
 - s 생략=트위터 인라인 / s=story 인스타 스토리 / s=form 독립 설문 — 항목 개수 자유(득표로 % 자동)
 - th=스타일(dark기본/glass)[§배경(프리셋6종/헥스)][§강조색헥스] — 3종 공통 문법
 
-### 테마 색상 th= (선택 — kakao/dm/lock/story/letter/menu/shorts/match/wiki/music/board/post/poll 공통)
+### 익명 질문함 (Q&A/프로필/질문스티커)
+![](https://i.winter0.workers.dev/?t=ask&p=질문§답변|질문§답변&u=이름§핸들§이모지)
+![](https://i.winter0.workers.dev/?t=ask&s=profile&tab=new&u=이름§핸들§이모지&pf=답변완료§팔로워§팔로잉§작성글§새질문수§거절질문수&p=질문|질문|질문)
+![](https://i.winter0.workers.dev/?t=ask&s=story&q=질문&r=응답|응답&u=§§이모지)
+- s 생략=Q&A 카드(다중) / s=profile 프로필(tab=new가 받은 질문함, tab=rej 거절) / s=story 인스타 질문 스티커
+- 익명닉·시간 생략 시 자동 생성("단호한 두루미" 식) / 답변 자리 비우면 미답변 상태
+- th=프리셋명(자동 코디) 또는 th=스타일(light기본/dark)[§배경][§강조색]
+- lang=en/ja 로 익명닉·시간·UI 문구 전체 영어/일본어 전환 (생략=한국어)
+
+### 테마 색상 th= (선택 — kakao/dm/lock/story/letter/menu/shorts/match/wiki/music/board/post/poll/ask 공통)
 URL에 &th= 를 추가하면 색상 테마 변경, 생략하면 기본색 (# 없이 헥스코드만)
 - kakao/dm: th=배경§내말풍선§상대말풍선 — 색 1개만 주면 말풍선색 + 배경 자동 연화
 - lock/story: th=색1 하나로 배경 그라데이션 자동 생성 (색2 주면 색1→색2)
@@ -1637,6 +1676,7 @@ URL에 &th= 를 추가하면 색상 테마 변경, 생략하면 기본색 (# 없
 - music: th=프리셋명(shorts와 동일 6종) 또는 th=강조색[§배경] — 재생버튼·진행바·이퀄·하이라이트에 강조색 적용 (커버는 곡별 시드 유지, th 영향 없음 · 커버색은 c=로 제어)
 - board/post: th=프리셋명(shorts와 동일 6종) 또는 th=강조색[§배경색] — 배경·패널 틴트 + 포인트 리맵, 태그 4색은 원본 유지(가독성 자동 보정)
 - poll: th=스타일(dark/glass)[§배경][§강조색] — x/story/form 3서브타입 공통, dark+배경=틴트·glass+배경=그라데, 강조색 생략 시 서브타입별 기본값
+- ask: th=프리셋명(강조+배경 자동 코디) 또는 th=스타일(light기본/dark)[§배경][§강조색] — 3서브타입 공통, story는 배경=폰 그라데
 - 프리셋: 리얼카톡 b2c7d9§fee500 · 라인 8cabd8§06c755 · 아이메시지 ffffff§0b93f6§e9e9eb · 다크 1a1a22§8888cc§2e2d3a
 - 글자색은 밝기 기반 자동 선택이라 지정 불필요
 
@@ -2643,7 +2683,7 @@ export default {
         body:`<div class="label label-use">확장 방법</div>
 <div class="desc">새로운 UI를 추가할 때마다 해당 Worker에 경로 한 줄 + HTML 함수 추가. Worker가 2개로 분리되어 있으므로 용도에 맞는 쪽에 추가.</div>
 <hr class="divider">
-<div class="label label-example">i.winter0.workers.dev — SNS / 메신저 / 문서 UI (25종)</div>
+<div class="label label-example">i.winter0.workers.dev — SNS / 메신저 / 문서 UI (26종)</div>
 <pre># URL 형식 — 모두 /?t=타입&파라미터 형식
 /?t=insta         인스타 피드        /?t=email         이메일
 /?t=story         인스타 스토리      /?t=search        검색 결과
@@ -2657,7 +2697,7 @@ export default {
 /?t=dm            인스타 DM         /?t=tl            트위터 타임라인
 /?t=shorts        틱톡/릴스 📱     /?t=match         데이팅앱 💘
 /?t=wiki          위키 문서 📖     /?t=music         뮤직 플레이어 🎵
-/?t=poll          투표 📊</pre>
+/?t=poll          투표 📊       /?t=ask           익명 질문함 💌</pre>
 <hr class="divider">
 <div class="label label-example">st.winter0.workers.dev — RPG / VN 상태창 + 엔딩 + 선택지 + 던전 + MMO + 보상 + 게임오버 + 인벤 + 능력치 + 주사위 (14종)</div>
 <pre># URL 형식 — 모두 /?t=타입&파라미터 형식

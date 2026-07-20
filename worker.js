@@ -1,5 +1,80 @@
 // 겨울의 SNS UI Workers v13 — 19종 UI (구분자 § 통일 + letter/menu/dm 추가)
 const TEMPLATES = {
+  'ask': `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  :root { --acc: #3399EE; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background:#fdfdfe; font-family: 'Noto Sans KR', -apple-system, sans-serif; }
+  /* ── 공통 Q&A 아이템 (라이트) ── */
+  .qa { padding: 18px 20px; }
+  .qa-qhead { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; }
+  .qa-qic { width: 22px; height: 22px; border-radius: 50%; background: #e8e8ec; color: #8a8a94; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+  .qa-anon { font-size: 14px; font-weight: 700; color: #2a2a30; }
+  .qa-time { font-size: 13px; color: #a6a6b0; }
+  .qa-q { font-size: 17px; font-weight: 700; color: #141418; line-height: 1.45; margin-bottom: 14px; }
+  .qa-ans { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; }
+  .qa-av { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg,#8889CD,#DDAACC); display: flex; align-items: center; justify-content: center; font-size: 19px; }
+  .qa-name { font-weight: 700; font-size: 15px; color: #1c1c22; }
+  .qa-handle { font-size: 13px; color: #a6a6b0; }
+  .qa-atime { font-size: 12px; color: #a6a6b0; margin-top: 2px; }
+  .qa-a { font-size: 15px; color: #33333b; line-height: 1.6; margin-bottom: 14px; white-space: pre-wrap; }
+  .qa-act { display: flex; justify-content: space-between; font-size: 13px; color: #a0a0aa; padding: 0 6px; }
+  .qa-wait { font-size: 14px; color: #a0a0aa; text-align: center; padding: 10px; background: #f5f5f8; border-radius: 10px; }
+  .qa-div { height: 8px; background: #f2f2f5; }
+  /* ── card ── */
+  .akc { width: 520px; background: #ffffff; color: #1c1c22; }
+  /* ── profile ── */
+  .akp { width: 480px; background: #ffffff; padding-top: 22px; }
+  .akp-top { display: flex; align-items: center; gap: 20px; padding: 0 22px; }
+  .akp-av { width: 74px; height: 74px; border-radius: 50%; background: linear-gradient(135deg,#8889CD,#DDAACC); display: flex; align-items: center; justify-content: center; font-size: 34px; flex-shrink: 0; }
+  .akp-stats { display: flex; flex: 1; justify-content: space-around; text-align: center; }
+  .akp-stats b { display: block; font-size: 19px; color: #141418; }
+  .akp-stats span { font-size: 12px; color: #8a8a94; }
+  .akp-name { font-size: 18px; font-weight: 800; color: #141418; padding: 14px 22px 0; }
+  .akp-name span { font-size: 14px; font-weight: 400; color: #a6a6b0; }
+  .akp-bio { font-size: 13px; color: #55555f; padding: 6px 22px 0; }
+  .akp-btns { display: flex; gap: 10px; padding: 14px 22px 6px; }
+  .akp-follow { flex: 1; background: var(--acc); color: #fff; text-align: center; padding: 11px; border-radius: 12px; font-size: 14px; font-weight: 700; }
+  .akp-ask { flex: 1; border: 1.5px solid var(--acc); color: var(--acc); text-align: center; padding: 11px; border-radius: 12px; font-size: 14px; font-weight: 700; }
+  .akp-tabs { display: flex; margin-top: 10px; border-bottom: 1px solid #ececf0; }
+  .akp-tab { flex: 1; text-align: center; padding: 12px 0; font-size: 14px; color: #8a8a94; }
+  .akp-tab.active { color: #141418; font-weight: 700; border-bottom: 2.5px solid var(--acc); }
+  .akp-empty { text-align: center; padding: 38px 20px; color: #8a8a94; font-size: 14px; line-height: 1.6; }
+  .akp-empty-ic { font-size: 34px; margin-bottom: 10px; }
+  .akp-empty-btn { display: inline-block; margin-top: 16px; border: 1.5px solid var(--acc); color: var(--acc); padding: 10px 22px; border-radius: 12px; font-weight: 700; }
+  /* ── 다크 스타일 ── */
+  .dark .qa-qic { background: #2a2a36; color: #9a9aae; }
+  .dark .qa-anon { color: #e6e2ee; }
+  .dark .qa-q { color: #f0edf6; }
+  .dark .qa-name { color: #f0edf6; }
+  .dark .qa-a { color: #cfc8da; }
+  .dark .qa-wait { background: #221e2c; color: #8b8397; }
+  .dark .qa-div { background: #100d18; }
+  .dark.akc, .dark.akp { background: #17131f; color: #e0dae8; }
+  .dark .akp-stats b { color: #f0edf6; }
+  .dark .akp-name { color: #f0edf6; }
+  .dark .akp-bio { color: #a79fb5; }
+  .dark .akp-tabs { border-bottom-color: #262130; }
+  .dark .akp-tab.active { color: #f0edf6; }
+  /* ── story (인스타 질문 스티커) ── */
+  .as { width: 420px; height: 746px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .as-card { width: 330px; background: #ffffff; border-radius: 20px; padding: 34px 22px 22px; text-align: center; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,.25); }
+  .as-avwrap { position: absolute; top: -24px; left: 50%; transform: translateX(-50%); }
+  .as-av { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg,#8889CD,#DDAACC); display: flex; align-items: center; justify-content: center; font-size: 24px; border: 3px solid #fff; box-shadow: 0 3px 10px rgba(0,0,0,.15); }
+  .as-q { font-size: 18px; font-weight: 700; color: #1c1c22; line-height: 1.45; margin-bottom: 18px; }
+  .as-input { background: #efeff2; border-radius: 12px; padding: 13px; font-size: 14px; color: #9a9aa4; }
+  .as-resps { display: flex; flex-direction: column; gap: 8px; }
+  .as-resp { background: #f2f0f6; border-radius: 12px; padding: 11px 14px; font-size: 14px; color: #3a3444; text-align: left; }
+  .as-meta { font-size: 12px; color: #9a9aa4; margin-top: 12px; }
+</style>
+</head>
+<body>
+\u27e6BODY\u27e7
+</body>
+</html>`,
   'poll': `<!DOCTYPE html>
 <html>
 <head>
@@ -6784,6 +6859,7 @@ const SIZES = {
   'wiki': [390, 800],
   'music': [390, 660],
   'poll': [598, 600],
+  'ask': [520, 600],
 };
 
 
@@ -8599,6 +8675,164 @@ function renderPoll(html, url) {
   return html.split('\u27e6BODY\u27e7').join(inner);
 }
 
+
+// ── 💌 ASK (익명 질문함) — 서브타입 3종: card(기본, 다중 Q&A)·profile(프로필+탭)·story(인스타 질문 스티커) ──
+// th=프리셋명(자동 코디) 또는 th=스타일(light기본/dark)[§배경][§강조색] · lang=ko(기본)/en/ja 전체 문구 전환
+const ASK_LANG = {
+  'ko': {
+    glue: ' ',
+    adj: ['단호한','수줍은','완벽한','나른한','용맹한','시크한','다정한','씩씩한','진지한','엉뚱한','느긋한','바쁜','까칠한','달콤한','묵묵한','재빠른','야무진','포근한','촉촉한','당돌한','수상한','도도한','털털한','말랑한','쌀쌀맞은','뿌듯한','향긋한','차분한','익살맞은','눈치빠른','은밀한','느슨한','화끈한','부지런한','졸린','배고픈','신난','시무룩한','유유한','성실한','꿈꾸는','반짝이는','느릿한','겸손한','안경쓴','새침한','조용한','비밀스러운'],
+    ani: ['뱁새','두루미','맹꽁이','해달','수달','고슴도치','다람쥐','살쾡이','너구리','오소리','물범','족제비','날다람쥐','고래','범고래','하프물범','카피바라','알파카','수리부엉이','솔개','제비','까치','산양','여우','늑대','판다','레서판다','쿼카','사막여우','미어캣','해마','거북','도마뱀','청설모','후투티','고양이','강아지','토끼','두더지','상괭이','사슴','청둥오리','펭귄','수염고래','남극제비','반딧불이','달팽이','문어'],
+    qt: ['방금 전','32분 전','1시간 전','3시간 전','5시간 전','11시간 전','23시간 전','1일 전','2일 전'],
+    L: { posts:'작성글', ans:'답변완료', fw:'팔로워', fg:'팔로잉', feed:'피드', newq:'새질문', rejq:'거절질문',
+      follow:'👤 팔로우', askbtn:'💬 질문하기',
+      empty:'지금 질문을 남겨주세요<br/>친구와 자유롭게 소통하세요',
+      cmt:'💬 댓글', like:'♡ 좋아요', save:'🔖 보관', share:'↗ 공유',
+      wait:'아직 답변하지 않은 질문이에요',
+      input:'사람들의 응답', resp:'개의 응답', resp1:'개의 응답', dq:'무엇이든 물어보세요' }
+  },
+  'en': {
+    glue: ' ',
+    adj: ['Bold','Shy','Perfect','Sleepy','Brave','Chic','Sweet','Cheerful','Serious','Quirky','Mellow','Busy','Prickly','Cozy','Silent','Swift','Savvy','Snug','Dewy','Daring','Sneaky','Aloof','Easygoing','Squishy','Frosty','Proud','Fragrant','Calm','Playful','Sharp-eyed','Secretive','Loose','Fiery','Diligent','Drowsy','Hungry','Excited','Sulky','Carefree','Earnest','Dreamy','Sparkling','Slow','Humble','Bespectacled','Coy','Quiet','Mysterious'],
+    ani: ['Crow-tit','Crane','Tree Frog','Sea Otter','River Otter','Hedgehog','Squirrel','Wildcat','Raccoon','Badger','Seal','Weasel','Flying Squirrel','Whale','Orca','Harp Seal','Capybara','Alpaca','Eagle Owl','Black Kite','Swallow','Magpie','Mountain Goat','Fox','Wolf','Panda','Red Panda','Quokka','Fennec Fox','Meerkat','Seahorse','Turtle','Gecko','Chipmunk','Hoopoe','Cat','Puppy','Bunny','Mole','Porpoise','Deer','Mallard','Penguin','Narwhal','Arctic Tern','Firefly','Snail','Octopus'],
+    qt: ['just now','32m ago','1h ago','3h ago','5h ago','11h ago','23h ago','1d ago','2d ago'],
+    L: { posts:'Posts', ans:'Answered', fw:'Followers', fg:'Following', feed:'Feed', newq:'New', rejq:'Declined',
+      follow:'👤 Follow', askbtn:'💬 Ask me',
+      empty:'Leave a question now<br/>Chat freely with your friends',
+      cmt:'💬 Reply', like:'♡ Like', save:'🔖 Save', share:'↗ Share',
+      wait:'Not answered yet',
+      input:'Type something…', resp:' replies', resp1:' reply', dq:'Ask me anything' }
+  },
+  'ja': {
+    glue: '',
+    adj: ['内気な','完璧な','気まぐれな','勇敢な','クールな','優しい','元気な','真面目な','ゆるい','忙しい','甘い','無口な','すばやい','しっかり者の','ぽかぽかの','しっとりした','大胆な','あやしい','ツンとした','さっぱりした','ふわふわの','得意げな','いい香りの','おだやかな','おちゃめな','目ざとい','ひそかな','のんびりの','アツい','働き者の','ねむい','はらぺこの','うきうきの','しょんぼりの','マイペースな','夢見る','きらきらの','のろまな','謙虚な','メガネの','つんとすました','静かな','ミステリアスな','ちゃっかりした','うるうるの','とぼけた','りりしい','こっそりの'],
+    ani: ['ダルマエナガ','ツル','アマガエル','ラッコ','カワウソ','ハリネズミ','リス','ヤマネコ','タヌキ','アナグマ','アザラシ','イタチ','モモンガ','クジラ','シャチ','ゴマフアザラシ','カピバラ','アルパカ','ミミズク','トビ','ツバメ','カササギ','ヤギ','キツネ','オオカミ','パンダ','レッサーパンダ','クオッカ','フェネック','ミーアキャット','タツノオトシゴ','カメ','トカゲ','シマリス','ヤツガシラ','ネコ','イヌ','ウサギ','モグラ','スナメリ','シカ','カモ','ペンギン','イッカク','キョクアジサシ','ホタル','カタツムリ','タコ'],
+    qt: ['たった今','32分前','1時間前','3時間前','5時間前','11時間前','23時間前','1日前','2日前'],
+    L: { posts:'投稿', ans:'回答済み', fw:'フォロワー', fg:'フォロー中', feed:'フィード', newq:'新着質問', rejq:'拒否質問',
+      follow:'👤 フォロー', askbtn:'💬 質問する',
+      empty:'質問を残してみましょう<br/>友達と自由にやりとりできます',
+      cmt:'💬 コメント', like:'♡ いいね', save:'🔖 保存', share:'↗ 共有',
+      wait:'まだ回答していない質問です',
+      input:'回答を入力…', resp:'件の回答', resp1:'件の回答', dq:'何でも聞いてください' }
+  },
+};
+function askLang(url) {
+  const l = (url.searchParams.get('lang') || 'ko').toLowerCase();
+  return ASK_LANG[l] || ASK_LANG['ko'];
+}
+function askNick(seed, LG) {
+  const h = musicHash('ask:' + seed);
+  return LG.adj[h % LG.adj.length] + LG.glue + LG.ani[Math.floor(h / 97) % LG.ani.length];
+}
+function askTime(seed, off, LG) {
+  return LG.qt[(musicHash('t' + off + ':' + seed)) % LG.qt.length];
+}
+function askTheme(url) {
+  const out = { style: 'light', bg: null, acc: null };
+  const raw = url.searchParams.get('th');
+  if (!raw) return out;
+  const f = raw.split('§').map(x => x.trim()).filter(x => x.length);
+  let i = 0;
+  const s0 = (f[0] || '').toLowerCase();
+  if (s0 === 'light' || s0 === 'dark') { out.style = s0; i = 1; }
+  else if (POLL_PRESETS[s0]) { // 프리셋 단독 = 자동 코디
+    out.acc = POLL_PRESETS[s0][0]; out.bg = POLL_PRESETS[s0][0];
+    return out;
+  }
+  if (f[i]) {
+    const p = POLL_PRESETS[f[i].toLowerCase()];
+    if (p) { out.bg = p[0]; i++; }
+    else { const hx = pollHex(f[i]); if (hx) { out.bg = hx; i++; } }
+  }
+  if (f[i]) { const hx = pollHex(f[i]); if (hx) out.acc = hx; }
+  return out;
+}
+function askItems(p, LG) {
+  // p=질문§[답변]§[익명닉]§[질문시간]§[답변시간]|... (뒤에서부터 생략, 생략분 시드 자동)
+  return (p || '').split('|').map(r => r.trim()).filter(Boolean).map(r => {
+    const g = r.split('§');
+    const q = g[0] || '';
+    return {
+      q: q,
+      a: g[1] || '',
+      anon: g[2] || askNick(q, LG),
+      qt: g[3] || askTime(q, 1, LG),
+      at: g[4] || askTime(q, 2, LG),
+    };
+  });
+}
+function askQA(it, u, answered, L) {
+  let h = '<div class="qa"><div class="qa-qhead"><div class="qa-qic">Q</div><span class="qa-anon">' + it.anon
+    + '</span><span class="qa-time">' + it.qt + '</span></div><div class="qa-q">' + it.q + '</div>';
+  if (answered && it.a) {
+    h += '<div class="qa-ans"><div class="qa-av">' + u.e + '</div><div><span class="qa-name">' + u.n
+      + '</span> <span class="qa-handle">@' + u.h + '</span><div class="qa-atime">' + it.at + '</div></div></div>'
+      + '<div class="qa-a">' + it.a + '</div>'
+      + '<div class="qa-act"><span>' + L.cmt + '</span><span>' + L.like + '</span><span>' + L.save + '</span><span>' + L.share + '</span></div>';
+  } else if (answered) {
+    h += '<div class="qa-wait">' + L.wait + '</div>';
+  }
+  return h + '</div>';
+}
+function renderAsk(html, url) {
+  const s = url.searchParams.get('s') || 'card';
+  const LG = askLang(url);
+  const L = LG.L;
+  const th = askTheme(url);
+  const uSeg = (url.searchParams.get('u') || '').split('§');
+  const u = { n: uSeg[0] || '유저', h: uSeg[1] || 'user', e: uSeg[2] || '❄️' };
+  const items = askItems(url.searchParams.get('p'), LG);
+  const dark = th.style === 'dark';
+  let bodyBg, inner = '';
+
+  if (s === 'story') {
+    const q = url.searchParams.get('q') || L.dq;
+    const resp = (url.searchParams.get('r') || '').split('|').map(x => x.trim()).filter(Boolean);
+    const bgPair = th.bg ? [th.bg, themeMix(th.bg, '#000000', 0.55)] : POLL_PRESETS['rose'];
+    bodyBg = 'linear-gradient(160deg, ' + bgPair[0] + ' 0%, ' + bgPair[1] + ' 100%)';
+    let rlist = '';
+    resp.forEach(x => { rlist += '<div class="as-resp">' + x + '</div>'; });
+    const rTxt = resp.length + (resp.length === 1 ? L.resp1 : L.resp);
+    inner = '<div class="as"><div class="as-card"><div class="as-avwrap"><div class="as-av">' + u.e + '</div></div>'
+      + '<div class="as-q">' + q + '</div>'
+      + (resp.length ? '<div class="as-resps">' + rlist + '</div><div class="as-meta">' + rTxt + '</div>'
+                     : '<div class="as-input">' + L.input + '</div>')
+      + '</div></div>';
+  } else if (s === 'profile') {
+    const pf = (url.searchParams.get('pf') || '').split('§');
+    const ans = pf[0] || '0', fw = pf[1] || '0', fg = pf[2] || '0', posts = pf[3] || '0';
+    const nq = pf[4] || '', rq = pf[5] || '', bio = pf[6] || '';
+    const tab = url.searchParams.get('tab') || '';
+    bodyBg = dark ? (th.bg ? themeMix(th.bg, '#000000', 0.82) : '#17131f') : (th.bg ? themeMix(th.bg, '#ffffff', 0.94) : '#ffffff');
+    let feed = '';
+    if (items.length) {
+      const answered = tab === '';
+      feed = items.map(it => askQA(it, u, answered, L)).join('<div class="qa-div"></div>');
+    } else {
+      feed = '<div class="akp-empty"><div class="akp-empty-ic">💬</div><div>' + L.empty + '</div><div class="akp-empty-btn">' + L.askbtn + '</div></div>';
+    }
+    inner = '<div class="akp' + (dark ? ' dark' : '') + '"' + (bodyBg !== '#ffffff' ? ' style="background:' + bodyBg + '"' : '') + '>'
+      + '<div class="akp-top"><div class="akp-av">' + u.e + '</div><div class="akp-stats">'
+      + '<div><b>' + posts + '</b><span>' + L.posts + '</span></div><div><b>' + ans + '</b><span>' + L.ans + '</span></div>'
+      + '<div><b>' + fw + '</b><span>' + L.fw + '</span></div><div><b>' + fg + '</b><span>' + L.fg + '</span></div></div></div>'
+      + '<div class="akp-name">' + u.n + ' <span>@' + u.h + '</span></div>'
+      + (bio ? '<div class="akp-bio">' + bio + '</div>' : '')
+      + '<div class="akp-btns"><div class="akp-follow">' + L.follow + '</div><div class="akp-ask">' + L.askbtn + '</div></div>'
+      + '<div class="akp-tabs"><div class="akp-tab' + (tab === '' ? ' active' : '') + '">' + L.feed + '</div>'
+      + '<div class="akp-tab' + (tab === 'new' ? ' active' : '') + '">' + L.newq + (nq ? ' ' + nq : '') + '</div>'
+      + '<div class="akp-tab' + (tab === 'rej' ? ' active' : '') + '">' + L.rejq + (rq ? ' ' + rq : '') + '</div></div>'
+      + feed + '</div>';
+  } else {
+    bodyBg = dark ? (th.bg ? themeMix(th.bg, '#000000', 0.82) : '#17131f') : (th.bg ? themeMix(th.bg, '#ffffff', 0.94) : '#ffffff');
+    const list = items.length ? items : askItems(L.dq, LG);
+    inner = '<div class="akc' + (dark ? ' dark' : '') + '"' + (bodyBg !== '#ffffff' ? ' style="background:' + bodyBg + '"' : '') + '>'
+      + list.map(it => askQA(it, u, true, L)).join('<div class="qa-div"></div>') + '</div>';
+  }
+  html = html.split('background:#fdfdfe').join('background:' + bodyBg);
+  if (th.acc) html = html.split('--acc: #3399EE').join('--acc: ' + th.acc);
+  return html.split('\u27e6BODY\u27e7').join(inner);
+}
+
 const RENDERERS = {
   'insta': renderInsta, 'twitter': renderTwitter, 'kakao': renderKakao,
   'reddit': renderReddit, 'lock': renderLock, 'email': renderEmail,
@@ -8612,6 +8846,7 @@ const RENDERERS = {
   'wiki': renderWiki,
   'music': renderMusic,
   'poll': renderPoll,
+  'ask': renderAsk,
 };
 
 
@@ -8711,6 +8946,35 @@ export default {
           h = base + MARGIN;
           h = Math.max(h, 430); h = Math.min(h, MAX_H);
         } else { h = 660; }
+      }
+      if (t === 'ask') {
+        const sA = url.searchParams.get('s') || 'card';
+        const pA = url.searchParams.get('p') || '';
+        const itA = pA ? pA.split('|').filter(x => x.trim()) : [''];
+        if (sA === 'story') { w = 420; h = 746; }
+        else {
+          const tabA = url.searchParams.get('tab') || '';
+          let body = 0;
+          itA.forEach(r => {
+            const g = r.split('§');
+            const qL = calcLines(g[0] || '', 470);
+            const aL = g[1] ? calcLines(g[1], 470) : 0;
+            body += 30 + qL * 25 + 14; // 질문 헤더+질문
+            if (sA === 'profile' && tabA !== '') body += 4; // 질문만 목록
+            else if (g[1]) body += 56 + aL * 24 + 46; // 답변자+답변+액션바
+            else body += 54; // 미답변 안내
+            body += 36 + 8; // 패딩+구분선
+          });
+          if (sA === 'profile') {
+            w = 480;
+            const pfA = (url.searchParams.get('pf') || '').split('§');
+            h = 22 + 96 + 34 + (pfA[6] ? 26 : 0) + 62 + 47 + (pA ? body : 170) + MARGIN;
+          } else {
+            w = 520;
+            h = body + MARGIN;
+          }
+          h = Math.max(h, 220); h = Math.min(h, MAX_H);
+        }
       }
       if (t === 'poll') {
         const sP = url.searchParams.get('s') || 'x';

@@ -660,7 +660,7 @@ EXP ████████████░░ 85%
     ]
   },
   {
-    id:'cat-6', icon:'📱', title:'HTML UI 출력', sub:'23종 UI — SNS / 메신저 / 문서 / 게시판 / 디스코드 / 방송 / 편지 / 메뉴판 / 쇼츠 / 데이팅앱 / 위키',
+    id:'cat-6', icon:'📱', title:'HTML UI 출력', sub:'24종 UI — SNS / 메신저 / 문서 / 게시판 / 디스코드 / 방송 / 편지 / 메뉴판 / 쇼츠 / 데이팅앱 / 위키 / 뮤직',
     items:[
       {
         id:'t-6-0', title:'인스타그램 피드',
@@ -1424,6 +1424,35 @@ th 생략 = indigo 기본 배경</pre>
 &th=dark§헥스  → 다크 + 커스텀 악센트</pre>`
       },
       {
+        id:'t-6-12i', title:'🎵 뮤직 플레이어 (music)',
+        body:`<div class="label label-use">URL 파라미터 형식 — 서브타입 3종</div>
+<pre>① 재생:   /?t=music&p=곡명§아티스트§현재시간§총시간&e=이모지&c=커버색
+② 앨범:   /?t=music&s=album&p=앨범명§아티스트§연도§부가메타&tr=곡명§아티스트§시간|...&now=재생중번호
+③ 위젯바: /?t=music&s=bar&p=곡명§아티스트&e=이모지&c=커버색</pre>
+<hr class="divider">
+<div class="label label-example">예시 — 재생 화면 (SMIL 진행바+이퀄라이저)</div>
+<pre>/?t=music&p=밤편지§아이유§1:02§4:13&th=rose</pre>
+<div class="label label-example">예시 — 앨범/플레이리스트 (2번 트랙 재생 중)</div>
+<pre>/?t=music&s=album&p=겨울+일기§겨울밴드§2026§8곡&tr=서리+내린+아침§겨울밴드§3:12|세계의+끝에서§겨울밴드§4:05|유리+온실§겨울밴드§3:47&now=2</pre>
+<div class="label label-example">예시 — 위젯 바 (채팅 중간 삽입용, 390×92)</div>
+<pre>/?t=music&s=bar&p=모니터링§DECO*27</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명:</strong><br>
+• s 생략=재생 화면(660 고정) / s=album 앨범·플리(동적 높이) / s=bar 납작 위젯(92 고정, 풀블리드)<br>
+• <strong>커버는 곡명+아티스트 시드로 자동 생성</strong> — 그라데(2·3색)+패턴 10종+모티프 8종, 같은 곡=항상 같은 커버, 이미지 URL 불필요<br>
+• e= 이모지 커버(시드 배경 위) / c= 커버색 강제(헥스) — 우선순위 c &gt; 시드 자동<br>
+• 재생: 현재/총시간 생략 시 곡 시드 기반 자동값 · 진행바는 SMIL로 천천히 차오름<br>
+• 앨범: 연도·부가메타 선택 / tr·now 생략 시 기본 3곡 / now번 트랙은 번호 대신 이퀄라이저+하이라이트<br>
+• 플레이리스트로도 사용 가능 — 부가메타에 "플레이리스트 · 12곡" 식으로 자유 기재<br>
+• SMIL: 재생 진행바+이퀄라이저 / bar 이퀄라이저 / album now 트랙 이퀄라이저<br>
+• 브랜딩 "WMusic" (IP 회피)</div>
+<hr class="divider">
+<div class="label label-use">🎨 테마 색상 (선택) — &th=</div>
+<pre>&th=프리셋명         → indigo(기본)·rose·sand·pink·night·dawn
+&th=악센트(강조색)[§배경]   → 재생버튼·진행바·이퀄·하이라이트에 강조색 적용 + 배경 틴트</pre>
+<div class="desc">• <strong>커버 색은 th와 독립</strong> — 곡별 시드 유지 (커버 제어는 c= 전용). th는 UI 껍데기만 변경</div>`
+      },
+      {
         id:'t-6-13', title:'바베챗 프롬프트 (복사용)',
         body:`<div class="label label-use">캐릭터 상세설정에 붙여넣기</div>
 <div class="desc">아래 전체를 프롬프트에 삽입하면 AI가 장면에 맞는 SNS UI를 자동 생성합니다. 도메인은 <strong>i.winter0.workers.dev</strong></div>
@@ -1459,6 +1488,14 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
 - 분류/수정시각/i/q/f/b/e 전부 선택, 비면 생략 / 목차는 섹션명에서 자동
 - 본문 문법: [[링크]] · ~~취소선~~ · [1] 각주첨자 · // 줄바꿈
 - th=dark 다크모드 / 생략시 라이트+초록
+
+### 뮤직 플레이어 (재생/앨범/위젯바)
+![](https://i.winter0.workers.dev/?t=music&p=곡명§아티스트§현재시간§총시간&e=이모지)
+![](https://i.winter0.workers.dev/?t=music&s=album&p=앨범명§아티스트§연도§부가메타&tr=곡명§아티스트§시간|곡명§아티스트§시간&now=재생중번호)
+![](https://i.winter0.workers.dev/?t=music&s=bar&p=곡명§아티스트)
+- s 생략=재생 화면 / s=album 앨범·플리(now번 트랙 재생중 표시) / s=bar 납작 위젯(채팅 중간 삽입용)
+- 커버는 곡명+아티스트로 자동 생성 — 이미지 URL 불필요 / e=이모지 커버, c=커버색(헥스)
+- 시간·연도·트랙 전부 생략 가능(자동값) / 실존 곡·가상 곡 모두 사용 가능
 
 ### 트위터
 ![](https://i.winter0.workers.dev/?t=twitter&p=@handle§표시이름§시간§본문§[번역]§이미지설명§답글수§RT수§인용수§좋아요수§북마크수§[verified,lock]§[조회수]&r=표시이름§@handle§시간§내용§좋아요§[RT수]§[조회수]§[답글수]§[@대상|-]|...)
@@ -1537,7 +1574,7 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
 ### 🍽️ 메뉴판
 ![](https://i.winter0.workers.dev/?t=menu&p=가게이름§부제§공지문구§영업시간&s=카테고리§아이콘|메뉴명§설명§가격§뱃지|메뉴명§설명§가격;;카테고리2§아이콘|...)
 
-### 테마 색상 th= (선택 — kakao/dm/lock/story/letter/menu/shorts/match/wiki 공통)
+### 테마 색상 th= (선택 — kakao/dm/lock/story/letter/menu/shorts/match/wiki/music 공통)
 URL에 &th= 를 추가하면 색상 테마 변경, 생략하면 기본색 (# 없이 헥스코드만)
 - kakao/dm: th=배경§내말풍선§상대말풍선 — 색 1개만 주면 말풍선색 + 배경 자동 연화
 - lock/story: th=색1 하나로 배경 그라데이션 자동 생성 (색2 주면 색1→색2)
@@ -1545,6 +1582,7 @@ URL에 &th= 를 추가하면 색상 테마 변경, 생략하면 기본색 (# 없
 - shorts: th=프리셋명(indigo/rose/sand/pink/night/dawn) 또는 th=색1[§색2] — 배경 그라데이션만 변경
 - match: th=프리셋명(shorts와 동일 6종) 또는 th=색1[§색2] — 사진 그라데·매치 배경만 변경
 - wiki: th=wiki(라이트 기본)/dark 또는 th=악센트헥스 / th=dark§헥스
+- music: th=프리셋명(shorts와 동일 6종) 또는 th=강조색[§배경] — 재생버튼·진행바·이퀄·하이라이트에 강조색 적용 (커버는 곡별 시드 유지, th 영향 없음 · 커버색은 c=로 제어)
 - 프리셋: 리얼카톡 b2c7d9§fee500 · 라인 8cabd8§06c755 · 아이메시지 ffffff§0b93f6§e9e9eb · 다크 1a1a22§8888cc§2e2d3a
 - 글자색은 밝기 기반 자동 선택이라 지정 불필요
 
@@ -1584,6 +1622,7 @@ URL에 &th= 를 추가하면 색상 테마 변경, 생략하면 기본색 (# 없
 - shorts: 캡션 100자 이내, 댓글 최대 4개 (고정 사이즈, 초과분 잘림), 음악 제목 길이 무관
 - match: 카드 소개 2줄 권장(고정 사이즈) / 태그 4~5개 권장 / 프로필은 동적 높이라 자유
 - wiki: 섹션 권장 3~6개, 섹션당 본문 300자 이내 권장 (동적 높이, 최대 1800px 클램프)
+- music: 곡명·아티스트 1줄 말줄임(고정 사이즈) / album 트랙 최대 12개 권장 (동적 높이)
 - 위 제한 초과 시 여러 이미지로 분리하여 출력</pre>`
       }
     ]
@@ -2550,7 +2589,7 @@ export default {
         body:`<div class="label label-use">확장 방법</div>
 <div class="desc">새로운 UI를 추가할 때마다 해당 Worker에 경로 한 줄 + HTML 함수 추가. Worker가 2개로 분리되어 있으므로 용도에 맞는 쪽에 추가.</div>
 <hr class="divider">
-<div class="label label-example">i.winter0.workers.dev — SNS / 메신저 / 문서 UI (23종)</div>
+<div class="label label-example">i.winter0.workers.dev — SNS / 메신저 / 문서 UI (24종)</div>
 <pre># URL 형식 — 모두 /?t=타입&파라미터 형식
 /?t=insta         인스타 피드        /?t=email         이메일
 /?t=story         인스타 스토리      /?t=search        검색 결과
@@ -2563,7 +2602,7 @@ export default {
 /?t=letter        편지 ✉️           /?t=menu          메뉴판 🍽️
 /?t=dm            인스타 DM         /?t=tl            트위터 타임라인
 /?t=shorts        틱톡/릴스 📱     /?t=match         데이팅앱 💘
-/?t=wiki          위키 문서 📖</pre>
+/?t=wiki          위키 문서 📖     /?t=music         뮤직 플레이어 🎵</pre>
 <hr class="divider">
 <div class="label label-example">st.winter0.workers.dev — RPG / VN 상태창 + 엔딩 + 선택지 + 던전 + MMO + 보상 + 게임오버 + 인벤 + 능력치 + 주사위 (14종)</div>
 <pre># URL 형식 — 모두 /?t=타입&파라미터 형식

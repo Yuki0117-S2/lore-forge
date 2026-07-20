@@ -251,6 +251,7 @@ details.ref-item .ref-body{padding:0 16px 14px 30px;font-size:12px;color:var(--t
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-27')">📔 !일기</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-28')">📑 !보고서</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-31')">🔄 !시점전환</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-31b')">📺 !에피소드</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-99')">🇰🇷 !한국어</button>
           </div>
           <button class="toc-cat-btn" onclick="toggleTocCat(this)">🌍 세계관 <span class="toc-cat-arrow">▸</span></button>
@@ -2877,6 +2878,29 @@ yyyy/MM/dd/요일 또는 장면 기준(예: 합숙 이튿날 밤):
               <span class="lb-count"></span>
               <button class="lb-tag" data-copy="!시점전환" onclick="lbCopyChip(this)">!시점전환</button>
               <button class="lb-tag" data-copy="🔄" onclick="lbCopyChip(this)">🔄</button>
+            </div>
+            <button class="lb-copy" onclick="lbCopy(this)">복사</button>
+          </div>
+        </div>
+      </details>
+      <details class="ref-item" id="lb-kw-31b">
+        <summary><span class="lb-kw">📺 !에피소드</span></summary>
+        <div class="ref-body">
+          <div class="lb-code">### !에피소드 (옴니버스 모드)
+지금부터 옴니버스 에피소드 모드로 전환한다. 일상 연속극이 아닌 독립된 사건 단위로 진행하라.
+- 에피소드 시작 시 출력 첫 줄에 아래 헤더를 붙이고 본문과 빈 줄로 구분한다.
+&gt; ─── 『 Ep.N 에피소드 제목 』 ───
+- N은 직전 헤더 번호+1, 확인 불가 시 숫자만 생략하고 『 Ep. 제목 』으로 쓴다.
+- 각 에피소드는 명확한 사건·소동·전환점으로 시작한다. 평온한 일상 반복 금지. 도입부에서 시간·장소·상황 변화를 제시하라.
+- {{user}}가 반응하는 동안 해당 에피소드를 이어가며, 임의로 종결하거나 새 에피소드로 넘어가지 않는다.
+- {{user}}가 !다음에피소드 를 입력하면 현재 에피소드를 짧게 맺은 뒤 새 헤더와 함께 이전과 다른 종류의 사건으로 시작한다.
+- 에피소드 간 시간 경과는 자유이나 확정된 관계·설정은 유지한다.</div>
+          <div class="lb-bar">
+            <div class="lb-bar-left">
+              <span class="lb-count"></span>
+              <button class="lb-tag" data-copy="!에피소드" onclick="lbCopyChip(this)">!에피소드</button>
+              <button class="lb-tag" data-copy="!다음에피소드" onclick="lbCopyChip(this)">!다음에피소드</button>
+              <button class="lb-tag" data-copy="📺" onclick="lbCopyChip(this)">📺</button>
             </div>
             <button class="lb-copy" onclick="lbCopy(this)">복사</button>
           </div>

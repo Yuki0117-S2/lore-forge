@@ -6530,6 +6530,181 @@ parseParams();
 </div>
 </body>
 </html>`,
+  'music': `<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>WMusic</title>
+<style>
+  :root {
+    --col-indigo: #8889CD;
+    --col-pink:   #DDAACC;
+    --col-sand:   #CCAA88;
+    --col-rose:   #BB6688;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#161221; }
+  .wm-app {
+    width:390px; overflow:hidden; position:relative;
+    background:linear-gradient(170deg, #221d33 0%, #14101f 70%);
+    color:#fff;
+    font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+  }
+
+  /* ── 공통: 로고 ── */
+  .wm-logo { display:flex; align-items:center; gap:6px; font-weight:800; font-size:15px; }
+  .wm-logo .wm-mark {
+    width:22px; height:22px; border-radius:6px; display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(135deg, var(--col-indigo), var(--col-rose));
+    font-size:13px; font-weight:900; color:#fff;
+  }
+  .wm-logo .wm-txt {
+    background:linear-gradient(90deg, var(--col-pink), var(--col-indigo));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+
+  /* ── 공통: 시드 커버 ── */
+  .wm-cover { position:relative; overflow:hidden; border-radius:12px; }
+  .wm-cover .wm-ptn { position:absolute; inset:0; width:100%; height:100%; }
+  .wm-emo { position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    filter:drop-shadow(0 2px 6px rgba(0,0,0,.35)); }
+
+  .wm-ic { fill:none; stroke:#e8e5f2; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; }
+  .wm-ic.dim { stroke:#8a86a0; }
+  .wm-ic.fl { fill:#e8e5f2; stroke:none; }
+
+  /* ══════ ① NOW PLAYING ══════ */
+  .wm-np { height:660px; display:flex; flex-direction:column; }
+  .np-top { display:flex; align-items:center; justify-content:space-between; padding:18px 22px 0; }
+  .np-cover-wrap { margin:18px 25px 0; }
+  .np-cover { width:340px; height:340px; box-shadow:0 10px 34px rgba(0,0,0,.55); }
+  .np-meta { display:flex; align-items:flex-start; justify-content:space-between; margin:20px 27px 0; }
+  .np-title { font-size:21px; font-weight:800; letter-spacing:-.2px; display:flex; align-items:center; gap:10px; }
+  .np-artist { font-size:14.5px; color:#a49fb8; margin-top:4px; }
+  .np-likes { display:flex; gap:18px; opacity:.8; padding-top:5px; }
+  .np-seek { margin:18px 27px 0; }
+  .np-times { display:flex; justify-content:space-between; font-size:11.5px; color:#8a86a0; margin-top:7px; }
+  .np-ctrl { display:flex; align-items:center; justify-content:space-between; margin-top:auto; padding:0 24px 16px; }
+  .np-play {
+    width:62px; height:62px; border-radius:50%;
+    background:linear-gradient(145deg, var(--col-pink), var(--col-rose));
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 6px 20px rgba(187,102,136,.45);
+  }
+  .np-tabs { display:flex; border-top:1px solid rgba(255,255,255,.08); font-size:12.5px; color:#8a86a0; }
+  .np-tabs div { flex:1; text-align:center; padding:13px 0; }
+  .np-tabs .on { color:#fff; font-weight:700; box-shadow:inset 0 2px 0 var(--col-pink); }
+
+  /* ══════ ② ALBUM ══════ */
+  .wm-al { padding:16px 20px 0; }
+  .al-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+  .al-hero { display:flex; flex-direction:column; align-items:center; }
+  .al-cover { width:190px; height:190px; box-shadow:0 10px 30px rgba(0,0,0,.55); }
+  .al-name { font-size:19px; font-weight:800; margin-top:16px; line-height:26px; text-align:center; }
+  .al-meta { font-size:12.5px; color:#a49fb8; margin-top:5px; }
+  .al-actions { display:flex; align-items:center; gap:26px; margin-top:16px; margin-bottom:4px; height:52px; }
+  .al-btn { width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    border:1.5px solid rgba(255,255,255,.16); }
+  .al-btn.al-play { background:linear-gradient(145deg, var(--col-pink), var(--col-rose)); border:none;
+    box-shadow:0 5px 16px rgba(187,102,136,.4); }
+  .al-list { padding:6px 0 16px; }
+  .al-tr { display:flex; align-items:center; gap:14px; padding:10px 12px; border-radius:10px; height:54px; }
+  .al-tr .tr-no { width:18px; text-align:center; font-size:13px; color:#8a86a0; flex-shrink:0; }
+  .al-tr .tr-t { flex:1; min-width:0; }
+  .al-tr .tr-t b { display:block; font-size:14px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .al-tr .tr-t span { font-size:11.5px; color:#8a86a0; }
+  .al-tr .tr-dur { font-size:12px; color:#8a86a0; flex-shrink:0; }
+  .al-tr.al-now { background:rgba(136,137,205,.14); }
+  .al-tr.al-now .tr-t b { color:var(--col-pink); }
+
+  /* ══════ ③ BAR ══════ */
+  .wm-bar { display:flex; align-items:center; height:92px; }
+  .bar-cover { width:92px; height:92px; border-radius:0; flex-shrink:0; }
+  .bar-body { flex:1; display:flex; flex-direction:column; padding:12px 16px 10px; min-width:0; }
+  .bar-title { font-size:14.5px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    display:flex; align-items:center; gap:8px; }
+  .bar-title span { color:#a49fb8; font-weight:500; }
+  .bar-ctrl { display:flex; align-items:center; justify-content:space-between; margin-top:12px; padding-right:2px; }
+</style>
+</head>
+<body>
+
+<div class="wm-app wm-np" id="wm-np">
+  <div class="np-top">
+    <svg class="wm-ic" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+    <div class="wm-logo"><div class="wm-mark">W</div><div class="wm-txt">WMusic</div></div>
+    <svg class="wm-ic" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>
+  </div>
+  <div class="np-cover-wrap">⟦NPCOVER⟧</div>
+  <div class="np-meta">
+    <div style="min-width:0;">
+      <div class="np-title"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">⟦NPTITLE⟧</span>⟦NPEQ⟧</div>
+      <div class="np-artist">⟦NPART⟧</div>
+    </div>
+    <div class="np-likes">
+      <svg class="wm-ic dim" xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24"><path d="M17 14V4M7 10l4-6c1.5 0 2.5 1 2.5 2.5V10h5c1 0 1.8.9 1.6 1.9l-1 6c-.2.9-.9 1.6-1.8 1.6H9c-1.1 0-2-.9-2-2v-7z" transform="rotate(180 12 12)"/></svg>
+      <svg class="wm-ic" xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24"><path d="M7 10v10M17 14l-4 6c-1.5 0-2.5-1-2.5-2.5V14h-5c-1 0-1.8-.9-1.6-1.9l1-6C5.1 5.2 5.8 4.5 6.7 4.5H15c1.1 0 2 .9 2 2v7z" transform="rotate(180 12 12)"/></svg>
+    </div>
+  </div>
+  <div class="np-seek">
+    <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="4" viewBox="0 0 100 4" preserveAspectRatio="none" style="display:block;">
+      <defs>
+        <linearGradient id="wm-npg" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#8889CD"/><stop offset="1" stop-color="#BB6688"/>
+        </linearGradient>
+      </defs>
+      <rect width="100" height="4" rx="2" fill="rgba(255,255,255,.16)"/>
+      <rect class="np-fill-r" width="⟦PCT⟧" height="4" rx="2" fill="url(#wm-npg)">
+        <animate attributeName="width" values="⟦PCT⟧;⟦PCT2⟧" dur="26s" repeatCount="indefinite"/>
+      </rect>
+    </svg>
+    <div class="np-times"><span>⟦CUR⟧</span><span>⟦TOT⟧</span></div>
+  </div>
+  <div class="np-ctrl">
+    <svg class="wm-ic dim" xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
+    <svg class="wm-ic fl" xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 5L9 12l11 7z"/></svg>
+    <div class="np-play"><svg class="wm-ic fl" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" style="margin-left:3px;"><path d="M7 4l13 8-13 8z"/></svg></div>
+    <svg class="wm-ic fl" xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 5l11 7-11 7z"/></svg>
+    <svg class="wm-ic dim" xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24"><path d="M17 2l4 4-4 4M3 11v-1a4 4 0 014-4h14M7 22l-4-4 4-4M21 13v1a4 4 0 01-4 4H3"/></svg>
+  </div>
+  <div class="np-tabs"><div class="on">다음 트랙</div><div>가사</div><div>관련 항목</div></div>
+</div>
+
+<div class="wm-app wm-al" id="wm-al" style="display:none">
+  <div class="al-top">
+    <svg class="wm-ic" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>
+    <div class="wm-logo"><div class="wm-mark">W</div><div class="wm-txt">WMusic</div></div>
+    <svg class="wm-ic" xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.5-4.5"/></svg>
+  </div>
+  <div class="al-hero">
+    ⟦ALCOVER⟧
+    <div class="al-name">⟦ALNAME⟧</div>
+    <div class="al-meta">⟦ALMETA⟧</div>
+    <div class="al-actions">
+      <svg class="wm-ic dim" xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24"><path d="M12 21s-7.5-4.9-9.7-9.1C.7 8.7 2.6 5 6.2 5c2.1 0 3.5 1.1 4.3 2.4l1.5 2.3 1.5-2.3C14.3 6.1 15.7 5 17.8 5c3.6 0 5.5 3.7 3.9 6.9C19.5 16.1 12 21 12 21z"/></svg>
+      <div class="al-btn"><svg class="wm-ic" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg></div>
+      <div class="al-btn al-play"><svg class="wm-ic fl" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" style="margin-left:2px;"><path d="M7 4l13 8-13 8z"/></svg></div>
+      <svg class="wm-ic dim" xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>
+    </div>
+  </div>
+  <div class="al-list">⟦ALROWS⟧</div>
+</div>
+
+<div class="wm-app wm-bar" id="wm-bar" style="display:none">
+  ⟦BARCOVER⟧
+  <div class="bar-body">
+    <div class="bar-title"><span style="color:#fff;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">⟦BTITLE⟧</span><span>–</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">⟦BART⟧</span>⟦BAREQ⟧</div>
+    <div class="bar-ctrl">
+      <svg class="wm-ic dim" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path d="M17 14V4M7 10l4-6c1.5 0 2.5 1 2.5 2.5V10h5c1 0 1.8.9 1.6 1.9l-1 6c-.2.9-.9 1.6-1.8 1.6H9c-1.1 0-2-.9-2-2v-7z" transform="rotate(180 12 12)"/></svg>
+      <svg class="wm-ic fl" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" opacity=".65"><path d="M6 5h2v14H6zM20 5L9 12l11 7z"/></svg>
+      <svg class="wm-ic fl" xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></svg>
+      <svg class="wm-ic fl" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" opacity=".65"><path d="M16 5h2v14h-2zM4 5l11 7-11 7z"/></svg>
+      <svg class="wm-ic" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path d="M7 10v10M17 14l-4 6c-1.5 0-2.5-1-2.5-2.5V14h-5c-1 0-1.8-.9-1.6-1.9l1-6C5.1 5.2 5.8 4.5 6.7 4.5H15c1.1 0 2 .9 2 2v7z" transform="rotate(180 12 12)"/></svg>
+    </div>
+  </div>
+</div>
+</body>
+</html>`,
 };
 
 const SIZES = {
@@ -6547,6 +6722,7 @@ const SIZES = {
   'shorts': [390, 693],
   'match': [390, 693],
   'wiki': [390, 800],
+  'music': [390, 660],
 };
 
 
@@ -7952,12 +8128,248 @@ function themeWiki(html, url) {
 }
 
 // th= 지원 타입 매핑 (renderer 통과 후 적용)
+// ── 🎵 MUSIC (WMusic 플레이어) ──
+// /?t=music                 재생 화면 (390×660 고정)
+// /?t=music&s=album         앨범/플리 (390×동적, tr= 트랙, now= 재생중 1-base)
+// /?t=music&s=bar           위젯 바 (390×92 고정)
+// 공통: e=이모지커버  c=커버색 강제(헥스)  th=프리셋/헥스 (없으면 no-op)
+// 커버는 곡명+아티스트 시드 절차 생성 — 패턴 10종·모티프 8종·3색 40% 균등 분포
+function musicHash(str) {
+  var h = 5381;
+  for (var i = 0; i < str.length; i++) { h = ((h << 5) + h + str.charCodeAt(i)) & 0xffffffff; }
+  return Math.abs(h);
+}
+function musicRep(html, token, val) {
+  return html.split('\u27e6' + token + '\u27e7').join(val);
+}
+function musicHex(raw) {
+  if (!raw) return '';
+  var s = raw.trim().replace(/^#/, '');
+  if (/^[0-9a-fA-F]{3}$/.test(s)) s = s.split('').map(function (c) { return c + c; }).join('');
+  return /^[0-9a-fA-F]{6}$/.test(s) ? '#' + s.toLowerCase() : '';
+}
+function musicFmtTime(sec) {
+  var m = Math.floor(sec / 60), s = sec % 60;
+  return m + ':' + (s < 10 ? '0' : '') + s;
+}
+function musicToSec(t) {
+  var m = /^(\d+):([0-5]?\d)$/.exec((t || '').trim());
+  return m ? Number(m[1]) * 60 + Number(m[2]) : -1;
+}
+// 모티프 라이브러리 (24×24 path) — 하트·리본·별·음표·번개·달·사과·다이아
+var MUSIC_MOTIF = [
+  'M12 21s-7.5-4.9-9.7-9.1C.7 8.7 2.6 5 6.2 5c2.1 0 3.5 1.1 4.3 2.4l1.5 2.3 1.5-2.3C14.3 6.1 15.7 5 17.8 5c3.6 0 5.5 3.7 3.9 6.9C19.5 16.1 12 21 12 21z',
+  'M12 10.5 4.5 5.5c-1.6-1-3.2.6-2.5 2.3l2.3 5.7-2.3 5.7c-.7 1.7.9 3.3 2.5 2.3l7.5-5 7.5 5c1.6 1 3.2-.6 2.5-2.3l-2.3-5.7 2.3-5.7c.7-1.7-.9-3.3-2.5-2.3l-7.5 5zM12 11.2a2.3 2.3 0 100 4.6 2.3 2.3 0 000-4.6z',
+  'M12 2l2.6 6.5 7 .5-5.4 4.5 1.8 6.8L12 16.6 6 20.3l1.8-6.8L2.4 9l7-.5z',
+  'M9 18.5a2.8 2.8 0 11-1.6-2.5V5.2c0-.5.3-.9.8-1l8.2-1.9c.7-.2 1.3.3 1.3 1v11.9a2.8 2.8 0 11-1.6-2.5V6.8L9 8.4z',
+  'M13 2 4.5 13.5h5L10 22l8.5-11.5h-5z',
+  'M20 13.2A8.5 8.5 0 1110.8 4 6.8 6.8 0 0020 13.2z',
+  'M12 6.8c1.4-1.5 3.6-1.9 5.4-.9 2.7 1.5 3.4 5.2 1.9 8.4-1.4 3-4.2 6-7.3 6-3.1 0-5.9-3-7.3-6-1.5-3.2-.8-6.9 1.9-8.4 1.8-1 4-.6 5.4.9zM12 6.5c-.2-1.8.8-3.4 2.5-4',
+  'M12 2.5 20 9l-8 12.5L4 9z'
+];
+var MUSIC_PAL = ['#8888CC', '#DDAACC', '#CCAA88', '#BB6688', '#884499', '#EE1166', '#FF6699', '#00BBDD', '#FF7722', '#0077DD'];
+function musicMotifEl(idx, x, y, size, rot, fillOp) {
+  return '<path d="' + MUSIC_MOTIF[idx] + '" fill="rgba(255,255,255,' + fillOp.toFixed(2) + ')" stroke="none"'
+    + ' transform="translate(' + x + ' ' + y + ') rotate(' + rot + ' 12 12) scale(' + (size / 24).toFixed(3) + ')"/>';
+}
+function musicPtn(seed) {
+  var op = 0.18 + ((seed >> 9) % 4) * 0.05;
+  var w = 2.5 + ((seed >> 11) % 4);
+  var ptn = (seed >> 6) % 10;
+  var i, s = '';
+  if (ptn === 0) { // 동심원 파문
+    var cx = 25 + (seed % 50), cy = 25 + ((seed >> 4) % 50);
+    for (var r = 10; r <= 70; r += 15) s += '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" stroke-width="' + w + '"/>';
+  } else if (ptn === 1) { // 사선 줄무늬
+    for (i = -2; i < 8; i++) s += '<line x1="' + (i * 18) + '" y1="110" x2="' + (i * 18 + 50) + '" y2="-10" stroke-width="' + (w + 1) + '"/>';
+  } else if (ptn === 2) { // 물방울 원
+    for (i = 0; i < 6; i++) s += '<circle cx="' + ((seed * (i + 3)) % 100) + '" cy="' + ((seed * (i + 7) >> 2) % 100)
+      + '" r="' + (6 + ((seed >> i) % 14)) + '" fill="rgba(255,255,255,' + op.toFixed(2) + ')" stroke="none"/>';
+  } else if (ptn === 3) { // 사운드웨이브
+    var d = 'M0 50';
+    for (var x = 0; x <= 100; x += 10) { d += ' L' + x + ' ' + (50 + ((musicHash(seed + '' + x) % 36) - 18)); }
+    s += '<path d="' + d + '" stroke-width="' + (w + 0.5) + '" stroke-linejoin="round"/>';
+  } else if (ptn === 4) { // 하프톤 도트
+    for (var yy = 8; yy < 100; yy += 16) for (var xx = 8; xx < 100; xx += 16)
+      s += '<circle cx="' + xx + '" cy="' + yy + '" r="' + (1 + ((xx + yy) / 200) * 5.5).toFixed(1)
+        + '" fill="rgba(255,255,255,' + op.toFixed(2) + ')" stroke="none"/>';
+  } else if (ptn === 5) { // 반원 아치
+    for (var row = 0; row < 3; row++) for (i = 0; i < 4; i++) {
+      var acx = i * 33 - ((row % 2) * 16), acy = 25 + row * 30;
+      s += '<path d="M' + (acx - 16) + ' ' + acy + ' A16 16 0 0 1 ' + (acx + 16) + ' ' + acy + '" stroke-width="' + w + '"/>';
+    }
+  } else if (ptn === 6) { // 삼각 산맥
+    var md = 'M-5 105', mx = -5;
+    while (mx < 105) {
+      var peak = 32 + (musicHash(seed + 'm' + mx) % 40), step = 18 + ((seed >> 4) % 10);
+      md += ' L' + (mx + step / 2) + ' ' + (100 - peak) + ' L' + (mx + step) + ' 100'; mx += step;
+    }
+    md += ' L105 105 Z';
+    s += '<path d="' + md + '" fill="rgba(255,255,255,' + (op * 0.8).toFixed(2) + ')" stroke="none"/>';
+  } else if (ptn === 7) { // 모자이크 타일
+    for (i = 0; i < 7; i++) {
+      var sq = 10 + ((seed >> (i + 2)) % 22);
+      s += '<rect x="' + ((seed * (i + 5)) % 92) + '" y="' + ((seed * (i + 11) >> 3) % 92) + '" width="' + sq + '" height="' + sq
+        + '" rx="3" fill="rgba(255,255,255,' + (op * 0.85).toFixed(2) + ')" stroke="none" transform="rotate(' + ((seed >> i) % 40 - 20) + ' 50 50)"/>';
+    }
+  } else if (ptn === 8) { // 모티프 스캐터
+    var m8 = (seed >> 13) % MUSIC_MOTIF.length, n8 = 5 + ((seed >> 8) % 3);
+    for (i = 0; i < n8; i++) {
+      var h2 = musicHash(seed + 'sc' + i);
+      s += musicMotifEl(m8, h2 % 84 - 4, (h2 >> 4) % 84 - 4, 14 + ((h2 >> 8) % 16), (h2 >> 6) % 360, Math.max(op * 1.2, 0.34));
+    }
+  } else { // 빅 모티프
+    s += musicMotifEl((seed >> 13) % MUSIC_MOTIF.length, 21, 21, 58, ((seed >> 7) % 30) - 15, op + 0.18);
+  }
+  return '<svg xmlns="http://www.w3.org/2000/svg" class="wm-ptn" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">'
+    + '<g fill="none" stroke="rgba(255,255,255,' + op.toFixed(2) + ')">' + s + '</g></svg>';
+}
+function musicCover(cls, seedStr, cOver, emoji, emoSize) {
+  var seed = musicHash(seedStr || 'default');
+  var bg;
+  if (cOver) {
+    bg = 'linear-gradient(' + (100 + (seed % 130)) + 'deg, ' + cOver + ', ' + themeMix(cOver, '#000000', 0.45) + ')';
+  } else {
+    var i1 = seed % MUSIC_PAL.length;
+    var i2 = (seed >> 3) % MUSIC_PAL.length; if (i2 === i1) i2 = (i2 + 1) % MUSIC_PAL.length;
+    var ang = 100 + (seed % 130);
+    if ((seed >> 5) % 5 < 2) {
+      var i3 = (seed >> 7) % MUSIC_PAL.length;
+      if (i3 === i1 || i3 === i2) i3 = (i3 + 2) % MUSIC_PAL.length;
+      bg = 'linear-gradient(' + ang + 'deg, ' + MUSIC_PAL[i1] + ', ' + MUSIC_PAL[i3] + ', ' + MUSIC_PAL[i2] + ')';
+    } else {
+      bg = 'linear-gradient(' + ang + 'deg, ' + MUSIC_PAL[i1] + ', ' + MUSIC_PAL[i2] + ')';
+    }
+  }
+  var emo = emoji ? '<div class="wm-emo" style="font-size:' + emoSize + 'px;">' + emoji + '</div>' : '';
+  return '<div class="wm-cover ' + cls + '" style="background:' + bg + ';">' + musicPtn(seed) + emo + '</div>';
+}
+function musicEq(bars, hpx) {
+  var seq = [['5;12;5', '9;2;9', '0s'], ['12;5;12', '2;9;2', '-0.3s'], ['8;13;8', '6;1;6', '-0.6s'], ['11;6;11', '3;8;3', '-0.15s']];
+  var s = '';
+  for (var i = 0; i < bars; i++) {
+    s += '<rect x="' + (i * 4.5) + '" y="' + seq[i][1].split(';')[0] + '" width="3" height="' + seq[i][0].split(';')[0] + '" rx="1.5" fill="#DDAACC">'
+      + '<animate attributeName="height" values="' + seq[i][0] + '" dur="0.9s" begin="' + seq[i][2] + '" repeatCount="indefinite"/>'
+      + '<animate attributeName="y" values="' + seq[i][1] + '" dur="0.9s" begin="' + seq[i][2] + '" repeatCount="indefinite"/>'
+      + '</rect>';
+  }
+  var w = (bars - 1) * 4.5 + 3;
+  return '<svg xmlns="http://www.w3.org/2000/svg" class="wm-eq" width="' + w + '" height="' + hpx + '" viewBox="0 0 ' + w + ' 14" style="flex-shrink:0;">' + s + '</svg>';
+}
+function renderMusic(html, url) {
+  var s = url.searchParams.get('s') || '';
+  var p = url.searchParams.get('p') || '';
+  var seg = p.split('\u00a7');
+  var e = url.searchParams.get('e') || '';
+  var cOver = musicHex(url.searchParams.get('c') || '');
+
+  if (s === 'album') {
+    html = html.replace('<div class="wm-app wm-np" id="wm-np">', '<div class="wm-app wm-np" id="wm-np" style="display:none">');
+    html = html.replace('<div class="wm-app wm-al" id="wm-al" style="display:none">', '<div class="wm-app wm-al" id="wm-al">');
+    var alName = seg[0] || '\uc138\uacc4\uc758 \ub05d\uc5d0\uc11c \ubd80\ub974\ub294 \ub178\ub798';
+    var alArtist = seg[1] || '\uaca8\uc6b8\ubc34\ub4dc';
+    var alYear = seg[2] || '2026';
+    var alExtra = seg[3] || '';
+    var metaArr = [];
+    if (alArtist) metaArr.push(alArtist);
+    if (alYear) metaArr.push(alYear);
+    if (alExtra) metaArr.push(alExtra);
+    html = musicRep(html, 'ALNAME', alName);
+    html = musicRep(html, 'ALMETA', metaArr.join(' \u00b7 '));
+    html = musicRep(html, 'ALCOVER', musicCover('al-cover', alName + alArtist, cOver, e, 80));
+    var tr = url.searchParams.get('tr')
+      || '\uc11c\ub9ac \ub0b4\ub9b0 \uc544\uce68\u00a7\uaca8\uc6b8\ubc34\ub4dc\u00a73:12|\uc138\uacc4\uc758 \ub05d\uc5d0\uc11c\u00a7\uaca8\uc6b8\ubc34\ub4dc\u00a74:05|\uc720\ub9ac \uc628\uc2e4\u00a7\uaca8\uc6b8\ubc34\ub4dc\u00a73:47';
+    var now = parseInt(url.searchParams.get('now') || '0', 10);
+    var rows = '';
+    tr.split('|').filter(function (x) { return x.trim(); }).forEach(function (rec, i) {
+      var f = rec.split('\u00a7');
+      var isNow = (i + 1) === now;
+      rows += '<div class="al-tr' + (isNow ? ' al-now' : '') + '">'
+        + '<div class="tr-no">' + (isNow ? musicEq(3, 12) : (i + 1)) + '</div>'
+        + '<div class="tr-t"><b>' + (f[0] || '') + '</b>' + (f[1] ? '<span>' + f[1] + '</span>' : '') + '</div>'
+        + (f[2] ? '<div class="tr-dur">' + f[2] + '</div>' : '')
+        + '</div>';
+    });
+    html = musicRep(html, 'ALROWS', rows);
+    return matchClean(html);
+  }
+
+  if (s === 'bar') {
+    html = html.replace('<div class="wm-app wm-np" id="wm-np">', '<div class="wm-app wm-np" id="wm-np" style="display:none">');
+    html = html.replace('<div class="wm-app wm-bar" id="wm-bar" style="display:none">', '<div class="wm-app wm-bar" id="wm-bar">');
+    var bTitle = seg[0] || '\uc138\uacc4\uc758 \ub05d\uc5d0\uc11c';
+    var bArt = seg[1] || '\uaca8\uc6b8\ubc34\ub4dc';
+    html = musicRep(html, 'BTITLE', bTitle);
+    html = musicRep(html, 'BART', bArt);
+    html = musicRep(html, 'BAREQ', musicEq(3, 11));
+    html = musicRep(html, 'BARCOVER', musicCover('bar-cover', bTitle + bArt, cOver, e, 40));
+    return matchClean(html);
+  }
+
+  // 기본: 재생 화면
+  var nTitle = seg[0] || '\uc138\uacc4\uc758 \ub05d\uc5d0\uc11c';
+  var nArt = seg[1] || '\uaca8\uc6b8\ubc34\ub4dc';
+  var seed = musicHash(nTitle + nArt);
+  var totSec = musicToSec(seg[3]);
+  if (totSec < 0) totSec = 150 + (seed % 160);
+  var curSec = musicToSec(seg[2]);
+  if (curSec < 0) curSec = Math.floor(totSec * (0.28 + ((seed >> 4) % 38) / 100));
+  if (curSec > totSec) curSec = totSec;
+  var pct = Math.min(Math.round(curSec / totSec * 100), 97);
+  var pct2 = Math.min(pct + 10, 100);
+  html = musicRep(html, 'NPTITLE', nTitle);
+  html = musicRep(html, 'NPART', nArt);
+  html = musicRep(html, 'CUR', musicFmtTime(curSec));
+  html = musicRep(html, 'TOT', musicFmtTime(totSec));
+  html = musicRep(html, 'PCT', String(pct));
+  html = musicRep(html, 'PCT2', String(pct2));
+  html = musicRep(html, 'NPEQ', musicEq(4, 14));
+  html = musicRep(html, 'NPCOVER', musicCover('np-cover', nTitle + nArt, cOver, e, 140));
+  return matchClean(html);
+}
+// · music: th=프리셋명 또는 th=악센트헥스[§배경헥스] — [배경1, 배경2, 악센트]
+const MUSIC_PRESETS = {
+  'indigo': ['#241f38', '#141021', '#8889CD'],
+  'rose':   ['#33202a', '#190f14', '#BB6688'],
+  'sand':   ['#332b1f', '#181410', '#CCAA88'],
+  'pink':   ['#382834', '#1b1119', '#FF6699'],
+  'night':  ['#101014', '#000000', '#8889CD'],
+  'dawn':   ['#1b2a40', '#0d1420', '#00BBDD'],
+};
+function themeMusic(html, url) {
+  const raw = url.searchParams.get('th');
+  if (!raw) return html;
+  let b1, b2, acc;
+  const preset = MUSIC_PRESETS[raw.trim().toLowerCase()];
+  if (preset) { b1 = preset[0]; b2 = preset[1]; acc = preset[2]; }
+  else {
+    const t = themeParse(url);
+    if (!t) return html;
+    acc = t[0];
+    b1 = t[1] || themeMix(acc, '#000000', 0.72);
+    b2 = themeMix(b1, '#000000', 0.5);
+  }
+  const accD = themeMix(acc, '#000000', 0.3);
+  const accL = themeMix(acc, '#ffffff', 0.35);
+  const rgb = themeRGB(acc);
+  const css = '.wm-app { background: linear-gradient(170deg, ' + b1 + ' 0%, ' + b2 + ' 70%) !important; }\n'
+    + '.np-play, .al-btn.al-play { background: linear-gradient(145deg, ' + acc + ', ' + accD + ') !important; box-shadow: 0 6px 20px rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',.4) !important; }\n'
+    + '.np-fill-r { fill: ' + acc + ' !important; }\n'
+    + '.wm-eq rect { fill: ' + accL + ' !important; }\n'
+    + '.np-tabs .on { box-shadow: inset 0 2px 0 ' + acc + ' !important; }\n'
+    + '.al-tr.al-now { background: rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',.16) !important; }\n'
+    + '.al-tr.al-now .tr-t b { color: ' + accL + ' !important; }\n';
+  return themeInject(html, css);
+}
+
+
 const THEME_RENDERERS = {
   'kakao': themeKakao, 'dm': themeDm, 'lock': themeLock,
   'story': themeStory, 'letter': themeLetter, 'menu': themeMenu,
   'shorts': themeShorts,
   'match': themeMatch,
   'wiki': themeWiki,
+  'music': themeMusic,
 };
 
 const RENDERERS = {
@@ -7971,6 +8383,7 @@ const RENDERERS = {
   'shorts': renderShorts,
   'match': renderMatch,
   'wiki': renderWiki,
+  'music': renderMusic,
 };
 
 
@@ -8057,6 +8470,20 @@ export default {
       if (t === 'discord-full') { h = 900; }
       if (t === 'voice') { h = 900; }
       if (t === 'shorts') { h = 693; }
+      if (t === 'music') {
+        const sMu = url.searchParams.get('s') || '';
+        if (sMu === 'bar') { h = 92; }
+        else if (sMu === 'album') {
+          // pad(16)+top(24+16)+cover(190)+name(16+26)+meta(5+18)+actions(16+52+4)+list pad(6+16) = 405
+          const trMu = url.searchParams.get('tr');
+          const nT = trMu ? trMu.split('|').filter(x => x.trim()).length : 3;
+          const nameMu = (url.searchParams.get('p') || '').split('\u00a7')[0] || '';
+          let base = 405 + nT * 54;
+          if (nameMu) base += (calcLines(nameMu, 340) - 1) * 26; // 앨범명 줄바꿈 보정
+          h = base + MARGIN;
+          h = Math.max(h, 430); h = Math.min(h, MAX_H);
+        } else { h = 660; }
+      }
       if (t === 'match') {
         const sM = url.searchParams.get('s') || 'card';
         if (sM === 'profile') {

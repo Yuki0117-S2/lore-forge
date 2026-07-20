@@ -8363,6 +8363,53 @@ function themeMusic(html, url) {
 }
 
 
+
+// · board/post (다크 패널형): th=프리셋명 또는 th=강조색[§배경색]
+//     배경·패널·테두리 강조색 틴트 + 포인트 4색 리맵.
+//     태그(공지/HOT/NEW/일반)는 원본 4색 유지, 패널 휘도차 70 미만 시 자동 밝기 보정 (V1)
+const BOARD_PRESETS = {
+  'indigo': ['#8889CD', '#0e0a14'],
+  'rose':   ['#BB6688', '#150b10'],
+  'sand':   ['#CCAA88', '#15100a'],
+  'pink':   ['#DDAACC', '#170e15'],
+  'night':  ['#aab0c0', '#07070a'],
+  'dawn':   ['#88aadd', '#0d1524'],
+};
+const BOARD_TAG_ORIG = { 'notice': '#BB6688', 'hot': '#CCAA88', 'new': '#DDAACC', 'normal': '#8889CD' };
+function themeBoardPost(html, url) {
+  const raw = url.searchParams.get('th');
+  if (!raw) return html;
+  let a, base;
+  const preset = BOARD_PRESETS[raw.trim().toLowerCase()];
+  if (preset) { a = preset[0]; base = preset[1]; }
+  else {
+    const t = themeParse(url);
+    if (!t) return html;
+    a = t[0];
+    base = (t[1] && themeLum(t[1]) < 120) ? t[1] : themeMix(a, '#000000', 0.90);
+  }
+  const panel = themeMix(a, base, 0.86);
+  const map = {
+    '#0e0a14': base,
+    '#1a1422': panel,
+    '#221b2a': themeMix(a, base, 0.78),
+    '#2a2235': themeMix(a, base, 0.78),
+    '#1e1828': themeMix(a, base, 0.84),
+  };
+  for (const k in map) html = html.split(k).join(map[k]);
+  let css = ':root { --col-indigo: ' + a
+    + '; --col-pink: ' + themeMix(a, '#ffffff', 0.30)
+    + '; --col-sand: ' + themeMix(a, '#ffffff', 0.15)
+    + '; --col-rose: ' + themeMix(a, '#000000', 0.12) + '; }\n';
+  const pl = themeLum(panel);
+  for (const k in BOARD_TAG_ORIG) {
+    let c = BOARD_TAG_ORIG[k], i = 0;
+    while (Math.abs(themeLum(c) - pl) < 70 && i < 6) { c = themeMix(c, '#ffffff', 0.16); i++; }
+    css += '.tag-' + k + ' { color: ' + c + ' !important; background: rgba(' + themeRGB(c).join(',') + ',0.18) !important; }\n';
+  }
+  return themeInject(html, css);
+}
+
 const THEME_RENDERERS = {
   'kakao': themeKakao, 'dm': themeDm, 'lock': themeLock,
   'story': themeStory, 'letter': themeLetter, 'menu': themeMenu,
@@ -8370,6 +8417,7 @@ const THEME_RENDERERS = {
   'match': themeMatch,
   'wiki': themeWiki,
   'music': themeMusic,
+  'board': themeBoardPost, 'post': themeBoardPost,
 };
 
 const RENDERERS = {

@@ -1092,7 +1092,15 @@ th 생략 = 기본 다크 배경</pre>
 &tabs= 탭 (|로 구분, 첫번째 활성)
 
 p 파라미터 (|로 아이템, §로 필드 구분):
-  태그§제목§작성자§시간§조회§좋아요§[댓글수]</pre>`
+  태그§제목§작성자§시간§조회§좋아요§[댓글수]</pre>
+<hr class="divider">
+<div class="label label-use">🎨 테마 색상 (선택) — &th=</div>
+<pre>&th=프리셋명         → indigo(기본)·rose·sand·pink·night·dawn
+&th=강조색[§배경색]  → 배경·패널·포인트를 강조색 계열로 틴트
+태그 4색(공지/HOT/NEW/일반)은 원본 유지 + 가독성 자동 보정
+board·post 공통 — 같은 th를 주면 목록↔상세 톤이 이어짐</pre>
+<div class="label label-example">예시</div>
+<pre>/?t=board&th=rose&b=...   /?t=post&th=rose&p=...</pre>`
       },
       {
         id:'t-6-10a', title:'게시판 글 상세 (post)',
@@ -1118,7 +1126,15 @@ p 파라미터 (|로 아이템, §로 필드 구분):
 &c= 댓글 (|로 구분, §로 필드 구분):
   닉§시간§내용§[op]
   op → 글쓴이 뱃지
-  > 로 시작 → 대댓글 (들여쓰기)</pre>`
+  > 로 시작 → 대댓글 (들여쓰기)</pre>
+<hr class="divider">
+<div class="label label-use">🎨 테마 색상 (선택) — &th=</div>
+<pre>&th=프리셋명         → indigo(기본)·rose·sand·pink·night·dawn
+&th=강조색[§배경색]  → 배경·패널·포인트를 강조색 계열로 틴트
+태그 4색(공지/HOT/NEW/일반)은 원본 유지 + 가독성 자동 보정
+board·post 공통 — 같은 th를 주면 목록↔상세 톤이 이어짐</pre>
+<div class="label label-example">예시</div>
+<pre>/?t=board&th=rose&b=...   /?t=post&th=rose&p=...</pre>`
       },
       {
         id:'t-6-11', title:'디스코드',
@@ -1574,7 +1590,7 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
 ### 🍽️ 메뉴판
 ![](https://i.winter0.workers.dev/?t=menu&p=가게이름§부제§공지문구§영업시간&s=카테고리§아이콘|메뉴명§설명§가격§뱃지|메뉴명§설명§가격;;카테고리2§아이콘|...)
 
-### 테마 색상 th= (선택 — kakao/dm/lock/story/letter/menu/shorts/match/wiki/music 공통)
+### 테마 색상 th= (선택 — kakao/dm/lock/story/letter/menu/shorts/match/wiki/music/board/post 공통)
 URL에 &th= 를 추가하면 색상 테마 변경, 생략하면 기본색 (# 없이 헥스코드만)
 - kakao/dm: th=배경§내말풍선§상대말풍선 — 색 1개만 주면 말풍선색 + 배경 자동 연화
 - lock/story: th=색1 하나로 배경 그라데이션 자동 생성 (색2 주면 색1→색2)
@@ -1583,6 +1599,7 @@ URL에 &th= 를 추가하면 색상 테마 변경, 생략하면 기본색 (# 없
 - match: th=프리셋명(shorts와 동일 6종) 또는 th=색1[§색2] — 사진 그라데·매치 배경만 변경
 - wiki: th=wiki(라이트 기본)/dark 또는 th=악센트헥스 / th=dark§헥스
 - music: th=프리셋명(shorts와 동일 6종) 또는 th=강조색[§배경] — 재생버튼·진행바·이퀄·하이라이트에 강조색 적용 (커버는 곡별 시드 유지, th 영향 없음 · 커버색은 c=로 제어)
+- board/post: th=프리셋명(shorts와 동일 6종) 또는 th=강조색[§배경색] — 배경·패널 틴트 + 포인트 리맵, 태그 4색은 원본 유지(가독성 자동 보정)
 - 프리셋: 리얼카톡 b2c7d9§fee500 · 라인 8cabd8§06c755 · 아이메시지 ffffff§0b93f6§e9e9eb · 다크 1a1a22§8888cc§2e2d3a
 - 글자색은 밝기 기반 자동 선택이라 지정 불필요
 

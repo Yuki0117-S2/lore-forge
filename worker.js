@@ -1,5 +1,65 @@
 // 겨울의 SNS UI Workers v13 — 19종 UI (구분자 § 통일 + letter/menu/dm 추가)
 const TEMPLATES = {
+  'poll': `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  :root { --acc: #1d9bf0; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background:#0b0b0e; font-family: 'Noto Sans KR', -apple-system, sans-serif; }
+  /* ── x (트위터 인라인) ── */
+  .px { width: 598px; padding: 16px 18px; color: #e7e9ea; border: 1px solid #2f3336; border-radius: 16px; }
+  .px .hd { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+  .px .av { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg,#8889CD,#BB6688); flex-shrink: 0; }
+  .px .nm { font-weight: 700; font-size: 15px; }
+  .px .hn { color: #71767b; font-size: 14px; }
+  .px .q { font-size: 16px; line-height: 1.4; margin-bottom: 12px; }
+  .px .row { position: relative; height: 38px; margin-bottom: 8px; border-radius: 6px; overflow: hidden; background: rgba(120,120,135,.14); }
+  .px .fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 6px; }
+  .px .lb { position: relative; display: flex; justify-content: space-between; align-items: center; height: 100%; padding: 0 12px; font-size: 14px; }
+  .px .lead { font-weight: 700; }
+  .px .pct { font-weight: 600; }
+  .px .mt { color: #71767b; font-size: 13px; margin-top: 4px; }
+  .px.glass { background: rgba(255,255,255,.13); border-color: rgba(255,255,255,.25); border-radius: 18px; margin: 14px; width: auto; color: #fff; }
+  .px.glass .hn, .px.glass .mt { color: rgba(255,255,255,.78); }
+  .px.glass .row { background: rgba(255,255,255,.16); }
+  /* ── story (인스타 스토리) ── */
+  .ps { width: 420px; height: 746px; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
+  .ps .card { width: 340px; border-radius: 22px; padding: 26px 22px; background: rgba(20,20,24,.66); }
+  .ps.glass .card { background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.28); box-shadow: 0 8px 32px rgba(0,0,0,.2); }
+  .ps .q { color: #fff; font-size: 19px; font-weight: 700; text-align: center; margin-bottom: 20px; line-height: 1.4; text-shadow: 0 1px 4px rgba(0,0,0,.25); }
+  .ps .opt { position: relative; height: 50px; border-radius: 14px; overflow: hidden; margin-bottom: 12px; background: rgba(255,255,255,.16); display: flex; align-items: center; }
+  .ps .fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 14px; }
+  .ps .em { position: relative; padding-left: 14px; font-size: 17px; }
+  .ps .tx { position: relative; flex: 1; padding-left: 12px; font-size: 15px; font-weight: 600; color: #fff; }
+  .ps .pc { position: relative; padding-right: 14px; font-size: 15px; font-weight: 700; color: #fff; }
+  .ps .mt { color: rgba(255,255,255,.9); font-size: 13px; margin-top: 14px; text-align: center; text-shadow: 0 1px 3px rgba(0,0,0,.4); }
+  /* ── form (독립 설문 카드) ── */
+  .pf { width: 520px; padding: 24px; color: #e0dae8; background: #14101c; }
+  .pf .badge { display: inline-block; background: rgba(136,137,205,.2); color: #8889CD; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 20px; margin-bottom: 10px; }
+  .pf .title { font-size: 20px; font-weight: 700; line-height: 1.35; }
+  .pf .sub { font-size: 14px; color: #8b8397; margin-top: 6px; }
+  .pf .rows { margin-top: 18px; }
+  .pf .row { margin-bottom: 16px; }
+  .pf .top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+  .pf .lbl { font-size: 15px; font-weight: 500; }
+  .pf .pct { font-size: 16px; font-weight: 700; }
+  .pf .track { height: 10px; background: rgba(255,255,255,.10); border-radius: 6px; overflow: hidden; }
+  .pf .bar { height: 100%; border-radius: 6px; }
+  .pf .cnt { font-size: 12px; color: #8b8397; margin-top: 4px; text-align: right; }
+  .pf .foot { display: flex; justify-content: space-between; font-size: 13px; color: #8b8397; margin-top: 16px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.12); }
+  .pf.glass { background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.26); border-radius: 20px; margin: 16px; width: auto; color: #fff; }
+  .pf.glass .sub, .pf.glass .cnt, .pf.glass .foot { color: rgba(255,255,255,.82); }
+  .pf.glass .track { background: rgba(255,255,255,.22); }
+  .pf.glass .foot { border-top-color: rgba(255,255,255,.25); }
+  .pf.glass .badge { background: rgba(255,255,255,.22); color: #fff; }
+</style>
+</head>
+<body>
+\u27e6BODY\u27e7
+</body>
+</html>`,
   'insta': `<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -6723,6 +6783,7 @@ const SIZES = {
   'match': [390, 693],
   'wiki': [390, 800],
   'music': [390, 660],
+  'poll': [598, 600],
 };
 
 
@@ -8420,6 +8481,124 @@ const THEME_RENDERERS = {
   'board': themeBoardPost, 'post': themeBoardPost,
 };
 
+
+// ── 📊 POLL (투표) — 서브타입 3종: x(트위터 인라인)·story(인스타 스토리)·form(독립 설문) ──
+// th=스타일[§배경][§강조색] : 스타일 dark(기본)/glass · 배경 프리셋6종 또는 헥스1개(어두운쪽 자동) · 강조색 헥스
+const POLL_PRESETS = {
+  'indigo': ['#8889CD', '#884499'],
+  'rose':   ['#BB6688', '#884499'],
+  'sand':   ['#CCAA88', '#BB6688'],
+  'pink':   ['#DDAACC', '#FF6699'],
+  'night':  ['#3a3a55', '#16121f'],
+  'dawn':   ['#88aadd', '#8889CD'],
+};
+const POLL_PAL = ['#8889CD', '#DDAACC', '#CCAA88', '#BB6688', '#884499', '#00BBDD'];
+function pollHex(s) {
+  s = (s || '').trim().replace(/^#/, '');
+  if (/^[0-9a-fA-F]{3}$/.test(s)) s = s.split('').map(c => c + c).join('');
+  return /^[0-9a-fA-F]{6}$/.test(s) ? '#' + s.toLowerCase() : null;
+}
+function pollTheme(url) {
+  const out = { style: 'dark', bg: null, acc: null };
+  const raw = url.searchParams.get('th');
+  if (!raw) return out;
+  const f = raw.split('§').map(s => s.trim()).filter(s => s.length);
+  let i = 0;
+  const s0 = (f[0] || '').toLowerCase();
+  if (s0 === 'glass' || s0 === 'dark') { out.style = s0; i = 1; }
+  if (f[i]) {
+    const p = POLL_PRESETS[f[i].toLowerCase()];
+    if (p) { out.bg = p.slice(); i++; }
+    else { const hx = pollHex(f[i]); if (hx) { out.bg = [hx, themeMix(hx, '#000000', 0.55)]; i++; } }
+  }
+  if (f[i]) { const hx = pollHex(f[i]); if (hx) out.acc = hx; }
+  return out;
+}
+function pollOpts(p) {
+  return (p || '').split('|').map(r => r.trim()).filter(Boolean).map(r => {
+    const seg = r.split('§');
+    if (seg.length >= 3) return { e: seg[0], t: seg.slice(1, -1).join('§'), v: Number(seg[seg.length - 1]) || 0 };
+    if (seg.length === 2) return { e: '', t: seg[0], v: Number(seg[1]) || 0 };
+    return { e: '', t: seg[0] || '', v: 0 };
+  });
+}
+function renderPoll(html, url) {
+  const s = url.searchParams.get('s') || 'x';
+  const th = pollTheme(url);
+  const qRaw = url.searchParams.get('q') || '';
+  const qSeg = qRaw.split('§');
+  const q = qSeg[0] || '무엇을 고를까?';
+  const sub = qSeg[1] || '';
+  const l = url.searchParams.get('l') || '';
+  let opts = pollOpts(url.searchParams.get('p'));
+  if (!opts.length) opts = [{ e: '', t: '항목 1', v: 1 }, { e: '', t: '항목 2', v: 1 }];
+  const total = opts.reduce((sm, x) => sm + x.v, 0) || 1;
+  const maxIdx = opts.reduce((m, x, i, a) => x.v > a[m].v ? i : m, 0);
+  const glass = th.style === 'glass';
+  const bgPair = th.bg || (glass ? POLL_PRESETS['indigo'] : null);
+  const gradBg = bgPair ? 'linear-gradient(160deg, ' + bgPair[0] + ' 0%, ' + bgPair[1] + ' 100%)' : '';
+  let bodyBg, acc, inner = '';
+
+  if (s === 'story') {
+    acc = th.acc || '#ffffff';
+    bodyBg = glass ? gradBg : (bgPair ? themeMix(bgPair[0], '#000000', 0.60) : '#3a3a40');
+    const leadTxt = themeLum(acc) > 150 ? '#151515' : '#ffffff';
+    let rows = '';
+    opts.forEach((op, i) => {
+      const pct = Math.round(op.v / total * 100);
+      const lead = i === maxIdx;
+      rows += '<div class="opt"><div class="fill" style="width:' + pct + '%;background:' + acc + ';opacity:' + (lead ? '.92' : '.5') + '"></div>'
+        + (op.e ? '<span class="em">' + op.e + '</span>' : '')
+        + '<span class="tx"' + (lead ? ' style="color:' + leadTxt + '"' : '') + '>' + op.t + '</span>'
+        + '<span class="pc"' + (lead ? ' style="color:' + leadTxt + '"' : '') + '>' + pct + '%</span></div>';
+    });
+    inner = '<div class="ps' + (glass ? ' glass' : '') + '"><div class="card"><div class="q">' + q + '</div>' + rows
+      + '<div class="mt">' + total.toLocaleString() + '명 참여</div></div></div>';
+  } else if (s === 'form') {
+    acc = th.acc || '';
+    bodyBg = glass ? gradBg : (bgPair ? themeMix(bgPair[0], '#000000', 0.86) : '#0e0a14');
+    const cardBg = glass ? '' : (bgPair ? 'background:' + themeMix(bgPair[0], '#000000', 0.80) : '');
+    let rows = '';
+    opts.forEach((op, i) => {
+      const pct = Math.round(op.v / total * 100);
+      const lead = i === maxIdx;
+      const c = acc || POLL_PAL[i % POLL_PAL.length];
+      const op2 = acc ? (lead ? '1' : '.55') : '1';
+      rows += '<div class="row"><div class="top"><span class="lbl">' + (lead ? '👑 ' : '') + (op.e ? op.e + ' ' : '') + op.t + '</span>'
+        + '<span class="pct" style="color:' + c + '">' + pct + '%</span></div>'
+        + '<div class="track"><div class="bar" style="width:' + pct + '%;background:' + c + ';opacity:' + op2 + '"></div></div>'
+        + '<div class="cnt">' + op.v.toLocaleString() + '표</div></div>';
+    });
+    inner = '<div class="pf' + (glass ? ' glass' : '') + '"' + (cardBg ? ' style="' + cardBg + '"' : '') + '>'
+      + '<div class="badge">투표</div><div class="title">' + q + '</div>' + (sub ? '<div class="sub">' + sub + '</div>' : '')
+      + '<div class="rows">' + rows + '</div>'
+      + '<div class="foot"><span>총 ' + total.toLocaleString() + '표</span><span>' + l + '</span></div></div>';
+  } else {
+    acc = th.acc || '#1d9bf0';
+    bodyBg = glass ? gradBg : (bgPair ? themeMix(bgPair[0], '#000000', 0.78) : '#000000');
+    const aSeg = (url.searchParams.get('a') || '').split('§');
+    const nm = aSeg[0] || '유저';
+    const hn = aSeg[1] || 'user';
+    const tm = aSeg[2] || '1시간';
+    const rgbA = themeRGB(acc).join(',');
+    let rows = '';
+    opts.forEach((op, i) => {
+      const pct = Math.round(op.v / total * 100);
+      const lead = i === maxIdx;
+      const fill = lead ? 'rgba(' + rgbA + ',' + (glass ? '.45' : '.30') + ')' : (glass ? 'rgba(255,255,255,.22)' : 'rgba(120,120,135,.22)');
+      rows += '<div class="row"><div class="fill" style="width:' + pct + '%;background:' + fill + '"></div>'
+        + '<div class="lb"><span' + (lead ? ' class="lead"' : '') + '>' + (op.e ? op.e + ' ' : '') + op.t + '</span><span class="pct">' + pct + '%</span></div></div>';
+    });
+    inner = '<div class="px' + (glass ? ' glass' : '') + '"><div class="hd"><div class="av"></div>'
+      + '<div><span class="nm">' + nm + '</span> <span class="hn">@' + hn + ' · ' + tm + '</span></div></div>'
+      + '<div class="q">' + q + '</div>' + rows
+      + '<div class="mt">' + total.toLocaleString() + '표' + (l ? ' · ' + l : '') + '</div></div>';
+  }
+  html = html.split('background:#0b0b0e').join('background:' + bodyBg);
+  if (th.acc || s !== 'x') html = html.split('--acc: #1d9bf0').join('--acc: ' + acc);
+  return html.split('\u27e6BODY\u27e7').join(inner);
+}
+
 const RENDERERS = {
   'insta': renderInsta, 'twitter': renderTwitter, 'kakao': renderKakao,
   'reddit': renderReddit, 'lock': renderLock, 'email': renderEmail,
@@ -8432,6 +8611,7 @@ const RENDERERS = {
   'match': renderMatch,
   'wiki': renderWiki,
   'music': renderMusic,
+  'poll': renderPoll,
 };
 
 
@@ -8531,6 +8711,24 @@ export default {
           h = base + MARGIN;
           h = Math.max(h, 430); h = Math.min(h, MAX_H);
         } else { h = 660; }
+      }
+      if (t === 'poll') {
+        const sP = url.searchParams.get('s') || 'x';
+        const pP = url.searchParams.get('p') || '';
+        const nP = pP ? pP.split('|').filter(x => x.trim()).length : 2;
+        const qP = (url.searchParams.get('q') || '').split('§');
+        const thP = (url.searchParams.get('th') || '').toLowerCase();
+        const glassP = thP.indexOf('glass') === 0;
+        if (sP === 'story') { w = 420; h = 746; }
+        else if (sP === 'form') {
+          w = 520;
+          h = 48 + 36 + calcLines(qP[0] || '', 460) * 27 + (qP[1] ? 26 : 0) + 18 + nP * 73 + 46 + (glassP ? 32 : 0) + MARGIN;
+          h = Math.max(h, 260); h = Math.min(h, MAX_H);
+        } else {
+          w = 598;
+          h = 32 + 50 + calcLines(qP[0] || '', 545) * 22 + 12 + nP * 46 + 23 + (glassP ? 28 : 0) + MARGIN;
+          h = Math.max(h, 200); h = Math.min(h, MAX_H);
+        }
       }
       if (t === 'match') {
         const sM = url.searchParams.get('s') || 'card';

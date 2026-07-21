@@ -2617,7 +2617,7 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
     ]
   },
   {
-    id:'cat-j', icon:'🏠', title:'생활 앱 UI', sub:'j.winter0.workers.dev — 달력 (송금·택배·중고·날씨 예정)',
+    id:'cat-j', icon:'🏠', title:'생활 앱 UI', sub:'j.winter0.workers.dev — 달력 · 송금 (택배·중고·날씨 예정)',
     items:[
       {
         id:'t-j-0', title:'📅 달력 (cal)',
@@ -2644,6 +2644,35 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
 <div class="desc">• 예: th=dark / th=dark§rose§00BBDD / th=884499 (헥스 단독=배경 겸 강조)</div>`
       },
       {
+        id:'t-j-0b', title:'💸 송금 (pay)',
+        body:`<div class="label label-use">URL 파라미터 형식 — 서브타입 3종</div>
+<pre>① 완료: /?t=pay&p=받는사람§금액[§메모][§잔액]&f=보낸사람[§페이명]&d=날짜문구
+② 요청: /?t=pay&s=req&p=요청자§금액[§메모][§기한]&f=[§페이명]
+③ 내역: /?t=pay&s=list&b=잔액[§계좌명]&p=이름§±금액§시간[§메모]|...</pre>
+<hr class="divider">
+<div class="label label-example">예시 — 송금 완료 (체크 드로잉 애니 루프)</div>
+<pre>/?t=pay&p=하나§50000§생일+축하해§1243500&f=겨울&d=2026.07.21+14:32</pre>
+<div class="label label-example">예시 — 송금 요청 (다크+로즈, 펄스 링)</div>
+<pre>/?t=pay&s=req&p=겨울§30000§점심값+정산이요§3일+후+만료&th=dark§rose</pre>
+<div class="label label-example">예시 — 거래 내역 (toss 톤)</div>
+<pre>/?t=pay&s=list&b=2450000§겨울의+지갑&p=카페§-6500§오늘+09:12§아아|월급§2000000§어제&th=toss</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명:</strong><br>
+• s 생략=송금 완료(420 동적) / s=req 송금 요청(420 동적) / s=list 거래 내역(420 동적, 행수 비례)<br>
+• <strong>금액 자동 포맷</strong> — 숫자(콤마 허용)면 콤마+원 자동, 아니면 자유 텍스트 그대로("오만 원" 가능)<br>
+• 내역 금액 앞 - = 출금(로즈레드) / 없으면 입금(파랑) — 다크 테마에선 자동 연화<br>
+• 페이명 기본 WPay — f=§이름 으로 교체 / 선택 필드는 통째 생략(빈 §§ 금지)<br>
+• 이니셜 아바타 색은 이름 시드로 팔레트 순환 (같은 이름=항상 같은 색)<br>
+• <strong>SMIL 애니</strong> — 완료: 원 드로잉→체크 획→2.9초 유지→무한 반복 / 요청: 아바타 펄스 링</div>
+<hr class="divider">
+<div class="label label-use">🎨 테마 색상 (선택) — &th= (3필드 위치규칙)</div>
+<pre>&th=스타일[§배경][§강조색]
+스타일: light(기본) | dark
+배경:   프리셋명(indigo/pink/sand/rose/toss) 또는 헥스(페이지 배경 틴트)
+강조색: 헥스 — 체크·버튼·뱃지·잔액카드 (생략 시 프리셋→인디고 순)</pre>
+<div class="desc">• <strong>th=toss</strong> = 미니멀 흰 배경 + 파랑(#0077DD) 강조 — 톤 한 방 전환 / th=dark§toss 조합 가능</div>`
+      },
+      {
         id:'t-j-1', title:'바베챗 프롬프트 (복사용)',
         body:`<div class="label label-use">캐릭터 상세설정에 붙여넣기</div>
 <div class="desc">아래 전체를 프롬프트에 삽입하면 AI가 장면에 맞는 생활 앱 UI를 자동 생성합니다. 도메인은 <strong>j.winter0.workers.dev</strong></div>
@@ -2660,6 +2689,16 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
 - 색: 인디고/핑크/샌드/로즈/보라/빨강/진핑크/하늘/주황/파랑 또는 헥스(예: EE1166)
 - d=일자 넣으면 해당 날짜 펄스 애니메이션 (오늘 강조)
 - th=dark 다크모드 / 배경 프리셋 indigo·pink·sand·rose 또는 헥스 / 강조색 헥스
+
+### 송금 (완료 · 요청 · 거래내역)
+![](https://j.winter0.workers.dev/?t=pay&p=받는사람§금액[§메모][§잔액]&f=보낸사람[§페이명]&d=날짜문구)
+![](https://j.winter0.workers.dev/?t=pay&s=req&p=요청자§금액[§메모][§기한])
+![](https://j.winter0.workers.dev/?t=pay&s=list&b=잔액[§계좌명]&p=이름§±금액§시간[§메모]|...)
+- 금액은 숫자만 쓰면 콤마+원 자동 ("50000" → "50,000원"), 자유 텍스트도 허용
+- 내역 금액 앞 - = 출금(빨강) / 없으면 입금(파랑)
+- 페이명 기본 WPay, f=§이름 으로 교체
+- 완료 화면은 체크 드로잉 애니가 몇 초 간격으로 무한 반복됨 (연출용으로 활용)
+- th=toss 넣으면 미니멀+파랑 톤 / th=dark§rose 등 조합 가능
 
 ### 공통 규칙
 - 필드 구분자: § / 아이템 구분자: |

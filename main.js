@@ -89,7 +89,7 @@ function createWindow() {
 
   // Google OAuth Authorized JavaScript origins에 넣을 고정 origin:
   // http://127.0.0.1:47837
-  win.loadURL(LOCAL_ORIGIN)
+  win.loadURL(LOCAL_ORIGIN + '/lobby.html')
 
   // F12 / Ctrl+Shift+I → DevTools 토글 (디버깅용)
   win.webContents.on('before-input-event', (event, input) => {

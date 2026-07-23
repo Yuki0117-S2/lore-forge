@@ -17,6 +17,8 @@
 
   /* 헤더 */
   .header{border-bottom:1px solid var(--border);padding:11px 18px;display:flex;align-items:center;gap:10px;z-index:10;background:rgba(26,21,32,0.97);backdrop-filter:blur(20px);position:sticky;top:0;height:50px;}
+  .back-lobby{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;color:rgba(136,136,204,0.55);text-decoration:none;border-radius:8px;font-size:20px;flex:0 0 auto;transition:color 0.2s,background 0.2s;}
+  .back-lobby:hover{color:#8888CC;background:rgba(136,136,204,0.12);}
   .logo{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:4px;background:linear-gradient(135deg,var(--accent),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;flex-shrink:0;}
   .logo-sub{font-size:9px;color:var(--muted);letter-spacing:2px;font-family:'JetBrains Mono',monospace;}
   .project-selector{display:flex;align-items:center;gap:5px;margin-left:10px;}
@@ -216,10 +218,11 @@
   @media(max-width:768px){
     body{overflow:auto;}
     .header{padding:10px 14px;height:auto;flex-wrap:wrap;gap:8px;}
+    .back-lobby{width:34px;height:34px;font-size:22px;}
     .logo{font-size:18px;}
     .project-selector{margin-left:0;flex:1;}
     .project-dropdown{min-width:110px;font-size:11px;}
-    .header-right{gap:4px;}
+    .header-right{gap:4px;flex-wrap:wrap;justify-content:flex-end;}
     .header-right .btn{padding:5px 8px;font-size:10px;}
     .btn-sync-mob-hide{display:none!important;}
     .app-body{display:flex;flex-direction:column;height:auto;min-height:calc(100vh - 100px);padding-bottom:60px;}
@@ -251,6 +254,7 @@
 <body>
 
 <header class="header">
+  <a class="back-lobby" href="lobby.html" title="로비로">‹</a>
   <div>
     <div class="logo">LORE FORGE</div>
     <div class="logo-sub">CHATBOT BUILDER</div>

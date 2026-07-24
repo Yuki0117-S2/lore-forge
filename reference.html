@@ -5935,20 +5935,16 @@ LV창작:창작물 속 캐릭터들의 강함에 따라 레벨 설정
 
 <script>
 function goBack(){
-  // 부모 탭이 살아있으면 닫고 부모로 돌아감, 아니면 단순 close 시도
+  // 새 탭(window.open)으로 열린 경우: 탭 닫고 부모로 (모바일 탭 증식 방지)
   try{
-    if(window.opener&&!window.opener.closed){
+    if(window.opener && !window.opener.closed){
       window.opener.focus();
       window.close();
       return;
     }
   }catch(e){}
-  // 부모 못 찾으면 닫기 시도, 안 닫히면 메시지
-  window.close();
-  setTimeout(()=>{
-    // 닫기가 차단된 경우 대비 (브라우저 정책)
-    document.body.style.transition='opacity 0.2s';
-  },50);
+  // 같은 탭으로 들어온 경우(로비 등): 닫지 않고 로비로
+  location.href='lobby.html';
 }
 
 function toggleTocCh(btn){

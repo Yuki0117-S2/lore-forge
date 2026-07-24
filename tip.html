@@ -133,7 +133,18 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 </div>
 
 <script>
-function goBack(){ window.close(); if(!window.closed) window.location.href='index.html'; }
+function goBack(){
+  // 새 탭(window.open)으로 열린 경우: 탭 닫고 부모로 (모바일 탭 증식 방지)
+  try{
+    if(window.opener && !window.opener.closed){
+      window.opener.focus();
+      window.close();
+      return;
+    }
+  }catch(e){}
+  // 같은 탭으로 들어온 경우(로비 등): 닫지 않고 로비로
+  location.href='lobby.html';
+}
 
 const CATEGORIES = [
   {

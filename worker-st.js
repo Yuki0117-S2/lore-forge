@@ -4088,6 +4088,307 @@ function renderTerm(params) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${b}</svg>`;
 }
 
+// ── ③ VITAL (생체 모니터) ──
+// 정상범위는 성인 일반값 기준의 연출용 근사치. 임상 판단 근거로 쓰지 말 것.
+const VT_RANGE = {
+  hr:   { lo: 60,   hi: 100,  clo: 45,  chi: 130, unit: 'bpm', label: 'HR' },
+  spo2: { lo: 95,   hi: 100,  clo: 90,  chi: 101, unit: '%',   label: 'SpO2' },
+  sbp:  { lo: 90,   hi: 140,  clo: 80,  chi: 170, unit: '',    label: 'BP' },
+  rr:   { lo: 12,   hi: 20,   clo: 9,   chi: 26,  unit: '/min', label: 'RR' },
+  tp:   { lo: 36.1, hi: 37.4, clo: 35,  chi: 38.5, unit: '°C', label: 'TEMP' },
+};
+
+// 값 앞 마커(!위험 *주의 ~정상) 우선, 없으면 자동 판정
+function vtLevel(raw, key) {
+  const s = String(raw == null ? '' : raw).trim();
+  if (s.startsWith('!')) return { v: s.slice(1), lv: 2 };
+  if (s.startsWith('*')) return { v: s.slice(1), lv: 1 };
+  if (s.startsWith('~')) return { v: s.slice(1), lv: 0 };
+  const n = parseFloat(s);
+  const R = VT_RANGE[key];
+  if (!R || isNaN(n)) return { v: s, lv: 0 };
+  if (n <= R.clo || n >= R.chi) return { v: s, lv: 2 };
+  if (n < R.lo || n > R.hi) return { v: s, lv: 1 };
+  return { v: s, lv: 0 };
+}
+
+// ── 파형 점 생성 ──
+// Philips 계열 = 스윕 방식: 커서가 좌→우로 지나가며 그 자리에 새로 그림
+// jit>0 이면 비트마다 진폭·타이밍을 미세하게 흔들어 잔상과 새 파형이 어긋나 보이게 함
+function vtPts(kind, x0, w, base, amp, cycles, step, jit) {
+  const pts = [];
+  const cw = w / cycles;
+  // 파형 활성 구간 비율 — 이 구간은 폭 고정(모양 불변), 남는 휴지 구간만 가변
+  const ACT = kind === 'ecg' ? 0.75 : (kind === 'resp' ? 0.62 : 0.90);
+  const actW = cw * ACT;
+  const rest0 = w - cycles * actW;              // 휴지 구간 총량
+  const rnd = rtRnd(jit ? Math.round(jit * 7919) + cycles : 1);
+  // 휴지 길이 배열 — 합이 정확히 rest0이 되도록 정규화 (총 폭이 w에서 안 어긋남)
+  const rs = [];
+  for (let c = 0; c < cycles; c++) rs.push(jit ? Math.max(0.10, 1 + (rnd() - 0.5) * jit * 3.6) : 1);
+  const sum = rs.reduce((a2, b2) => a2 + b2, 0);
+  for (let c = 0; c < cycles; c++) rs[c] = rs[c] / sum * rest0;
+
+  let bx = x0;
+  for (let c = 0; c < cycles; c++) {
+    for (let u = 0; u < ACT; u += step) {
+      let y = base;
+      if (kind === 'ecg') {
+        if (u >= 0.14 && u < 0.22) y = base - amp * 0.09 * Math.sin((u - 0.14) / 0.08 * Math.PI);
+        else if (u >= 0.30 && u < 0.325) y = base + amp * 0.10 * ((u - 0.30) / 0.025);
+        else if (u >= 0.325 && u < 0.355) y = base + amp * 0.10 - amp * 1.10 * ((u - 0.325) / 0.030);
+        else if (u >= 0.355 && u < 0.390) y = base - amp + amp * 1.28 * ((u - 0.355) / 0.035);
+        else if (u >= 0.390 && u < 0.425) y = base + amp * 0.28 - amp * 0.28 * ((u - 0.390) / 0.035);
+        else if (u >= 0.46 && u < 0.72) y = base - amp * 0.20 * Math.sin((u - 0.46) / 0.26 * Math.PI);
+      } else if (kind === 'pleth' || kind === 'abp') {
+        const k = kind === 'abp' ? 0.82 : 1;
+        if (u < 0.10) y = base - amp * k * Math.pow(u / 0.10, 0.75);
+        else if (u < 0.20) y = base - amp * k * (1 - 0.20 * ((u - 0.10) / 0.10));
+        else if (u < 0.30) y = base - amp * k * (0.80 - 0.14 * ((u - 0.20) / 0.10));
+        else if (u < 0.36) y = base - amp * k * (0.66 + 0.07 * ((u - 0.30) / 0.06));
+        else if (u < 0.88) y = base - amp * k * 0.73 * Math.pow(1 - (u - 0.36) / 0.52, 1.5);
+      } else {
+        if (u < 0.16) y = base - amp * 0.9 * Math.pow(u / 0.16, 1.4);
+        else if (u < 0.40) y = base - amp * (0.9 + 0.1 * Math.sin((u - 0.16) / 0.24 * Math.PI));
+        else if (u < 0.60) y = base - amp * 0.9 * Math.pow(1 - (u - 0.40) / 0.20, 1.2);
+      }
+      pts.push([bx + u * cw, y]);
+    }
+    bx += actW;
+    pts.push([bx, base]);
+    bx += rs[c];
+    pts.push([bx, base]);
+  }
+  return pts;
+}
+function vtSimplify(pts, tol) {
+  if (pts.length < 3) return pts;
+  const out = [pts[0]];
+  for (let i = 1; i < pts.length - 1; i++) {
+    const a = out[out.length - 1], b = pts[i], c = pts[i + 1];
+    const dx = c[0] - a[0], dy = c[1] - a[1];
+    const L = Math.hypot(dx, dy) || 1;
+    if (Math.abs((b[0] - a[0]) * dy - (b[1] - a[1]) * dx) / L > tol) out.push(b);
+  }
+  out.push(pts[pts.length - 1]);
+  return out;
+}
+function vtPath(pts) {
+  const r = v => (Math.round(v * 10) / 10).toString();
+  return 'M' + pts.map(p => r(p[0]) + ' ' + r(p[1])).join('L');
+}
+function vtLen(pts) {
+  let L = 0;
+  for (let i = 1; i < pts.length; i++) L += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+  return L;
+}
+
+// 스윕 파형 1줄
+function vtTrace(x, y, w, h, kind, bpm, color, C, uid, flat, sw, box, grid, jit, cline) {
+  const base = y + h * 0.57, amp = h * 0.32;
+  let g = '';
+  if (box) g += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="none" stroke="${C.faint}" stroke-width="0.8" opacity="0.5"/>`;
+  // 스케일 그리드 — 실기에서 pleth는 점선, abp는 실선+눈금라벨
+  // (지우개보다 나중에 그려야 커서가 지나가도 안 사라짐)
+  let gridSvg = '';
+  if (grid && (kind === 'pleth' || kind === 'abp')) {
+    const lv = kind === 'abp' ? [0.20, 0.52, 0.88] : [0.22, 0.44, 0.66];
+    const dash = kind === 'abp' ? '' : ' stroke-dasharray="2 3"';
+    lv.forEach((f, i) => {
+      const gy = (y + h * f).toFixed(1);
+      gridSvg += `<line x1="${x}" y1="${gy}" x2="${x + w}" y2="${gy}" stroke="${color}" stroke-width="0.7" opacity="0.34"${dash}/>`;
+      if (kind === 'abp') gridSvg += `<text x="${x + 3}" y="${(y + h * f - 2).toFixed(1)}" font-family="monospace" font-size="7.5" fill="${color}" opacity="0.6">${[150, 75, 0][i]}</text>`;
+    });
+  }
+  g += `<clipPath id="${uid}"><rect x="${x}" y="${y}" width="${w}" height="${h}"/></clipPath>`;
+  if (flat) {
+    g += `<g clip-path="url(#${uid})">${gridSvg}<line x1="${x}" y1="${base}" x2="${x + w}" y2="${base}" stroke="${color}" stroke-width="1.8"/>`
+      + (cline ? `<line x1="${x}" y1="${y}" x2="${x}" y2="${y + h}" stroke="${color}" stroke-width="1.5" opacity="0.85">`
+        + `<animateTransform attributeName="transform" type="translate" values="0 0;${w} 0" dur="${sw}s" repeatCount="indefinite"/></line>` : '')
+      + `</g>`;
+    return g;
+  }
+  // 주기당 최소 폭 보장 — 좁으면 파형이 뭉개지므로 주기 수를 제한하고 스윕을 그만큼 빠르게
+  const MINCW = kind === 'resp' ? 60 : 40;
+  const maxC = Math.max(1, Math.floor(w / MINCW));
+  let cycles = Math.max(1, Math.round(bpm / 60 * sw));
+  let swE = sw;
+  if (cycles > maxC) { cycles = maxC; swE = Math.max(1.2, cycles * 60 / bpm); }
+  const cwPx = w / cycles;
+  const tol = Math.min(0.28, cwPx / 170);      // 주기가 좁을수록 단순화를 약하게
+  const step = kind === 'ecg' ? 0.004 : 0.010;
+  const mk = j => vtSimplify(vtPts(kind, x, w, base, amp, cycles, step, j), tol);
+  const cur = mk(0);                          // 새로 그려지는 파형 (정형)
+  const gh = jit > 0 ? mk(jit) : cur;         // 잔상 (직전 사이클, 미세하게 다름)
+  const d = vtPath(cur), L = vtLen(cur);
+  const EB = Math.max(9, w * 0.03);
+
+  g += `<g clip-path="url(#${uid})">`;
+  // 직전 사이클 잔상
+  g += `<path d="${vtPath(gh)}" fill="none" stroke="${color}" stroke-width="1.6" stroke-linejoin="round" opacity="0.24"/>`;
+  // 커서가 지나간 자리의 잔상을 지움 (커서 왼쪽엔 새 파형만 남음)
+  g += `<rect x="${x}" y="${y + 1}" width="0" height="${h - 2}" fill="${C.bg}">`
+    + `<animate attributeName="width" values="0;${(w + EB).toFixed(1)}" dur="${swE.toFixed(2)}s" repeatCount="indefinite"/></rect>`;
+  g += gridSvg;   // 지우개 위에 다시 → 커서가 지나가도 그리드 유지
+  g += `<path d="${d}" fill="none" stroke="${color}" stroke-width="1.9" stroke-linejoin="round" stroke-linecap="round"`
+    + ` stroke-dasharray="${L.toFixed(1)}" stroke-dashoffset="${L.toFixed(1)}">`
+    + `<animate attributeName="stroke-dashoffset" values="${L.toFixed(1)};0" dur="${swE.toFixed(2)}s" repeatCount="indefinite"/></path>`;
+  if (cline) g += `<line x1="${x}" y1="${y}" x2="${x}" y2="${y + h}" stroke="${C.hot}" stroke-width="1.4" opacity="0.9">`
+    + `<animateTransform attributeName="transform" type="translate" values="0 0;${w} 0" dur="${swE.toFixed(2)}s" repeatCount="indefinite"/></line>`;
+  g += `</g>`;
+  return g;
+}
+
+function renderVital(params) {
+  const g = k => params.get(k);
+  const C = rtTheme(g('th'));
+  const lay = (g('lay') || 'a').toLowerCase() === 'b' ? 'b' : 'a';
+  const W = rtNum(g('w'), lay === 'b' ? 680 : 420, 360, 920);
+  const sw = rtNum(g('sw'), 6, 2, 30);         // 화면 1회 스윕 시간(초). 좁으면 자동 단축됨
+  const box = ['1', 'on', 'y'].includes((g('bx') || '').toLowerCase());   // 파형 박스 테두리 (기본 없음)
+  const grid = !['0', 'off', 'n'].includes((g('gr') || '').toLowerCase()); // 스케일 그리드 (기본 켜짐)
+  const jit = rtNum(g('jit'), 0.35, 0, 1);    // R-R 간격 변동 (0이면 완전 규칙)
+  const cline = (g('cur') || '').toLowerCase() !== 'off';  // 스윕 커서 선 표시 (동작은 동일, 선만 숨김)
+  const flat = ['1', 'on', 'y', 'true'].includes((g('flat') || '').toLowerCase());
+
+  const pp = (g('p') || '').split('§');
+  const name = (pp[0] || '').trim(), pid = (pp[1] || '').trim(), cond = (pp[2] || '').trim();
+
+  const COL = { 0: C.main, 1: '#FF7722', 2: C.warn };
+
+  // 수치 수집
+  const bpRaw = (g('bp') || '').split('§');
+  const cells = [];
+  const push = (key, raw, disp) => {
+    if (raw === null || raw === undefined || String(raw).trim() === '') return;
+    const r = vtLevel(raw, key);
+    const R = VT_RANGE[key];
+    cells.push({ label: R.label, val: disp ? disp(r.v) : r.v, unit: R.unit, lv: flat && key === 'hr' ? 2 : r.lv });
+  };
+  push('hr', flat ? '!0' : g('hr'));
+  push('spo2', flat ? '!0' : g('spo2'));
+  if (bpRaw[0] && bpRaw[0].trim() !== '') {
+    const r = vtLevel(bpRaw[0], 'sbp');
+    const dia = (bpRaw[1] || '').replace(/^[!*~]/, '').trim();
+    cells.push({ label: 'BP', val: r.v + (dia ? '/' + dia : ''), unit: '', lv: flat ? 2 : r.lv });
+  }
+  push('rr', flat ? '!0' : g('rr'));
+  push('tp', g('tp'));
+
+  // ex=라벨§값§단위§상태 | ...
+  (g('ex') || '').split('|').filter(Boolean).forEach(s => {
+    const f = s.split('§');
+    const lb = (f[0] || '').trim();
+    if (!lb) return;
+    let v = (f[1] || '').trim(), lv = 0;
+    const mk = (f[3] || v).trim();
+    if (mk.startsWith('!')) lv = 2; else if (mk.startsWith('*')) lv = 1;
+    v = v.replace(/^[!*~]/, '');
+    cells.push({ label: lb, val: v, unit: (f[2] || '').trim(), lv });
+  });
+
+  // 파형 종류
+  const wv = (g('wv') || 'ecg').split('§').map(s => s.trim().toLowerCase()).filter(Boolean);
+  const traces = wv.filter(k => ['ecg', 'pleth', 'abp', 'resp'].includes(k));
+  const TR = traces.length ? traces : ['ecg'];
+
+  const hrN = rtNum(String(g('hr') || '').replace(/^[!*~]/, ''), 72, 1, 300);
+  const rrN = rtNum(String(g('rr') || '').replace(/^[!*~]/, ''), 16, 1, 80);
+
+  const PAD = 14, TOPBAR = name || pid || cond ? 34 : 8;
+  const TRH = 68, TRGAP = 6;
+  const waveH = TR.length * TRH + (TR.length - 1) * TRGAP;
+
+  // 셀 배치
+  const perRow = lay === 'b' ? 1 : (W >= 520 ? 4 : 3);
+  const cellRows = Math.ceil(cells.length / perRow) || 1;
+  const CELLH = 52;
+
+  let waveW, panelW, H;
+  if (lay === 'b') {
+    panelW = 196;
+    waveW = W - PAD * 2 - panelW - 10;
+    const panelH = cells.length * CELLH + (cells.length - 1) * 6;
+    H = TOPBAR + Math.max(waveH, panelH) + PAD * 2 + 24;
+  } else {
+    waveW = W - PAD * 2;
+    H = TOPBAR + waveH + 10 + cellRows * CELLH + (cellRows - 1) * 6 + PAD * 2 + 24;
+  }
+
+  const uid = 'vt' + (rtSeed(name + W + TR.join()) % 100000);
+  let b = `<rect width="${W}" height="${H}" fill="${C.bg}"/>`;
+  b += `<rect x="2" y="2" width="${W - 4}" height="${H - 4}" fill="none" stroke="${flat ? C.warn : C.main}" stroke-width="2">`
+    + (flat ? `<animate attributeName="opacity" values="1;1;0.25;1" keyTimes="0;0.4;0.55;1" dur="1.2s" repeatCount="indefinite"/>` : '')
+    + `</rect>`;
+
+  // 상단 바
+  if (TOPBAR > 8) {
+    const meta = [pid, cond].filter(Boolean).join('  ·  ');
+    b += `<text x="${PAD}" y="24" font-family="monospace" font-size="14" font-weight="bold" fill="${C.main}">${esc(name)}</text>`;
+    if (meta) b += `<text x="${W - PAD}" y="24" font-family="monospace" font-size="11.5" font-weight="600" fill="${C.dim}" text-anchor="end">${esc(meta)}</text>`;
+    b += `<line x1="${PAD - 4}" y1="31" x2="${W - PAD + 4}" y2="31" stroke="${C.main}" stroke-width="1" opacity="0.5"/>`;
+  }
+
+  // 파형
+  const wy0 = TOPBAR + 6;
+  const TRCOL = { ecg: C.main, pleth: '#00BBDD', abp: '#FF6699', resp: '#CCAA88' };
+  TR.forEach((k, i) => {
+    const y = wy0 + i * (TRH + TRGAP);
+    const bpm = k === 'resp' ? rrN : hrN;
+    void 0;
+    b += vtTrace(PAD, y, waveW, TRH, k, bpm, flat ? C.warn : TRCOL[k], C, uid + '_' + i, flat, sw, box, grid, jit, cline);
+    const lb = k.toUpperCase();
+    b += `<rect x="${PAD + 3}" y="${y + 2}" width="${(rtTw(lb, 9.5) + 7).toFixed(1)}" height="13" fill="${C.bg}"/>`;
+    b += `<text x="${PAD + 6}" y="${y + 12}" font-family="monospace" font-size="9.5" font-weight="700" fill="${TRCOL[k] || C.dim}" opacity="0.85">${lb}</text>`;
+  });
+
+  // 수치 셀
+  const drawCell = (c, x, y, w) => {
+    const col = COL[c.lv];
+    let s = `<rect x="${x.toFixed(1)}" y="${y}" width="${w.toFixed(1)}" height="${CELLH - 4}" fill="none" stroke="${col}" stroke-width="${c.lv ? 1.4 : 1}" opacity="${c.lv ? 1 : 0.55}" rx="2">`;
+    if (c.lv === 2) s += `<animate attributeName="opacity" values="1;1;0.3;1" keyTimes="0;0.45;0.6;1" dur="1s" repeatCount="indefinite"/>`;
+    s += `</rect>`;
+    s += `<text x="${(x + 7).toFixed(1)}" y="${y + 15}" font-family="monospace" font-size="10" font-weight="600" fill="${C.dim}">${esc(c.label)}</text>`;
+    const vs = String(c.val);
+    let fs = 21;
+    const availW = w - 14 - (c.unit ? rtTw(c.unit, 10) + 4 : 0);
+    if (rtTw(vs, fs) > availW) fs = Math.max(11, fs * availW / rtTw(vs, fs));
+    s += `<text x="${(x + 7).toFixed(1)}" y="${y + 39}" font-family="monospace" font-size="${fs.toFixed(1)}" font-weight="bold" fill="${col}">${esc(vs)}`;
+    if (c.lv === 2) s += `<animate attributeName="opacity" values="1;1;0.35;1" keyTimes="0;0.45;0.6;1" dur="1s" repeatCount="indefinite"/>`;
+    s += `</text>`;
+    if (c.unit) s += `<text x="${(x + w - 7).toFixed(1)}" y="${y + 39}" font-family="monospace" font-size="10" font-weight="600" fill="${C.dim}" text-anchor="end">${esc(c.unit)}</text>`;
+    return s;
+  };
+
+  if (lay === 'b') {
+    const px = PAD + waveW + 10;
+    cells.forEach((c, i) => { b += drawCell(c, px, wy0 + i * (CELLH + 2), 196); });
+  } else {
+    const py0 = wy0 + waveH + 10;
+    const gap = 6;
+    const cw = (W - PAD * 2 - gap * (perRow - 1)) / perRow;
+    cells.forEach((c, i) => {
+      const r = Math.floor(i / perRow), q = i % perRow;
+      b += drawCell(c, PAD + q * (cw + gap), py0 + r * (CELLH + gap), cw);
+    });
+  }
+
+  // 하단 상태
+  const msg = flat ? 'ASYSTOLE — NO PULSE' : (cells.some(c => c.lv === 2) ? 'ALARM' : cells.some(c => c.lv === 1) ? 'CAUTION' : 'STABLE');
+  const mcol = flat || cells.some(c => c.lv === 2) ? C.warn : cells.some(c => c.lv === 1) ? '#FF7722' : C.main;
+  b += `<line x1="${PAD - 4}" y1="${H - 26}" x2="${W - PAD + 4}" y2="${H - 26}" stroke="${C.main}" stroke-width="1" opacity="0.5"/>`;
+  b += `<text x="${PAD}" y="${H - 10}" font-family="monospace" font-size="11.5" font-weight="bold" fill="${mcol}">${msg}`;
+  if (mcol !== C.main) b += `<animate attributeName="opacity" values="1;1;0.3;1" keyTimes="0;0.45;0.6;1" dur="1s" repeatCount="indefinite"/>`;
+  b += `</text>`;
+  if (!flat) b += `<text x="${W - PAD}" y="${H - 10}" font-family="monospace" font-size="11.5" font-weight="600" fill="${C.dim}" text-anchor="end">MONITORING</text>`;
+
+  let sl = '';
+  for (let y = 0; y < H; y += 3) sl += `<rect x="0" y="${y}" width="${W}" height="1" fill="${C.main}" opacity="0.035"/>`;
+  b += sl;
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${b}</svg>`;
+}
+
 // ════════════════════════════════════════════
 //  FETCH
 // ════════════════════════════════════════════
@@ -4114,8 +4415,9 @@ export default {
     else if (t === 'roll') svg = renderRoll(params);
     else if (t === 'radar') svg = renderRadar(params);
     else if (t === 'term') svg = renderTerm(params);
+    else if (t === 'vital') svg = renderVital(params);
     else {
-      return new Response('사용 가능: ?t=vn / ?t=vn2 / ?t=dark / ?t=pixel / ?t=ending / ?t=rpg2k / ?t=choice / ?t=dungeon / ?t=mmo / ?t=reward / ?t=gameover / ?t=inv / ?t=stat / ?t=roll / ?t=radar / ?t=term', {
+      return new Response('사용 가능: ?t=vn / ?t=vn2 / ?t=dark / ?t=pixel / ?t=ending / ?t=rpg2k / ?t=choice / ?t=dungeon / ?t=mmo / ?t=reward / ?t=gameover / ?t=inv / ?t=stat / ?t=roll / ?t=radar / ?t=term / ?t=vital', {
         status: 400, headers: { 'Content-Type': 'text/plain; charset=utf-8' }
       });
     }

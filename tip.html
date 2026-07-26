@@ -1733,7 +1733,7 @@ URL에 &th= 를 추가하면 색상 테마 변경, 생략하면 기본색 (# 없
     ]
   },
   {
-    id:'cat-st', icon:'⚔️', title:'RPG / VN 상태창 UI', sub:'st.winter0.workers.dev — 미연시 · 미연시2 · 다크판타지 · 픽셀RPG · 쯔꾸르 · 엔딩 · 선택지 · 던전 · MMO · 보상 · 게임오버 · 인벤 · 능력치 · 주사위 · 소나레이더 · 통신터미널',
+    id:'cat-st', icon:'⚔️', title:'RPG / VN 상태창 UI', sub:'st.winter0.workers.dev — 미연시 · 미연시2 · 다크판타지 · 픽셀RPG · 쯔꾸르 · 엔딩 · 선택지 · 던전 · MMO · 보상 · 게임오버 · 인벤 · 능력치 · 주사위 · 소나레이더 · 통신터미널 · 생체모니터',
     items:[
       {
         id:'t-st-0', title:'미연시 상태창 (?t=vn)',
@@ -2533,6 +2533,59 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
 <strong>인코딩:</strong> 공백 → +, ( → %28, ) → %29, # → %23</div>`
       },
       {
+        id:'t-st-vital', title:'생체 모니터 (?t=vital)',
+        body:`<div class="label label-use">용도</div>
+<div class="desc">Philips 계열 환자 모니터를 재현한 <strong>생체 감시 화면</strong>. 커서가 좌→우로 지나가며 <strong>그 자리에 파형을 새로 그리고</strong> 직전 사이클 잔상을 지운다(스윕 방식). ECG·맥파·동맥압·호흡파 4종을 골라 쌓을 수 있고, 하단 수치는 정상 범위를 벗어나면 자동으로 점멸한다. <strong>ex 슬롯</strong>에 임의 항목을 넣을 수 있어 의료용 외에 동기율·마력잔량 같은 SF·판타지 계기판으로도 쓸 수 있다.</div>
+<hr class="divider">
+<div class="label label-use">URL 파라미터 형식</div>
+<pre>/?t=vital
+&p=이름§ID§상태
+&hr=심박  &spo2=산소  &bp=수축기§이완기  &rr=호흡  &tp=체온
+&wv=ecg§pleth§abp§resp   (표시할 파형, 기본 ecg)
+&ex=라벨§값§단위§상태|...  (커스텀 슬롯, 개수 무제한)
+&lay=a|b   &w=폭   &sw=스윕초   &jit=간격변동
+&gr=0      (스케일 그리드 끔)
+&bx=1      (파형 박스 테두리 켬)
+&cur=off   (스윕 커서 선 숨김)
+&flat=1    (플랫라인)
+&th=주색§배경§경고색</pre>
+<hr class="divider">
+<div class="label label-example">예시 — 기본 감시</div>
+<pre>/?t=vital&p=사피르+센티넬§ID-0427§정기+검진&hr=72&spo2=98&bp=118§76&rr=16&tp=36.5&wv=ecg§pleth</pre>
+<div class="label label-example">예시 — 실기 재현 (4파형)</div>
+<pre>/?t=vital&p=카엘렌§WARD-3§수술+후+관찰&hr=64&spo2=96&bp=110§70&rr=14&tp=37.1&wv=ecg§pleth§abp§resp</pre>
+<div class="label label-example">예시 — 위험 (자동 알람)</div>
+<pre>/?t=vital&p=???§UNKNOWN§중상&hr=!148&spo2=!88&bp=72§48&rr=28&tp=39.2&wv=ecg§pleth§abp</pre>
+<div class="label label-example">예시 — ex 슬롯 (SF·판타지 계기판)</div>
+<pre>/?t=vital&th=8888CC&p=시논§SAO-0002§동기화+중&hr=88&spo2=97&wv=ecg§pleth&ex=동기율§87§%|마력잔량§34§§*|오염도§12§ppm|링크§안정</pre>
+<div class="label label-example">예시 — 플랫라인 / 커서 숨김 / 세로 배열</div>
+<pre>/?t=vital&p=피험체+7호§ARC-09§반응+없음&flat=1&wv=ecg§pleth§abp
+/?t=vital&cur=off&p=관측§—§선+없이&hr=72&spo2=98&wv=ecg§pleth
+/?t=vital&lay=b&w=760&p=카엘렌§WARD-3§경과+관찰&hr=64&spo2=96&bp=110§70&rr=14&wv=ecg§pleth§abp§resp</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명 — 전부 생략 가능. <code>/?t=vital</code> 하나만으로도 렌더된다.</strong><br>
+• <strong>wv</strong> — 표시할 파형 (§ 로 구분, 순서대로 위에서 아래). <code>ecg</code>(주색) / <code>pleth</code>(시안) / <code>abp</code>(핑크) / <code>resp</code>(샌드). 생략 시 ecg 한 줄<br>
+&nbsp;&nbsp;→ 파형 1줄 184px, 4줄 388px로 높이 자동<br>
+&nbsp;&nbsp;→ <code>resp</code>만 <strong>rr</strong> 값으로 따로 느리게 흐르고, 나머지는 <strong>hr</strong> 기준<br>
+• <strong>수치</strong> — <code>hr</code> <code>spo2</code> <code>bp</code> <code>rr</code> <code>tp</code>. <strong>넣은 것만 칸이 생긴다.</strong> 전부 빼고 ex만 써도 되고, 아무것도 안 넣으면 파형만 나옴<br>
+&nbsp;&nbsp;→ <code>bp</code>는 <code>수축기§이완기</code> (이완기 생략 가능)<br>
+&nbsp;&nbsp;→ 값 앞 마커로 판정을 덮어쓸 수 있음: <code>!</code> 위험(적색 점멸) / <code>*</code> 주의(주황) / <code>~</code> 정상 강제<br>
+&nbsp;&nbsp;→ 마커가 없으면 자동 판정. <strong>이 범위는 성인 일반값 기준의 연출용 근사치이며 임상 판단에 쓰면 안 된다</strong><br>
+• <strong>ex</strong> — 커스텀 슬롯 <code>라벨§값§단위§상태</code> (| 로 반복, <strong>개수 제한 없음</strong>). A는 3열, B는 1열로 쌓이며 높이 자동<br>
+&nbsp;&nbsp;→ 상태 자리에 <code>!</code> <code>*</code> 를 넣으면 수치와 동일하게 점멸<br>
+• <strong>sw</strong> — 화면 1회 스윕 시간(초), 기본 6, 범위 2~30. 실기 25mm/s 기준<br>
+&nbsp;&nbsp;→ 폭이 좁거나 심박이 높으면 파형이 뭉개지므로 <strong>주기당 40px을 보장하도록 스윕이 자동 단축</strong>된다 (심박 정확도 우선)<br>
+• <strong>jit</strong> — R-R 간격 변동, 기본 0.35, 범위 0~1. <strong>진폭은 항상 고정이고 간격만 흔들린다</strong> (실제 심박변이에 해당)<br>
+&nbsp;&nbsp;→ 0 = 기계적으로 완벽히 규칙적 / 0.35 = 변동 21% / 1 = 변동 40%<br>
+• <strong>lay</strong> — <code>a</code>(기본, 420px 가로 배열) / <code>b</code>(680px 좌파형·우수치 세로 배열)<br>
+• <strong>w</strong> — 폭 360~920. <strong>420을 넘으면 표시 시 축소되어 글씨가 작아지므로 주의</strong><br>
+• <strong>gr</strong> — 스케일 그리드. 기본 켜짐이며 <code>pleth</code>·<code>abp</code>에만 표시(실기와 동일). <code>gr=0</code>으로 끔<br>
+• <strong>bx</strong> — 파형 박스 테두리. 기본 없음, <code>bx=1</code>로 켬<br>
+• <strong>cur</strong> — 스윕 커서 선. <code>cur=off</code>면 선만 숨겨지고 <strong>파형이 새로 그려지는 동작은 그대로</strong> 유지<br>
+• <strong>flat</strong> — <code>flat=1</code>이면 전 파형 직선 + 테두리 적색 점멸 + ASYSTOLE 표기, 수치는 0으로 강제<br>
+<strong>인코딩:</strong> 공백 → +, ( → %28, ) → %29, # → %23</div>`
+      },
+      {
         id:'t-st-8', title:'바베챗 프롬프트 (복사용)',
         body:`<div class="label label-use">RPG/VN 상태창 + 엔딩 프롬프트</div>
 <div class="desc">바베챗에 복사하여 사용. 도메인은 <strong>st.winter0.workers.dev</strong></div>
@@ -2724,6 +2777,19 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
 - hl: 헤더 라벨 4개 교체 (자리 비우면 그 자리만 기본값 유지)
 - cur: nl(기본, 아래 새 줄) / end(마지막 글자 뒤, 입력 중 연출) / off(커서 없음)
 - w=260~720 (자동 클램프)
+
+### 생체 모니터 / 환자 감시
+![](https://st.winter0.workers.dev/?t=vital&p=이름§ID§상태&hr=심박&spo2=산소&bp=수축기§이완기&rr=호흡&tp=체온&wv=ecg§pleth§abp§resp&ex=라벨§값§단위§상태|...&th=주색§배경§경고색)
+- 전부 생략 가능. ?t=vital 만으로도 렌더됨
+- wv: 표시할 파형 (ecg / pleth / abp / resp), § 로 구분, 위에서 아래 순서. 생략 시 ecg 한 줄
+- 수치는 넣은 것만 칸이 생김. 전부 빼고 ex만 써도 됨
+- 값 앞 마커: ! 위험(점멸) / * 주의 / ~ 정상 강제. 없으면 자동 판정
+- ex: 라벨§값§단위§상태 (|로 반복, 개수 무제한). 동기율·마력잔량 같은 SF 계기판용
+- sw=스윕초 (기본 6). 좁거나 심박 높으면 파형 보호를 위해 자동 단축
+- jit=간격변동 (기본 0.35). 진폭은 고정, R-R 간격만 흔들림
+- lay=a(420px 가로) / b(680px 세로), w=360~920 (420 초과 시 축소되어 글씨 작아짐)
+- gr=0 그리드 끔 / bx=1 박스 켬 / cur=off 커서선만 숨김 / flat=1 플랫라인
+- 자동 판정 범위는 연출용 근사치. 실제 의료 판단에 쓰지 말 것
 
 ### 장비 등급 공통 (rarity)
 영문 대문자 표준, 한글 alias 자동 매핑, 입력 표기 그대로 표시
@@ -2918,7 +2984,7 @@ export default {
 /?t=wiki          위키 문서 📖     /?t=music         뮤직 플레이어 🎵
 /?t=poll          투표 📊       /?t=ask           익명 질문함 💌</pre>
 <hr class="divider">
-<div class="label label-example">st.winter0.workers.dev — RPG / VN 상태창 + 엔딩 + 선택지 + 던전 + MMO + 보상 + 게임오버 + 인벤 + 능력치 + 주사위 + 소나레이더 + 통신터미널 (16종)</div>
+<div class="label label-example">st.winter0.workers.dev — RPG / VN 상태창 + 엔딩 + 선택지 + 던전 + MMO + 보상 + 게임오버 + 인벤 + 능력치 + 주사위 + 소나레이더 + 통신터미널 + 생체모니터 (17종)</div>
 <pre># URL 형식 — 모두 /?t=타입&파라미터 형식
 /?t=vn            미연시 상태창
 /?t=vn2           미연시 상태창 v2 (상대 정보 풍부형, 1~6명 자동 레이아웃)

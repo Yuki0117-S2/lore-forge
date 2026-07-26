@@ -1733,7 +1733,7 @@ URL에 &th= 를 추가하면 색상 테마 변경, 생략하면 기본색 (# 없
     ]
   },
   {
-    id:'cat-st', icon:'⚔️', title:'RPG / VN 상태창 UI', sub:'st.winter0.workers.dev — 미연시 · 미연시2 · 다크판타지 · 픽셀RPG · 쯔꾸르 · 엔딩 · 선택지 · 던전 · MMO · 보상 · 게임오버',
+    id:'cat-st', icon:'⚔️', title:'RPG / VN 상태창 UI', sub:'st.winter0.workers.dev — 미연시 · 미연시2 · 다크판타지 · 픽셀RPG · 쯔꾸르 · 엔딩 · 선택지 · 던전 · MMO · 보상 · 게임오버 · 인벤 · 능력치 · 주사위 · 소나레이더 · 통신터미널',
     items:[
       {
         id:'t-st-0', title:'미연시 상태창 (?t=vn)',
@@ -2440,6 +2440,98 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
 <strong>인코딩:</strong> 공백 → +, ( → %28, ) → %29</div>`
       },
       {
+        id:'t-st-radar', title:'소나 레이더 / 탐지 (?t=radar)',
+        body:`<div class="label label-use">용도</div>
+<div class="desc">함대 소나·전술 스코프·마법 탐지진 등 <strong>원형 탐지 화면</strong>. 스윕이 무한 회전하고, 표적 방위에 스윕이 닿는 순간 <strong>핑 링이 2겹으로 퍼진다</strong>(스윕 각도와 자동 동기화). 하단에 표적 보고 패널이 붙는다. 폭 400px 고정, 높이는 표적 수에 따라 자동.</div>
+<hr class="divider">
+<div class="label label-use">URL 파라미터 형식</div>
+<pre>/?t=radar
+&sys=보고체계명      (기본 SYSTEM)
+&r=스캔반경          (기본 8000)
+&unit=단위           (기본 m)
+&spd=1회전초         (기본 4, 1~30)
+&ring=동심원개수     (기본 3, 1~6)
+&nz=배경간섭파       (기본 3, 0~6 / 0이면 끔)
+&deg=주눈금§부눈금   (기본 30§10)
+&th=주색§배경§경고색
+&tc=위험§주의§우호§중립
+&tgt=이름§거리§방위§상태§데이터|...</pre>
+<hr class="divider">
+<div class="label label-example">예시 — 기본 소나</div>
+<pre>/?t=radar&sys=Sanctuary&r=8000&tgt=표적-01§1200§45§추적중§표적+이동+중|표적-02§800§128§!접근중§실체+개체+접근|표적-03§2600§300§*관측중§거대+열원+반응</pre>
+<div class="label label-example">예시 — 아군 포함 · 세밀 방위 · 테마 변경</div>
+<pre>/?t=radar&sys=제3관측소&r=5000&deg=15§5&th=8888CC&tgt=호위기§1400§60§~편대유지§신호+양호|미확인§3200§215§!미상§신호+불안정</pre>
+<div class="label label-example">예시 — 근접 고속 스캔 (간섭파 끔)</div>
+<pre>/?t=radar&sys=CLOSE_IN&r=2000&spd=2&ring=1&nz=0&deg=45§15&tgt=적기§900§20§!교전중§고속+접근|잔해§1600§200§표류§금속+반응</pre>
+<div class="label label-example">예시 — 광역 저속 · 단위 변경 · 색 재지정</div>
+<pre>/?t=radar&sys=DEEP_FIELD&r=50000&unit=km&spd=9&ring=5&deg=90§30&th=CCAA88§18120c&tc=EE1166§FF7722§884499&tgt=군집-A§12000§70§*관측중|미확인§46000§265§!미상§신호+불안정</pre>
+<div class="label label-example">예시 — 표적 없이 스코프만</div>
+<pre>/?t=radar&sys=대기중&r=3000</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명 — 전부 생략 가능. <code>/?t=radar</code> 하나만으로도 렌더된다.</strong><br>
+• <strong>tgt</strong> — 표적 목록 (<code>|</code>로 반복). 각 항목은 <code>이름§거리§방위§상태§데이터</code><br>
+&nbsp;&nbsp;→ <strong>이름만 필수</strong>. 비면 그 표적은 통째로 버려진다<br>
+&nbsp;&nbsp;→ 거리 생략 = 0(중심) / 방위 생략 = 0(정북) / 상태·데이터 생략 = 해당 표기 없음<br>
+&nbsp;&nbsp;→ 방위는 자동 정규화 (<code>790</code> 입력 → <code>70</code> 처리)<br>
+&nbsp;&nbsp;→ 거리가 스캔반경보다 크면 스코프 가장자리에 붙여 표시 (잘리지 않음)<br>
+&nbsp;&nbsp;→ 이름·상태가 길면 폰트 자동 축소, 그래도 넘치면 말줄임 처리<br>
+• <strong>상태 앞 마커</strong> — <code>!</code> 위험 / <code>*</code> 주의 / <code>~</code> 우호 / 없으면 중립<br>
+&nbsp;&nbsp;→ <strong>주의: <code>+</code>는 URL에서 공백으로 디코딩되므로 우호 마커로 쓰면 안 된다. <code>~</code>를 쓸 것</strong> (<code>%2B</code>도 인식은 하지만 권장하지 않음)<br>
+&nbsp;&nbsp;→ 마커는 블립·핑링·보고패널 행 색을 한꺼번에 바꾼다<br>
+• <strong>deg</strong> — <code>주눈금§부눈금</code>. 주눈금은 숫자 라벨 + 긴 틱, 부눈금은 짧은 틱만. 범위 5~180<br>
+&nbsp;&nbsp;→ <code>30</code>=12개 / <code>15</code>=24개 / <code>10</code>=36개 / <code>45</code>=8개 / <code>90</code>=4개 라벨<br>
+&nbsp;&nbsp;→ 부눈금 <code>0</code>이면 부눈금 없음. 부눈금 생략 시 주눈금의 1/3로 자동<br>
+&nbsp;&nbsp;→ 주눈금 10 미만은 라벨이 겹친다. 촘촘하게 하려면 <code>deg=10§2</code>처럼 부눈금만 늘릴 것<br>
+• <strong>nz</strong> — 배경 간섭파 개수 0~6. 균등 레인 분할이라 <strong>절대 겹치지 않는다</strong>. 무늬는 sys+r 해시로 고정(같은 URL이면 같은 무늬)<br>
+• <strong>th</strong> — <code>주색§배경§경고색</code>. 뒤 둘은 생략 가능(배경은 주색을 94% 어둡게 자동 생성). <code>#</code>는 빼도 되고 3자리(<code>88C</code>)도 인식. 잘못된 값은 조용히 기본 CRT그린으로 폴백<br>
+• <strong>tc</strong> — <code>위험§주의§우호§중립</code> 표적 상태색 전용. 기본 <code>EE1166 / FF7722 / 00BBDD / 주색상속</code>. 자리 비우기 가능 (<code>tc=§§§CCAA88</code>)<br>
+• <strong>높이 자동</strong> — 표적 0개 382px / 데이터 없는 표적 1개당 +26px / 데이터 있는 표적 1개당 +42px. 하나라도 데이터가 있으면 모든 행이 42px<br>
+<strong>인코딩:</strong> 공백 → +, ( → %28, ) → %29, # → %23</div>`
+      },
+      {
+        id:'t-st-term', title:'통신 터미널 / 로그 (?t=term)',
+        body:`<div class="label label-use">용도</div>
+<div class="desc">CRT 콘솔 화면에 뜨는 <strong>암호통신 로그</strong>. 헤더 4필드 + 화자별 대화 로그 + 깜빡이는 커서 + 하단 상태바로 구성. 스캔라인이 깔리고, 커서와 상태바가 각각 다른 주기로 점멸한다. 폭 260~720 조절, 높이는 로그량에 따라 자동.</div>
+<hr class="divider">
+<div class="label label-use">URL 파라미터 형식</div>
+<pre>/?t=term
+&w=폭                (기본 400, 260~720)
+&hl=라벨1§라벨2§라벨3§라벨4   (기본 LINK§T§NODE§SIG)
+&hd=값1§값2§값3§신호
+&me=주화자이름
+&cur=nl | end | off  (기본 nl)
+&st=하단상태바        (기본 TRANSMITTING...)
+&th=주색§배경§경고색
+&log=화자§내용|화자§내용|...</pre>
+<hr class="divider">
+<div class="label label-example">예시 — 기본 통신 로그</div>
+<pre>/?t=term&hd=SECURE§14:15-UTC§TAC_V4§~100&me=유저&log=유저§사피르+센티넬!+지금+가이드실로+와주세요|사피르§어라,+벌써+저를+찾아주시는+건가요?+바로+갈게요.|사피르§안+그래도+유저+씨+가이딩+파장이+그리웠는데+기대되네요.</pre>
+<div class="label label-example">예시 — 입력 중 연출 (커서가 마지막 글자 뒤에 붙음)</div>
+<pre>/?t=term&hd=SECURE§14:15-UTC§TAC_V4§~88&me=유저&cur=end&log=사피르§가이드실+도착했어요.+어디+계세요?|유저§지금+가는+중이야</pre>
+<div class="label label-example">예시 — 약신호 · 라벨 한글화 · 테마</div>
+<pre>/?t=term&w=440&th=8888CC&hl=회선§시각§중계§감도&hd=암호화§03:41§제3관측소§~25&st=신호+유실...&me=유저&log=???§...치직...+응답...+바랍니다|유저§들려요?+위치+말해줘</pre>
+<div class="label label-example">예시 — 커서 없음 (아카이브 기록 느낌)</div>
+<pre>/?t=term&cur=off&hl=기록§일시§단말§상태&hd=봉인해제§2187-04-02§ARC-09§100&st=RECORD+END&log=관측자§마지막+기록을+남긴다.|관측자§이+신호를+듣는+이가+있다면,+늦지+않았기를.</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명 — 전부 생략 가능. <code>/?t=term</code> 하나만으로도 렌더된다.</strong><br>
+• <strong>log</strong> — 대화 로그 (<code>|</code>로 반복). 각 항목은 <code>화자§내용</code>. 개수 제한 없고 높이는 자동<br>
+&nbsp;&nbsp;→ 줄바꿈 자동 (한글 13px / 영문 7.8px로 계산, <code>폭−48</code>에 맞춰 접음)<br>
+&nbsp;&nbsp;→ 같은 60자 문장이 w=260에선 4줄, w=400에선 3줄, w=720에선 2줄<br>
+&nbsp;&nbsp;→ 화자를 비우면 빈 태그 박스가 그려지므로 권장하지 않음<br>
+• <strong>me</strong> — 주 화자 이름. <code>log</code>의 화자와 <strong>정확히 일치하는 항목만</strong> 채움 태그(반전)로 강조되고, 나머지는 외곽선 태그<br>
+• <strong>hd</strong> — 헤더 값 4개. 4번째가 <strong>신호 필드</strong>로 특별 취급<br>
+&nbsp;&nbsp;→ <code>100</code> = <code>SIG: 100%</code> 텍스트 (<code>%</code>가 강제로 붙음)<br>
+&nbsp;&nbsp;→ <code>~100</code> = 안테나 5칸 + 숫자 / <code>~72</code> = 3칸 / <code>~25</code> = 2칸 / <code>~</code> = 안테나만<br>
+&nbsp;&nbsp;→ 60% 미만이면 마지막 켜진 칸이 점멸, 30% 미만이면 주기가 1.6초 → 0.9초로 빨라짐<br>
+• <strong>hl</strong> — 헤더 라벨 4개를 통째로 교체. 자리를 비우면(<code>hl=§§§감도</code>) 그 자리만 기본 라벨 유지<br>
+• <strong>cur</strong> — 커서 위치. <code>nl</code>(기본) 마지막 로그 아래 새 줄 / <code>end</code> 마지막 글자 바로 뒤(입력 중 연출) / <code>off</code> 커서 제거<br>
+&nbsp;&nbsp;→ 커서는 로그가 늘어나면 자동으로 따라 내려간다 (로그 1개당 약 55px)<br>
+&nbsp;&nbsp;→ <code>end</code>인데 로그가 없으면 좌측 기본 위치로 폴백<br>
+• <strong>w</strong> — 폭. 260 미만·720 초과는 자동 클램프<br>
+• <strong>th</strong> — radar와 동일한 3포지션 규칙<br>
+<strong>인코딩:</strong> 공백 → +, ( → %28, ) → %29, # → %23</div>`
+      },
+      {
         id:'t-st-8', title:'바베챗 프롬프트 (복사용)',
         body:`<div class="label label-use">RPG/VN 상태창 + 엔딩 프롬프트</div>
 <div class="desc">바베챗에 복사하여 사용. 도메인은 <strong>st.winter0.workers.dev</strong></div>
@@ -2608,6 +2700,29 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
 - r: 굴림값 지정 (§구분), 생략 시 서버가 랜덤으로 굴림
 - 모드: dc 있음=판정(성공/실패) / dmg 있음=데미지 / 둘 다 없음=굴림값 (dc 우선)
 - 1d20 자연20 대성공(황금 파티클)·자연1 대실패(크랙), label=상단 제목
+
+### 소나 레이더 / 탐지 화면
+![](https://st.winter0.workers.dev/?t=radar&sys=보고체계&r=스캔반경&unit=단위&spd=회전초&ring=동심원&nz=간섭파&deg=주눈금§부눈금&th=주색§배경§경고색&tc=위험§주의§우호§중립&tgt=이름§거리§방위§상태§데이터|...)
+- 전부 생략 가능. ?t=radar 만으로도 렌더됨
+- tgt: 이름§거리§방위§상태§데이터 — 이름만 필수, 뒤는 순서대로 생략 가능
+- 상태 앞 마커: ! 위험 / * 주의 / ~ 우호 / 없으면 중립
+- + 는 URL에서 공백이 되므로 우호 마커는 반드시 ~ 를 쓸 것
+- 방위 0~359 (자동 정규화), 거리가 스캔반경 초과 시 가장자리에 표시
+- deg=주눈금§부눈금 (기본 30§10, 범위 5~180). 부눈금 0이면 없음. 주눈금 10 미만은 라벨이 겹침
+- nz=0~6 배경 간섭파 (0이면 끔), ring=1~6 동심원, spd=1~30 회전초
+- 스윕이 표적 방위에 닿는 순간 핑 링이 퍼짐 (자동 동기화)
+- 폭 400 고정 / 높이 자동 (표적 수에 비례)
+
+### 통신 터미널 / 로그
+![](https://st.winter0.workers.dev/?t=term&w=폭&hl=라벨1§라벨2§라벨3§라벨4&hd=값1§값2§값3§신호&me=주화자&cur=nl|end|off&st=상태바&th=주색§배경§경고색&log=화자§내용|화자§내용)
+- 전부 생략 가능. ?t=term 만으로도 렌더됨
+- log: 화자§내용 (|로 반복). 개수 제한 없음, 줄바꿈·높이 자동
+- me: log의 화자와 정확히 일치하는 항목만 채움 태그로 강조
+- hd 4번째 = 신호 필드. 100 → "SIG: 100%" / ~100 → 안테나+숫자 / ~72 → 3칸 / ~ → 안테나만
+- 신호 60% 미만이면 마지막 칸 점멸, 30% 미만이면 더 빠르게
+- hl: 헤더 라벨 4개 교체 (자리 비우면 그 자리만 기본값 유지)
+- cur: nl(기본, 아래 새 줄) / end(마지막 글자 뒤, 입력 중 연출) / off(커서 없음)
+- w=260~720 (자동 클램프)
 
 ### 장비 등급 공통 (rarity)
 영문 대문자 표준, 한글 alias 자동 매핑, 입력 표기 그대로 표시
@@ -2802,7 +2917,7 @@ export default {
 /?t=wiki          위키 문서 📖     /?t=music         뮤직 플레이어 🎵
 /?t=poll          투표 📊       /?t=ask           익명 질문함 💌</pre>
 <hr class="divider">
-<div class="label label-example">st.winter0.workers.dev — RPG / VN 상태창 + 엔딩 + 선택지 + 던전 + MMO + 보상 + 게임오버 + 인벤 + 능력치 + 주사위 (14종)</div>
+<div class="label label-example">st.winter0.workers.dev — RPG / VN 상태창 + 엔딩 + 선택지 + 던전 + MMO + 보상 + 게임오버 + 인벤 + 능력치 + 주사위 + 소나레이더 + 통신터미널 (16종)</div>
 <pre># URL 형식 — 모두 /?t=타입&파라미터 형식
 /?t=vn            미연시 상태창
 /?t=vn2           미연시 상태창 v2 (상대 정보 풍부형, 1~6명 자동 레이아웃)

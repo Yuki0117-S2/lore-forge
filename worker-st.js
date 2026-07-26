@@ -3791,6 +3791,303 @@ function sdRollError() {
 }
 
 // ════════════════════════════════════════════
+//  RADAR / TERM  (콘솔·소나 계열)
+// ════════════════════════════════════════════
+
+function rtNum(v, fb, min, max) {
+  const n = parseFloat(v);
+  if (isNaN(n)) return fb;
+  return Math.min(max, Math.max(min, n));
+}
+function rtHex(s) {
+  s = (s || '').trim().replace(/^#/, '');
+  if (/^[0-9a-fA-F]{3}$/.test(s)) s = s.split('').map(c => c + c).join('');
+  return /^[0-9a-fA-F]{6}$/.test(s) ? '#' + s.toLowerCase() : null;
+}
+function rtRgb(h) { return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]; }
+function rtMix(a, b, r) {
+  const A = rtRgb(a), B = rtRgb(b);
+  return '#' + A.map((v, i) => Math.round(v + (B[i] - v) * r).toString(16).padStart(2, '0')).join('');
+}
+// th=주색[§배경][§경고색] — 통일 3포지션
+function rtTheme(raw) {
+  const p = (raw || '').split('§').map(rtHex);
+  const main = p[0] || '#22ff66';
+  const bg = p[1] || rtMix(main, '#000000', 0.94);
+  return {
+    main, bg,
+    warn: p[2] || '#EE1166',
+    dim: rtMix(main, bg, 0.55),
+    faint: rtMix(main, bg, 0.78),
+    hot: rtMix(main, '#ffffff', 0.55),
+    panel: rtMix(bg, main, 0.06),
+  };
+}
+function rtSeed(s) { let h = 2166136261; for (const c of String(s)) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function rtRnd(seed) { let x = seed || 1; return () => { x ^= x << 13; x >>>= 0; x ^= x >> 17; x ^= x << 5; x >>>= 0; return x / 4294967296; }; }
+
+// ── ① RADAR ──
+function renderRadar(params) {
+  const g = k => params.get(k);
+  const C = rtTheme(g('th'));
+  const range = rtNum(g('r'), 8000, 1, 9999999);
+  const spd = rtNum(g('spd'), 4, 1, 30);
+  const rings = Math.round(rtNum(g('ring'), 3, 1, 6));
+  const nz = Math.round(rtNum(g('nz'), 3, 0, 6));
+  const sys = g('sys') || 'SYSTEM';
+  const unit = g('unit') || 'm';
+
+  // deg=주눈금[§부눈금]  — 부눈금 0이면 없음
+  const dg = (g('deg') || '').split('§');
+  const major = Math.round(rtNum(dg[0], 30, 5, 180));
+  const minor = Math.round(rtNum(dg[1] === undefined || dg[1] === '' ? Math.max(0, Math.round(major / 3)) : dg[1], 0, 0, 180));
+
+  // tc=위험§주의§우호§중립
+  const T = (g('tc') || '').split('§').map(rtHex);
+  const TCOL = { 2: T[0] || C.warn, 1: T[1] || '#FF7722', 3: T[2] || '#00BBDD', 0: T[3] || C.main };
+
+  const tgts = (g('tgt') || '').split('|').filter(Boolean).map(s => {
+    const f = s.split('§');
+    let st = (f[3] || '').trim(), lv = 0;
+    if (st.startsWith('!')) { lv = 2; st = st.slice(1); }
+    else if (st.startsWith('*')) { lv = 1; st = st.slice(1); }
+    else if (st.startsWith('~') || st.startsWith('+')) { lv = 3; st = st.slice(1); }
+    return {
+      name: (f[0] || '').trim(),
+      dist: rtNum(f[1], 0, 0, 9999999),
+      brg: ((rtNum(f[2], 0, -3600, 3600) % 360) + 360) % 360,
+      st, lv, data: (f[4] || '').trim(),
+    };
+  }).filter(t => t.name);
+
+  const W = 400, R = 155, CX = W / 2, CY = 28 + R;
+  const scopeH = CY + R + 32;
+  const hasData = tgts.some(t => t.data);
+  const rowH = hasData ? 42 : 26;
+  const panelH = tgts.length ? 34 + tgts.length * rowH + 12 : 0;
+  const H = scopeH + panelH + 12;
+  const uid = 'rs' + (rtSeed(sys + range + tgts.length) % 100000);
+
+  let b = `<rect width="${W}" height="${H}" fill="${C.bg}"/>`;
+
+  // 부눈금 틱
+  if (minor > 0) {
+    for (let a = 0; a < 360; a += minor) {
+      if (a % major === 0) continue;
+      const rad = (a - 90) * Math.PI / 180, co = Math.cos(rad), si = Math.sin(rad);
+      b += `<line x1="${(CX + R * co).toFixed(1)}" y1="${(CY + R * si).toFixed(1)}" x2="${(CX + (R + 4) * co).toFixed(1)}" y2="${(CY + (R + 4) * si).toFixed(1)}" stroke="${C.dim}" stroke-width="1" opacity="0.7"/>`;
+    }
+  }
+  // 주눈금 틱 + 라벨
+  for (let a = 0; a < 360; a += major) {
+    const rad = (a - 90) * Math.PI / 180, co = Math.cos(rad), si = Math.sin(rad);
+    b += `<line x1="${(CX + R * co).toFixed(1)}" y1="${(CY + R * si).toFixed(1)}" x2="${(CX + (R + 7) * co).toFixed(1)}" y2="${(CY + (R + 7) * si).toFixed(1)}" stroke="${C.main}" stroke-width="1.3" opacity="0.85"/>`;
+    b += `<text x="${(CX + (R + 18) * co).toFixed(1)}" y="${(CY + (R + 18) * si + 4).toFixed(1)}" font-family="monospace" font-size="10.5" font-weight="600" fill="${C.dim}" text-anchor="middle">${a}</text>`;
+  }
+
+  b += `<clipPath id="${uid}"><circle cx="${CX}" cy="${CY}" r="${R}"/></clipPath>`;
+  b += `<circle cx="${CX}" cy="${CY}" r="${R}" fill="${C.panel}"/>`;
+
+  // 배경 간섭파 — 균등 레인 분할(겹침 구조적 불가)
+  let noise = '';
+  if (nz > 0) {
+    const rnd = rtRnd(rtSeed(sys + '|' + range));
+    const step = (R * 2) / (nz + 1);
+    const amp = Math.min(18, step * 0.34);
+    for (let i = 1; i <= nz; i++) {
+      const y0 = CY - R + step * i + (rnd() - 0.5) * step * 0.22;
+      const wl = R * (1.1 + rnd() * 0.9), ph = rnd() * 6.28, a = amp * (0.65 + rnd() * 0.35);
+      const yAt = x => y0 + Math.sin(ph + x / wl * 3.14) * a;
+      let d = `M${(CX - R).toFixed(1)} ${yAt(-R).toFixed(1)}`;
+      for (let x = -R + 32; x <= R; x += 32) {
+        d += ` Q${(CX + x - 16).toFixed(1)} ${yAt(x - 16).toFixed(1)} ${(CX + x).toFixed(1)} ${yAt(x).toFixed(1)}`;
+      }
+      noise += `<path d="${d}" fill="none" stroke="${C.faint}" stroke-width="0.9" opacity="0.55"/>`;
+    }
+  }
+  b += `<g clip-path="url(#${uid})">${noise}</g>`;
+
+  for (let i = 1; i <= rings; i++) {
+    b += `<circle cx="${CX}" cy="${CY}" r="${(R * i / (rings + 1)).toFixed(1)}" fill="none" stroke="${C.dim}" stroke-width="1" stroke-dasharray="3 4" opacity="0.75"/>`;
+  }
+  b += `<line x1="${CX - R}" y1="${CY}" x2="${CX + R}" y2="${CY}" stroke="${C.dim}" stroke-width="1" opacity="0.6"/>`;
+  b += `<line x1="${CX}" y1="${CY - R}" x2="${CX}" y2="${CY + R}" stroke="${C.dim}" stroke-width="1" opacity="0.6"/>`;
+
+  // 회전 스윕
+  const SEG = 9, SPAN = 62;
+  let sweep = '';
+  for (let i = 0; i < SEG; i++) {
+    const r0 = (-SPAN + i * (SPAN / SEG) - 90) * Math.PI / 180;
+    const r1 = (-SPAN + (i + 1) * (SPAN / SEG) - 90) * Math.PI / 180;
+    sweep += `<path d="M${CX} ${CY} L${(CX + R * Math.cos(r0)).toFixed(1)} ${(CY + R * Math.sin(r0)).toFixed(1)} A${R} ${R} 0 0 1 ${(CX + R * Math.cos(r1)).toFixed(1)} ${(CY + R * Math.sin(r1)).toFixed(1)} Z" fill="${C.main}" opacity="${(0.30 * (i + 1) / SEG).toFixed(3)}"/>`;
+  }
+  sweep += `<line x1="${CX}" y1="${CY}" x2="${CX}" y2="${CY - R}" stroke="${C.hot}" stroke-width="1.6" opacity="0.9"/>`;
+  b += `<g clip-path="url(#${uid})"><g>${sweep}<animateTransform attributeName="transform" type="rotate" values="0 ${CX} ${CY};360 ${CX} ${CY}" dur="${spd}s" repeatCount="indefinite"/></g></g>`;
+
+  // 표적 블립 + 핑 링
+  tgts.forEach(t => {
+    const rr = Math.min(R - 4, R * (t.dist / range));
+    const rad = (t.brg - 90) * Math.PI / 180;
+    const x = (CX + rr * Math.cos(rad)).toFixed(1), y = (CY + rr * Math.sin(rad)).toFixed(1);
+    const col = TCOL[t.lv];
+    const h0 = Math.max(0.0005, t.brg / 360);
+    const dec = Math.min(0.34, 1 - h0 - 0.0005);
+    const kt = `0;${(h0 - 0.0005).toFixed(4)};${h0.toFixed(4)};${(h0 + dec).toFixed(4)};1`;
+    const d2 = dec * 0.62;
+    const kt2 = `0;${(h0 - 0.0005).toFixed(4)};${h0.toFixed(4)};${(h0 + d2).toFixed(4)};1`;
+    b += `<circle cx="${x}" cy="${y}" r="3.1" fill="${col}" opacity="0.22"/>`;
+    b += `<circle cx="${x}" cy="${y}" fill="none" stroke="${col}" stroke-width="1.6" r="3.5" opacity="0"><animate attributeName="r" values="3.5;3.5;3.5;24;24" keyTimes="${kt}" dur="${spd}s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;0;0.85;0;0" keyTimes="${kt}" dur="${spd}s" repeatCount="indefinite"/></circle>`;
+    b += `<circle cx="${x}" cy="${y}" fill="none" stroke="${col}" stroke-width="1.1" r="3.5" opacity="0"><animate attributeName="r" values="3.5;3.5;3.5;14.5;14.5" keyTimes="${kt2}" dur="${spd}s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;0;0.5;0;0" keyTimes="${kt2}" dur="${spd}s" repeatCount="indefinite"/></circle>`;
+    b += `<circle cx="${x}" cy="${y}" r="3.9" fill="${t.lv === 0 ? C.hot : col}" opacity="0"><animate attributeName="opacity" values="0;0;1;0.15;0.15" keyTimes="${kt}" dur="${spd}s" repeatCount="indefinite"/></circle>`;
+  });
+
+  b += `<circle cx="${CX}" cy="${CY}" r="6" fill="none" stroke="${C.warn}" stroke-width="1.4" opacity="0.9"/>`;
+  b += `<circle cx="${CX}" cy="${CY}" r="2.5" fill="${C.warn}"/>`;
+  b += `<circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="${C.main}" stroke-width="2"/>`;
+
+  if (tgts.length) {
+    const py = scopeH;
+    const dataCol = rtMix(C.main, C.bg, 0.34);            // 부가설명 — 기존 dim보다 밝게
+    // 표적명 최대 폭 기준으로 거리 컬럼 정렬 (이름 길이 달라도 안 겹침)
+    const nameMax = Math.max(...tgts.map(t => rtTw('[' + t.name + ']', 12.5)));
+    const distX = Math.min(W - 200, 20 + nameMax + 16);
+    b += `<rect x="10" y="${py}" width="${W - 20}" height="${panelH}" fill="none" stroke="${C.main}" stroke-width="1.3" rx="2"/>`;
+    b += `<text x="20" y="${py + 20}" font-family="monospace" font-size="11.5" font-weight="600" fill="${C.main}">보고체계: ${esc(sys)}</text>`;
+    b += `<text x="${W - 20}" y="${py + 20}" font-family="monospace" font-size="11.5" font-weight="600" fill="${C.main}" text-anchor="end">스캔반경: ${range}${esc(unit)}</text>`;
+    b += `<line x1="16" y1="${py + 28}" x2="${W - 16}" y2="${py + 28}" stroke="${C.main}" stroke-width="1.1" opacity="0.55"/>`;
+    // 폭 초과 시 ① 폰트 축소(하한 8.5) ② 그래도 넘치면 말줄임 — 폭이 고정이라 잘림 방지
+    const fit = (txt, x, base) => {
+      const avail = W - 20 - x;
+      let fs = base;
+      const need = rtTw(txt, base);
+      if (need > avail) fs = Math.max(8.5, base * avail / need);
+      if (rtTw(txt, fs) > avail) {
+        let s = txt;
+        while (s.length > 1 && rtTw(s + '…', fs) > avail) s = s.slice(0, -1);
+        txt = s + '…';
+      }
+      return { fs: fs.toFixed(1), txt };
+    };
+    tgts.forEach((t, i) => {
+      const ty = py + 50 + i * rowH, col = TCOL[t.lv];
+      const nm = fit('[' + t.name + ']', 20, 12.5);
+      const ln = fit(`거리: ${t.dist}${unit}  |  상태: ${t.st}`, distX, 12.5);
+      b += `<text x="20" y="${ty}" font-family="monospace" font-size="${nm.fs}" fill="${col}" font-weight="bold">${esc(nm.txt)}</text>`;
+      b += `<text x="${distX.toFixed(1)}" y="${ty}" font-family="monospace" font-size="${ln.fs}" font-weight="600" fill="${col}">${esc(ln.txt)}</text>`;
+      if (t.data) {
+        const dt = fit('데이터: ' + t.data, 20, 11);
+        b += `<text x="20" y="${ty + 17}" font-family="monospace" font-size="${dt.fs}" font-weight="600" fill="${dataCol}">${esc(dt.txt)}</text>`;
+      }
+    });
+  }
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${b}</svg>`;
+}
+
+// ── ② TERM ──
+const RT_FS = 13, RT_LH = 21, RT_CW = RT_FS * 0.6;
+function rtTw(s, fs) { const f = fs || RT_FS, cw = f * 0.6; let w = 0; for (const c of s) w += c.charCodeAt(0) > 0x1100 ? f : cw; return w; }
+function rtWrap(s, maxW) {
+  const out = []; let line = '';
+  for (const ch of s) { if (rtTw(line + ch) > maxW) { out.push(line); line = ch; } else line += ch; }
+  if (line) out.push(line);
+  return out.length ? out : [''];
+}
+function rtSigBars(xRight, yBase, pct, C) {
+  const N = 5, BW = 3.5, GAP = 2.2, H0 = 3.5, STEP = 2.4;
+  const W = N * BW + (N - 1) * GAP, x0 = xRight - W;
+  const filled = Math.max(0, Math.min(N, Math.ceil(pct / 100 * N)));
+  let s = '';
+  for (let i = 0; i < N; i++) {
+    const h = H0 + i * STEP, on = i < filled;
+    const flick = (on && i === filled - 1 && pct < 60)
+      ? `<animate attributeName="opacity" values="1;1;0.15;1;1" keyTimes="0;0.3;0.42;0.55;1" dur="${pct < 30 ? 0.9 : 1.6}s" repeatCount="indefinite"/>` : '';
+    s += `<rect x="${(x0 + i * (BW + GAP)).toFixed(1)}" y="${(yBase - h).toFixed(1)}" width="${BW}" height="${h.toFixed(1)}" fill="${on ? C.main : C.faint}">${flick}</rect>`;
+  }
+  return { svg: s, width: W };
+}
+
+function renderTerm(params) {
+  const g = k => params.get(k);
+  const C = rtTheme(g('th'));
+  const W = rtNum(g('w'), 400, 260, 720);
+  const PAD = 22, INNER = W - PAD * 2 - 4;
+  const hd = (g('hd') || 'SECURE§--:--§NODE_0§100').split('§');
+  const me = (g('me') || '').trim();
+  const status = g('st') || 'TRANSMITTING...';
+  const curMode = (g('cur') || 'nl').toLowerCase();   // nl | end | off
+
+  const blocks = (g('log') || '').split('|').filter(Boolean).map(s => {
+    const f = s.split('§');
+    const txt = (f[1] || '').trim();
+    return { who: (f[0] || '').trim(), txt, lines: rtWrap(txt, INNER) };
+  });
+
+  const bodyH = blocks.reduce((a, x) => a + 24 + x.lines.length * RT_LH + 10, 0);
+  const HEAD = 62, CUR = curMode === 'off' ? 8 : 26, FOOT = 42;
+  const H = HEAD + bodyH + CUR + FOOT;
+
+  let b = `<rect width="${W}" height="${H}" fill="${C.bg}"/>`;
+  b += `<rect x="2" y="2" width="${W - 4}" height="${H - 4}" fill="none" stroke="${C.main}" stroke-width="2"/>`;
+  b += `<rect x="6" y="6" width="${W - 12}" height="${H - 12}" fill="none" stroke="${C.main}" stroke-width="1" opacity="0.45"/>`;
+
+  const hl = (g('hl') || '').split('§');
+  const DEFL = ['LINK', 'T', 'NODE', 'SIG'];
+  const L = i => (hl[i] !== undefined && hl[i] !== '') ? hl[i] : DEFL[i];
+  const HF = `font-family="monospace" font-size="12.5" font-weight="bold" fill="${C.main}"`;
+  b += `<text x="${PAD}" y="30" ${HF}>${esc(L(0))}: ${esc(hd[0] || '')}</text>`;
+  b += `<text x="${W - PAD}" y="30" ${HF} text-anchor="end">${esc(L(1))}: ${esc(hd[1] || '')}</text>`;
+  b += `<text x="${PAD}" y="48" ${HF}>${esc(L(2))}: ${esc(hd[2] || '')}</text>`;
+
+  const raw4 = (hd[3] || '').trim();
+  if (raw4.startsWith('~')) {
+    const rest = raw4.slice(1).trim();
+    const pct = rest === '' ? 100 : rtNum(rest, 100, 0, 100);
+    const bars = rtSigBars(W - PAD, 48, pct, C);
+    b += bars.svg;
+    let tx = W - PAD - bars.width - 6;
+    if (rest !== '') { b += `<text x="${tx.toFixed(1)}" y="48" ${HF} text-anchor="end">${pct}%</text>`; tx -= rtTw(pct + '%') + 6; }
+    b += `<text x="${tx.toFixed(1)}" y="48" ${HF} text-anchor="end">${esc(L(3))}:</text>`;
+  } else {
+    b += `<text x="${W - PAD}" y="48" ${HF} text-anchor="end">${esc(L(3))}: ${esc(raw4)}%</text>`;
+  }
+  b += `<line x1="${PAD - 6}" y1="${HEAD - 4}" x2="${W - PAD + 6}" y2="${HEAD - 4}" stroke="${C.main}" stroke-width="1.2"/>`;
+
+  let y = HEAD + 22, lastX = PAD, lastY = y;
+  blocks.forEach(bl => {
+    const tagW = rtTw(bl.who) + 14;
+    if (me && bl.who === me) {
+      b += `<rect x="${PAD}" y="${y - 12}" width="${tagW.toFixed(1)}" height="17" fill="${C.main}"/>`;
+      b += `<text x="${PAD + 7}" y="${y + 1}" font-family="monospace" font-size="12" fill="${C.bg}">${esc(bl.who)}</text>`;
+    } else {
+      b += `<rect x="${PAD}" y="${y - 12}" width="${tagW.toFixed(1)}" height="17" fill="none" stroke="${C.main}" stroke-width="1"/>`;
+      b += `<text x="${PAD + 7}" y="${y + 1}" font-family="monospace" font-size="12" fill="${C.main}">${esc(bl.who)}</text>`;
+    }
+    y += 22;
+    bl.lines.forEach(ln => {
+      b += `<text x="${PAD}" y="${y}" font-family="monospace" font-size="${RT_FS}" fill="${C.main}">${esc(ln)}</text>`;
+      lastX = PAD + rtTw(ln) + 3; lastY = y;
+      y += RT_LH;
+    });
+    y += 12;
+  });
+
+  if (curMode !== 'off') {
+    const cx = curMode === 'end' && blocks.length ? lastX : PAD;
+    const cy = curMode === 'end' && blocks.length ? lastY - 11 : y - 12;
+    b += `<rect x="${cx.toFixed(1)}" y="${cy.toFixed(1)}" width="9" height="15" fill="${C.main}"><animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.45;0.5;1" dur="1.1s" repeatCount="indefinite"/></rect>`;
+  }
+
+  b += `<line x1="${PAD - 6}" y1="${H - FOOT + 4}" x2="${W - PAD + 6}" y2="${H - FOOT + 4}" stroke="${C.main}" stroke-width="1.2"/>`;
+  b += `<text x="${PAD}" y="${H - 16}" font-family="monospace" font-size="12.5" font-weight="bold" fill="${C.main}">${esc(status)}<animate attributeName="opacity" values="1;1;0.25;1;1" keyTimes="0;0.35;0.5;0.65;1" dur="1.8s" repeatCount="indefinite"/></text>`;
+
+  let sl = '';
+  for (let sy = 0; sy < H; sy += 3) sl += `<rect x="0" y="${sy}" width="${W}" height="1" fill="${C.main}" opacity="0.04"/>`;
+  b += sl;
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${b}</svg>`;
+}
+
+// ════════════════════════════════════════════
 //  FETCH
 // ════════════════════════════════════════════
 export default {
@@ -3814,8 +4111,10 @@ export default {
     else if (t === 'inv') svg = renderInv(params);
     else if (t === 'stat') svg = renderStat(params);
     else if (t === 'roll') svg = renderRoll(params);
+    else if (t === 'radar') svg = renderRadar(params);
+    else if (t === 'term') svg = renderTerm(params);
     else {
-      return new Response('사용 가능: ?t=vn / ?t=vn2 / ?t=dark / ?t=pixel / ?t=ending / ?t=rpg2k / ?t=choice / ?t=dungeon / ?t=mmo / ?t=reward / ?t=gameover / ?t=inv / ?t=stat / ?t=roll', {
+      return new Response('사용 가능: ?t=vn / ?t=vn2 / ?t=dark / ?t=pixel / ?t=ending / ?t=rpg2k / ?t=choice / ?t=dungeon / ?t=mmo / ?t=reward / ?t=gameover / ?t=inv / ?t=stat / ?t=roll / ?t=radar / ?t=term', {
         status: 400, headers: { 'Content-Type': 'text/plain; charset=utf-8' }
       });
     }

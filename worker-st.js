@@ -3838,7 +3838,8 @@ function renderRadar(params) {
   const unit = g('unit') || 'm';
 
   // deg=주눈금[§부눈금]  — 부눈금 0이면 없음
-  const dg = (g('deg') || '').split('§');
+  // dg=주눈금[§부눈금] — deg는 &deg가 HTML 엔티티(°)로 해석되므로 dg 사용, deg는 하위호환
+  const dg = (g('dg') || g('deg') || '').split('§');
   const major = Math.round(rtNum(dg[0], 30, 5, 180));
   const minor = Math.round(rtNum(dg[1] === undefined || dg[1] === '' ? Math.max(0, Math.round(major / 3)) : dg[1], 0, 0, 180));
 

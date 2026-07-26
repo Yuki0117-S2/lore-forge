@@ -2452,7 +2452,7 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
 &spd=1회전초         (기본 4, 1~30)
 &ring=동심원개수     (기본 3, 1~6)
 &nz=배경간섭파       (기본 3, 0~6 / 0이면 끔)
-&deg=주눈금§부눈금   (기본 30§10)
+&dg=주눈금§부눈금    (기본 30§10)
 &th=주색§배경§경고색
 &tc=위험§주의§우호§중립
 &tgt=이름§거리§방위§상태§데이터|...</pre>
@@ -2460,11 +2460,11 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
 <div class="label label-example">예시 — 기본 소나</div>
 <pre>/?t=radar&sys=Sanctuary&r=8000&tgt=표적-01§1200§45§추적중§표적+이동+중|표적-02§800§128§!접근중§실체+개체+접근|표적-03§2600§300§*관측중§거대+열원+반응</pre>
 <div class="label label-example">예시 — 아군 포함 · 세밀 방위 · 테마 변경</div>
-<pre>/?t=radar&sys=제3관측소&r=5000&deg=15§5&th=8888CC&tgt=호위기§1400§60§~편대유지§신호+양호|미확인§3200§215§!미상§신호+불안정</pre>
+<pre>/?t=radar&sys=제3관측소&r=5000&dg=15§5&th=8888CC&tgt=호위기§1400§60§~편대유지§신호+양호|미확인§3200§215§!미상§신호+불안정</pre>
 <div class="label label-example">예시 — 근접 고속 스캔 (간섭파 끔)</div>
-<pre>/?t=radar&sys=CLOSE_IN&r=2000&spd=2&ring=1&nz=0&deg=45§15&tgt=적기§900§20§!교전중§고속+접근|잔해§1600§200§표류§금속+반응</pre>
+<pre>/?t=radar&sys=CLOSE_IN&r=2000&spd=2&ring=1&nz=0&dg=45§15&tgt=적기§900§20§!교전중§고속+접근|잔해§1600§200§표류§금속+반응</pre>
 <div class="label label-example">예시 — 광역 저속 · 단위 변경 · 색 재지정</div>
-<pre>/?t=radar&sys=DEEP_FIELD&r=50000&unit=km&spd=9&ring=5&deg=90§30&th=CCAA88§18120c&tc=EE1166§FF7722§884499&tgt=군집-A§12000§70§*관측중|미확인§46000§265§!미상§신호+불안정</pre>
+<pre>/?t=radar&sys=DEEP_FIELD&r=50000&unit=km&spd=9&ring=5&dg=90§30&th=CCAA88§18120c&tc=EE1166§FF7722§884499&tgt=군집-A§12000§70§*관측중|미확인§46000§265§!미상§신호+불안정</pre>
 <div class="label label-example">예시 — 표적 없이 스코프만</div>
 <pre>/?t=radar&sys=대기중&r=3000</pre>
 <hr class="divider">
@@ -2478,10 +2478,11 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
 • <strong>상태 앞 마커</strong> — <code>!</code> 위험 / <code>*</code> 주의 / <code>~</code> 우호 / 없으면 중립<br>
 &nbsp;&nbsp;→ <strong>주의: <code>+</code>는 URL에서 공백으로 디코딩되므로 우호 마커로 쓰면 안 된다. <code>~</code>를 쓸 것</strong> (<code>%2B</code>도 인식은 하지만 권장하지 않음)<br>
 &nbsp;&nbsp;→ 마커는 블립·핑링·보고패널 행 색을 한꺼번에 바꾼다<br>
-• <strong>deg</strong> — <code>주눈금§부눈금</code>. 주눈금은 숫자 라벨 + 긴 틱, 부눈금은 짧은 틱만. 범위 5~180<br>
+• <strong>dg</strong> — <code>주눈금§부눈금</code>. 주눈금은 숫자 라벨 + 긴 틱, 부눈금은 짧은 틱만. 범위 5~180<br>
 &nbsp;&nbsp;→ <code>30</code>=12개 / <code>15</code>=24개 / <code>10</code>=36개 / <code>45</code>=8개 / <code>90</code>=4개 라벨<br>
 &nbsp;&nbsp;→ 부눈금 <code>0</code>이면 부눈금 없음. 부눈금 생략 시 주눈금의 1/3로 자동<br>
-&nbsp;&nbsp;→ 주눈금 10 미만은 라벨이 겹친다. 촘촘하게 하려면 <code>deg=10§2</code>처럼 부눈금만 늘릴 것<br>
+&nbsp;&nbsp;→ 주눈금 10 미만은 라벨이 겹친다. 촘촘하게 하려면 <code>dg=10§2</code>처럼 부눈금만 늘릴 것<br>
+&nbsp;&nbsp;→ <strong>파라미터 이름은 반드시 <code>dg</code>. <code>&amp;deg</code>는 HTML 엔티티 <code>°</code>로 해석되어 URL이 깨진다</strong> (<code>deg</code>도 인식은 하지만 마크다운에서는 쓰지 말 것)<br>
 • <strong>nz</strong> — 배경 간섭파 개수 0~6. 균등 레인 분할이라 <strong>절대 겹치지 않는다</strong>. 무늬는 sys+r 해시로 고정(같은 URL이면 같은 무늬)<br>
 • <strong>th</strong> — <code>주색§배경§경고색</code>. 뒤 둘은 생략 가능(배경은 주색을 94% 어둡게 자동 생성). <code>#</code>는 빼도 되고 3자리(<code>88C</code>)도 인식. 잘못된 값은 조용히 기본 CRT그린으로 폴백<br>
 • <strong>tc</strong> — <code>위험§주의§우호§중립</code> 표적 상태색 전용. 기본 <code>EE1166 / FF7722 / 00BBDD / 주색상속</code>. 자리 비우기 가능 (<code>tc=§§§CCAA88</code>)<br>
@@ -2702,13 +2703,13 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
 - 1d20 자연20 대성공(황금 파티클)·자연1 대실패(크랙), label=상단 제목
 
 ### 소나 레이더 / 탐지 화면
-![](https://st.winter0.workers.dev/?t=radar&sys=보고체계&r=스캔반경&unit=단위&spd=회전초&ring=동심원&nz=간섭파&deg=주눈금§부눈금&th=주색§배경§경고색&tc=위험§주의§우호§중립&tgt=이름§거리§방위§상태§데이터|...)
+![](https://st.winter0.workers.dev/?t=radar&sys=보고체계&r=스캔반경&unit=단위&spd=회전초&ring=동심원&nz=간섭파&dg=주눈금§부눈금&th=주색§배경§경고색&tc=위험§주의§우호§중립&tgt=이름§거리§방위§상태§데이터|...)
 - 전부 생략 가능. ?t=radar 만으로도 렌더됨
 - tgt: 이름§거리§방위§상태§데이터 — 이름만 필수, 뒤는 순서대로 생략 가능
 - 상태 앞 마커: ! 위험 / * 주의 / ~ 우호 / 없으면 중립
 - + 는 URL에서 공백이 되므로 우호 마커는 반드시 ~ 를 쓸 것
 - 방위 0~359 (자동 정규화), 거리가 스캔반경 초과 시 가장자리에 표시
-- deg=주눈금§부눈금 (기본 30§10, 범위 5~180). 부눈금 0이면 없음. 주눈금 10 미만은 라벨이 겹침
+- dg=주눈금§부눈금 (기본 30§10, 범위 5~180). 부눈금 0이면 없음. 주눈금 10 미만은 라벨이 겹침
 - nz=0~6 배경 간섭파 (0이면 끔), ring=1~6 동심원, spd=1~30 회전초
 - 스윕이 표적 방위에 닿는 순간 핑 링이 퍼짐 (자동 동기화)
 - 폭 400 고정 / 높이 자동 (표적 수에 비례)

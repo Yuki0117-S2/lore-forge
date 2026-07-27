@@ -1965,7 +1965,7 @@ av — 직업 아이콘 키 (영어 소문자)</pre>`
 • <strong>rose</strong> — 꽃잎 N장 꽃 (꽃점 방식). hp=3/5면 세 잎 꽃 3송이 + 시든 줄기 2개. <em>잃을수록 꽃잎 자체가 줄어듦</em><br>
 • <strong>moon</strong> — 달 위상 (연속 변화). 보름달→하현→반달→초승달→신월로 살아있는 모든 달이 같이 이지러짐<br>
 • <strong>eye</strong> — 눈. 뜬 눈(살아있음) / 감은 눈(죽음). 호러 분위기<br>
-• <strong>spark</strong> — 비대칭 불꽃. 살아있는 자리 = 불꽃, 죽은 자리 = 연기</div>
+• <strong>spark</strong> — 촛불. 살아있는 자리 = 불꽃(겉 샌드 + 속 핑크 투톤), 죽은 자리 = 피어오르는 연기</div>
 <hr class="divider">
 <div class="label label-example">참고 사항</div>
 <div class="desc">
@@ -2369,7 +2369,7 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
 <div class="label label-example">타입 (type) → 아이콘</div>
 <div class="desc">
 • <strong>장비 3종</strong> (기존 equipIcon 재사용): <code>무기</code> / <code>방어구</code> / <code>장신구</code> (영문 WEAPON/ARMOR/ACC도 인식)<br>
-• <strong>신규 8종</strong>: <code>물약</code> / <code>폭탄</code> / <code>열쇠</code> / <code>재료</code>(=광석) / <code>음식</code> / <code>두루마리</code> / <code>보석</code> / <code>기타</code><br>
+• <strong>아이템 8종</strong>: <code>물약</code>(=포션) / <code>폭탄</code> / <code>열쇠</code> / <code>재료</code>(=광석) / <code>음식</code>(=빵·사과) / <code>두루마리</code>(=스크롤) / <code>보석</code> / <code>기타</code><br>
 • 매칭 안 되는 타입은 <code>기타</code>(주머니) 아이콘으로<br>
 • 무기도 격자 아이템 가능 (드랍된 장비 표현) — eq의 착용 무기와 같은 아이콘 공유</div>
 <hr class="divider">
@@ -2638,6 +2638,7 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
 ![](https://st.winter0.workers.dev/?t=rpg2k&p=이름§부제목§위치§장&hp=현재§최대§모드&items=아이템1|아이템2&log=일지1§일지2&say=하단+대사)
 - hp 모드: heart(기본) / rose / moon / eye / spark
 - rose는 꽃점 방식 — hp=3/5면 세 잎 꽃 3송이 + 시든 줄기 2개
+- eye는 뜬 눈/감은 눈, spark는 촛불/연기 — 호러·시한부 연출에 적합
 - moon은 연속 위상 변화 (보름→반달→초승달)
 - items: 아이템 목록 (|로 구분, 최대 12개). ◆ 아이콘 자동 추가, 3열 그리드 정렬
 - log: 일지/메모 (§로 줄바꿈, 최대 4줄). · 점 자동 추가, 이탤릭
@@ -2735,7 +2736,7 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
   이름 앞 *를 붙이면 신규 드랍 = 빛이 위→아래로 흐르는 스윕 애니 + 이름 강조
 - 타입이 칸 아이콘 결정:
   장비) 무기 / 방어구 / 장신구 (equipIcon 공용 — 드랍 무기도 가능)
-  소비·기타) 물약 / 폭탄 / 열쇠 / 재료 / 음식 / 두루마리 / 보석 / 기타
+  소비·기타) 물약 / 폭탄 / 열쇠 / 재료(=광석) / 음식(=빵·사과) / 두루마리 / 보석 / 기타
 - eq: 착용 장비 줄 (무기§등급§방어구§등급§장신구§등급). 입력 시 가방 위 EQUIPPED 줄, 생략 시 순수 격자
 - legend/epic 칸은 테두리 펄스 자동, * 칸은 빛 스윕 자동 (둘 다 SMIL)
 - 용도 구분: reward=방금 획득한 보상 목록 / inv=가방에 보관 중인 소지품 전체

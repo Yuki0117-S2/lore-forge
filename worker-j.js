@@ -122,11 +122,75 @@ const TEMPLATES = {
 \u27e6BODY\u27e7
 </body>
 </html>`,
+'heist': `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background:#E5DCC6; }
+  .ht { width: 420px; padding: 16px 18px 18px; position: relative; overflow: hidden;
+        font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif; }
+  .ht.lupin { background-color:#E5DCC6;
+    background-image: repeating-linear-gradient(0deg, rgba(45,38,26,.055) 0 1px, transparent 1px 4px);
+    color:#332C22; }
+  .ht.kid { background-color:#14121C;
+    background-image: repeating-linear-gradient(0deg, rgba(255,255,255,.045) 0 1px, transparent 1px 4px);
+    color:#C9C4D8; }
+  .fg { font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif; }
+  .fm { font-family: 'Courier New', monospace; }
+  .fs { font-family: Georgia, 'Times New Roman', serif; }
+  /* 오려붙인 조각 */
+  .hc { display: inline-block; padding: 1px 6px; margin: 1px 0; line-height: 1.25; }
+  .lupin .hc { border-right: 1px solid rgba(60,50,35,.24); border-bottom: 1px solid rgba(60,50,35,.24); }
+  .kid .hc { border-right: 1px solid rgba(0,0,0,.5); border-bottom: 1px solid rgba(0,0,0,.5); }
+  /* 테이프 */
+  .ht-tape { position: absolute; top: 8px; width: 60px; height: 16px; }
+  .ht-tape.l { left: -14px; transform: rotate(-32deg); }
+  .ht-tape.r { right: -14px; transform: rotate(32deg); }
+  .lupin .ht-tape { background: rgba(255,255,255,.5); border: 1px solid rgba(120,108,84,.3); }
+  .kid .ht-tape { background: rgba(136,136,204,.28); border: 1px solid rgba(136,136,204,.4); }
+  /* 제목/구분선/수신/본문 */
+  .ht-title { text-align: center; margin: 8px 0 12px; }
+  .ht-div { border-top: 1px solid rgba(45,38,26,.35); margin: 0 2px 10px; }
+  .kid .ht-div { border-top-color: rgba(136,136,204,.35); }
+  .ht-to { font-size: 12px; letter-spacing: 1px; margin-bottom: 5px; color: #6B5F4B; }
+  .kid .ht-to { color: #00BBDD; }
+  .ht-body { font-size: 15px; line-height: 2.2; word-break: break-word; }
+  /* 하단 */
+  .ht-foot { display: flex; align-items: flex-end; justify-content: space-between; margin-top: 14px; gap: 10px; }
+  .ht-place { font-size: 11px; letter-spacing: 1px; border-left: 2px solid #CCAA88; padding-left: 6px; color: #7A6C55; }
+  .kid .ht-place { border-left-color: #8888CC; color: #9a92b8; }
+  .ht-from { font-family: Georgia, serif; font-style: italic; font-size: 13px; margin-top: 6px; color: #4A4032; }
+  .kid .ht-from { color: #8888CC; letter-spacing: 2px; }
+  .ht-seal { flex-shrink: 0; }
+  /* card 서브타입 */
+  .ht.card { display: flex; align-items: center; gap: 14px; padding: 16px; }
+  .ht-cl { flex: 1; min-width: 0; }
+  .ht-chead { font-size: 11px; letter-spacing: 2px; margin-bottom: 8px; color: #7A6C55; }
+  .kid .ht-chead { color: #00BBDD; }
+  .ht-cfrom { margin-top: 12px; border-top: 1px solid rgba(45,38,26,.3); padding-top: 7px;
+              font-family: Georgia, serif; font-style: italic; font-size: 13px; color: #4A4032; }
+  .kid .ht-cfrom { border-top-color: rgba(136,136,204,.3); color: #8888CC; letter-spacing: 3px; }
+  .ht-trump { width: 64px; height: 90px; border-radius: 4px; position: relative; flex-shrink: 0;
+              display: flex; align-items: center; justify-content: center; transform: rotate(8deg); }
+  .lupin .ht-trump { background: #F7F3E7; }
+  .kid .ht-trump { background: #EFECE2; }
+  .ht-tc { position: absolute; font-size: 11px; font-family: Georgia, serif; color: #14121C; }
+  .ht-tc.tl { top: 4px; left: 6px; }
+  .ht-tc.br { bottom: 4px; right: 6px; }
+</style>
+</head>
+<body>
+\u27e6BODY\u27e7
+</body>
+</html>`,
 };
 
 const SIZES = {
   'cal': [420, 600],
   'pay': [420, 560],
+  'heist': [420, 560],
 };
 
 // ══════════════════════════════════════════════════════════════
@@ -466,9 +530,185 @@ function renderPay(html, url) {
   return out;
 }
 
+// ══════════════════════════════════════════════════════════════
+// 🎩 HEIST (괴도 예고장) — 신문 활자 오려붙임
+// sub=note(전면)/card(명함) · st=lupin/kid (th 1필드와 동일)
+// title=제목(글자단위 조각화) · to=수신 · body=본문(|줄, *조각*)
+// place=장소메모 · from=서명 · mark=hat/rose/spade/mask/fox/key/moon
+// markcol=왁스색hex · markfg=문양색hex · markchar=트럼프 코너 글자
+// th=스타일[§배경hex][§강조hex] — 3필드 위치규칙 (스타일=lupin/kid)
+// ══════════════════════════════════════════════════════════════
+
+const HEIST_MARKS = {
+  'hat':   { body: '<g fill="\u27e6F\u27e7"><rect x="-6" y="-13" width="12" height="12"/><rect x="-7.5" y="-5" width="15" height="2.6"/><ellipse cx="0" cy="-1.2" rx="13" ry="3"/><path d="M0 3 m-4,0 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0 Z M0 3 m-2.4,0 a2.4,2.4 0 1,0 4.8,0 a2.4,2.4 0 1,0 -4.8,0 Z" fill-rule="evenodd"/><rect x="4" y="2.2" width="7" height="1.6"/></g>' },
+  'spade': { body: '<path fill="\u27e6F\u27e7" d="M0 -13 C-6 -6 -12 -3 -12 2 C-12 6 -8 8 -5 6 C-4 5.5 -3 5 -2 5 L-4 12 L4 12 L2 5 C3 5 4 5.5 5 6 C8 8 12 6 12 2 C12 -3 6 -6 0 -13 Z"/>' },
+  'moon':  { body: '<g fill="\u27e6F\u27e7"><path d="M4.8 -11 A12 12 0 1 0 4.8 11 A11 11 0 0 1 4.8 -11 Z"/><circle cx="9.5" cy="-7" r="1.7"/><circle cx="12" cy="1.5" r="1.1"/></g>' },
+  'rose':  { body: '<path fill="\u27e6F\u27e7" transform="scale(0.115) translate(-142,-126)" d="M 127 226 L 123 223 L 117 223 L 101 235 L 93 235 L 86 232 L 80 227 L 69 236 L 65 245 L 118 245 L 126 236 Z M 242 158 L 236 155 L 229 155 L 218 159 L 203 172 L 152 207 L 137 222 L 137 228 L 140 234 L 153 245 L 196 245 L 199 235 L 200 223 L 204 213 L 208 208 L 219 201 L 238 194 L 244 187 L 247 180 L 247 168 Z M 208 157 L 204 145 L 202 143 L 191 163 L 180 172 L 167 179 L 153 182 L 134 183 L 112 189 L 86 185 L 86 188 L 101 205 L 114 214 L 128 220 L 134 217 L 159 196 L 205 165 L 208 161 Z M 196 145 L 194 143 L 164 157 L 147 167 L 136 172 L 124 175 L 111 174 L 72 161 L 46 150 L 58 168 L 66 176 L 70 178 L 100 182 L 117 182 L 137 176 L 156 175 L 168 172 L 183 163 Z M 7 136 L 15 148 L 17 159 L 11 184 L 10 196 L 15 209 L 21 215 L 33 219 L 55 219 L 81 215 L 85 219 L 87 225 L 93 229 L 100 229 L 113 220 L 111 217 L 97 207 L 79 186 L 61 180 L 54 173 L 31 134 L 26 132 Z M 184 140 L 170 113 L 154 127 L 142 133 L 125 138 L 112 144 L 95 155 L 89 161 L 115 170 L 126 170 L 184 142 Z M 104 112 L 100 126 L 101 144 L 119 135 Z M 124 102 L 124 116 L 133 131 L 139 123 L 143 113 L 143 109 L 127 102 Z M 153 98 L 146 102 L 146 106 L 153 101 Z M 167 91 L 160 99 L 149 108 L 141 127 L 157 118 L 167 108 L 169 104 L 169 94 Z M 156 94 L 149 90 L 139 93 L 134 101 L 142 102 L 145 97 Z M 42 81 L 32 86 L 13 104 L 6 116 L 6 119 L 16 119 L 23 122 L 32 130 L 43 145 L 63 153 L 48 125 L 44 114 L 41 99 Z M 163 81 L 159 78 L 151 78 L 144 81 L 137 81 L 128 88 L 126 93 L 127 97 L 130 100 L 132 95 L 138 89 L 145 86 L 154 87 L 160 92 L 163 86 Z M 241 60 L 235 63 L 228 73 L 229 83 L 242 102 L 247 117 L 245 132 L 235 147 L 246 154 L 259 154 L 268 150 L 272 146 L 277 137 L 278 126 L 274 115 L 266 105 L 260 94 L 261 72 L 259 67 L 250 60 Z M 109 86 L 105 101 L 106 108 L 111 117 L 120 127 L 118 114 L 118 100 L 122 90 L 127 83 L 133 78 L 141 75 L 155 75 L 166 79 L 170 83 L 175 94 L 175 111 L 180 124 L 193 139 L 198 139 L 200 137 L 203 129 L 203 114 L 200 105 L 193 93 L 176 79 L 172 70 L 171 62 L 168 58 L 161 58 L 146 68 L 124 74 L 115 79 Z M 148 58 L 129 55 L 121 55 L 112 60 L 100 76 L 99 89 L 109 76 L 117 70 L 147 61 Z M 100 45 L 83 81 L 85 95 L 94 106 L 98 108 L 98 96 L 94 86 L 94 79 L 111 54 L 120 50 L 132 52 L 144 51 L 151 56 L 161 52 L 168 52 L 176 61 L 180 77 L 199 92 L 206 104 L 209 114 L 206 143 L 212 156 L 219 155 L 230 147 L 238 133 L 239 115 L 224 86 L 222 62 L 217 54 L 210 51 L 202 51 L 191 38 L 171 37 L 142 26 L 122 29 L 109 36 Z M 93 19 L 79 22 L 68 33 L 64 51 L 52 69 L 47 89 L 48 108 L 57 134 L 66 151 L 69 154 L 79 158 L 86 156 L 97 147 L 94 130 L 96 114 L 84 100 L 77 89 L 77 77 L 86 62 L 89 52 L 100 36 L 109 27 L 105 23 Z M 112 24 L 125 22 L 142 23 L 171 33 L 179 33 L 193 29 L 191 22 L 182 15 L 158 15 L 150 9 L 143 6 L 134 6 L 129 8 Z"/>' },
+  'fox':   { body: '<path fill="\u27e6F\u27e7" transform="scale(0.0575) translate(-400,-390)" d="M 518 404 L 517 404 L 511 413 L 500 425 L 486 438 L 454 463 L 424 483 L 395 500 L 367 514 L 365 514 L 343 524 L 335 526 L 332 528 L 329 528 L 326 530 L 323 530 L 302 537 L 294 538 L 294 540 L 302 541 L 316 545 L 321 545 L 327 547 L 332 547 L 333 548 L 338 548 L 345 550 L 351 550 L 352 551 L 372 552 L 373 553 L 417 553 L 418 542 L 422 529 L 433 508 L 447 490 L 468 469 L 482 457 L 498 440 L 511 421 L 517 409 Z M 497 325 L 496 325 L 496 327 L 497 328 L 497 337 L 496 338 L 496 342 L 495 343 L 493 351 L 490 357 L 488 359 L 487 362 L 480 370 L 480 371 L 466 385 L 465 385 L 461 389 L 460 389 L 457 392 L 456 392 L 453 395 L 452 395 L 449 398 L 448 398 L 444 402 L 443 402 L 439 406 L 438 406 L 426 418 L 426 419 L 422 423 L 422 424 L 419 427 L 419 428 L 415 433 L 414 436 L 412 438 L 406 450 L 406 452 L 404 455 L 403 460 L 401 463 L 401 466 L 400 467 L 400 470 L 399 471 L 399 474 L 398 476 L 415 468 L 417 466 L 431 459 L 433 457 L 436 456 L 444 450 L 447 449 L 449 447 L 456 443 L 459 440 L 460 440 L 463 437 L 464 437 L 467 434 L 468 434 L 474 428 L 475 428 L 492 411 L 492 410 L 495 407 L 495 406 L 498 403 L 498 402 L 502 397 L 509 383 L 509 381 L 511 377 L 511 374 L 512 373 L 512 367 L 513 366 L 513 356 L 512 355 L 512 350 L 511 349 L 511 346 L 506 335 L 504 333 L 504 332 Z M 480 350 L 419 364 L 384 383 L 370 395 L 349 422 L 318 483 L 303 497 L 285 506 L 271 506 L 255 496 L 245 477 L 244 455 L 253 431 L 291 386 L 299 371 L 249 394 L 225 418 L 218 434 L 216 451 L 220 472 L 230 490 L 244 504 L 258 511 L 247 511 L 230 504 L 214 489 L 204 469 L 201 445 L 206 422 L 220 399 L 236 385 L 297 364 L 304 356 L 309 336 L 309 308 L 303 283 L 286 251 L 269 234 L 268 259 L 255 284 L 237 302 L 184 341 L 154 378 L 145 397 L 139 422 L 139 450 L 144 472 L 165 508 L 189 528 L 222 541 L 254 543 L 228 535 L 200 513 L 236 525 L 275 524 L 323 511 L 381 485 L 390 449 L 406 417 L 428 392 L 466 365 Z M 595 153 L 561 181 L 547 197 L 541 209 L 541 213 L 547 218 L 509 215 L 489 219 L 491 216 L 521 208 L 497 179 L 471 164 L 474 182 L 473 224 L 455 238 L 434 262 L 391 278 L 396 288 L 415 299 L 432 303 L 472 304 L 501 315 L 525 338 L 538 370 L 539 392 L 527 426 L 511 447 L 471 482 L 451 505 L 440 525 L 434 552 L 467 547 L 496 538 L 537 516 L 574 480 L 596 442 L 608 398 L 609 353 L 603 323 L 590 293 L 565 262 L 543 247 L 513 238 L 482 240 L 508 230 L 539 231 L 564 241 L 595 268 L 603 205 L 602 181 Z M 570 360 L 578 373 L 582 385 L 583 396 L 584 397 L 584 413 L 583 414 L 582 425 L 579 432 L 579 435 L 572 450 L 564 463 L 554 476 L 532 497 L 506 514 L 490 521 L 476 525 L 475 524 L 490 515 L 508 500 L 523 483 L 535 465 L 544 445 L 548 431 L 548 427 L 549 426 L 549 420 L 550 419 L 550 395 L 549 394 L 549 388 L 550 387 L 555 397 L 555 400 L 557 404 L 558 412 L 559 413 L 559 419 L 560 420 L 560 435 L 559 436 L 559 442 L 557 449 L 558 449 L 565 438 L 571 424 L 571 421 L 574 413 L 574 408 L 575 407 L 575 384 L 574 383 L 574 378 L 573 377 L 572 370 L 569 363 Z M 465 269 L 471 263 L 471 262 L 473 260 L 474 260 L 477 257 L 478 257 L 479 256 L 480 256 L 481 255 L 483 255 L 484 254 L 498 254 L 499 255 L 502 255 L 503 256 L 506 256 L 507 257 L 509 257 L 510 258 L 511 258 L 512 259 L 513 259 L 514 260 L 516 260 L 517 261 L 518 261 L 519 262 L 520 262 L 521 263 L 520 264 L 517 264 L 516 263 L 501 263 L 500 264 L 498 264 L 497 265 L 495 265 L 494 266 L 492 266 L 491 267 L 490 267 L 489 268 L 487 268 L 486 269 L 484 269 L 483 270 L 479 270 L 478 271 L 469 271 L 468 270 L 466 270 Z"/>' },
+  'key':   { body: '<path fill="\u27e6F\u27e7" stroke="\u27e6F\u27e7" stroke-width="40" transform="rotate(20) scale(0.0155) translate(-853,-736)" d="M 1669 59 L 1610 19 L 1546 11 L 1437 76 L 1375 20 L 1301 0 L 1180 44 L 1131 121 L 1134 227 L 1194 307 L 1288 340 L 1221 360 L 1213 410 L 1153 405 L 1141 481 L 395 1162 L 370 1136 L 461 1052 L 420 1008 L 387 1021 L 370 1004 L 387 972 L 293 870 L 213 942 L 281 1016 L 248 1048 L 177 976 L 113 1034 L 180 1108 L 145 1141 L 76 1068 L 1 1137 L 91 1243 L 123 1230 L 141 1247 L 124 1279 L 164 1323 L 256 1241 L 279 1265 L 194 1346 L 202 1365 L 140 1389 L 146 1455 L 219 1459 L 243 1402 L 257 1416 L 1210 538 L 1275 544 L 1279 481 L 1327 478 L 1354 412 L 1377 505 L 1451 574 L 1553 588 L 1639 546 L 1694 433 L 1682 356 L 1630 287 L 1677 246 L 1705 181 L 1702 120 Z M 1225 86 L 1279 62 L 1309 62 L 1347 75 L 1389 117 L 1403 177 L 1478 175 L 1479 141 L 1490 114 L 1529 81 L 1577 77 L 1601 86 L 1621 103 L 1640 139 L 1637 186 L 1603 227 L 1575 238 L 1535 237 L 1526 309 L 1591 335 L 1612 357 L 1628 387 L 1630 448 L 1600 498 L 1551 526 L 1503 527 L 1464 510 L 1431 475 L 1419 445 L 1417 408 L 1442 348 L 1425 329 L 1466 322 L 1485 295 L 1476 255 L 1448 228 L 1426 220 L 1396 227 L 1386 239 L 1377 277 L 1359 257 L 1319 275 L 1270 275 L 1238 262 L 1214 242 L 1189 197 L 1187 152 L 1201 114 Z"/>' },
+  'mask':  { body: '<path fill="\u27e6F\u27e7" stroke="\u27e6F\u27e7" stroke-width="9" stroke-linejoin="round" transform="scale(0.062) translate(-228,-196)" d="M 15 122 L 54 171 L 8 137 L 12 160 L 87 207 L 66 306 L 95 211 L 81 337 L 98 384 L 96 240 L 113 365 L 102 222 L 173 281 L 270 258 L 352 282 L 408 252 L 446 173 L 448 123 L 419 230 L 365 275 L 260 254 L 171 276 L 104 205 L 177 272 L 262 248 L 354 272 L 413 230 L 441 139 L 409 163 L 406 147 L 327 142 L 265 190 L 211 144 L 111 143 L 206 137 L 266 182 L 322 138 L 423 139 L 341 130 L 282 155 L 266 112 L 248 154 L 197 131 L 113 137 L 129 84 L 175 65 L 121 63 L 83 109 L 87 52 L 121 8 L 57 48 L 56 130 L 30 53 Z M 138 188 L 140 186 L 187 185 L 200 188 L 211 194 L 222 204 L 234 225 L 206 230 L 189 230 L 177 227 L 161 218 L 149 206 Z M 393 188 L 381 208 L 372 217 L 355 227 L 342 230 L 327 230 L 303 227 L 297 224 L 309 204 L 331 188 L 343 185 L 363 185 L 367 179 L 370 179 L 377 186 L 391 186 Z M 91 165 L 95 165 L 102 170 L 108 183 L 107 195 L 97 206 L 90 204 L 86 200 L 81 189 L 82 176 Z M 31 116 L 48 143 L 65 160 L 79 170 L 78 173 L 65 165 L 48 149 L 36 132 L 30 119 Z M 119 81 L 120 83 L 107 100 L 99 118 L 95 138 L 95 155 L 92 158 L 91 137 L 96 115 L 107 94 Z M 83 39 L 84 41 L 77 53 L 72 68 L 69 102 L 72 123 L 78 143 L 85 156 L 85 162 L 79 157 L 72 142 L 65 110 L 65 82 L 69 64 L 78 44 Z"/>' },
+};
+
+function heistHash(s) {
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
+  return h;
+}
+
+function heistMark(name, fill) {
+  const m = HEIST_MARKS[name] || HEIST_MARKS['hat'];
+  return m.body.split('\u27e6F\u27e7').join(fill);
+}
+
+// 실링왁스 인장 SVG (note 하단) — markcol 기준 음영 자동산출
+function heistSeal(mark, waxCol, fgCol, rot) {
+  const waxDark = themeMix(waxCol, '#000000', 0.4);
+  const waxHi = themeMix(waxCol, '#ffffff', 0.22);
+  const waxIn = themeMix(waxCol, '#000000', 0.18);
+  const engraved = heistMark(mark, fgCol);
+  const shadow = heistMark(mark, waxDark);
+  return '<svg width="64" height="64" viewBox="-32 -32 64 64">'
+    + '<defs><radialGradient id="hswx" cx="34%" cy="26%" r="78%">'
+    + '<stop offset="0" stop-color="' + waxHi + '"/><stop offset="0.5" stop-color="' + waxCol + '"/><stop offset="1" stop-color="' + waxDark + '"/></radialGradient>'
+    + '<radialGradient id="hswi" cx="36%" cy="28%" r="74%">'
+    + '<stop offset="0" stop-color="' + themeMix(waxCol, '#ffffff', 0.1) + '"/><stop offset="1" stop-color="' + waxIn + '"/></radialGradient></defs>'
+    + '<path transform="rotate(' + rot + ')" d="M27 0 C27 10 24 15 19 19 C13 24 6 25 0 24 C-8 23 -16 25 -20.5 20.5 C-26 15 -24 7 -26 0 C-28 -8 -23 -14 -17.7 -17.7 C-12 -22 -6 -27 0 -28 C8 -29 13 -21 17 -17 C22 -12 27 -8 27 0 Z" fill="url(#hswx)"/>'
+    + '<circle r="19" fill="url(#hswi)"/><circle r="19" fill="none" stroke="' + waxDark + '" stroke-width="1.4"/>'
+    + '<path d="M-15 -10 A18.5 18.5 0 0 1 -3 -18.2" fill="none" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="2.4" stroke-linecap="round"/>'
+    + '<g transform="translate(1.2,1.4)">' + shadow + '</g>' + engraved
+    + '</svg>';
+}
+
+// 조각 팔레트: [배경, 글자색, 폰트클래스, 크기px]
+const HEIST_PAL = {
+  'lupin': [
+    ['#F7F3E7', '#191510', 'fg', 17], ['#191510', '#F4EFE0', 'fm', 16],
+    ['#CCAA88', '#3A2A18', 'fg', 17], ['#F0E8D4', '#191510', 'fg', 18],
+    ['#BB6688', '#2C0F1B', 'fg', 16], ['#D8CDB2', '#191510', 'fs', 17],
+  ],
+  'kid': [
+    ['#EFECE2', '#14121C', 'fg', 19], ['#8888CC', '#191430', 'fg', 17],
+    ['#D6D2C4', '#14121C', 'fs', 18], ['#00BBDD', '#062A33', 'fg', 17],
+    ['#EE1166', '#F6E4EA', 'fm', 16],
+  ],
+};
+
+const HEIST_ROT = [-3, 2, -2, 4, -4, 3];
+
+// *조각* 파싱 → 조각 span + 일반 텍스트
+function heistLine(line, pal, seed, counter) {
+  let out = '';
+  const parts = line.split(/(\*[^*]+\*)/);
+  for (const p of parts) {
+    if (!p) continue;
+    if (p.length > 2 && p.startsWith('*') && p.endsWith('*')) {
+      const txt = p.slice(1, -1);
+      const c = pal[(seed + counter.n * 3 + heistHash(txt)) % pal.length];
+      const rot = HEIST_ROT[(seed + counter.n) % HEIST_ROT.length];
+      out += '<span class="hc ' + c[2] + '" style="background:' + c[0] + ';color:' + c[1]
+        + ';font-size:' + c[3] + 'px;font-weight:' + (c[3] >= 17 ? '600' : '400')
+        + ';transform:rotate(' + rot + 'deg)">' + jEsc(txt) + '</span>';
+      counter.n++;
+    } else {
+      out += jEsc(p);
+    }
+  }
+  return out;
+}
+
+// 제목: 글자 단위 조각화
+function heistTitle(title, pal, seed) {
+  const sizes = [32, 30, 34];
+  const rots = [-4, 3, -2, 4];
+  let out = '';
+  let i = 0;
+  for (const ch of title) {
+    if (ch === ' ') { out += '<span style="display:inline-block;width:8px"></span>'; continue; }
+    const c = pal[(seed + i) % 3];
+    out += '<span class="hc fg" style="background:' + c[0] + ';color:' + c[1]
+      + ';font-size:' + sizes[i % 3] + 'px;font-weight:' + (i % 2 ? '400' : '600')
+      + ';transform:rotate(' + rots[(seed + i) % 4] + 'deg)' + (i % 3 === 1 ? ';padding:2px 8px' : '') + '">'
+      + jEsc(ch) + '</span>';
+    i++;
+  }
+  return out;
+}
+
+function heistTheme(url) {
+  const out = { style: 'lupin', bg: null, acc: null };
+  const st = (url.searchParams.get('st') || '').toLowerCase();
+  if (st === 'kid' || st === 'lupin') out.style = st;
+  const raw = url.searchParams.get('th');
+  if (!raw) return out;
+  const f = raw.split('\u00a7').map(s => s.trim()).filter(s => s.length);
+  let i = 0;
+  const s0 = (f[0] || '').toLowerCase();
+  if (s0 === 'lupin' || s0 === 'kid') { out.style = s0; i = 1; }
+  if (f[i]) { const hx = jHex(f[i]); if (hx) { out.bg = hx; i++; } }
+  if (f[i]) { const hx = jHex(f[i]); if (hx) out.acc = hx; }
+  return out;
+}
+
+function renderHeist(html, url) {
+  const th = heistTheme(url);
+  const kid = th.style === 'kid';
+  const pal = HEIST_PAL[th.style];
+  const sub = (url.searchParams.get('sub') || 'note').toLowerCase();
+  const title = url.searchParams.get('title') || '\uc608\uace0\uc7a5';
+  const to = url.searchParams.get('to') || '';
+  const bodyRaw = url.searchParams.get('body') || '';
+  const place = url.searchParams.get('place') || '';
+  const from = url.searchParams.get('from') || '';
+  const mark = (url.searchParams.get('mark') || (kid ? 'hat' : 'rose')).toLowerCase();
+  const waxCol = jHex(url.searchParams.get('markcol')) || (kid ? '#8888CC' : '#BB6688');
+  const fgCol = jHex(url.searchParams.get('markfg')) || (kid ? '#EFECE2' : '#DDAACC');
+  const markchar = url.searchParams.get('markchar') || (kid ? 'K' : 'A');
+  const seed = heistHash(title + bodyRaw + to) % 97;
+  const sealRot = (seed % 25) - 12;
+
+  const counter = { n: 0 };
+  const bodyHTML = bodyRaw.split('|').map(l => heistLine(l.trim(), pal, seed, counter)).join('<br/>');
+
+  let inner = '';
+  if (sub === 'card') {
+    const cardFg = jHex(url.searchParams.get('markfg')) || '#14121C';
+    inner = '<div class="ht card ' + th.style + '">'
+      + '<div class="ht-cl">'
+      + (place ? '<div class="ht-chead">' + jEsc(place) + '</div>' : '')
+      + '<div class="ht-body" style="line-height:2">' + bodyHTML + '</div>'
+      + (from ? '<div class="ht-cfrom">' + jEsc(from) + '</div>' : '')
+      + '</div>'
+      + '<div class="ht-trump"><span class="ht-tc tl">' + jEsc(markchar) + '</span><span class="ht-tc br">' + jEsc(markchar) + '</span>'
+      + '<svg width="46" height="46" viewBox="-16 -16 32 32"><g transform="scale(1.1)">' + heistMark(mark, cardFg) + '</g></svg>'
+      + '</div></div>';
+  } else {
+    inner = '<div class="ht ' + th.style + '">'
+      + '<div class="ht-tape l"></div><div class="ht-tape r"></div>'
+      + '<div class="ht-title">' + heistTitle(title, pal, seed) + '</div>'
+      + '<div class="ht-div"></div>'
+      + (to ? '<div class="ht-to">' + jEsc(to) + '</div>' : '')
+      + '<div class="ht-body">' + bodyHTML + '</div>'
+      + '<div class="ht-foot"><div>'
+      + (place ? '<div class="ht-place">' + jEsc(place) + '</div>' : '')
+      + (from ? '<div class="ht-from">' + jEsc(from) + '</div>' : '')
+      + '</div><div class="ht-seal">' + heistSeal(mark, waxCol, fgCol, sealRot) + '</div></div>'
+      + '</div>';
+  }
+
+  let out = html.split('\u27e6BODY\u27e7').join(inner);
+  if (kid) out = out.replace('body { background:#E5DCC6;', 'body { background:#14121C;');
+  if (th.bg) {
+    out = out.replace(/background:#(E5DCC6|14121C);/g, 'background:' + th.bg + ';')
+             .replace('background-color:#E5DCC6;', 'background-color:' + th.bg + ';')
+             .replace('background-color:#14121C;', 'background-color:' + th.bg + ';');
+  }
+  return out;
+}
+
 const RENDERERS = {
   'cal': renderCal,
   'pay': renderPay,
+  'heist': renderHeist,
 };
 
 // th 처리를 렌더러 내부에서 하는 poll/ask 방식 채택 — 별도 테마 렌더러 불필요 시 빈 상태 유지
@@ -608,6 +848,42 @@ export default {
         }
         h = base + MARGIN;
         h = Math.max(h, 300); h = Math.min(h, MAX_H);
+      }
+
+      // ── 🎩 HEIST ──
+      if (t === 'heist') {
+        const subH = (url.searchParams.get('sub') || 'note').toLowerCase();
+        const bodyH = url.searchParams.get('body') || '';
+        const chipFactor = 1.35;
+        function heistLines(raw, box) {
+          let total = 0;
+          for (const line of raw.split('|')) {
+            const plain = line.replace(/\*/g, '').trim();
+            if (!plain) { total += 1; continue; }
+            let cjk = 0, ascii = 0;
+            for (const ch of plain) { ch.charCodeAt(0) > 0x7F ? cjk++ : ascii++; }
+            total += Math.max(Math.ceil((cjk * 16 + ascii * 8.5) * chipFactor / box), 1);
+          }
+          return Math.max(total, 1);
+        }
+        if (subH === 'card') {
+          const lns = heistLines(bodyH, 250);
+          let base = 32 + lns * 40;
+          if (url.searchParams.get('place')) base += 27;
+          if (url.searchParams.get('from')) base += 40;
+          h = Math.max(base + MARGIN, 138);
+        } else {
+          const titleH = url.searchParams.get('title') || '\uc608\uace0\uc7a5';
+          const tChars = [...titleH].length;
+          const titleLines = Math.max(Math.ceil(tChars * 50 / 384), 1);
+          let base = 34 + 8 + titleLines * 62 + 12 + 11;
+          if (url.searchParams.get('to')) base += 27;
+          base += heistLines(bodyH, 376) * 39 + 14;
+          const footL = (url.searchParams.get('place') ? 22 : 0) + (url.searchParams.get('from') ? 26 : 0);
+          base += Math.max(footL, 66) + 6;
+          h = Math.max(base + MARGIN, 260);
+        }
+        h = Math.min(h, MAX_H);
       }
 
       const FIXED_TYPES = [];

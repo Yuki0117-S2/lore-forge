@@ -2810,7 +2810,7 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
     ]
   },
   {
-    id:'cat-j', icon:'🏠', title:'생활 앱 UI', sub:'j.winter0.workers.dev — 달력 · 송금 (택배·중고·날씨 예정)',
+    id:'cat-j', icon:'🏠', title:'생활 앱 UI', sub:'j.winter0.workers.dev — 달력 · 송금 · 괴도 예고장 (택배·중고·날씨 예정)',
     items:[
       {
         id:'t-j-0', title:'📅 달력 (cal)',
@@ -2866,6 +2866,33 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
 <div class="desc">• <strong>th=toss</strong> = 미니멀 흰 배경 + 파랑(#0077DD) 강조 — 톤 한 방 전환 / th=dark§toss 조합 가능</div>`
       },
       {
+        id:'t-j-0c', title:'🎩 괴도 예고장 (heist)',
+        body:`<div class="label label-use">URL 파라미터 형식 — 서브타입 2종</div>
+<pre>① 예고장: /?t=heist&title=제목&to=수신&body=본문&place=장소&from=서명&mark=문양
+② 카드:   /?t=heist&sub=card&body=본문&place=상단라벨&from=서명&mark=문양&markchar=코너글자</pre>
+<hr class="divider">
+<div class="label label-example">예시 — 뤼팽 톤 예고장 (장미 실링왁스)</div>
+<pre>/?t=heist&title=예고장&to=TO.+카를로프+백작가+귀중&body=오는+*8월+3일*+*자정*,|귀댁의+*푸른+눈물*을|정중히+*빌려*+가겠습니다.&place=서고+3층+·+유리+진열장&from=Arsene,+votre+serviteur&mark=rose</pre>
+<div class="label label-example">예시 — 키드 톤 카드 (여우 트럼프)</div>
+<pre>/?t=heist&sub=card&st=kid&body=*달이+뜨면*+*가지러*|*오겠다*.&place=SUZUKI+MUSEUM&from=—+K.&mark=fox&markchar=K</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명:</strong><br>
+• <strong>*단어*</strong> 로 감싼 부분만 신문 활자 오려붙인 조각이 됨 — 종이색·서체·회전각이 시드 기반 자동 변주 (같은 내용=같은 배치)<br>
+• | = 줄바꿈 / 줄바꿈 없이 길게 쓰면 자동 줄접힘 (높이 자동 계산)<br>
+• title= 글자 단위로 큼직하게 조각화 (기본 "예고장") / to= 수신 라벨 / place= note 하단 메모 · card 상단 라벨<br>
+• from= 필기체 이탤릭 서명<br>
+• mark= <strong>hat / rose / spade / mask / fox / key / moon</strong> — note는 실링왁스 인장, card는 트럼프 중앙 문양 (왁스 회전각도 시드 변주)<br>
+• markcol= 왁스 배경색 헥스 (# 없이) — 음영·하이라이트 자동 산출 / markfg= 문양 색 헥스<br>
+• markchar= 트럼프 코너 글자 (기본: lupin=A, kid=K)</div>
+<hr class="divider">
+<div class="label label-use">🎨 톤 — &st= 또는 &th= (3필드 위치규칙)</div>
+<pre>&st=lupin(기본) | kid   또는   &th=스타일[§배경][§강조]
+lupin: 누런 갱지 + 봉랍 (고전 유럽 괴도)
+kid:   먹지 + 달빛 은청 (현대 괴도)
+배경: 헥스 — 종이색 교체 (예: th=kid§101020)</pre>
+<div class="desc">• 기본 왁스/문양색: lupin=BB6688/DDAACC · kid=8888CC/EFECE2 — markcol·markfg로 개별 교체 가능</div>`
+      },
+      {
         id:'t-j-1', title:'바베챗 프롬프트 (복사용)',
         body:`<div class="label label-use">캐릭터 상세설정에 붙여넣기</div>
 <div class="desc">아래 전체를 프롬프트에 삽입하면 AI가 장면에 맞는 생활 앱 UI를 자동 생성합니다. 도메인은 <strong>j.winter0.workers.dev</strong></div>
@@ -2892,6 +2919,16 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
 - 페이명 기본 WPay, f=§이름 으로 교체
 - 완료 화면은 체크 드로잉 애니가 몇 초 간격으로 무한 반복됨 (연출용으로 활용)
 - th=toss 넣으면 미니멀+파랑 톤 / th=dark§rose 등 조합 가능
+
+### 괴도 예고장 (전면 예고장 · 두고 간 카드)
+![](https://j.winter0.workers.dev/?t=heist&title=제목&to=수신&body=본문&place=장소&from=서명&mark=문양&st=톤)
+![](https://j.winter0.workers.dev/?t=heist&sub=card&body=본문&place=라벨&from=서명&mark=문양&markchar=글자&st=톤)
+- body에서 *단어* 로 감싼 부분만 신문 활자를 오려붙인 조각이 됨 — 날짜·목표물·핵심 동사에 사용
+- | = 줄바꿈 (3~4줄 권장) / title은 글자 단위로 조각화됨 (기본 "예고장")
+- st=lupin(누런 갱지+봉랍, 기본) / st=kid(먹지+달빛 은청)
+- mark= hat/rose/spade/mask/fox/key/moon — note는 실링왁스, card는 트럼프 문양
+- markcol=왁스색 헥스(# 없이, 음영 자동) / markfg=문양색 / markchar=트럼프 코너 글자
+- 예: ![](https://j.winter0.workers.dev/?t=heist&title=예고장&to=TO.+OO미술관&body=*보름달*이+뜨는+밤,|*별의+파편*을+*받으러*+가겠다.&from=—+K.&st=kid&mark=moon)
 
 ### 공통 규칙
 - 필드 구분자: § / 아이템 구분자: |

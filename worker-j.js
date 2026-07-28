@@ -792,7 +792,7 @@ function cpTheme(url) {
   let style = 'brass', i = 0;
   const s0 = (f[0] || '').toLowerCase();
   if (CP_TH[s0]) { style = s0; i = 1; }
-  else if (f.length >= 3) { i = 1; }   // 스타일 자리만 비운 3위치 표기
+  else if (f[0] === '') { i = 1; }   // 스타일 자리를 비워 쓴 표기 — cal/pay/heist와 동일 규칙
   const t = Object.assign({}, CP_TH[style]);
   // 위치 고정: f[i]=배경, f[i+1]=액센트. 빈 칸이어도 자리는 소비한다.
   const bgHx = jHex(f[i] || '');

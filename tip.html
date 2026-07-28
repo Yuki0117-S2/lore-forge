@@ -2811,7 +2811,7 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
     ]
   },
   {
-    id:'cat-j', icon:'🏠', title:'생활 앱 UI', sub:'j.winter0.workers.dev — 달력 · 송금 · 괴도 예고장 (택배·중고·날씨 예정)',
+    id:'cat-j', icon:'🏠', title:'생활 앱 UI', sub:'j.winter0.workers.dev — 달력 · 송금 · 괴도 예고장 · 나침반 (택배·중고·날씨 예정)',
     items:[
       {
         id:'t-j-0', title:'📅 달력 (cal)',
@@ -2834,8 +2834,10 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
 <pre>&th=스타일[§배경][§강조색]
 스타일: light(기본) | dark
 배경:   프리셋명(indigo/pink/sand/rose) 또는 헥스
-강조색: 헥스 — 오늘 링·일정 기본색·아젠다 뱃지 (생략 시 배경색, 둘 다 없으면 인디고)</pre>
-<div class="desc">• 예: th=dark / th=dark§rose§00BBDD / th=884499 (헥스 단독=배경 겸 강조)</div>`
+강조색: 헥스 — 오늘 링·일정 기본색·아젠다 뱃지 (생략 시 배경색, 둘 다 없으면 인디고)
+빈 칸 = 자리 건너뛰기: th=dark§§884499 → 강조색만 교체</pre>
+<div class="desc">• 예: th=dark / th=dark§rose§00BBDD / th=884499 (헥스 단독=배경 겸 강조)<br>
+• ※ 이 카드의 "배경" 자리는 페이지 배경이 아니라 <strong>강조 계열 기본색</strong> — 페이지 배경은 스타일(light/dark)이 결정</div>`
       },
       {
         id:'t-j-0b', title:'💸 송금 (pay)',
@@ -2863,7 +2865,8 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
 <pre>&th=스타일[§배경][§강조색]
 스타일: light(기본) | dark
 배경:   프리셋명(indigo/pink/sand/rose/toss) 또는 헥스(페이지 배경 틴트)
-강조색: 헥스 — 체크·버튼·뱃지·잔액카드 (생략 시 프리셋→인디고 순)</pre>
+강조색: 헥스 — 체크·버튼·뱃지·잔액카드 (생략 시 프리셋→인디고 순)
+빈 칸 = 자리 건너뛰기: th=light§§884499 → 배경 틴트 없이 강조색만</pre>
 <div class="desc">• <strong>th=toss</strong> = 미니멀 흰 배경 + 파랑(#0077DD) 강조 — 톤 한 방 전환 / th=dark§toss 조합 가능</div>`
       },
       {
@@ -2890,8 +2893,35 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
 <pre>&st=lupin(기본) | kid   또는   &th=스타일[§배경][§강조]
 lupin: 누런 갱지 + 봉랍 (고전 유럽 괴도)
 kid:   먹지 + 달빛 은청 (현대 괴도)
-배경: 헥스 — 종이색 교체 (예: th=kid§101020)</pre>
+배경: 헥스 — 종이색 교체 (예: th=kid§101020)
+빈 칸 표기(§§)도 허용 — 단 heist 3번째 자리(강조)는 현재 미사용</pre>
 <div class="desc">• 기본 왁스/문양색: lupin=BB6688/DDAACC · kid=8888CC/EFECE2 — markcol·markfg로 개별 교체 가능</div>`
+      },
+      {
+        id:'t-j-0d', title:'🧭 나침반 (compass)',
+        body:`<div class="label label-use">URL 파라미터 형식</div>
+<pre>/?t=compass&dir=침로각&label=목적지&dist=부연&day=머리말&wind=풍향각&sway=0&th=[스타일][§배경][§강조색]&font=서체</pre>
+<hr class="divider">
+<div class="label label-example">예시 — 기본 (황동 다크, 바늘 흔들림)</div>
+<pre>/?t=compass&dir=112&label=검은+암초&dist=순풍이면+사흘,+아니면+모른다&day=제+3+항해일</pre>
+<div class="label label-example">예시 — 풍향침 켬 (역풍 연출)</div>
+<pre>/?t=compass&dir=112&wind=290&label=검은+암초&dist=역풍이다.+돌아가는+편이+낫다</pre>
+<div class="label label-example">예시 — paper 테마 + 강조색</div>
+<pre>/?t=compass&dir=310&th=paper§§884499&label=미지의+해역&dist=해도에+없는+곳</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명:</strong><br>
+• dir= 침로각 0~359 (음수·360 초과 자동 정규화 — -45 → 315) / <strong>방위명(ESE·동남동)은 각도에서 자동 계산</strong><br>
+• label= 목적지(침로 큰 글씨) / dist= 부연 한 줄(자동 줄접힘) / day= 우상단 머리말 / 전부 생략 가능<br>
+• <strong>wind= 넣을 때만</strong> 청록 풍향침 등장(WIND 라벨 포함) — 침로 vs 바람 어긋남 연출용<br>
+• sway=0 바늘 고정(정박·고장 연출) / 기본은 자침 6.5초·풍향침 9초 불규칙 SMIL 흔들림<br>
+• font= sans / serif(기본) / mono / <strong>cursive(라틴·숫자만 필기체, 한글 유지)</strong></div>
+<hr class="divider">
+<div class="label label-use">🎨 테마 색상 (선택) — &th= (3필드 위치규칙)</div>
+<pre>&th=스타일[§배경][§강조색]
+스타일: brass(기본 황동 다크) | paper(양피지 라이트)
+배경:   헥스 — 카드 배경 (글자색 밝기 자동 반전)
+강조색: 헥스 — 침로 라벨·45° 눈금·N 글자
+빈 칸 = 자리 건너뛰기: th=paper§§884499 → paper 배경 유지 + 강조색만 교체</pre>`
       },
       {
         id:'t-j-1', title:'바베챗 프롬프트 (복사용)',
@@ -2930,6 +2960,14 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
 - mark= hat/rose/spade/mask/fox/key/moon — note는 실링왁스, card는 트럼프 문양
 - markcol=왁스색 헥스(# 없이, 음영 자동) / markfg=문양색 / markchar=트럼프 코너 글자
 - 예: ![](https://j.winter0.workers.dev/?t=heist&title=예고장&to=TO.+OO미술관&body=*보름달*이+뜨는+밤,|*별의+파편*을+*받으러*+가겠다.&from=—+K.&st=kid&mark=moon)
+
+### 나침반 (침로·항해 연출)
+![](https://j.winter0.workers.dev/?t=compass&dir=침로각&label=목적지&dist=부연&day=머리말)
+- dir=0~359 (N=0, E=90, S=180, W=270) — 방위명은 자동 계산되므로 각도만 정확히
+- wind=풍향각 은 필요할 때만 — 넣으면 청록 WIND 침 등장 (역풍·순풍 연출)
+- sway=0 = 바늘 고정 (정박 중·나침반 고장) / 기본은 흔들림 애니메이션
+- th=paper 밝은 양피지 톤 / th=paper§§강조헥스 = 강조색만 교체 (빈 칸=자리 건너뛰기)
+- 예: ![](https://j.winter0.workers.dev/?t=compass&dir=112&wind=290&label=검은+암초&dist=역풍이다&day=제+3+항해일)
 
 ### 공통 규칙
 - 필드 구분자: § / 아이템 구분자: |

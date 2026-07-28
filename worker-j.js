@@ -1,6 +1,22 @@
 // 겨울의 생활 앱 UI Workers (j) v1 — 뼈대 + cal(달력) 파일럿
 // 구조는 i 워커(worker.js v13)와 동일: TEMPLATES → RENDERERS → THEME_RENDERERS → SIZES → 동적높이 → wrapInSVG
 const TEMPLATES = {
+  'compass': `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #171320; }
+  .cp-lbl { font-size: 9.5px; letter-spacing: .3em; margin-bottom: 3px; }
+  .cp-rule { height: 1px; opacity: .35; margin-bottom: 10px; }
+  .cp-foot { margin-top: 12px; display: flex; align-items: flex-end; gap: 12px; }
+</style>
+</head>
+<body>
+\u27e6BODY\u27e7
+</body>
+</html>`,
   'cal': `<!DOCTYPE html>
 <html>
 <head>
@@ -191,6 +207,7 @@ const SIZES = {
   'cal': [420, 600],
   'pay': [420, 560],
   'heist': [420, 560],
+  'compass': [420, 470],
 };
 
 // ══════════════════════════════════════════════════════════════
@@ -252,11 +269,13 @@ function calTheme(url) {
   const out = { style: 'light', bg: null, acc: null };
   const raw = url.searchParams.get('th');
   if (!raw) return out;
-  const f = raw.split('\u00a7').map(s => s.trim()).filter(s => s.length);
+  const f = raw.split('\u00a7').map(s => s.trim());
   let i = 0;
   const s0 = (f[0] || '').toLowerCase();
   if (s0 === 'light' || s0 === 'dark') { out.style = s0; i = 1; }
-  if (f[i]) {
+  else if (f[0] === '') i = 1;   // 스타일 자리를 비워 쓴 표기
+  if (f[i] === '') i++;                       // 빈 칸도 자리를 소비한다
+  else if (f[i]) {
     const p = CAL_PRESETS[f[i].toLowerCase()] || CAL_PRESETS[f[i]];
     if (p) { out.bg = p; i++; }
     else { const hx = jHex(f[i]); if (hx) { out.bg = hx; i++; } }
@@ -397,11 +416,13 @@ function payTheme(url) {
   const out = { style: 'light', bgTint: null, acc: null };
   const raw = url.searchParams.get('th');
   if (!raw) return out;
-  const f = raw.split('\u00a7').map(s => s.trim()).filter(s => s.length);
+  const f = raw.split('\u00a7').map(s => s.trim());
   let i = 0;
   const s0 = (f[0] || '').toLowerCase();
   if (s0 === 'light' || s0 === 'dark') { out.style = s0; i = 1; }
-  if (f[i]) {
+  else if (f[0] === '') i = 1;   // 스타일 자리를 비워 쓴 표기
+  if (f[i] === '') i++;                       // 빈 칸도 자리를 소비한다
+  else if (f[i]) {
     const p = PAY_PRESETS[f[i].toLowerCase()] || PAY_PRESETS[f[i]];
     if (p) { out.acc = p.acc; i++; }
     else { const hx = jHex(f[i]); if (hx) { out.bgTint = hx; i++; } }
@@ -640,11 +661,13 @@ function heistTheme(url) {
   if (st === 'kid' || st === 'lupin') out.style = st;
   const raw = url.searchParams.get('th');
   if (!raw) return out;
-  const f = raw.split('\u00a7').map(s => s.trim()).filter(s => s.length);
+  const f = raw.split('\u00a7').map(s => s.trim());
   let i = 0;
   const s0 = (f[0] || '').toLowerCase();
   if (s0 === 'lupin' || s0 === 'kid') { out.style = s0; i = 1; }
-  if (f[i]) { const hx = jHex(f[i]); if (hx) { out.bg = hx; i++; } }
+  else if (f[0] === '') i = 1;   // 스타일 자리를 비워 쓴 표기
+  if (f[i] === '') i++;                       // 빈 칸도 자리를 소비한다
+  else if (f[i]) { const hx = jHex(f[i]); if (hx) { out.bg = hx; i++; } }
   if (f[i]) { const hx = jHex(f[i]); if (hx) out.acc = hx; }
   return out;
 }
@@ -705,10 +728,222 @@ function renderHeist(html, url) {
   return out;
 }
 
+
+// ══════════════════════════════════════════════════════════════
+// 🔤 공통 폰트 유틸 — font=sans(기본)/serif/mono/cursive
+//   cursive 는 컨테이너에 걸지 않고 라틴·숫자 덩어리만 감싼다.
+//   (한글 필기체가 깔린 기기에서만 한글이 변하는 편차를 없애기 위함)
+// ══════════════════════════════════════════════════════════════
+
+const J_FAMS = {
+  'sans':   "-apple-system, BlinkMacSystemFont, 'Noto Sans KR', sans-serif",
+  'serif':  "Georgia, 'Times New Roman', 'Noto Serif KR', serif",
+  'mono':   "ui-monospace, Menlo, Consolas, monospace",
+  'cursive': "-apple-system, BlinkMacSystemFont, 'Noto Sans KR', sans-serif",
+};
+
+function jFont(url, def) {
+  const f = (url.searchParams.get('font') || def || 'sans').toLowerCase();
+  return J_FAMS[f] ? f : (def || 'sans');
+}
+
+function jFam(mode) {
+  return J_FAMS[mode] || J_FAMS['sans'];
+}
+
+// mode==='cursive' 일 때만 라틴·숫자 조각을 필기체로 감싼다. 그 외엔 단순 이스케이프.
+function jType(text, mode) {
+  const t = String(text ?? '');
+  if (mode !== 'cursive') return jEsc(t);
+  const re = /[A-Za-z0-9][A-Za-z0-9 .,:\/\-]*[A-Za-z0-9]|[A-Za-z0-9]/g;
+  let out = '', last = 0, m;
+  while ((m = re.exec(t)) !== null) {
+    out += jEsc(t.slice(last, m.index));
+    out += '<span style="font-family:cursive">' + jEsc(m[0]) + '</span>';
+    last = m.index + m[0].length;
+  }
+  return out + jEsc(t.slice(last));
+}
+
+// ══════════════════════════════════════════════════════════════
+// 🧭 COMPASS (나침반)
+// dir=침로각(0~359) · label=목적지 · dist=부연 · day=머리말
+// wind=풍향각(생략하면 풍향침 없음) · sway=0이면 바늘 고정
+// th=스타일[§배경][§강조색]  스타일: brass(기본) / paper
+// font=sans(기본)/serif/mono/cursive
+// ══════════════════════════════════════════════════════════════
+
+const CP_TH = {
+  'brass': {
+    bg: '#171320', fg: '#E6DCC8', ring: '#CCAA88', rimIn: '#4E3C24',
+    d0: '#241E33', d1: '#0E0B16', tick: '#CCAA88', card: '#DDAACC',
+    acc: '#DDAACC', meta: '#5f5872', sub: '#7b7392', lbl: '#8888CC', big: '#CCAA88',
+  },
+  'paper': {
+    bg: '#F7F5F0', fg: '#2A2436', ring: '#CCAA88', rimIn: '#B99A6E',
+    d0: '#FFFFFF', d1: '#E8E4DA', tick: '#8A7A5E', card: '#8A5A70',
+    acc: '#BB6688', meta: '#9A93A8', sub: '#6E6880', lbl: '#8888CC', big: '#8A6A42',
+  },
+};
+
+function cpTheme(url) {
+  const raw = url.searchParams.get('th') || '';
+  const f = raw.split('\u00a7').map(x => x.trim());
+  let style = 'brass', i = 0;
+  const s0 = (f[0] || '').toLowerCase();
+  if (CP_TH[s0]) { style = s0; i = 1; }
+  else if (f.length >= 3) { i = 1; }   // 스타일 자리만 비운 3위치 표기
+  const t = Object.assign({}, CP_TH[style]);
+  // 위치 고정: f[i]=배경, f[i+1]=액센트. 빈 칸이어도 자리는 소비한다.
+  const bgHx = jHex(f[i] || '');
+  if (bgHx) { t.bg = bgHx; t.fg = themeText(bgHx); }
+  const accHx = jHex(f[i + 1] || '');
+  if (accHx) { t.acc = accHx; t.card = accHx; }
+  t.style = style;
+  return t;
+}
+
+function cpPol(a, r) {
+  const rad = (a - 90) * Math.PI / 180;
+  return [150 + r * Math.cos(rad), 150 + r * Math.sin(rad)];
+}
+
+function cpDial(t) {
+  let o = '';
+  // 방위 장미
+  for (const a of [0, 90, 180, 270]) {
+    const p = cpPol(a, 74), l = cpPol(a - 90, 15), r = cpPol(a + 90, 15);
+    o += '<path d="M' + p[0].toFixed(1) + ' ' + p[1].toFixed(1) + ' L' + l[0].toFixed(1) + ' ' + l[1].toFixed(1) + ' L150 150 Z" fill="' + t.ring + '" fill-opacity="0.22"/>';
+    o += '<path d="M' + p[0].toFixed(1) + ' ' + p[1].toFixed(1) + ' L' + r[0].toFixed(1) + ' ' + r[1].toFixed(1) + ' L150 150 Z" fill="' + t.ring + '" fill-opacity="0.10"/>';
+  }
+  for (const a of [45, 135, 225, 315]) {
+    const p = cpPol(a, 48), l = cpPol(a - 90, 11), r = cpPol(a + 90, 11);
+    o += '<path d="M' + p[0].toFixed(1) + ' ' + p[1].toFixed(1) + ' L' + l[0].toFixed(1) + ' ' + l[1].toFixed(1) + ' L150 150 Z" fill="#8888CC" fill-opacity="0.16"/>';
+    o += '<path d="M' + p[0].toFixed(1) + ' ' + p[1].toFixed(1) + ' L' + r[0].toFixed(1) + ' ' + r[1].toFixed(1) + ' L150 150 Z" fill="#8888CC" fill-opacity="0.08"/>';
+  }
+  // 눈금
+  for (let i = 0; i < 72; i++) {
+    const a = i * 5;
+    let r0, sw, col, op;
+    if (a % 45 === 0) { r0 = 108; sw = 2.2; col = t.card; op = 1; }
+    else if (a % 15 === 0) { r0 = 114; sw = 1.4; col = t.tick; op = 0.85; }
+    else { r0 = 120; sw = 0.8; col = t.tick; op = 0.45; }
+    const p1 = cpPol(a, r0), p2 = cpPol(a, 126);
+    o += '<line x1="' + p1[0].toFixed(1) + '" y1="' + p1[1].toFixed(1) + '" x2="' + p2[0].toFixed(1) + '" y2="' + p2[1].toFixed(1)
+       + '" stroke="' + col + '" stroke-width="' + sw + '" stroke-opacity="' + op + '" stroke-linecap="round"/>';
+  }
+  // 방위 문자
+  const CARD = [[0, 'N'], [90, 'E'], [180, 'S'], [270, 'W']];
+  for (const c of CARD) {
+    const p = cpPol(c[0], 92);
+    o += '<text x="' + p[0].toFixed(1) + '" y="' + (p[1] + 6.5).toFixed(1) + '" text-anchor="middle" font-family="Georgia, serif"'
+       + ' font-size="19" font-weight="600" fill="' + (c[0] === 0 ? t.card : t.tick) + '">' + c[1] + '</text>';
+  }
+  return o;
+}
+
+const CP_DIRS = ['북', '북북동', '북동', '동북동', '동', '동남동', '남동', '남남동',
+                 '남', '남남서', '남서', '서남서', '서', '서북서', '북서', '북북서'];
+const CP_ABBR = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE',
+                 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+
+function renderCompass(html, url) {
+  const t = cpTheme(url);
+  const fm = jFont(url, 'serif');
+  const fam = jFam(fm);
+
+  let dir = parseFloat(url.searchParams.get('dir'));
+  if (!isFinite(dir)) dir = 0;
+  dir = ((dir % 360) + 360) % 360;
+
+  const windRaw = url.searchParams.get('wind');
+  let wind = parseFloat(windRaw);
+  const hasWind = windRaw !== null && windRaw !== '' && isFinite(wind);
+  if (hasWind) wind = ((wind % 360) + 360) % 360;
+
+  const sway = (url.searchParams.get('sway') || '1') !== '0';
+  const label = url.searchParams.get('label') || '';
+  const dist = url.searchParams.get('dist') || '';
+  const day = url.searchParams.get('day') || '';
+  const head = url.searchParams.get('head') || 'BEARING';
+
+  const idx = Math.round(dir / 22.5) % 16;
+
+  // 자침 SMIL — 단일 타임라인 values/keyTimes (렌더러 호환)
+  const d = dir;
+  const nAnim = sway
+    ? '<animateTransform attributeName="transform" type="rotate" values="'
+      + [d, d + 3.5, d - 3, d + 1.5, d - 1, d].map(v => v.toFixed(1) + ' 150 150').join(';')
+      + '" keyTimes="0;0.18;0.42;0.63;0.84;1" dur="6.5s" repeatCount="indefinite"/>'
+    : '';
+  const wAnim = (hasWind && sway)
+    ? '<animateTransform attributeName="transform" type="rotate" values="'
+      + [wind, wind + 6, wind - 1, wind + 4, wind].map(v => v.toFixed(1) + ' 150 150').join(';')
+      + '" keyTimes="0;0.25;0.5;0.78;1" dur="9s" repeatCount="indefinite"/>'
+    : '';
+
+  const windG = hasWind
+    ? '<g transform="rotate(' + wind.toFixed(1) + ' 150 150)">' + wAnim
+      + '<line x1="150" y1="150" x2="150" y2="46" stroke="#00BBDD" stroke-width="1.6" stroke-opacity="0.55" stroke-dasharray="5 4"/>'
+      + '<path d="M150 40 L155 54 L150 50 L145 54 Z" fill="#00BBDD" fill-opacity="0.7"/>'
+      + '<text x="150" y="34" text-anchor="middle" font-family="ui-monospace, monospace" font-size="8"'
+      + ' letter-spacing="1.5" fill="#00BBDD" fill-opacity="0.75">WIND</text></g>'
+    : '';
+
+  const svg = '<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">'
+    + '<defs>'
+    + '<radialGradient id="cpb" cx="34%" cy="26%" r="80%"><stop offset="0" stop-color="#E0C79C"/>'
+    + '<stop offset="0.55" stop-color="' + t.ring + '"/><stop offset="1" stop-color="#6E5636"/></radialGradient>'
+    + '<radialGradient id="cpd" cx="40%" cy="32%" r="78%"><stop offset="0" stop-color="' + t.d0 + '"/>'
+    + '<stop offset="1" stop-color="' + t.d1 + '"/></radialGradient>'
+    + '<linearGradient id="cpg" x1="0" y1="0" x2="0.7" y2="1">'
+    + '<stop offset="0" stop-color="#ffffff" stop-opacity="0.16"/>'
+    + '<stop offset="0.45" stop-color="#ffffff" stop-opacity="0.02"/>'
+    + '<stop offset="1" stop-color="#ffffff" stop-opacity="0"/></linearGradient>'
+    + '</defs>'
+    + '<circle cx="150" cy="150" r="146" fill="url(#cpb)"/>'
+    + '<circle cx="150" cy="150" r="136" fill="' + t.rimIn + '"/>'
+    + '<circle cx="150" cy="150" r="132" fill="url(#cpd)"/>'
+    + cpDial(t)
+    + '<circle cx="150" cy="150" r="132" fill="none" stroke="' + t.ring + '" stroke-width="1" stroke-opacity="0.4"/>'
+    + windG
+    + '<g transform="rotate(' + d.toFixed(1) + ' 150 150)">' + nAnim
+    + '<path d="M150 34 L162 150 L150 166 L138 150 Z" fill="#BB6688"/>'
+    + '<path d="M150 34 L150 166 L138 150 Z" fill="#8E4560"/>'
+    + '<path d="M150 266 L138 150 L150 134 L162 150 Z" fill="#8888CC"/>'
+    + '<path d="M150 266 L150 134 L138 150 Z" fill="#5F5F96"/>'
+    + '<circle cx="150" cy="150" r="11" fill="' + t.ring + '"/>'
+    + '<circle cx="150" cy="150" r="5.5" fill="#2A2233"/></g>'
+    + '<ellipse cx="112" cy="96" rx="86" ry="70" fill="url(#cpg)" transform="rotate(-28 112 96)"/>'
+    + '</svg>';
+
+  const inner = '<div style="width:420px;padding:20px 22px 22px;background:' + t.bg + ';color:' + t.fg + ';font-family:' + fam + '">'
+    + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px">'
+    + '<span style="font-size:10px;letter-spacing:.34em;color:' + t.lbl + '">' + jType(head, fm) + '</span>'
+    + '<span style="font-size:10px;letter-spacing:.2em;color:' + t.meta + '">' + jType(day, fm) + '</span></div>'
+    + '<div class="cp-rule" style="background:' + t.ring + '"></div>'
+    + '<div style="display:flex;justify-content:center">' + svg + '</div>'
+    + '<div class="cp-foot">'
+    + '<div style="flex:1;min-width:0">'
+    + (label ? '<div class="cp-lbl" style="color:' + t.lbl + '">침 로</div>' : '')
+    + (label ? '<div style="font-size:23px;font-weight:600;color:' + t.acc + '">' + jType(label, fm) + '</div>' : '')
+    + (dist ? '<div style="font-size:12px;color:' + t.sub + ';margin-top:2px;line-height:1.5">' + jType(dist, fm) + '</div>' : '')
+    + '</div>'
+    + '<div style="text-align:right;flex-shrink:0">'
+    + '<div style="font-size:30px;font-weight:700;line-height:1;color:' + t.big + ';font-family:ui-monospace, Menlo, monospace">'
+    + (Math.round(dir * 10) / 10) + '&#176;</div>'
+    + '<div style="font-size:10px;letter-spacing:.16em;color:' + t.meta + ';margin-top:3px">'
+    + CP_ABBR[idx] + ' &#183; ' + CP_DIRS[idx] + '</div></div>'
+    + '</div></div>';
+
+  return html.split('\u27e6BODY\u27e7').join(inner);
+}
+
 const RENDERERS = {
   'cal': renderCal,
   'pay': renderPay,
   'heist': renderHeist,
+  'compass': renderCompass,
 };
 
 // th 처리를 렌더러 내부에서 하는 poll/ask 방식 채택 — 별도 테마 렌더러 불필요 시 빈 상태 유지
@@ -789,6 +1024,18 @@ export default {
           total += Math.max(Math.ceil(estWidth / containerPx), 1);
         }
         return total;
+      }
+
+      // ── 🧭 COMPASS ──
+      // pad(20+22) + 헤더(13+1+10) + 원(300) + foot(12 + 라벨 26 + dist줄*18) + MARGIN
+      if (t === 'compass') {
+        const labC = url.searchParams.get('label') || '';
+        const disC = url.searchParams.get('dist') || '';
+        let hC = 42 + 24 + 300 + 12;
+        if (labC) hC += 14 + 30;
+        if (disC) hC += calcLines(disC, 240) * 18 + 2;
+        if (!labC && !disC) hC += 36;
+        h = Math.min(hC + MARGIN, MAX_H);
       }
 
       // ── 📅 CAL ──

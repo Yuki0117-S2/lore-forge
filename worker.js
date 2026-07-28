@@ -8578,11 +8578,13 @@ function pollTheme(url) {
   const out = { style: 'dark', bg: null, acc: null };
   const raw = url.searchParams.get('th');
   if (!raw) return out;
-  const f = raw.split('§').map(s => s.trim()).filter(s => s.length);
+  const f = raw.split('§').map(s => s.trim());
   let i = 0;
   const s0 = (f[0] || '').toLowerCase();
   if (s0 === 'glass' || s0 === 'dark') { out.style = s0; i = 1; }
-  if (f[i]) {
+  else if (f[0] === '') i = 1;   // 스타일 자리를 비워 쓴 표기
+  if (f[i] === '') i++;                       // 빈 칸도 자리를 소비한다
+  else if (f[i]) {
     const p = POLL_PRESETS[f[i].toLowerCase()];
     if (p) { out.bg = p.slice(); i++; }
     else { const hx = pollHex(f[i]); if (hx) { out.bg = [hx, themeMix(hx, '#000000', 0.55)]; i++; } }
@@ -8731,7 +8733,7 @@ function askTheme(url) {
   const out = { style: 'light', bg: null, acc: null };
   const raw = url.searchParams.get('th');
   if (!raw) return out;
-  const f = raw.split('§').map(x => x.trim()).filter(x => x.length);
+  const f = raw.split('§').map(x => x.trim());
   let i = 0;
   const s0 = (f[0] || '').toLowerCase();
   if (s0 === 'light' || s0 === 'dark') { out.style = s0; i = 1; }
@@ -8739,7 +8741,9 @@ function askTheme(url) {
     out.acc = POLL_PRESETS[s0][0]; out.bg = POLL_PRESETS[s0][0];
     return out;
   }
-  if (f[i]) {
+  else if (f[0] === '') i = 1;   // 스타일 자리를 비워 쓴 표기
+  if (f[i] === '') i++;                       // 빈 칸도 자리를 소비한다
+  else if (f[i]) {
     const p = POLL_PRESETS[f[i].toLowerCase()];
     if (p) { out.bg = p[0]; i++; }
     else { const hx = pollHex(f[i]); if (hx) { out.bg = hx; i++; } }

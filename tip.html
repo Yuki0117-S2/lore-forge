@@ -1736,7 +1736,7 @@ URL에 &th= 를 추가하면 색상 테마 변경, 생략하면 기본색 (# 없
     ]
   },
   {
-    id:'cat-st', icon:'⚔️', title:'RPG / VN 상태창 UI', sub:'st.winter0.workers.dev — 미연시 · 미연시2 · 다크판타지 · 픽셀RPG · 쯔꾸르 · 엔딩 · 선택지 · 던전 · MMO · 보상 · 게임오버 · 인벤 · 능력치 · 주사위 · 소나레이더 · 통신터미널 · 생체모니터 · EMF탐지기',
+    id:'cat-st', icon:'⚔️', title:'RPG / VN 상태창 UI', sub:'st.winter0.workers.dev — 미연시 · 미연시2 · 다크판타지 · 픽셀RPG · 쯔꾸르 · 엔딩 · 선택지 · 던전 · MMO · 보상 · 게임오버 · 인벤 · 능력치 · 주사위 · 소나레이더 · 통신터미널 · 생체모니터 · EMF탐지기 · 무전기 · 캠코더',
     items:[
       {
         id:'t-st-0', title:'미연시 상태창 (?t=vn)',
@@ -2614,6 +2614,52 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
 • <strong>th</strong> — 주색(인쇄 텍스트)§배경(플라스틱 톤)§경고색. rt 계열(radar·term·vital)과 동일 문법. LED 무지개는 실물 고정</div>`
       },
       {
+        id:'t-st-radio', title:'📻 무전기 (?t=radio)',
+        body:`<div class="label label-use">URL 파라미터 형식</div>
+<pre>/?t=radio&s=상태&ch=채널&freq=주파수&sig=신호0~4&bat=배터리0~4&lcd=패널색&from=발신자&say=수신+문구</pre>
+<hr class="divider">
+<div class="label label-example">예시 — 수신 중</div>
+<pre>/?t=radio&ch=07&freq=446.093&sig=3&bat=3&from=류가온&say=…거기+누구+있어%3F</pre>
+<div class="label label-example">예시 — 송신 중 (PTT 점멸)</div>
+<pre>/?t=radio&s=tx&ch=128&sig=4&bat=4&from=한서준&say=응답하라,+2층+조</pre>
+<div class="label label-example">예시 — 적색 LED 패널 · 채널 5자리 · 배터리 바닥</div>
+<pre>/?t=radio&ch=14733&freq=467.5625&sig=1&bat=0&lcd=red&from=???&say=배터리+없음</pre>
+<div class="label label-example">예시 — 신호 두절</div>
+<pre>/?t=radio&s=lost&sig=0&from=???&say=…지…직…</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명 — 전부 생략 가능. <code>/?t=radio</code> 하나만으로도 렌더된다.</strong><br>
+• <strong>s</strong> — <code>rx</code>(기본, 수신 중) / <code>tx</code>(송신 중, PTT·TX 점멸) / <code>lost</code>(두절, LCD 죽고 NO SIGNAL 점멸)<br>
+• <strong>ch</strong> — 채널. <strong>7세그먼트 5칸 고정</strong>이라 1~5자리 어느 쪽이든 글자 크기가 변하지 않음 (짧으면 왼쪽 빈 칸)<br>
+• <strong>freq</strong> — 주파수 (기본 446.093, MHz 표기 자동)<br>
+• <strong>sig</strong> — 안테나 0~4칸 / <strong>bat</strong> — 배터리 0~4칸, <strong>0이면 자동 점멸</strong><br>
+• <strong>lcd</strong> — <code>green</code>(기본 백라이트 LCD) / <code>red</code>(적색 LED 패널, 발광)<br>
+• <strong>from</strong> — 좌하단 발신자 / <strong>say</strong> — 우하단 수신 문구 (두절 시 적색)<br>
+• PTT = Push-To-Talk. 누르는 동안만 송신되는 실물 방식이라 tx일 때만 버튼이 점등한다</div>`
+      },
+      {
+        id:'t-st-camc', title:'📹 캠코더 뷰파인더 (?t=camc)',
+        body:`<div class="label label-use">URL 파라미터 형식</div>
+<pre>/?t=camc&s=배경&tone=화면&rec=0&tc=타임코드&bat=배터리&zoom=배율&face=감지수&glitch=1&mem=&sig=&vu=&scn=&date=&focus=0&label=자막</pre>
+<hr class="divider">
+<div class="label label-example">예시 — 복도 야간투시 (기본)</div>
+<pre>/?t=camc&tc=23:42:07&bat=72%&zoom=1.0&label=2층+복도+—+이상+없음</pre>
+<div class="label label-example">예시 — 문틈 줌 + 얼굴 감지</div>
+<pre>/?t=camc&s=door&tc=01:13:55&bat=38%&zoom=2.4&face=1&sig=3&label=잠긴+방+문틈</pre>
+<div class="label label-example">예시 — 적외선 폭주 (전 옵션)</div>
+<pre>/?t=camc&s=dark&tone=ir&tc=03:33:33&bat=--%&face=2&glitch=1&mem=FULL&sig=0&vu=9&scn=014&focus=0&label=…여기+우리+말고+있다</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명 — 전부 생략 가능. <code>/?t=camc</code> 하나만으로도 렌더된다.</strong><br>
+• <strong>배경은 사진 없이 절차 생성</strong> — <code>s=hall</code>(기본, 복도 소실점 + 끝의 인영) / <code>door</code>(문틈 빛 + 문틈의 눈) / <code>dark</code>(암흑 + 손전등 광원)<br>
+• <strong>tone</strong> — <code>nv</code>(기본, 야간투시 녹색) / <code>ir</code>(적외선 흑백)<br>
+• <strong>rec=0</strong> 대기(STBY) / 기본은 REC 점멸 · <strong>tc</strong> 타임코드 · <strong>zoom</strong> 배율(x표기 자동)<br>
+• <strong>bat</strong> — 배터리 문구. <code>--%</code> 처럼 <code>-</code> 가 들어가면 적색 점멸<br>
+• <strong>face</strong> — 얼굴 감지 0~3. <strong>1 이상이면 적색 프레임 + FACE n 점멸</strong> (인물이 없어야 할 곳에 쓰면 효과적)<br>
+• <strong>glitch=1</strong> — 화면 찢김 밴드 + 적색 플래시 (폭주 연출)<br>
+• <strong>mem</strong> — 저장공간 (<code>FULL</code> 또는 숫자%, 5% 이하 자동 경고) · <strong>sig</strong> — 수신 0~4, <strong>0이면 NO LINK 경고로 전환</strong><br>
+• <strong>vu</strong> — 오디오 미터 0~10 (막대별로 다른 주기로 흔들림) · <strong>scn</strong> 장면 번호 · <strong>date</strong> 날짜 스탬프<br>
+• <strong>focus=0</strong> — AF 실패 표기 점멸 · <strong>label</strong> — 하단 자막</div>`
+      },
+      {
         id:'t-st-8', title:'바베챗 프롬프트 (복사용)',
         body:`<div class="label label-use">RPG/VN 상태창 + 엔딩 프롬프트</div>
 <div class="desc">바베챗에 복사하여 사용. 도메인은 <strong>st.winter0.workers.dev</strong></div>
@@ -2827,6 +2873,21 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
 - v=수치로 LED 단계 자동 (1.5/2.5/10/20 경계) / lv=0~5 강제. 4단계+ = 폭주(점멸·적색)
 - jit=0 바늘 정지(an) / spd=요동 주기 초(an, 0.15~6, 작을수록 격렬)
 - th=주색§배경§경고 — radar·term·vital과 동일 문법
+
+### 무전기 (교신 · 폐가 탐사)
+![](https://st.winter0.workers.dev/?t=radio&s=상태&ch=채널&freq=주파수&sig=신호&bat=배터리&from=발신자&say=수신+문구)
+- 전부 생략 가능. ?t=radio 만으로도 렌더됨
+- s=rx(기본 수신) / tx(송신, PTT 점멸) / lost(두절, NO SIGNAL)
+- ch=채널은 7세그 5칸 고정 (1~5자리 모두 같은 크기) / sig·bat=0~4칸, bat=0이면 점멸
+- lcd=red 로 적색 LED 패널 전환
+
+### 캠코더 뷰파인더 (심령 촬영)
+![](https://st.winter0.workers.dev/?t=camc&s=배경&tone=화면&tc=타임코드&bat=배터리&zoom=배율&face=감지수&label=자막)
+- 전부 생략 가능. ?t=camc 만으로도 렌더됨. 배경은 사진 없이 자동 생성
+- s=hall(복도)/door(문틈)/dark(암흑) · tone=nv(야시)/ir(적외선)
+- face=1~3 얼굴 감지 프레임 점멸 / glitch=1 화면 찢김 / focus=0 AF 실패
+- mem=FULL 저장공간 / sig=0 이면 NO LINK / vu=0~10 오디오 미터 / scn·date 스탬프
+- 수치를 바꿔 공포를 고조시킬 것: 배터리 72% → --% , 타임코드 정상 → 03:33:33
 
 ### 장비 등급 공통 (rarity)
 영문 대문자 표준, 한글 alias 자동 매핑, 입력 표기 그대로 표시

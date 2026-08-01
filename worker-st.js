@@ -4617,6 +4617,319 @@ function renderEmf(params) {
   return s + '</svg>';
 }
 
+
+
+// ══════════════════════════════════════════════════════════════
+// 📻 RADIO (무전기) — 7세그 LCD 클로즈업
+// s=rx(기본)/tx/lost · ch=채널(5칸 고정) · freq=주파수 · sig=0~4 · bat=0~4
+// lcd=green(기본)/red · from=발신자 · say=수신 문구
+// ══════════════════════════════════════════════════════════════
+// 7세그먼트 + 도트매트릭스 글리프 (SVG path)
+// 세그먼트 배치: a(상) b(우상) c(우하) d(하) e(좌하) f(좌상) g(중)
+const RD_SEG = {
+  '0':'abcdef','1':'bc','2':'abdeg','3':'abcdg','4':'bcfg','5':'acdfg','6':'acdefg',
+  '7':'abc','8':'abcdefg','9':'abcdfg','-':'g','A':'abcefg','B':'cdefg','C':'adef',
+  'D':'bcdeg','E':'adefg','F':'aefg','H':'bcefg','L':'def','P':'abefg','U':'bcdef',
+  'R':'ef','T':'defg','N':'ceg','O':'cdeg','S':'acdfg','Y':'bcdfg','I':'bc',
+  ' ':'', '_':'d'
+};
+// w=글자폭, h=글자높이, t=세그 두께
+function rdSegChar(ch, x, y, w, h, t, on, off) {
+  const set = RD_SEG[String(ch).toUpperCase()];
+  if (set === undefined) return '';
+  const h2 = h/2, k = t*0.55;
+  const P = {
+    a: `M ${x+k} ${y} L ${x+w-k} ${y} L ${x+w-k-k} ${y+t} L ${x+k+k} ${y+t} Z`,
+    g: `M ${x+k} ${y+h2} L ${x+w-k} ${y+h2} L ${x+w-k-k} ${y+h2+t/2} L ${x+k+k} ${y+h2+t/2} Z M ${x+k+k} ${y+h2-t/2} L ${x+w-k-k} ${y+h2-t/2} L ${x+w-k} ${y+h2} L ${x+k} ${y+h2} Z`,
+    d: `M ${x+k} ${y+h} L ${x+w-k} ${y+h} L ${x+w-k-k} ${y+h-t} L ${x+k+k} ${y+h-t} Z`,
+    f: `M ${x} ${y+k} L ${x+t} ${y+k+k} L ${x+t} ${y+h2-t/2-k} L ${x} ${y+h2-k} Z`,
+    b: `M ${x+w} ${y+k} L ${x+w-t} ${y+k+k} L ${x+w-t} ${y+h2-t/2-k} L ${x+w} ${y+h2-k} Z`,
+    e: `M ${x} ${y+h2+k} L ${x+t} ${y+h2+t/2+k} L ${x+t} ${y+h-t-k} L ${x} ${y+h-k} Z`,
+    c: `M ${x+w} ${y+h2+k} L ${x+w-t} ${y+h2+t/2+k} L ${x+w-t} ${y+h-t-k} L ${x+w} ${y+h-k} Z`,
+  };
+  let s = '';
+  for (const key of 'abcdefg') {
+    const lit = set.includes(key);
+    if (!lit && !off) continue;
+    s += `<path d="${P[key]}" fill="${lit ? on : off}"${lit ? '' : ' opacity="0.13"'}/>`;
+  }
+  return s;
+}
+function rdSegText(str, x, y, w, h, t, gap, on, off) {
+  let s = '', cx = x;
+  for (const ch of String(str)) {
+    if (ch === '.') { s += `<rect x="${cx-gap+1}" y="${y+h-t}" width="${t}" height="${t}" fill="${on}"/>`; continue; }
+    s += rdSegChar(ch, cx, y, w, h, t, on, off);
+    cx += w + gap;
+  }
+  return s;
+}
+// 도트매트릭스 5x7 (소문자 라벨용) — 간이 폰트
+const RD_DOT = {
+  'R':['11110','10001','10001','11110','10100','10010','10001'],
+  'X':['10001','10001','01010','00100','01010','10001','10001'],
+  'T':['11111','00100','00100','00100','00100','00100','00100'],
+  'S':['01111','10000','10000','01110','00001','00001','11110'],
+  'C':['01110','10001','10000','10000','10000','10001','01110'],
+  'H':['10001','10001','10001','11111','10001','10001','10001'],
+  'M':['10001','11011','10101','10101','10001','10001','10001'],
+  'B':['11110','10001','10001','11110','10001','10001','11110'],
+  'A':['01110','10001','10001','11111','10001','10001','10001'],
+  'N':['10001','11001','10101','10011','10001','10001','10001'],
+  'O':['01110','10001','10001','10001','10001','10001','01110'],
+  'G':['01110','10001','10000','10111','10001','10001','01111'],
+  'I':['11111','00100','00100','00100','00100','00100','11111'],
+  'L':['10000','10000','10000','10000','10000','10000','11111'],
+  ' ':['00000','00000','00000','00000','00000','00000','00000'],
+};
+function rdDotText(str, x, y, px, on) {
+  let s = '', cx = x;
+  for (const ch of String(str).toUpperCase()) {
+    const g = RD_DOT[ch];
+    if (g) { g.forEach((row, r) => { for (let c = 0; c < 5; c++) if (row[c] === '1') s += `<rect x="${cx+c*px}" y="${y+r*px}" width="${px*0.86}" height="${px*0.86}" fill="${on}"/>`; }); }
+    cx += px*6;
+  }
+  return s;
+}
+
+
+function rdOpts(params) {
+  const g = k => params.get(k);
+  const md = (g('s') || 'rx').toLowerCase();
+  return {
+    mode: (md === 'tx' || md === 'lost') ? md : 'rx',
+    ch: g('ch') || '07',
+    freq: g('freq') || '446.093',
+    sig: Math.round(rtNum(g('sig'), 3, 0, 4)),
+    bat: Math.round(rtNum(g('bat'), 3, 0, 4)),
+    lcd: (g('lcd') || '').toLowerCase() === 'red' ? 'red' : 'green',
+    from: g('from') || '',
+    say: g('say') || '',
+  };
+}
+function renderRadio(params) {
+  const o = rdOpts(params);
+  const { ch, freq, from, say, mode, sig, bat, lcd } = o; // lcd: green(기본)/red(적색 LED)
+  const W = 420, H = 330;
+  const lost = mode === 'lost', tx = mode === 'tx';
+  const red = lcd === 'red';
+  // LCD 색 체계
+  const face = red ? '#140a0a' : (lost ? '#1a2018' : '#9fb884');
+  const faceTop = red ? '#1d0e0e' : (lost ? '#232a20' : '#b4cc96');
+  const ON = red ? '#ff2a1e' : (lost ? '#6a7a62' : '#1c2a14');
+  const OFF = red ? '#3a1210' : (lost ? '#2a3226' : '#7d9468');
+  let s = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" font-family="-apple-system,'Noto Sans KR',sans-serif">
+  <defs>
+  <linearGradient id="pl" x1="0" y1="0" x2="0.8" y2="1"><stop offset="0" stop-color="#34343e"/><stop offset="0.45" stop-color="#26262e"/><stop offset="1" stop-color="#1a1a22"/></linearGradient>
+  <radialGradient id="sheen" cx="0.32" cy="0.2" r="1.1"><stop offset="0" stop-color="#fff" stop-opacity="0.10"/><stop offset="0.5" stop-color="#fff" stop-opacity="0.02"/><stop offset="1" stop-color="#000" stop-opacity="0.28"/></radialGradient>
+  <linearGradient id="lcdg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${faceTop}"/><stop offset="1" stop-color="${face}"/></linearGradient>
+  <filter id="in"><feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="#000" flood-opacity="0.5"/></filter>
+  ${red?`<filter id="lglow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="0.7"/></filter>`:''}
+  </defs>`;
+  s += `<rect width="${W}" height="${H}" fill="url(#pl)"/>`;
+  s += `<rect x="30" y="0" width="34" height="26" rx="8" fill="#101018" stroke="#3a3a46" stroke-width="1.5"/>`;
+  s += `<path d="M 0 40 Q 210 28 420 40" fill="none" stroke="#0e0e15" stroke-width="2" opacity="0.8"/>`;
+  // PTT
+  s += `<rect x="0" y="120" width="20" height="86" rx="8" fill="${tx?'#ff8a2e':'#c96a1e'}" stroke="#12121a" stroke-width="2"/>`;
+  if (tx) s += `<rect x="0" y="120" width="20" height="86" rx="8" fill="#ffb066"><animate attributeName="opacity" values="0.6;0.05;0.6" dur="0.5s" repeatCount="indefinite"/></rect>`;
+  s += `<text x="10" y="168" font-size="8.5" fill="#12121a" font-weight="800" text-anchor="middle" transform="rotate(-90 10 168)">PTT</text>`;
+
+  // LCD 창
+  s += `<rect x="52" y="56" width="316" height="128" rx="10" fill="#0c0c12" filter="url(#in)"/>`;
+  s += `<rect x="60" y="64" width="300" height="112" rx="6" fill="url(#lcdg)"/>`;
+  const G = red ? ` filter="url(#lglow)"` : '';
+
+  if (!lost) {
+    // 상단: 모드 태그(도트매트릭스) + 배터리 + 신호
+    s += `<g${G}>` + rdDotText(tx ? 'TX' : 'RX', 72, 74, 2.6, ON) + `</g>`;
+    if (tx) s += `<rect x="70" y="72" width="34" height="20" fill="${face}" opacity="0"><animate attributeName="opacity" values="0;0.85;0" dur="0.6s" repeatCount="indefinite"/></rect>`;
+    // 배터리 — 상태줄 상단으로 압축
+    const bcell = Math.max(0, Math.min(4, bat));
+    s += `<rect x="250" y="70" width="28" height="14" rx="2" fill="none" stroke="${ON}" stroke-width="1.7"/><rect x="278" y="73.5" width="3.2" height="7" fill="${ON}"/>`;
+    for (let i = 0; i < 4; i++) s += `<rect x="${252.5 + i*6.2}" y="72.5" width="4.6" height="9" fill="${i < bcell ? ON : OFF}" ${i<bcell?'':'opacity="0.25"'}/>`;
+    if (bcell === 0) s += `<rect x="250" y="70" width="32" height="14" fill="${face}" opacity="0"><animate attributeName="opacity" values="0;0.9;0" dur="0.7s" repeatCount="indefinite"/></rect>`;
+    // 신호 바
+    const scell = Math.max(0, Math.min(4, sig));
+    for (let i = 0; i < 4; i++) s += `<rect x="${296 + i*10}" y="${84 - 4 - i*3.6}" width="7" height="${7 + i*3.6}" fill="${i < scell ? ON : OFF}" ${i<scell?'':'opacity="0.25"'}/>`;
+
+    // ── 채널 — LCD 우측을 가득 채우는 대형 7세그먼트 (자릿수 1~4 자동 스케일)
+    // 자리수 5칸 고정 · 글자 폭 고정 (채널 길이와 무관하게 크기 불변, 빈 자리는 공백)
+    const chStr = String(ch).slice(0, 5).padStart(5, ' ');
+    const nD = 5, dW = 42, gapD = 8, dH = 54, dT = 7;
+    const chW = dW * nD + gapD * (nD - 1);                      // 42*5 + 8*4 = 242
+    const chX = 348 - chW;                                      // = 106, 우측 정렬 고정
+    const chY = 90;
+    s += `<g${G}>` + rdDotText('CH', 72, chY + dH / 2 - 8, 2.6, ON)
+       + rdSegText(chStr.padStart(nD, ' '), chX, chY, dW, dH, dT, gapD, ON, OFF) + `</g>`;
+    // 주파수 — 하단 고정
+    s += `<g${G}>` + rdSegText(String(freq), 74, 148, 13.5, 26, 3.4, 6, ON, OFF)
+       + rdDotText('MHZ', 234, 156, 2.4, ON) + `</g>`;
+    // 수신 파형
+    if (mode === 'rx') {
+      s += `<g transform="translate(288,161)"${G}>`;
+      for (let i = 0; i < 7; i++) {
+        const h0 = 5 + (i*37 % 15), h1 = 4 + ((i*53)%18), d = (0.45+(i%3)*0.18).toFixed(2);
+        s += `<rect x="${i*10}" y="${-h0/2}" width="6" height="${h0}" fill="${ON}"><animate attributeName="height" values="${h0};${h1};${h0}" dur="${d}s" repeatCount="indefinite"/><animate attributeName="y" values="${-h0/2};${-h1/2};${-h0/2}" dur="${d}s" repeatCount="indefinite"/></rect>`;
+      }
+      s += `</g>`;
+    }
+  } else {
+    for (let i = 0; i < 7; i++) {
+      const y = 76 + i*15, w0 = 40 + (i*67 % 200);
+      s += `<rect x="${70 + (i*31)%60}" y="${y}" width="${w0}" height="2.5" fill="${OFF}" opacity="0.55"><animate attributeName="width" values="${w0};${30+(i*97)%220};${w0}" dur="${(0.3+(i%4)*0.15).toFixed(2)}s" repeatCount="indefinite"/></rect>`;
+    }
+    s += `<g${G} opacity="0.9">` + rdDotText('NO SIGNAL', 96, 118, 3.4, OFF) + `<animate attributeName="opacity" values="0.9;0.12;0.9" dur="0.9s" repeatCount="indefinite"/></g>`;
+  }
+  s += `<path d="M 70 66 L 150 66 L 96 174 L 64 174 Z" fill="#ffffff" opacity="0.07"/>`;
+  for (let i = 0; i < 5; i++) s += `<rect x="120" y="${206 + i*13}" width="180" height="5" rx="2.5" fill="#0e0e15"/>`;
+  s += `<circle cx="72" cy="236" r="16" fill="#15151c" stroke="#3e3e48" stroke-width="1.6"/><text x="72" y="241" font-size="11" fill="#8a8a96" text-anchor="middle" font-weight="700">&#9650;</text>`;
+  s += `<circle cx="348" cy="236" r="16" fill="#15151c" stroke="#3e3e48" stroke-width="1.6"/><text x="348" y="241" font-size="11" fill="#8a8a96" text-anchor="middle" font-weight="700">&#9660;</text>`;
+  const screw=(x,y,r)=>`<circle cx="${x}" cy="${y}" r="6" fill="#12121a" stroke="#3e3e4a" stroke-width="1.3"/><line x1="${x-3.4}" y1="${y}" x2="${x+3.4}" y2="${y}" stroke="#565664" stroke-width="1.6" transform="rotate(${r} ${x} ${y})"/>`;
+  s += screw(24,26,38)+screw(396,26,-21)+screw(24,306,65)+screw(396,306,12);
+  if (from) s += `<text x="48" y="314" font-size="12.5" font-weight="700" fill="#8f8f9e">&#9656; ${esc(from)}</text>`;
+  if (say) s += `<text x="372" y="314" font-size="12.5" font-weight="800" text-anchor="end" fill="${lost?'#ff3348':'#8fd63e'}">&#8220;${esc(say)}&#8221;</text>`;
+  s += `<rect width="${W}" height="${H}" fill="url(#sheen)"/>`;
+  return s + `</svg>`;
+}
+
+
+// ══════════════════════════════════════════════════════════════
+// 📹 CAMC (캠코더 뷰파인더) — 절차 생성 배경 + 촬영 UI
+// s=hall(기본)/door/dark · tone=nv(야시)/ir(적외선) · rec=0 대기
+// tc=타임코드 · bat=배터리 · zoom=배율 · face=감지수 · glitch=1 폭주
+// mem= · sig=0~4 · vu=0~10 · scn= · date= · focus=0 · label=자막
+// ══════════════════════════════════════════════════════════════
+function ccOpts(params) {
+  const g = k => params.get(k);
+  const kd = (g('s') || 'hall').toLowerCase();
+  const o = {
+    kind: (kd === 'door' || kd === 'dark') ? kd : 'hall',
+    tone: (g('tone') || 'nv').toLowerCase() === 'ir' ? 'ir' : 'nv',
+    rec: g('rec') === '0' ? 0 : 1,
+    tc: g('tc') || '23:42:07',
+    bat: g('bat') || '72%',
+    zoom: g('zoom') || '',
+    face: Math.round(rtNum(g('face'), 0, 0, 3)),
+    glitch: g('glitch') === '1' ? 1 : 0,
+    label: g('label') || '',
+  };
+  if (g('mem') !== null) o.mem = g('mem');
+  if (g('sig') !== null) o.sig = Math.round(rtNum(g('sig'), 4, 0, 4));
+  if (g('vu') !== null) o.vu = Math.round(rtNum(g('vu'), 0, 0, 10));
+  if (g('scn')) o.scn = g('scn');
+  if (g('date')) o.date = g('date');
+  if (g('focus') === '0') o.focus = 0;
+  return o;
+}
+function ccScene(kind, tone) {
+  // tone: nv(야간 녹색) / ir(적외선 흑백)
+  const base = tone === 'ir' ? ['#0a0a0a','#2a2a2a','#484848'] : ['#02120a','#0a2e1a','#14522e'];
+  let s = `<rect width="420" height="315" fill="${base[0]}"/>`;
+  if (kind === 'hall') {
+    // 복도 소실점: 사다리꼴 벽·바닥 라인
+    s += `<path d="M 0 315 L 150 175 L 270 175 L 420 315 Z" fill="${base[1]}" opacity="0.8"/>`;   // 바닥
+    s += `<path d="M 0 0 L 150 130 L 270 130 L 420 0 Z" fill="${base[1]}" opacity="0.5"/>`;       // 천장
+    s += `<rect x="150" y="130" width="120" height="45" fill="${base[2]}" opacity="0.35"/>`;       // 끝 벽
+    for (const x of [40, 90, 330, 380]) s += `<line x1="${x}" y1="${x<210? (315-(x*0.93)) : (315-((420-x)*0.93))}" x2="${x}" y2="${x<210? (x*0.87) : ((420-x)*0.87)}" stroke="${base[2]}" stroke-width="2" opacity="0.3"/>`;
+    // 복도 끝 실루엣 (희미한 인영)
+    s += `<g opacity="0.4"><ellipse cx="210" cy="146" rx="7" ry="8" fill="#000"/><rect x="201" y="152" width="18" height="24" rx="6" fill="#000"/></g>`;
+  } else if (kind === 'door') {
+    s += `<rect x="150" y="40" width="130" height="260" fill="${base[1]}" opacity="0.5"/>`;        // 문 프레임
+    s += `<rect x="204" y="46" width="10" height="248" fill="${base[2]}" opacity="0.9"><animate attributeName="opacity" values="0.9;0.55;0.9" dur="3.2s" repeatCount="indefinite"/></rect>`;  // 문틈 빛
+    s += `<circle cx="209" cy="150" r="4.5" fill="#000" opacity="0.75"/>`;                          // 문틈의 눈
+  }
+  // 암흑(dark)은 베이스 그대로 + 손전등 광원만
+  if (kind === 'dark') s += `<radialGradient id="fl" cx="0.5" cy="0.55" r="0.42"><stop offset="0" stop-color="${base[2]}" stop-opacity="0.5"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient><rect width="420" height="315" fill="url(#fl)"/>`;
+  return s;
+}
+
+function renderCamc(params) {
+  const o = ccOpts(params);
+  const { kind, tone, rec, tc, bat, zoom, face, label, glitch } = o;
+  const W = 420, H = 315;
+  const ui = tone === 'ir' ? '#e8e8e8' : '#aef0c2';
+  const warn = '#ff4d4d';
+  let s = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" font-family="ui-monospace,Menlo,monospace">
+  <defs>
+  <filter id="nz"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" result="n"><animate attributeName="seed" values="1;9" dur="0.5s" repeatCount="indefinite" calcMode="discrete"/></feTurbulence><feColorMatrix in="n" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.16 0"/><feComposite operator="over" in2="SourceGraphic"/></filter>
+  <radialGradient id="vig" cx="0.5" cy="0.5" r="0.75"><stop offset="0.6" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.65"/></radialGradient>
+  </defs>`;
+  // 절차 배경 + 노이즈
+  s += `<g filter="url(#nz)">` + ccScene(kind, tone) + `</g>`;
+  // 스캔라인
+  s += `<g opacity="0.16">`; for (let y = 0; y < H; y += 4) s += `<rect x="0" y="${y}" width="${W}" height="1" fill="#000"/>`; s += `</g>`;
+  // 화면 찢김 (폭주)
+  if (glitch) {
+    s += `<rect x="0" y="120" width="${W}" height="12" fill="#ffffff" opacity="0.25"><animate attributeName="y" values="40;260;110;200;40" keyTimes="0;0.3;0.55;0.8;1" dur="1.1s" repeatCount="indefinite" calcMode="discrete"/></rect>`;
+    s += `<rect x="0" y="0" width="${W}" height="${H}" fill="${warn}" opacity="0.06"><animate attributeName="opacity" values="0.06;0.16;0.06" dur="0.4s" repeatCount="indefinite"/></rect>`;
+  }
+  s += `<rect width="${W}" height="${H}" fill="url(#vig)"/>`;
+
+  // ── 캠코더 UI 오버레이
+  // REC + 점멸
+  if (rec) s += `<circle cx="34" cy="30" r="6" fill="${warn}"><animate attributeName="opacity" values="1;0.1;1" dur="1s" repeatCount="indefinite"/></circle><text x="46" y="35" font-size="14" font-weight="700" fill="${ui}">REC</text>`;
+  else s += `<text x="26" y="35" font-size="14" font-weight="700" fill="${ui}">STBY</text>`;
+  // 타임코드
+  s += `<text x="${W-24}" y="35" font-size="13" fill="${ui}" text-anchor="end">${esc(tc)}</text>`;
+  // 모드 태그 + 배터리 + 줌
+  s += `<text x="26" y="${H-40}" font-size="11" fill="${ui}" letter-spacing="2">${tone==='ir'?'IR MODE':'NIGHT VISION'}</text>`;
+  s += `<text x="${W-24}" y="${H-40}" font-size="12" fill="${bat.includes('-')?warn:ui}" text-anchor="end">BAT ${esc(bat)}${bat.includes('-')?'<animate attributeName="opacity" values="1;0.2;1" dur="0.6s" repeatCount="indefinite"/>':''}</text>`;
+  if (zoom) s += `<text x="${W-24}" y="56" font-size="11" fill="${ui}" text-anchor="end">x${esc(zoom)}</text>`;
+  // 포커스 브래킷 (중앙)
+  const bx=150, by=110, bw=120, bh=95, L=16;
+  for (const [x,y,dx,dy] of [[bx,by,1,1],[bx+bw,by,-1,1],[bx,by+bh,1,-1],[bx+bw,by+bh,-1,-1]])
+    s += `<path d="M ${x} ${y+dy*L} L ${x} ${y} L ${x+dx*L} ${y}" fill="none" stroke="${ui}" stroke-width="1.6" opacity="0.8"/>`;
+  // 얼굴 감지 프레임 (공포 포인트: 개수 표시)
+  if (face > 0) {
+    const spots = [[196,132,36,44],[62,168,30,38],[330,90,28,36]];
+    for (let i = 0; i < Math.min(face, 3); i++) {
+      const [x,y,w0,h0] = spots[i];
+      s += `<rect x="${x}" y="${y}" width="${w0}" height="${h0}" fill="none" stroke="${warn}" stroke-width="1.8"><animate attributeName="opacity" values="1;0.35;1" dur="0.8s" repeatCount="indefinite"/></rect>`;
+    }
+    s += `<text x="26" y="56" font-size="12" font-weight="700" fill="${warn}">FACE ${face}<animate attributeName="opacity" values="1;0.4;1" dur="0.8s" repeatCount="indefinite"/></text>`;
+  }
+  // ── 추가 옵션들
+  // 저장공간 (mem: 남은 % 또는 'FULL')
+  if (o.mem !== undefined) {
+    const full = String(o.mem).toUpperCase() === 'FULL' || parseInt(o.mem) <= 5;
+    s += `<text x="26" y="${H-58}" font-size="11" fill="${full?warn:ui}">MEM ${esc(o.mem)}${typeof o.mem==='number'?'%':''}${full?'<animate attributeName="opacity" values="1;0.2;1" dur="0.7s" repeatCount="indefinite"/>':''}</text>`;
+  }
+  // 수신 신호 (sig: 0~4, 끊김 연출)
+  if (o.sig !== undefined) {
+    if (o.sig === 0) {
+      // 두절: 안테나 바 숨기고 경고만 (같은 줄 겹침 방지)
+      s += `<text x="${W-24}" y="${zoom?76:56}" font-size="10.5" fill="${warn}" text-anchor="end">NO LINK<animate attributeName="opacity" values="1;0.2;1" dur="0.6s" repeatCount="indefinite"/></text>`;
+    } else {
+      // 수신 중: 줌 표기와 겹치지 않도록 한 줄 아래 배치
+      const sy = zoom ? 76 : 56;
+      for (let i = 0; i < 4; i++) {
+        const on = i < o.sig;
+        s += `<rect x="${W-58+i*9}" y="${sy-i*3}" width="6" height="${5+i*3}" fill="${ui}" opacity="${on?0.95:0.25}"${on&&i===o.sig-1&&o.sig<=1?'><animate attributeName="opacity" values="0.95;0.1;0.95" dur="0.5s" repeatCount="indefinite"/></rect>':'/>'}`;
+      }
+      s += `<text x="${W-66}" y="${sy+3}" font-size="9.5" fill="${ui}" text-anchor="end" opacity="0.75">LINK</text>`;
+    }
+  }
+  // 음량 VU 미터 (vu: 0~10, 소리 시각화)
+  if (o.vu !== undefined) {
+    for (let i = 0; i < 10; i++) {
+      const lit = i < o.vu, c = i >= 8 ? warn : ui;
+      s += `<rect x="${26+i*8}" y="${H-78}" width="5" height="9" fill="${c}" opacity="${lit?0.9:0.2}"${lit?`><animate attributeName="opacity" values="0.9;${(0.35+i*0.05).toFixed(2)};0.9" dur="${(0.3+i*0.06).toFixed(2)}s" repeatCount="indefinite"/></rect>`:'/>'}`;
+    }
+    s += `<text x="118" y="${H-70}" font-size="9.5" fill="${ui}" opacity="0.8">AUDIO</text>`;
+  }
+  // 장면 번호 + 날짜 스탬프
+  if (o.scn) s += `<text x="${W/2}" y="35" font-size="11.5" fill="${ui}" text-anchor="middle" opacity="0.85">SCN ${esc(o.scn)}</text>`;
+  if (o.date) s += `<text x="${W-24}" y="${H-58}" font-size="10.5" fill="${ui}" text-anchor="end" opacity="0.8">${esc(o.date)}</text>`;
+  // 초점 흐림 (focus=0이면 AF 실패 점멸)
+  if (o.focus === 0) s += `<text x="${W/2}" y="${H-58}" font-size="11" fill="${warn}" text-anchor="middle">AF ---<animate attributeName="opacity" values="1;0.15;1" dur="0.5s" repeatCount="indefinite"/></text>`;
+
+  // 하단 자막 라벨
+  if (label) s += `<text x="${W/2}" y="${H-16}" font-size="12.5" fill="${ui}" text-anchor="middle">${esc(label)}</text>`;
+  return s + `</svg>`;
+}
+
+
+
 export default {
   async fetch(req) {
     const url = new URL(req.url);
@@ -4642,8 +4955,10 @@ export default {
     else if (t === 'term') svg = renderTerm(params);
     else if (t === 'vital') svg = renderVital(params);
     else if (t === 'emf') svg = renderEmf(params);
+    else if (t === 'radio') svg = renderRadio(params);
+    else if (t === 'camc') svg = renderCamc(params);
     else {
-      return new Response('사용 가능: ?t=vn / ?t=vn2 / ?t=dark / ?t=pixel / ?t=ending / ?t=rpg2k / ?t=choice / ?t=dungeon / ?t=mmo / ?t=reward / ?t=gameover / ?t=inv / ?t=stat / ?t=roll / ?t=radar / ?t=term / ?t=vital / ?t=emf', {
+      return new Response('사용 가능: ?t=vn / ?t=vn2 / ?t=dark / ?t=pixel / ?t=ending / ?t=rpg2k / ?t=choice / ?t=dungeon / ?t=mmo / ?t=reward / ?t=gameover / ?t=inv / ?t=stat / ?t=roll / ?t=radar / ?t=term / ?t=vital / ?t=emf / ?t=radio / ?t=camc', {
         status: 400, headers: { 'Content-Type': 'text/plain; charset=utf-8' }
       });
     }

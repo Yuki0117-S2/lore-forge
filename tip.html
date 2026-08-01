@@ -2814,7 +2814,7 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
     ]
   },
   {
-    id:'cat-j', icon:'🏠', title:'생활 앱 UI', sub:'j.winter0.workers.dev — 달력 · 송금 · 괴도 예고장 · 나침반 (택배·중고·날씨 예정)',
+    id:'cat-j', icon:'🏠', title:'생활 앱 UI', sub:'j.winter0.workers.dev — 달력 · 송금 · 괴도 예고장 · 나침반 · 증거보드 · 일과표 (택배·중고·날씨 예정)',
     items:[
       {
         id:'t-j-0', title:'📅 달력 (cal)',
@@ -2928,6 +2928,56 @@ kid:   먹지 + 달빛 은청 (현대 괴도)
 빈 칸 = 자리 건너뛰기: th=paper§§884499 → paper 배경 유지 + 강조색만 교체</pre>`
       },
       {
+        id:'t-j-0e', title:'🧵 증거 보드 (eviboard)',
+        body:`<div class="label label-use">URL 파라미터 형식</div>
+<pre>/?t=eviboard&title=사건명&n=이름§분류§메모|...&link=1-2§라벨|1-4§?|...&th=[스타일][§배경][§강조색]&font=서체</pre>
+<hr class="divider">
+<div class="label label-example">예시 — cork 기본 (5인 원형, 미해결 ? 점선)</div>
+<pre>/?t=eviboard&title=유령선+사건&n=한서준§선장§항해일지가+비어+있다|류가온§항해사§그날+밤+갑판에+없었다|백도하§의사§약병+하나가+사라짐|문세라§요리사§열쇠+꾸러미+소지|강이안§견습§뭔가를+목격했다&link=1-3§?|2-4§거래|1-2§불신|3-5§?|4-5§남매</pre>
+<div class="label label-example">예시 — board 테마 (화이트보드+포스트잇)</div>
+<pre>/?t=eviboard&th=board&title=유령선+사건&n=한서준§선장|류가온§항해사|백도하§의사&link=1-2§?|2-3§동행</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명:</strong><br>
+• n= 이름§분류§메모 — 분류·메모는 뒤에서부터 생략 가능 / 메모는 자동 줄접힘(최대 2줄) / 파서 방탄용 30장 상한<br>
+• <strong>좌표 불필요 — 인원수 자동 배치</strong>: 3=삼각 / 4=사각 / 5~7=원형 / <strong>8인+=3열 격자(높이 자동 증가)</strong><br>
+• link= 번호-번호(n의 순서, 1부터)§라벨 / <strong>라벨 ? = 미해결 분홍 점선 + 흐름 애니</strong> / 라벨 생략 가능<br>
+• 관계 라벨은 실의 35% 지점 배치 — 교차선끼리 겹치지 않음, 겹치면 자동 세로 회피<br>
+• 카드 기울기·핀 색·포스트잇 색은 이름 시드 자동 변주<br>
+• font= sans(기본) / serif / mono / <strong>cursive(라틴·숫자만 필기체, 한글 유지)</strong></div>
+<hr class="divider">
+<div class="label label-use">🎨 테마 색상 (선택) — &th= (3필드 위치규칙)</div>
+<pre>&th=스타일[§배경][§강조색]
+스타일: cork(기본 코르크판+핀+붉은 실) | board(화이트보드+자석+포스트잇+마커선)
+배경:   헥스 — 보드 바탕 (글자색 밝기 자동 반전)
+강조색: 헥스 — 확정 관계선 색 (미해결 ?는 분홍 고정)
+빈 칸 = 자리 건너뛰기: th=§§00BBDD → 기본 cork + 확정선만 교체</pre>`
+      },
+      {
+        id:'t-j-0f', title:'📋 일과표 (duty)',
+        body:`<div class="label label-use">URL 파라미터 형식</div>
+<pre>/?t=duty&title=제목&p=시각§내용§상태|...&say=한줄+코멘트&th=[스타일][§배경][§강조색]&font=서체</pre>
+<hr class="divider">
+<div class="label label-example">예시 — night 기본 (완료·진행중·예정 혼합)</div>
+<pre>/?t=duty&title=항해+3일차&p=06:00§갑판+청소§done|08:00§조식+배급§done|10:30§돛+수리§now|14:00§해도+검토|19:00§야간+불침번&say=바람이+바뀌기+전에+돛부터.</pre>
+<div class="label label-example">예시 — paper 테마</div>
+<pre>/?t=duty&th=paper&title=수업+시간표&p=09:00§검술+훈련§done|11:00§약초학§now|13:00§점심|15:00§비행+연습</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명:</strong><br>
+• p= 시각§내용§상태 — 상태는 <strong>done / now / todo</strong> (생략=todo) / 항목 방탄 상한 30<br>
+• <strong>진행률 자동계산</strong> — done 개수/전체가 헤더 숫자·게이지 바에 반영 (직접 지정 불필요)<br>
+• <strong>now는 SMIL 펄스</strong> (cal 오늘 링과 동일 패턴) + NOW 칩 + 굵은 글씨 / done은 취소선<br>
+• say= 하단 한줄 코멘트 (자동 줄바꿈, 생략 가능) / title= 생략 시 "오늘의 일과"<br>
+• 높이는 항목 수·say 길이에 따라 자동<br>
+• font= sans(기본) / serif / mono / cursive(라틴·숫자만 필기체, 한글 유지)</div>
+<hr class="divider">
+<div class="label label-use">🎨 테마 색상 (선택) — &th= (3필드 위치규칙)</div>
+<pre>&th=스타일[§배경][§강조색]
+스타일: night(기본 다크) | paper(밝은 종이톤)
+배경:   헥스 — 바탕색 (글자·레일 밝기 자동 보정)
+강조색: 헥스 — 게이지·now 펄스·NOW 칩·say 왼줄
+빈 칸 = 자리 건너뛰기: th=§§00BBDD → night 유지 + 강조만 교체</pre>`
+      },
+      {
         id:'t-j-1', title:'바베챗 프롬프트 (복사용)',
         body:`<div class="label label-use">캐릭터 상세설정에 붙여넣기</div>
 <div class="desc">아래 전체를 프롬프트에 삽입하면 AI가 장면에 맞는 생활 앱 UI를 자동 생성합니다. 도메인은 <strong>j.winter0.workers.dev</strong></div>
@@ -2973,6 +3023,19 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
 - head=침로각 위 라벨 교체(기본 BEARING) / font=serif(기본)·sans·mono·cursive(라틴·숫자만 필기체)
 - th=paper 밝은 양피지 톤 / th=paper§§강조헥스 = 강조색만 교체 (빈 칸=자리 건너뛰기)
 - 예: ![](https://j.winter0.workers.dev/?t=compass&dir=112&wind=290&label=검은+암초&dist=역풍이다&day=제+3+항해일)
+
+### 증거 보드 (인물 관계도·수사판)
+![](https://j.winter0.workers.dev/?t=eviboard&title=사건명&n=이름§분류§메모|...&link=1-2§라벨|1-4§?|...)
+- 좌표 불필요 — 인원수로 자동 배치 (3=삼각 / 4=사각 / 5~7=원형 / 8인+=격자, 높이 자동)
+- link= 번호는 n의 나열 순서(1부터) / 라벨 ? = 미해결 분홍 점선(흐름 애니) / 라벨 생략 가능
+- th=cork(기본 코르크판)/board(화이트보드)[§배경][§강조색] / font= 공통 규칙과 동일
+- 예: ![](https://j.winter0.workers.dev/?t=eviboard&title=유령선+사건&n=한서준§선장§일지가+비어+있다|류가온§항해사|백도하§의사§약병+분실&link=1-2§?|1-3§불신)
+
+### 일과표 (타임라인 체크리스트)
+![](https://j.winter0.workers.dev/?t=duty&title=제목&p=시각§내용§상태|...&say=한줄+코멘트)
+- 상태: done(완료·취소선) / now(진행중·펄스+NOW칩) / 생략=todo — 진행률은 자동계산
+- say= 하단 코멘트 생략 가능 / 높이 자동 / th=night(기본)/paper[§배경][§강조색]
+- 예: ![](https://j.winter0.workers.dev/?t=duty&title=항해+3일차&p=06:00§갑판+청소§done|10:30§돛+수리§now|19:00§불침번&say=바람이+바뀌기+전에+돛부터.)
 
 ### 공통 규칙
 - 필드 구분자: § / 아이템 구분자: |

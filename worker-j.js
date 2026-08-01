@@ -201,6 +201,56 @@ const TEMPLATES = {
 \u27e6BODY\u27e7
 </body>
 </html>`,
+  'eviboard': `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #8a6a45; }
+  .ev-wrap { position: relative; overflow: hidden; }
+  .ev-title { position: absolute; left: 50%; top: 26px; transform: translateX(-50%) rotate(-1.2deg); padding: 9px 26px; font-size: 17px; font-weight: 800; white-space: nowrap; }
+  .ev-title-b { position: absolute; left: 0; right: 0; top: 34px; text-align: center; font-size: 19px; font-weight: 800; }
+  .ev-tape { position: absolute; width: 34px; height: 14px; background: #e8e0c8; opacity: .85; transform: rotate(-14deg); }
+  .ev-card { position: absolute; width: 116px; height: 78px; padding: 8px 6px 0; text-align: center; overflow: hidden; }
+  .ev-nm { font-size: 14.5px; font-weight: 800; line-height: 1.25; white-space: nowrap; overflow: hidden; }
+  .ev-cat { font-size: 10px; font-weight: 600; margin-top: 1px; }
+  .ev-memo { font-size: 10.5px; line-height: 1.25; margin-top: 3px; max-height: 27px; overflow: hidden; }
+  .ev-lbl { position: absolute; transform: translate(-50%, -50%); height: 22px; line-height: 19px; padding: 0 8px; font-weight: 700; white-space: nowrap; }
+  .ev-sh30 { box-shadow: 0 2.5px 5px rgba(0,0,0,.30); }
+  .ev-sh10 { box-shadow: 0 2.5px 5px rgba(0,0,0,.10); }
+  .ev-shL  { box-shadow: 0 1.5px 4px rgba(0,0,0,.18); }
+</style>
+</head>
+<body>
+\u27e6BODY\u27e7
+</body>
+</html>`,
+  'duty': `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #171320; }
+  .dt-wrap { width: 420px; padding: 24px 22px; }
+  .dt-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
+  .dt-title { font-size: 19px; font-weight: 800; }
+  .dt-count { font-size: 17px; font-weight: 800; font-family: ui-monospace, Menlo, monospace; }
+  .dt-bar { height: 6px; border-radius: 3px; overflow: hidden; margin-bottom: 18px; }
+  .dt-list { margin-left: 12px; padding-left: 0; }
+  .dt-item { position: relative; display: flex; align-items: center; height: 46px; }
+  .dt-dot { flex-shrink: 0; margin-left: -14px; }
+  .dt-time { width: 52px; flex-shrink: 0; margin-left: 8px; font-size: 12.5px; font-weight: 700; font-family: ui-monospace, Menlo, monospace; }
+  .dt-txt { flex: 1; min-width: 0; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dt-now { display: inline-block; margin-left: 7px; padding: 1.5px 6px; border-radius: 8px; font-size: 9px; font-weight: 800; letter-spacing: .08em; vertical-align: 1.5px; }
+  .dt-say { margin-top: 16px; padding: 10px 12px; border-radius: 0 8px 8px 0; font-size: 12.5px; line-height: 1.55; }
+</style>
+</head>
+<body>
+\u27e6BODY\u27e7
+</body>
+</html>`,
 };
 
 const SIZES = {
@@ -208,6 +258,8 @@ const SIZES = {
   'pay': [420, 560],
   'heist': [420, 560],
   'compass': [420, 470],
+  'eviboard': [420, 560],
+  'duty': [420, 480],
 };
 
 // ══════════════════════════════════════════════════════════════
@@ -939,11 +991,306 @@ function renderCompass(html, url) {
   return html.split('\u27e6BODY\u27e7').join(inner);
 }
 
+
+// ══════════════════════════════════════════════════════════════
+// 🧵 EVIBOARD (증거 보드) — 자동 배치 관계도
+// n=이름§분류§메모|... / link=1-2§라벨|1-4§?|... / th=cork·board[§배경][§액센트] / font=
+// 좌표 미수신: 3=삼각 4=사각 5~7=원형 8+=3열 격자(상한 30, 파서 방탄용)
+// ══════════════════════════════════════════════════════════════
+
+const EV_PAL = ['#8888CC', '#DDAACC', '#CCAA88', '#BB6688'];          // 핀·자석 1군 순환
+const EV_POSTIT = ['#fdf3c9', '#f9dbe7', '#d9ecf7', '#ddf0d9'];       // board 포스트잇 4색(연톤)
+const EV_OPEN = '#FF6699';                                            // 미해결 ? 분홍 (고정)
+
+const EV_TH = {
+  'cork':  { bg: '#8a6a45', frame: '#5f4830', card: '#f6f1e4', cardLn: '#d8cfba', thread: '#BB6688',
+             lblBg: '#f6f1e4', lblTx: '#5a4632', tx: '#3a2f22', sub: '#8a7a62', cat: '#a4544f', sh: 0.30 },
+  'board': { bg: '#f4f4f7', frame: '#d5d5de', card: '#ffffff', cardLn: '#e2e2ea', thread: '#8888CC',
+             lblBg: '#ffffff', lblTx: '#55557a', tx: '#2a2a33', sub: '#8a8a98', cat: '#7878aa', sh: 0.10 },
+};
+
+function evTheme(url) {
+  const raw = url.searchParams.get('th') || '';
+  const f = raw.split('\u00a7').map(s => s.trim());
+  let style = 'cork', i = 0;
+  const s0 = (f[0] || '').toLowerCase();
+  if (EV_TH[s0]) { style = s0; i = 1; }
+  else if (f[0] === '') { i = 1; }   // 스타일 자리를 비워 쓴 표기 — 6라우트 통일 규칙
+  const t = Object.assign({ style: style }, EV_TH[style]);
+  if (f[i] === '') i++;                       // 빈 칸도 자리를 소비한다
+  else { const hx = jHex(f[i] || ''); if (hx) { t.bg = hx; t.tx = themeText(hx); t.cbg = true; i++; } }
+  const ax = jHex(f[i] || '');
+  if (ax) t.thread = ax;
+  return t;
+}
+
+function evHash(s) { let h = 0; for (const c of String(s)) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; }
+
+// n=이름§분류§메모 파싱 (분류·메모 뒤에서부터 생략 가능, 상한 30)
+function evNodes(p) {
+  return (p || '').split('|').map(r => r.trim()).filter(Boolean).slice(0, 30).map(r => {
+    const g = r.split('\u00a7');
+    return { name: g[0] || '', cat: g[1] || '', memo: g.slice(2).join('\u00a7') || '' };
+  });
+}
+
+// link=1-2§라벨 파싱 (1-기반, 라벨 '?'=미해결)
+function evLinks(p, nCount) {
+  return (p || '').split('|').map(r => r.trim()).filter(Boolean).map(r => {
+    const g = r.split('\u00a7');
+    const m = (g[0] || '').match(/^(\d+)\s*-\s*(\d+)$/);
+    if (!m) return null;
+    const a = parseInt(m[1], 10) - 1, b = parseInt(m[2], 10) - 1;
+    if (a < 0 || b < 0 || a >= nCount || b >= nCount || a === b) return null;
+    return { a: a, b: b, label: g.slice(1).join('\u00a7') || '' };
+  }).filter(Boolean);
+}
+
+const EV_W = 420, EV_CW = 116, EV_CH = 78;
+
+// 자동 배치: 1·2 특례 / 3=삼각 / 4=사각 모서리 / 5~7=원형 (-90° 시작 타원)
+function evLayout(nc) {
+  const cx = EV_W / 2, cy = 306, rx = 136, ry = 158;
+  if (nc === 1) return [[cx, cy]];
+  if (nc === 2) return [[cx - 82, cy], [cx + 82, cy]];
+  const pts = [];
+  for (let i = 0; i < nc; i++) {
+    const a = (nc === 4 ? -45 + i * 90 : -90 + i * (360 / nc)) * Math.PI / 180;
+    pts.push([cx + rx * Math.cos(a), cy + ry * Math.sin(a)]);
+  }
+  return pts;
+}
+
+// 격자 배치 (8+): 3열, 행 중앙정렬 + 지그재그 ±6, 이름 시드 세로 지터
+function evLayoutGrid(nodes) {
+  const cols = 3, gx = EV_CW + 14, gy = EV_CH + 46, cx = EV_W / 2, topY = 96 + EV_CH / 2;
+  return nodes.map((nd, i) => {
+    const r = Math.floor(i / cols), c = i % cols;
+    const rowN = Math.min(cols, nodes.length - r * cols);
+    const x0 = cx - ((rowN - 1) * gx) / 2 + (r % 2 ? 6 : -6);
+    const jit = ((evHash(nd.name) >> 3) % 11) - 5;
+    return [x0 + c * gx, topY + r * gy + jit];
+  });
+}
+
+function evHeight(nCount) {
+  if (nCount >= 8) return 96 + Math.ceil(nCount / 3) * (EV_CH + 46) + 28;
+  return 560;
+}
+
+// 이차 베지어 t지점
+function evQ(p0, pc, p1, t) {
+  const u = 1 - t;
+  return [u * u * p0[0] + 2 * u * t * pc[0] + t * t * p1[0], u * u * p0[1] + 2 * u * t * pc[1] + t * t * p1[1]];
+}
+
+function renderEviboard(html, url) {
+  const t = evTheme(url);
+  const cork = t.style === 'cork';
+  const fm = jFont(url, 'sans');
+  const fam = jFam(fm);
+  const title = url.searchParams.get('title') || '증거 보드';
+  const nodes = evNodes(url.searchParams.get('n'));
+  const links = evLinks(url.searchParams.get('link'), nodes.length);
+  const H = evHeight(nodes.length);
+  const grid = nodes.length >= 8;
+  const pts = grid ? evLayoutGrid(nodes) : evLayout(nodes.length);
+  const pin = i => [pts[i][0], pts[i][1] - EV_CH / 2 + 4];
+
+  // ── SVG 언더레이: 질감·프레임·실·핀
+  let sv = '<svg width="' + EV_W + '" height="' + H + '" viewBox="0 0 ' + EV_W + ' ' + H + '" style="position:absolute;left:0;top:0">';
+  sv += '<defs><filter id="evTex"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" result="n"/>'
+      + '<feColorMatrix in="n" type="matrix" values="0 0 0 0 0.32 0 0 0 0 0.22 0 0 0 0 0.12 0 0 0 0.55 0"/>'
+      + '<feComposite operator="over" in2="SourceGraphic"/></filter></defs>';
+  if (cork) {
+    sv += '<rect width="' + EV_W + '" height="' + H + '" fill="' + t.bg + '"/>'
+        + '<rect width="' + EV_W + '" height="' + H + '" fill="' + t.bg + '" filter="url(#evTex)"/>'
+        + '<rect x="6" y="6" width="' + (EV_W - 12) + '" height="' + (H - 12) + '" fill="none" stroke="' + t.frame + '" stroke-width="10" rx="4"/>';
+  } else {
+    sv += '<rect width="' + EV_W + '" height="' + H + '" fill="' + t.bg + '"/>'
+        + '<rect x="10" y="10" width="' + (EV_W - 20) + '" height="' + (H - 20) + '" fill="' + (t.cbg ? t.bg : '#ffffff') + '" stroke="' + t.frame + '" stroke-width="2" rx="10"/>'
+        + '<path d="M ' + (EV_W / 2 - 96) + ' 62 Q ' + (EV_W / 2) + ' 67 ' + (EV_W / 2 + 96) + ' 61" stroke="' + EV_OPEN + '" stroke-width="3" fill="none" stroke-linecap="round"/>';
+  }
+
+  // 실 + 라벨 좌표 (라벨은 HTML로 그리되 위치는 여기서 확정 — 35% 지점 + 수직 충돌 회피)
+  const lblOut = [];
+  const placed = [];
+  for (const lk of links) {
+    const a = pin(lk.a), b = pin(lk.b);
+    const mid = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2 + 14];      // 중점 +14 처짐
+    const open = lk.label === '?';
+    const col = open ? EV_OPEN : t.thread;
+    sv += '<path d="M ' + a[0].toFixed(1) + ' ' + a[1].toFixed(1) + ' Q ' + mid[0].toFixed(1) + ' ' + mid[1].toFixed(1)
+        + ' ' + b[0].toFixed(1) + ' ' + b[1].toFixed(1) + '" fill="none" stroke="' + col + '" stroke-width="' + (cork ? 2.4 : 3) + '"'
+        + (open ? ' stroke-dasharray="6 5"' : '') + ' stroke-linecap="round" opacity="0.92">';
+    if (open) sv += '<animate attributeName="stroke-dashoffset" values="0;-22" keyTimes="0;1" dur="1.6s" repeatCount="indefinite"/>';
+    sv += '</path>';
+    if (lk.label) {
+      let pt = evQ(a, mid, b, 0.35);                              // 노드 쪽 35% 지점 (겹침 수정안)
+      const lw = Math.max(26, lk.label.length * (open ? 13 : 12) + 14);
+      for (const q of placed) {
+        if (Math.abs(pt[0] - q[0]) < (lw + q[2]) / 2 && Math.abs(pt[1] - q[1]) < 20) pt[1] += (pt[1] >= q[1] ? 20 : -20);
+      }
+      placed.push([pt[0], pt[1], lw]);
+      lblOut.push({ x: pt[0], y: pt[1], txt: lk.label, open: open, col: col });
+    }
+  }
+
+  // 핀(cork) / 자석(board) — 카드 위 레이어에 그리도록 별도 svg 조각 축적
+  let pinsSv = '';
+  nodes.forEach((nd, i) => {
+    const p = pin(i);
+    const pc = EV_PAL[evHash(nd.name) % 4];
+    if (cork) {
+      pinsSv += '<circle cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="5.5" fill="' + pc + '"/>'
+              + '<circle cx="' + (p[0] - 1.7).toFixed(1) + '" cy="' + (p[1] - 1.7).toFixed(1) + '" r="1.7" fill="#ffffff" opacity="0.75"/>';
+    } else {
+      pinsSv += '<circle cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="6" fill="' + pc + '"/>'
+              + '<circle cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="6" fill="none" stroke="#00000022" stroke-width="1"/>'
+              + '<circle cx="' + (p[0] - 2).toFixed(1) + '" cy="' + (p[1] - 2).toFixed(1) + '" r="2" fill="#ffffff" opacity="0.6"/>';
+    }
+  });
+  sv += '</svg>';
+
+  // ── HTML 레이어: 타이틀·카드·라벨 (jType 적용 — cursive는 라틴·숫자만)
+  let inner = '<div class="ev-wrap" style="width:' + EV_W + 'px;height:' + H + 'px;font-family:' + fam + '">' + sv;
+
+  if (cork) {
+    inner += '<div class="ev-title ev-sh30" style="background:' + t.card + ';color:' + t.tx + '">'
+           + '<span class="ev-tape" style="left:-14px;top:-7px"></span><span class="ev-tape" style="right:-14px;bottom:-7px"></span>'
+           + jType(title, fm) + '</div>';
+  } else {
+    inner += '<div class="ev-title-b" style="color:' + t.tx + '">' + jType(title, fm) + '</div>';
+  }
+
+  nodes.forEach((nd, i) => {
+    const h = evHash(nd.name);
+    const tilt = ((h % 9) - 4) * (cork ? 1.3 : 0.7);              // 이름 시드 기울기
+    const bg = cork ? t.card : EV_POSTIT[h % 4];
+    inner += '<div class="ev-card ' + (cork ? 'ev-sh30' : 'ev-sh10') + '" style="left:' + (pts[i][0] - EV_CW / 2).toFixed(1) + 'px;top:' + (pts[i][1] - EV_CH / 2).toFixed(1)
+           + 'px;background:' + bg + ';border:1px solid ' + t.cardLn + ';border-radius:' + (cork ? 1.5 : 4) + 'px;transform:rotate(' + tilt.toFixed(1) + 'deg)">'
+           + '<div class="ev-nm" style="color:' + t.tx + '">' + jType(nd.name, fm) + '</div>'
+           + (nd.cat ? '<div class="ev-cat" style="color:' + t.cat + '">&#8212; ' + jType(nd.cat, fm) + ' &#8212;</div>' : '')
+           + (nd.memo ? '<div class="ev-memo" style="color:' + t.sub + '">' + jType(nd.memo, fm) + '</div>' : '')
+           + '</div>';
+  });
+
+  for (const lb of lblOut) {
+    inner += '<div class="ev-lbl ev-shL" style="left:' + lb.x.toFixed(1) + 'px;top:' + lb.y.toFixed(1) + 'px;background:' + t.lblBg
+           + ';border:1.4px solid ' + lb.col + ';border-radius:' + (cork ? 3 : 11) + 'px;color:' + (lb.open ? EV_OPEN : t.lblTx)
+           + ';font-size:' + (lb.open ? 13 : 11.5) + 'px">' + jType(lb.txt, fm) + '</div>';
+  }
+
+  // 핀은 카드 위 최상단 레이어
+  inner += '<svg width="' + EV_W + '" height="' + H + '" viewBox="0 0 ' + EV_W + ' ' + H + '" style="position:absolute;left:0;top:0;pointer-events:none">' + pinsSv + '</svg>';
+  inner += '</div>';
+
+  return html.split('\u27e6BODY\u27e7').join(inner);
+}
+
+
+// ══════════════════════════════════════════════════════════════
+// 📋 DUTY (일과표) — 타임라인 체크리스트
+// p=시각§내용§상태|... (상태 done/now/todo, 생략=todo) · title= · say=한줄 코멘트
+// th=night(기본)/paper[§배경][§강조색] · font= 공통 · 진행률 자동계산 · now=SMIL 펄스(cal 패턴)
+// ══════════════════════════════════════════════════════════════
+
+const DT_TH = {
+  'night': { bg: '#171320', rail: '#3a3448', tx: '#e8e4f0', sub: '#8a8398', acc: '#DDAACC', box: '#221c2e', done: '#6a6378' },
+  'paper': { bg: '#F7F5F0', rail: '#d8d2c4', tx: '#3a2f22', sub: '#8a7a62', acc: '#BB6688', box: '#efe9dc', done: '#a89a84' },
+};
+
+function dutyTheme(url) {
+  const raw = url.searchParams.get('th') || '';
+  const f = raw.split('\u00a7').map(s => s.trim());
+  let style = 'night', i = 0;
+  const s0 = (f[0] || '').toLowerCase();
+  if (DT_TH[s0]) { style = s0; i = 1; }
+  else if (f[0] === '') { i = 1; }   // 스타일 자리를 비워 쓴 표기 — 통일 규칙
+  const t = Object.assign({ style: style }, DT_TH[style]);
+  if (f[i] === '') i++;                       // 빈 칸도 자리를 소비한다
+  else { const hx = jHex(f[i] || ''); if (hx) { t.bg = hx; t.tx = themeText(hx); t.custom = true; i++; } }
+  const ax = jHex(f[i] || '');
+  if (ax) t.acc = ax;
+  return t;
+}
+
+// p=시각§내용§상태 파싱 (상한 30, 상태 미상=todo)
+function dutyItems(p) {
+  return (p || '').split('|').map(r => r.trim()).filter(Boolean).slice(0, 30).map(r => {
+    const g = r.split('\u00a7');
+    let st = (g[2] || '').trim().toLowerCase();
+    if (st !== 'done' && st !== 'now') st = 'todo';
+    return { time: g[0] || '', txt: g[1] || '', st: st };
+  });
+}
+
+function renderDuty(html, url) {
+  const t = dutyTheme(url);
+  const fm = jFont(url, 'sans');
+  const fam = jFam(fm);
+  const title = url.searchParams.get('title') || '오늘의 일과';
+  const items = dutyItems(url.searchParams.get('p'));
+  const say = url.searchParams.get('say') || '';
+  const doneN = items.filter(x => x.st === 'done').length;
+  const pct = items.length ? Math.round(doneN / items.length * 100) : 0;
+  const railTint = t.custom ? themeMix(t.bg, t.tx, 0.18) : t.rail;
+  const boxTint = t.custom ? themeMix(t.bg, t.tx, 0.08) : t.box;
+  const doneTint = t.custom ? themeMix(t.bg, t.tx, 0.42) : t.done;
+
+  let inner = '<div class="dt-wrap" style="background:' + t.bg + ';color:' + t.tx + ';font-family:' + fam + '">';
+
+  // 헤더: 제목 + 진행률 숫자
+  inner += '<div class="dt-head"><div class="dt-title">' + jType(title, fm) + '</div>'
+         + '<div class="dt-count" style="color:' + t.acc + '">' + doneN + '<span style="color:' + doneTint + '"> / ' + items.length + '</span></div></div>';
+
+  // 진행률 바 (자동계산)
+  inner += '<div class="dt-bar" style="background:' + railTint + '"><div style="width:' + pct + '%;height:100%;border-radius:3px;background:' + t.acc + '"></div></div>';
+
+  // 타임라인
+  inner += '<div class="dt-list" style="border-left:2px solid ' + railTint + '">';
+  items.forEach(it => {
+    const done = it.st === 'done', now = it.st === 'now';
+    let dot;
+    if (now) {
+      // cal 오늘 링과 동일 패턴: 채운 원 + 확장 링 r/opacity 이중 SMIL
+      dot = '<svg width="26" height="26" viewBox="0 0 26 26" class="dt-dot">'
+          + '<circle cx="13" cy="13" r="6" fill="' + t.acc + '"/>'
+          + '<circle cx="13" cy="13" r="9" fill="none" stroke="' + t.acc + '" stroke-width="1.4" opacity=".6">'
+          + '<animate attributeName="r" values="7.5;11.5;7.5" dur="2.4s" repeatCount="indefinite"/>'
+          + '<animate attributeName="opacity" values=".65;.12;.65" dur="2.4s" repeatCount="indefinite"/>'
+          + '</circle></svg>';
+    } else if (done) {
+      dot = '<svg width="26" height="26" viewBox="0 0 26 26" class="dt-dot">'
+          + '<circle cx="13" cy="13" r="7" fill="' + t.acc + '"/>'
+          + '<path d="M9.5 13.2 L12 15.7 L17 10.4" fill="none" stroke="' + t.bg + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    } else {
+      dot = '<svg width="26" height="26" viewBox="0 0 26 26" class="dt-dot">'
+          + '<circle cx="13" cy="13" r="6.5" fill="none" stroke="' + railTint + '" stroke-width="2"/></svg>';
+    }
+    inner += '<div class="dt-item">' + dot
+           + '<div class="dt-time" style="color:' + (now ? t.acc : doneTint) + '">' + jEsc(it.time) + '</div>'
+           + '<div class="dt-txt" style="' + (done ? 'color:' + doneTint + ';text-decoration:line-through;' : (now ? 'color:' + t.tx + ';font-weight:800;' : 'color:' + t.tx + ';')) + '">'
+           + jType(it.txt, fm) + (now ? '<span class="dt-now" style="background:' + t.acc + ';color:' + themeText(t.acc) + '">NOW</span>' : '') + '</div></div>';
+  });
+  inner += '</div>';
+
+  // say 한줄 코멘트
+  if (say) {
+    inner += '<div class="dt-say" style="background:' + boxTint + ';border-left:3px solid ' + t.acc + ';color:' + t.sub + '">&#8220;' + jType(say, fm) + '&#8221;</div>';
+  }
+
+  inner += '</div>';
+  return html.split('\u27e6BODY\u27e7').join(inner);
+}
+
 const RENDERERS = {
   'cal': renderCal,
   'pay': renderPay,
   'heist': renderHeist,
   'compass': renderCompass,
+  'eviboard': renderEviboard,
+  'duty': renderDuty,
 };
 
 // th 처리를 렌더러 내부에서 하는 poll/ask 방식 채택 — 별도 테마 렌더러 불필요 시 빈 상태 유지
@@ -1036,6 +1383,23 @@ export default {
         if (disC) hC += calcLines(disC, 240) * 18 + 2;
         if (!labC && !disC) hC += 36;
         h = Math.min(hC + MARGIN, MAX_H);
+      }
+
+      // ── 🧵 EVIBOARD ──
+      // 7인 이하 고정 560 / 8인+ 격자: 96 + 행수*(78+46) + 28 (renderEviboard의 evHeight와 동일식)
+      if (t === 'eviboard') {
+        const nE = evNodes(url.searchParams.get('n')).length;
+        h = Math.min(evHeight(nE), MAX_H);
+      }
+
+      // ── 📋 DUTY ──
+      // pad(24*2) + 헤더(30+12) + 바(6+18) + 항목*46 + say(16 + 코멘트줄*19 + 21)
+      if (t === 'duty') {
+        const itD = dutyItems(url.searchParams.get('p'));
+        const sayD = url.searchParams.get('say') || '';
+        let hD = 48 + 42 + 24 + itD.length * 46;
+        if (sayD) hD += 16 + calcLines(sayD, 340) * 19 + 21;
+        h = Math.min(Math.max(hD + MARGIN, 220), MAX_H);
       }
 
       // ── 📅 CAL ──

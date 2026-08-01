@@ -4457,6 +4457,166 @@ function renderVital(params) {
 // ════════════════════════════════════════════
 //  FETCH
 // ════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════════════
+// 👻 EMF 탐지기 — 계기판 클로즈업 (오컬트·폐가 탐사)
+// s=k2(기본 LED 5구)/an(아날로그 바늘) · v=수치mG(단계 자동)/lv=0~5 강제
+// label=측정 위치 · say=상태 문구 · jit=0 바늘 고정(an) · spd=요동 주기 초(an, 0.15~6)
+// th=주색§배경§경고 (rt 계열 문법, 전부 생략 가능 — 기본은 실물 색)
+// ══════════════════════════════════════════════════════════════
+
+const EMF_LEDC = ['#37d670', '#8fd63e', '#ffd23d', '#ff8a2e', '#ff3348'];
+const EMF_LBL = ['1.5', '2.5', '10', '20+', 'mG'];
+
+function emfLv(v) { if (v < 0.3) return 0; if (v < 1.5) return 1; if (v < 2.5) return 2; if (v < 10) return 3; if (v < 20) return 4; return 5; }
+
+function emfTheme(raw) {
+  const p = (raw || '').split('§').map(rtHex);
+  const main = p[0] || '#b9b9c6';                       // 인쇄 텍스트·라벨 포인트
+  const body = p[1] || '#26262e';                       // 플라스틱 기준색
+  return {
+    main, body,
+    warn: p[2] || '#ff3348',
+    ok: '#8fd63e',
+    bodyHi: rtMix(body, '#ffffff', 0.10),
+    bodyLo: rtMix(body, '#000000', 0.30),
+    sub: rtMix(main, body, 0.35),
+  };
+}
+
+function emfDefs(C) {
+  return '<defs>'
+    + '<linearGradient id="emfPl" x1="0" y1="0" x2="0.8" y2="1">'
+    + '<stop offset="0" stop-color="' + C.bodyHi + '"/><stop offset="0.45" stop-color="' + C.body + '"/><stop offset="1" stop-color="' + C.bodyLo + '"/></linearGradient>'
+    + '<radialGradient id="emfSheen" cx="0.32" cy="0.2" r="1.1">'
+    + '<stop offset="0" stop-color="#ffffff" stop-opacity="0.10"/><stop offset="0.5" stop-color="#ffffff" stop-opacity="0.02"/><stop offset="1" stop-color="#000000" stop-opacity="0.28"/></radialGradient>'
+    + '<linearGradient id="emfDial" x1="0" y1="0" x2="0" y2="1">'
+    + '<stop offset="0" stop-color="#f4eeda"/><stop offset="1" stop-color="#dcd3ba"/></linearGradient>'
+    + '<radialGradient id="emfOff" cx="0.35" cy="0.3" r="0.9">'
+    + '<stop offset="0" stop-color="#40404c"/><stop offset="0.6" stop-color="#23232b"/><stop offset="1" stop-color="#14141b"/></radialGradient>'
+    + '<filter id="emfGlow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="6"/></filter>'
+    + '<filter id="emfIn" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="#000" flood-opacity="0.5"/></filter>'
+    + '</defs>';
+}
+
+function emfLed(x, y, r, c, on, blink) {
+  let s = '';
+  if (on) {
+    s += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + (r + 7) + '" fill="' + c + '" opacity="0.5" filter="url(#emfGlow)">';
+    if (blink) s += '<animate attributeName="opacity" values="0.55;0.04;0.55" dur="0.38s" repeatCount="indefinite"/>';
+    s += '</circle><circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + r + '" fill="' + c + '">';
+    if (blink) s += '<animate attributeName="opacity" values="1;0.22;1" dur="0.38s" repeatCount="indefinite"/>';
+    s += '</circle><circle cx="' + (x - r * 0.32).toFixed(1) + '" cy="' + (y - r * 0.36).toFixed(1) + '" r="' + (r * 0.32).toFixed(1) + '" fill="#ffffff" opacity="0.8"/>';
+  } else {
+    s += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + r + '" fill="url(#emfOff)" stroke="#0c0c12" stroke-width="1.4"/>'
+       + '<circle cx="' + (x - r * 0.3).toFixed(1) + '" cy="' + (y - r * 0.36).toFixed(1) + '" r="' + (r * 0.3).toFixed(1) + '" fill="#ffffff" opacity="0.13"/>';
+  }
+  return s;
+}
+
+function emfScrew(x, y, rot) {
+  return '<circle cx="' + x + '" cy="' + y + '" r="6" fill="#12121a" stroke="#3e3e4a" stroke-width="1.3"/>'
+    + '<line x1="' + (x - 3.4) + '" y1="' + y + '" x2="' + (x + 3.4) + '" y2="' + y + '" stroke="#565664" stroke-width="1.6" transform="rotate(' + rot + ' ' + x + ' ' + y + ')"/>';
+}
+
+// 하단 라벨·상태 — 나사 안쪽 인셋 48px (겹침 방지 확정안)
+function emfFoot(W, H, label, say, danger, C) {
+  let s = '';
+  if (label) s += '<text x="48" y="' + (H - 16) + '" font-size="12.5" font-weight="700" fill="' + C.sub + '">&#9656; ' + esc(label) + '</text>';
+  if (say) s += '<text x="' + (W - 48) + '" y="' + (H - 16) + '" font-size="12.5" font-weight="800" text-anchor="end" fill="' + (danger ? C.warn : C.ok) + '">' + esc(say) + '</text>';
+  return s;
+}
+
+function emfWobDur(spd, danger) {
+  const d = parseFloat(spd);
+  if (isFinite(d) && d >= 0.15 && d <= 6) return d;
+  return danger ? 0.45 : 1.1;
+}
+
+function renderEmf(params) {
+  const g = k => params.get(k);
+  const C = emfTheme(g('th'));
+  const sub = (g('s') || 'k2').toLowerCase();
+  const v = rtNum(g('v'), 0.8, 0, 99);
+  let lv = Math.round(rtNum(g('lv'), -1, 0, 5));
+  if (lv < 0) lv = emfLv(v);
+  const danger = lv >= 4;
+  const label = g('label') || '';
+  const say = g('say') || '';
+  const W = 420, H = 330;
+
+  let s = '<svg xmlns="http://www.w3.org/2000/svg" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" font-family="-apple-system,\'Noto Sans KR\',sans-serif">' + emfDefs(C);
+  s += '<rect width="' + W + '" height="' + H + '" fill="url(#emfPl)"/>';
+
+  if (sub === 'an') {
+    // ── 아날로그: 크림 계기창 클로즈업
+    s += '<rect x="34" y="24" width="352" height="230" rx="14" fill="#0c0c12" filter="url(#emfIn)"/>';
+    s += '<rect x="42" y="32" width="336" height="214" rx="9" fill="url(#emfDial)" stroke="#8a8272" stroke-width="1.2"/>';
+    const mx = W / 2, my = 224, RB = 150;
+    const bands = [[-56, -12, EMF_LEDC[0]], [-12, 20, EMF_LEDC[2]], [20, 56, C.warn]];
+    for (const [b0, b1, c] of bands) {
+      const a0 = (b0 - 90) * Math.PI / 180, a1 = (b1 - 90) * Math.PI / 180;
+      s += '<path d="M ' + (mx + RB * Math.cos(a0)).toFixed(1) + ' ' + (my + RB * Math.sin(a0)).toFixed(1) + ' A ' + RB + ' ' + RB + ' 0 0 1 ' + (mx + RB * Math.cos(a1)).toFixed(1) + ' ' + (my + RB * Math.sin(a1)).toFixed(1) + '" fill="none" stroke="' + c + '" stroke-width="15" opacity="0.92"/>';
+    }
+    for (let i = 0; i <= 20; i++) {
+      const a = -56 + i * 5.6, rad = (a - 90) * Math.PI / 180, major = i % 4 === 0;
+      s += '<line x1="' + (mx + (RB - 12) * Math.cos(rad)).toFixed(1) + '" y1="' + (my + (RB - 12) * Math.sin(rad)).toFixed(1) + '" x2="' + (mx + (RB - (major ? 26 : 19)) * Math.cos(rad)).toFixed(1) + '" y2="' + (my + (RB - (major ? 26 : 19)) * Math.sin(rad)).toFixed(1) + '" stroke="#2a2418" stroke-width="' + (major ? 2 : 1.2) + '"/>';
+    }
+    const NUMS = [['0', -56], ['5', -28], ['10', 0], ['15', 28], ['20', 56]];
+    for (const [tx, a] of NUMS) {
+      const rad = (a - 90) * Math.PI / 180;
+      s += '<text x="' + (mx + (RB - 38) * Math.cos(rad)).toFixed(1) + '" y="' + (my + (RB - 38) * Math.sin(rad) + 4).toFixed(1) + '" text-anchor="middle" font-size="12" font-weight="700" fill="#2a2418">' + tx + '</text>';
+    }
+    s += '<text x="' + mx + '" y="' + (my - 42) + '" text-anchor="middle" font-size="10.5" letter-spacing="2.5" fill="#6a614c">milligauss</text>';
+
+    // 바늘: jit=0 고정 / spd= 요동 주기
+    const vc = Math.max(0, Math.min(20, v)), ang = -56 + vc / 20 * 112;
+    const wob = g('jit') === '0' ? 0 : 2.2 + lv * 2.6;
+    s += '<g transform="translate(' + mx + ',' + my + ')"><g>';
+    if (wob > 0) {
+      const dur = emfWobDur(g('spd'), danger);
+      const a0 = (ang - wob).toFixed(1), a1 = (ang + wob).toFixed(1), am = (ang + wob * 0.35).toFixed(1), an = (ang - wob * 0.55).toFixed(1);
+      s += '<animateTransform attributeName="transform" type="rotate" values="' + a0 + ';' + a1 + ';' + am + ';' + an + ';' + a0 + '" keyTimes="0;0.3;0.55;0.8;1" dur="' + dur + 's" repeatCount="indefinite"/>';
+    } else {
+      s += '<animateTransform attributeName="transform" type="rotate" values="' + ang.toFixed(1) + ';' + ang.toFixed(1) + '" keyTimes="0;1" dur="1s" repeatCount="1" fill="freeze"/>';
+    }
+    s += '<line x1="0" y1="14" x2="0" y2="' + (-RB + 22) + '" stroke="#1a1410" stroke-width="3" stroke-linecap="round"/>'
+       + '<line x1="1.2" y1="14" x2="1.2" y2="' + (-RB + 22) + '" stroke="#4a3f2c" stroke-width="1" stroke-linecap="round" opacity="0.5"/>'
+       + '</g><circle r="8" fill="#1a1410"/><circle r="3" fill="#4a4438"/></g>';
+    s += '<path d="M 60 36 L 180 36 L 92 242 L 48 242 Z" fill="#ffffff" opacity="0.06"/>';
+    s += '<rect x="42" y="32" width="336" height="214" rx="9" fill="none" stroke="#000000" stroke-opacity="0.25" stroke-width="2"/>';
+    s += emfLed(58, 284, 9, danger ? C.warn : EMF_LEDC[0], true, danger);
+    s += '<text x="76" y="289" font-size="10" letter-spacing="2" fill="' + C.sub + '">' + (danger ? 'ALERT' : 'PWR') + '</text>';
+    s += '<text x="' + mx + '" y="290" text-anchor="middle" font-size="12.5" font-weight="800" letter-spacing="3" fill="' + C.main + '">EMF-820</text>';
+  } else {
+    // ── K-II: 무지개 아크 + LED 5구 클로즈업
+    s += '<path d="M 0 22 Q ' + (W / 2) + ' 8 ' + W + ' 22" fill="none" stroke="#0e0e15" stroke-width="2" opacity="0.8"/>';
+    s += '<path d="M 0 24.5 Q ' + (W / 2) + ' 10.5 ' + W + ' 24.5" fill="none" stroke="#4a4a58" stroke-width="1" opacity="0.5"/>';
+    const acx = W / 2, acy = 252, R1 = 104, R2 = 156;
+    const segA = [-64, -32, 0, 32, 64];
+    const a0s = (segA[0] - 16 - 90) * Math.PI / 180, a1s = (segA[4] + 16 - 90) * Math.PI / 180;
+    s += '<path d="M ' + (acx + (R1 - 5) * Math.cos(a0s)).toFixed(1) + ' ' + (acy + (R1 - 5) * Math.sin(a0s)).toFixed(1) + ' A ' + (R1 - 5) + ' ' + (R1 - 5) + ' 0 0 1 ' + (acx + (R1 - 5) * Math.cos(a1s)).toFixed(1) + ' ' + (acy + (R1 - 5) * Math.sin(a1s)).toFixed(1) + ' L ' + (acx + (R2 + 5) * Math.cos(a1s)).toFixed(1) + ' ' + (acy + (R2 + 5) * Math.sin(a1s)).toFixed(1) + ' A ' + (R2 + 5) + ' ' + (R2 + 5) + ' 0 0 0 ' + (acx + (R2 + 5) * Math.cos(a0s)).toFixed(1) + ' ' + (acy + (R2 + 5) * Math.sin(a0s)).toFixed(1) + ' Z" fill="#e8e2d0" filter="url(#emfIn)"/>';
+    for (let i = 0; i < 5; i++) {
+      const a0 = (segA[i] - 15 - 90) * Math.PI / 180, a1 = (segA[i] + 15 - 90) * Math.PI / 180;
+      s += '<path d="M ' + (acx + R1 * Math.cos(a0)).toFixed(1) + ' ' + (acy + R1 * Math.sin(a0)).toFixed(1) + ' A ' + R1 + ' ' + R1 + ' 0 0 1 ' + (acx + R1 * Math.cos(a1)).toFixed(1) + ' ' + (acy + R1 * Math.sin(a1)).toFixed(1) + ' L ' + (acx + R2 * Math.cos(a1)).toFixed(1) + ' ' + (acy + R2 * Math.sin(a1)).toFixed(1) + ' A ' + R2 + ' ' + R2 + ' 0 0 0 ' + (acx + R2 * Math.cos(a0)).toFixed(1) + ' ' + (acy + R2 * Math.sin(a0)).toFixed(1) + ' Z" fill="' + EMF_LEDC[i] + '" stroke="#12121a" stroke-width="1.4"/>';
+    }
+    segA.forEach((a, i) => {
+      const rad = (a - 90) * Math.PI / 180;
+      s += '<text x="' + (acx + 130 * Math.cos(rad)).toFixed(1) + '" y="' + (acy + 130 * Math.sin(rad) + 5).toFixed(1) + '" text-anchor="middle" font-size="14" font-weight="800" fill="#10101a">' + EMF_LBL[i] + '</text>';
+    });
+    segA.forEach((a, i) => {
+      const rad = (a - 90) * Math.PI / 180;
+      s += emfLed(acx + 188 * Math.cos(rad), acy + 188 * Math.sin(rad), 15, EMF_LEDC[i], i < lv, danger && i === lv - 1);
+    });
+    s += '<text x="' + acx + '" y="292" text-anchor="middle" font-size="14" font-weight="800" letter-spacing="4" fill="' + C.main + '">EMF METER</text>';
+  }
+
+  s += emfScrew(24, 26, 38) + emfScrew(W - 24, 26, -21) + emfScrew(24, H - 24, 65) + emfScrew(W - 24, H - 24, 12);
+  s += emfFoot(W, H, label, say, danger, C);
+  s += '<rect width="' + W + '" height="' + H + '" fill="url(#emfSheen)"/>';
+  return s + '</svg>';
+}
+
 export default {
   async fetch(req) {
     const url = new URL(req.url);
@@ -4481,8 +4641,9 @@ export default {
     else if (t === 'radar') svg = renderRadar(params);
     else if (t === 'term') svg = renderTerm(params);
     else if (t === 'vital') svg = renderVital(params);
+    else if (t === 'emf') svg = renderEmf(params);
     else {
-      return new Response('사용 가능: ?t=vn / ?t=vn2 / ?t=dark / ?t=pixel / ?t=ending / ?t=rpg2k / ?t=choice / ?t=dungeon / ?t=mmo / ?t=reward / ?t=gameover / ?t=inv / ?t=stat / ?t=roll / ?t=radar / ?t=term / ?t=vital', {
+      return new Response('사용 가능: ?t=vn / ?t=vn2 / ?t=dark / ?t=pixel / ?t=ending / ?t=rpg2k / ?t=choice / ?t=dungeon / ?t=mmo / ?t=reward / ?t=gameover / ?t=inv / ?t=stat / ?t=roll / ?t=radar / ?t=term / ?t=vital / ?t=emf', {
         status: 400, headers: { 'Content-Type': 'text/plain; charset=utf-8' }
       });
     }

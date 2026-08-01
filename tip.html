@@ -1736,7 +1736,7 @@ URL에 &th= 를 추가하면 색상 테마 변경, 생략하면 기본색 (# 없
     ]
   },
   {
-    id:'cat-st', icon:'⚔️', title:'RPG / VN 상태창 UI', sub:'st.winter0.workers.dev — 미연시 · 미연시2 · 다크판타지 · 픽셀RPG · 쯔꾸르 · 엔딩 · 선택지 · 던전 · MMO · 보상 · 게임오버 · 인벤 · 능력치 · 주사위 · 소나레이더 · 통신터미널 · 생체모니터',
+    id:'cat-st', icon:'⚔️', title:'RPG / VN 상태창 UI', sub:'st.winter0.workers.dev — 미연시 · 미연시2 · 다크판타지 · 픽셀RPG · 쯔꾸르 · 엔딩 · 선택지 · 던전 · MMO · 보상 · 게임오버 · 인벤 · 능력치 · 주사위 · 소나레이더 · 통신터미널 · 생체모니터 · EMF탐지기',
     items:[
       {
         id:'t-st-0', title:'미연시 상태창 (?t=vn)',
@@ -2589,6 +2589,31 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
 <strong>인코딩:</strong> 공백 → +, ( → %28, ) → %29, # → %23</div>`
       },
       {
+        id:'t-st-emf', title:'👻 EMF 탐지기 (?t=emf)',
+        body:`<div class="label label-use">URL 파라미터 형식</div>
+<pre>/?t=emf&s=서브타입&v=수치mG&lv=강제단계&label=측정+위치&say=상태+문구&jit=0&spd=요동초&th=주색§배경§경고</pre>
+<hr class="divider">
+<div class="label label-example">예시 — K-II형 기본 (LED 5구, 평온)</div>
+<pre>/?t=emf&v=1&label=현관&say=자연+수치</pre>
+<div class="label label-example">예시 — K-II형 폭주 (5구 점등+점멸)</div>
+<pre>/?t=emf&v=24&label=지하실+입구&say=%21%21+측정+한계+%21%21</pre>
+<div class="label label-example">예시 — 아날로그형 (바늘 요동)</div>
+<pre>/?t=emf&s=an&v=8.5&label=긴+복도&say=수치+상승+중</pre>
+<div class="label label-example">예시 — 아날로그 · 바늘 정지 (정적 공포)</div>
+<pre>/?t=emf&s=an&v=14&jit=0&label=제단방&say=바늘이+멈췄다</pre>
+<div class="label label-example">예시 — 급격한 요동 + 커스텀 경고색</div>
+<pre>/?t=emf&s=an&v=22&spd=0.25&th=§2a1a2e§EE1166&label=지하실&say=급격한+요동</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명 — 전부 생략 가능. <code>/?t=emf</code> 하나만으로도 렌더된다.</strong><br>
+• <strong>s</strong> — <code>k2</code>(기본, LED 5구 핸드헬드) / <code>an</code>(아날로그 바늘 계기창) — 계기판 클로즈업 구도<br>
+• <strong>v</strong> — 수치(mG). LED 단계 자동 산출: &lt;0.3 소등 / 1.5 / 2.5 / 10 / 20 경계 (실물 K-II 눈금 기준)<br>
+• <strong>lv</strong> — 0~5 단계 강제 지정 (v 무시). <strong>4단계 이상 = 폭주 자동</strong>: 최상단 LED 점멸·ALERT 등·상태 문구 적색<br>
+• <strong>label</strong> — 좌하단 측정 위치 / <strong>say</strong> — 우하단 상태 문구 (폭주 시 적색)<br>
+• <strong>jit=0</strong> — 바늘 정지 (an 전용, "바늘이 멈췄다" 정적 연출) / 기본은 단계 비례 요동<br>
+• <strong>spd</strong> — 요동 주기 초 (an 전용, 0.15~6). 기본 평시 1.1s·폭주 0.45s. 0.25쯤 주면 미친 듯이 떨림<br>
+• <strong>th</strong> — 주색(인쇄 텍스트)§배경(플라스틱 톤)§경고색. rt 계열(radar·term·vital)과 동일 문법. LED 무지개는 실물 고정</div>`
+      },
+      {
         id:'t-st-8', title:'바베챗 프롬프트 (복사용)',
         body:`<div class="label label-use">RPG/VN 상태창 + 엔딩 프롬프트</div>
 <div class="desc">바베챗에 복사하여 사용. 도메인은 <strong>st.winter0.workers.dev</strong></div>
@@ -2794,6 +2819,14 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
 - lay=a(420px 가로) / b(680px 세로), w=360~920 (420 초과 시 축소되어 글씨 작아짐)
 - gr=0 그리드 끔 / bx=1 박스 켬 / cur=off 커서선만 숨김 / flat=1 플랫라인
 - 자동 판정 범위는 연출용 근사치. 실제 의료 판단에 쓰지 말 것
+
+### EMF 탐지기 (오컬트·폐가 탐사)
+![](https://st.winter0.workers.dev/?t=emf&s=서브타입&v=수치mG&label=측정+위치&say=상태+문구&jit=0&spd=요동초&th=주색§배경§경고)
+- 전부 생략 가능. ?t=emf 만으로도 렌더됨
+- s=k2(기본 LED 5구) / an(아날로그 바늘) — 계기판 클로즈업
+- v=수치로 LED 단계 자동 (1.5/2.5/10/20 경계) / lv=0~5 강제. 4단계+ = 폭주(점멸·적색)
+- jit=0 바늘 정지(an) / spd=요동 주기 초(an, 0.15~6, 작을수록 격렬)
+- th=주색§배경§경고 — radar·term·vital과 동일 문법
 
 ### 장비 등급 공통 (rarity)
 영문 대문자 표준, 한글 alias 자동 매핑, 입력 표기 그대로 표시

@@ -150,11 +150,6 @@ table.grid input:focus{background:var(--bg);box-shadow:inset 0 0 0 1.5px var(--h
   table.grid input{min-width:112px;padding:10px 9px}
 }
 
-#jump-nav{position:fixed;right:14px;bottom:20px;z-index:120;display:flex;flex-direction:column;gap:8px;opacity:0;pointer-events:none;transform:translateX(8px);transition:opacity .18s,transform .18s}
-#jump-nav.show{opacity:1;pointer-events:auto;transform:none}
-#jump-nav button{width:40px;height:40px;border:.5px solid var(--border2);border-radius:999px;background:var(--bg);color:var(--accent);font-size:13px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.18);font-family:inherit;line-height:1}
-#jump-nav button:hover{background:var(--accent);color:#fff}
-@media(max-width:720px){#jump-nav{right:10px;bottom:16px}#jump-nav button{width:44px;height:44px;font-size:14px}}
 
 /* 줄바꿈 토글: 켜면 가로 스크롤 대신 접어서 표시 (값 자체는 안 변함) */
 body.wrap-on textarea.io-area,body.wrap-on pre.out{white-space:pre-wrap;overflow-wrap:anywhere;overflow-x:hidden}
@@ -1081,19 +1076,7 @@ $$('pre.out').forEach(p=>p.addEventListener('click',function(){
 }));
 parseTableInput();buildList2();buildBlock();buildDetails();buildClean();
 
-/* 스크롤 점프 내비 */
-(function(){
-  const nav=document.getElementById('jump-nav');
-  if(!nav)return;
-  let hideTimer=null,hover=false;
-  const restart=()=>{clearTimeout(hideTimer);hideTimer=setTimeout(()=>{if(!hover)nav.classList.remove('show')},1800)};
-  window.addEventListener('scroll',()=>{nav.classList.add('show');restart()},{passive:true});
-  nav.addEventListener('mouseenter',()=>{hover=true;clearTimeout(hideTimer)});
-  nav.addEventListener('mouseleave',()=>{hover=false;restart()});
-  nav.addEventListener('touchstart',()=>clearTimeout(hideTimer),{passive:true});
-  document.getElementById('jump-top').onclick=()=>window.scrollTo({top:0,behavior:'smooth'});
-  document.getElementById('jump-bottom').onclick=()=>window.scrollTo({top:document.documentElement.scrollHeight,behavior:'smooth'});
-})();
+
 
 /* 줄바꿈 토글 + 확대 편집 (example.html에서 검증된 방식 그대로) */
 (function(){
@@ -1153,9 +1136,5 @@ parseTableInput();buildList2();buildBlock();buildDetails();buildClean();
   });
 })();
 </script>
-<div id="jump-nav">
-  <button type="button" id="jump-top" title="맨 위로">▲</button>
-  <button type="button" id="jump-bottom" title="맨 아래로">▼</button>
-</div>
 </body>
 </html>

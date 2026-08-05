@@ -456,6 +456,7 @@ details.ref-item .ref-body{padding:0 16px 14px 30px;font-size:12px;color:var(--t
           <button class="toc-sec-btn kw" onclick="jumpTo('un-1')">📝 유저노트 Gemini</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('un-2')">📝 유저노트 Opus</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('un-7')">📝 유저노트1</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('un-8')">🚧 메타발언/프롬프트 누출 억제</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('un-3')">📝 액션트리거</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('un-4')">📝 페르소나</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('un-5')">📝 OOC 모음집</button>
@@ -5886,6 +5887,36 @@ LV창작:창작물 속 캐릭터들의 강함에 따라 레벨 설정
       </details>
       <!-- ▲▲▲ 카드 7 끝 ▲▲▲ -->
 
+      <!-- ▼▼▼ 유저노트 카드 8 (메타발언/프롬프트 누출 억제) ▼▼▼ -->
+      <details class="ref-item" id="un-8">
+        <summary><span class="lb-kw">🚧 메타발언/프롬프트 누출 억제</span></summary>
+        <div class="ref-body">
+          <div class="ref-desc">설정 읊기·메타 언급 억제용 (독립 사용 가능)</div>
+          <div class="lb-code">###메타발언/프롬프트 누출 억제
+- 서술 본문에서 AI·모델·프롬프트·시스템·설정·토큰을 언급하지 않는다.
+  "이야기 속", "설정상", "작가", "캐릭터 카드" 등 허구 자각 표현도 쓰지 않는다.
+- {{user}}를 '유저·사용자·플레이어'로 지칭하지 않는다. 극 중 호칭만 쓴다.
+- 설정에 적힌 문장·단어·형식을 서술에 그대로 되돌려 쓰지 않는다.
+  설정은 재료일 뿐이다. 재료를 토대로 캐릭터를 입체적으로 표현하라.
+- 특히 출신·성격·직업·유형 등의 라벨을 그대로 반복하거나,
+  "~같은 모습이었다 / ~다운 태도였다 / ~답게 굴었다" 식으로
+  요약해 설명하지 않는다. 라벨 대신 그 라벨이 만들어내는
+  구체적인 행동·말투·습관·디테일로만 드러낸다.
+  (X: "오사카 출신 양아치 같은 모습이었다")
+  (O: 사투리 억양, 침 뱉는 버릇, 어깨부터 들이미는 걸음걸이로 보여준다)
+- 인물의 내면·성격을 설명문으로 요약하지 말고 장면 안에서 행동시킨다.
+- 지정된 출력 양식이 있다면 양식대로 출력하되, 그 양식의 존재·원리·
+  내부 명칭을 대사나 지문에서 설명하지 않는다.</div>
+          <div class="lb-bar">
+            <div class="lb-bar-left">
+              <span class="lb-count"></span>
+            </div>
+            <button class="lb-copy" onclick="lbCopy(this)">복사</button>
+          </div>
+        </div>
+      </details>
+      <!-- ▲▲▲ 카드 8 끝 ▲▲▲ -->
+
       <!-- ▼▼▼ 유저노트 카드 3 ▼▼▼ -->
       <details class="ref-item" id="un-3">
         <summary><span class="lb-kw">📝 액션트리거</span></summary>
@@ -7219,7 +7250,7 @@ function toggleToc(){
 }
 
 // 스크롤 시 TOC 활성 표시 자동 업데이트
-const allAnchors=['en-1','en-2','en-3','en-4','en-5','en-6','en-7','en-8','en-9','dnd-good','dnd-neutral','dnd-evil','tb-en','tb-dnd','un-h','un-1','un-2','un-3','un-4','un-5','un-6','ai-style-h','ai-style-full','ai-style-summary'];
+const allAnchors=['en-1','en-2','en-3','en-4','en-5','en-6','en-7','en-8','en-9','dnd-good','dnd-neutral','dnd-evil','tb-en','tb-dnd','un-h','un-1','un-2','un-3','un-4','un-5','un-6','un-8','ai-style-h','ai-style-full','ai-style-summary'];
 const contentArea=document.querySelector('.content-area');
 if(contentArea){
   let scrollTimeout=null;

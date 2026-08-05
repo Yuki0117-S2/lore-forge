@@ -149,6 +149,21 @@ table.grid input:focus{background:var(--bg);box-shadow:inset 0 0 0 1.5px var(--h
   .tab,.seg button{padding:8px 13px}
   table.grid input{min-width:112px;padding:10px 9px}
 }
+
+#jump-nav{position:fixed;right:14px;bottom:20px;z-index:120;display:flex;flex-direction:column;gap:8px;opacity:0;pointer-events:none;transform:translateX(8px);transition:opacity .18s,transform .18s}
+#jump-nav.show{opacity:1;pointer-events:auto;transform:none}
+#jump-nav button{width:40px;height:40px;border:.5px solid var(--border2);border-radius:999px;background:var(--bg);color:var(--accent);font-size:13px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.18);font-family:inherit;line-height:1}
+#jump-nav button:hover{background:var(--accent);color:#fff}
+@media(max-width:720px){#jump-nav{right:10px;bottom:16px}#jump-nav button{width:44px;height:44px;font-size:14px}}
+
+/* 줄바꿈 토글: 켜면 가로 스크롤 대신 접어서 표시 (값 자체는 안 변함) */
+body.wrap-on textarea.io-area,body.wrap-on pre.out{white-space:pre-wrap;overflow-wrap:anywhere;overflow-x:hidden}
+/* 본문 확대 편집 */
+textarea.io-area.zoom{position:fixed;left:0;right:0;width:100%;z-index:300;min-height:0;border-radius:0;border-left:0;border-right:0;border-bottom:0;border-top:.5px solid var(--accent);padding:14px 16px;font-size:13px;line-height:1.75;resize:none}
+#md-zoom-bar{display:none;position:fixed;left:0;right:0;height:46px;z-index:301;background:var(--bg);border-bottom:.5px solid var(--border);align-items:center;gap:10px;padding:0 14px}
+#md-zoom-bar.on{display:flex}
+#md-zoom-bar .zt{font-family:var(--mono);font-size:11px;color:var(--text3);letter-spacing:.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#md-zoom-bar .zc{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--text3);white-space:nowrap}
 </style>
 </head>
 <body>
@@ -360,6 +375,8 @@ table.grid input:focus{background:var(--bg);box-shadow:inset 0 0 0 1.5px var(--h
     <div class="panel">
       <div class="panel-head"><span>입력</span>
         <div class="ph-acts">
+          <button class="btn ghost sm" id="c-wrap" title="긴 줄을 접어서 표시">↩ 줄바꿈</button>
+          <button class="btn ghost sm" id="c-zoom" title="전체화면으로 편집">⤢ 크게</button>
           <button class="btn ghost sm" id="c-paste">📋 붙여넣기</button>
           <button class="btn ghost sm" id="c-clear">비우기</button>
         </div>
@@ -394,6 +411,11 @@ table.grid input:focus{background:var(--bg);box-shadow:inset 0 0 0 1.5px var(--h
 </section>
 </div>
 
+<div id="md-zoom-bar">
+  <span class="zt">입력 편집</span>
+  <span class="zc" id="md-zoom-count">0자</span>
+  <button class="btn sm" id="md-zoom-done">⤡ 완료</button>
+</div>
 <div id="jump-nav"><button type="button" id="jump-top" title="맨 위로">▲</button><button type="button" id="jump-bottom" title="맨 아래로">▼</button></div>
 <nav id="mtabs"><div class="mt-in">
   <button class="active" data-tab="table"><i>📊</i>표</button>
@@ -1058,6 +1080,82 @@ $$('pre.out').forEach(p=>p.addEventListener('click',function(){
   const s=window.getSelection();s.removeAllRanges();s.addRange(r);
 }));
 parseTableInput();buildList2();buildBlock();buildDetails();buildClean();
+
+/* 스크롤 점프 내비 */
+(function(){
+  const nav=document.getElementById('jump-nav');
+  if(!nav)return;
+  let hideTimer=null,hover=false;
+  const restart=()=>{clearTimeout(hideTimer);hideTimer=setTimeout(()=>{if(!hover)nav.classList.remove('show')},1800)};
+  window.addEventListener('scroll',()=>{nav.classList.add('show');restart()},{passive:true});
+  nav.addEventListener('mouseenter',()=>{hover=true;clearTimeout(hideTimer)});
+  nav.addEventListener('mouseleave',()=>{hover=false;restart()});
+  nav.addEventListener('touchstart',()=>clearTimeout(hideTimer),{passive:true});
+  document.getElementById('jump-top').onclick=()=>window.scrollTo({top:0,behavior:'smooth'});
+  document.getElementById('jump-bottom').onclick=()=>window.scrollTo({top:document.documentElement.scrollHeight,behavior:'smooth'});
+})();
+
+/* 줄바꿈 토글 + 확대 편집 (example.html에서 검증된 방식 그대로) */
+(function(){
+  const ta=document.getElementById('c-in');
+  const bar=document.getElementById('md-zoom-bar');
+  const cnt=document.getElementById('md-zoom-count');
+  const wrapBtn=document.getElementById('c-wrap');
+  const zoomBtn=document.getElementById('c-zoom');
+  if(!ta||!bar)return;
+
+  /* 줄바꿈 토글 — 보이는 방식만 바꾸고 값은 그대로 */
+  const WKEY='md_wrap_on';
+  function applyWrap(on){
+    document.body.classList.toggle('wrap-on',on);
+    wrapBtn.textContent = on ? '↩ 줄바꿈 ON' : '↩ 줄바꿈';
+    try{localStorage.setItem(WKEY,on?'1':'0');}catch(e){}
+  }
+  let wrapOn=false;
+  try{wrapOn=localStorage.getItem(WKEY)==='1';}catch(e){}
+  applyWrap(wrapOn);
+  wrapBtn.onclick=()=>{wrapOn=!wrapOn;applyWrap(wrapOn);};
+
+  /* 확대 편집 — 상단 바를 따로 두어 글자와 겹치지 않게, 높이는 키보드 제외한 실제 높이 기준 */
+  function applyZoomSize(){
+    if(!ta.classList.contains('zoom'))return;
+    const vv=window.visualViewport;
+    const vh=vv?vv.height:window.innerHeight;
+    const vtop=vv?vv.offsetTop:0;
+    bar.style.top=vtop+'px';
+    ta.style.top=(vtop+46)+'px';
+    ta.style.height=Math.max(120,vh-46)+'px';
+  }
+  function updateCount(){ cnt.textContent=ta.value.length.toLocaleString()+'자'; }
+  function toggleZoom(){
+    const on=ta.classList.toggle('zoom');
+    bar.classList.toggle('on',on);
+    zoomBtn.textContent = on ? '⤡ 줄이기' : '⤢ 크게';
+    if(on){
+      applyZoomSize(); updateCount(); ta.focus();
+      setTimeout(applyZoomSize,150);
+      setTimeout(applyZoomSize,400);
+    }else{
+      ta.style.top=''; ta.style.height=''; bar.style.top='';
+    }
+  }
+  zoomBtn.onclick=toggleZoom;
+  document.getElementById('md-zoom-done').onclick=toggleZoom;
+  ta.addEventListener('input',updateCount);
+  if(window.visualViewport){
+    window.visualViewport.addEventListener('resize',applyZoomSize);
+    window.visualViewport.addEventListener('scroll',applyZoomSize);
+  }
+  window.addEventListener('resize',applyZoomSize);
+  window.addEventListener('orientationchange',()=>setTimeout(applyZoomSize,250));
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'&&ta.classList.contains('zoom'))toggleZoom();
+  });
+})();
 </script>
+<div id="jump-nav">
+  <button type="button" id="jump-top" title="맨 위로">▲</button>
+  <button type="button" id="jump-bottom" title="맨 아래로">▼</button>
+</div>
 </body>
 </html>

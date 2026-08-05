@@ -159,6 +159,11 @@ textarea.io-area.zoom{position:fixed;left:0;right:0;width:100%;z-index:300;min-h
 #md-zoom-bar.on{display:flex}
 #md-zoom-bar .zt{font-family:var(--mono);font-size:11px;color:var(--text3);letter-spacing:.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #md-zoom-bar .zc{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--text3);white-space:nowrap}
+
+/* 확대 편집 중: 하단 툴바를 완전히 숨겨서 입력창 아래가 안 가리게 */
+body.zooming #mtabs{display:none !important}
+body.zooming #jump-nav{z-index:320;bottom:26px}
+body.zooming{overflow:hidden}
 </style>
 </head>
 <body>
@@ -370,8 +375,6 @@ textarea.io-area.zoom{position:fixed;left:0;right:0;width:100%;z-index:300;min-h
     <div class="panel">
       <div class="panel-head"><span>입력</span>
         <div class="ph-acts">
-          <button class="btn ghost sm" id="c-wrap" title="긴 줄을 접어서 표시">↩ 줄바꿈</button>
-          <button class="btn ghost sm" id="c-zoom" title="전체화면으로 편집">⤢ 크게</button>
           <button class="btn ghost sm" id="c-paste">📋 붙여넣기</button>
           <button class="btn ghost sm" id="c-clear">비우기</button>
         </div>
@@ -1056,6 +1059,112 @@ $('#c-copy').onclick=()=>copyText($('#c-out').textContent);
 $('#c-paste').onclick=()=>pasteInto($('#c-in'));
 $('#c-clear').onclick=()=>{$('#c-in').value='';buildClean();};
 
+/* ═════════ 줄바꿈 토글 + 확대 편집 (모든 입력창 공통) ═════════ */
+let ZOOMED = null;                       // 현재 확대된 textarea (없으면 null)
+(function(){
+  const bar = document.getElementById('md-zoom-bar');
+  const cnt = document.getElementById('md-zoom-count');
+  const title = bar ? bar.querySelector('.zt') : null;
+  if(!bar) return;
+  const areas = Array.prototype.slice.call(document.querySelectorAll('textarea.io-area'));
+  if(!areas.length) return;
+
+  /* --- 줄바꿈: 전역 토글 (보이는 방식만 바뀌고 값은 그대로) --- */
+  const WKEY = 'md_wrap_on';
+  let wrapOn = false;
+  try{ wrapOn = localStorage.getItem(WKEY) === '1'; }catch(e){}
+  function applyWrap(on){
+    document.body.classList.toggle('wrap-on', on);
+    document.querySelectorAll('.js-wrap-btn').forEach(function(b){
+      b.textContent = on ? '↩ 줄바꿈 ON' : '↩ 줄바꿈';
+      b.classList.toggle('on', on);
+    });
+    try{ localStorage.setItem(WKEY, on ? '1' : '0'); }catch(e){}
+  }
+
+  /* --- 확대: 상단 바를 따로 두고, 높이는 키보드 제외한 실제 화면 기준 --- */
+  function applyZoomSize(){
+    if(!ZOOMED) return;
+    const vv = window.visualViewport;
+    const vh = vv ? vv.height : window.innerHeight;
+    const vtop = vv ? vv.offsetTop : 0;
+    bar.style.top = vtop + 'px';
+    ZOOMED.style.top = (vtop + 46) + 'px';
+    ZOOMED.style.height = Math.max(120, vh - 46) + 'px';
+  }
+  function updateCount(){
+    if(cnt && ZOOMED) cnt.textContent = ZOOMED.value.length.toLocaleString() + '자';
+  }
+  function labelOf(ta){
+    const panel = ta.closest('.panel');
+    const head = panel ? panel.querySelector('.panel-head > span') : null;
+    return head ? head.textContent.trim() + ' 편집' : '편집';
+  }
+  function openZoom(ta){
+    if(ZOOMED) closeZoom();
+    ZOOMED = ta;
+    ta.classList.add('zoom');
+    bar.classList.add('on');
+    document.body.classList.add('zooming');      // ← 하단 툴바 숨김
+    if(title) title.textContent = labelOf(ta);
+    const btn = ta.__zoomBtn;
+    if(btn) btn.textContent = '⤡ 줄이기';
+    applyZoomSize(); updateCount(); ta.focus();
+    setTimeout(applyZoomSize, 150);
+    setTimeout(applyZoomSize, 400);
+  }
+  function closeZoom(){
+    if(!ZOOMED) return;
+    const ta = ZOOMED;
+    ta.classList.remove('zoom');
+    ta.style.top = ''; ta.style.height = '';
+    bar.classList.remove('on'); bar.style.top = '';
+    document.body.classList.remove('zooming');
+    const btn = ta.__zoomBtn;
+    if(btn) btn.textContent = '⤢ 크게';
+    ZOOMED = null;
+  }
+  window.mdCloseZoom = closeZoom;
+  window.mdApplyZoomSize = applyZoomSize;
+
+  /* --- 각 입력창의 패널 헤드에 버튼 자동 주입 --- */
+  areas.forEach(function(ta){
+    const panel = ta.closest('.panel');
+    const acts = panel ? panel.querySelector('.panel-head .ph-acts') : null;
+    if(!acts) return;
+    const wb = document.createElement('button');
+    wb.className = 'btn ghost sm js-wrap-btn';
+    wb.title = '긴 줄을 접어서 표시';
+    wb.textContent = '↩ 줄바꿈';
+    wb.onclick = function(){ wrapOn = !wrapOn; applyWrap(wrapOn); };
+
+    const zb = document.createElement('button');
+    zb.className = 'btn ghost sm js-zoom-btn';
+    zb.title = '전체화면으로 편집';
+    zb.textContent = '⤢ 크게';
+    zb.onclick = function(){ (ZOOMED === ta) ? closeZoom() : openZoom(ta); };
+
+    ta.__zoomBtn = zb;
+    acts.insertBefore(zb, acts.firstChild);
+    acts.insertBefore(wb, acts.firstChild);
+    ta.addEventListener('input', updateCount);
+  });
+  applyWrap(wrapOn);
+
+  const doneBtn = document.getElementById('md-zoom-done');
+  if(doneBtn) doneBtn.onclick = closeZoom;
+
+  if(window.visualViewport){
+    window.visualViewport.addEventListener('resize', applyZoomSize);
+    window.visualViewport.addEventListener('scroll', applyZoomSize);
+  }
+  window.addEventListener('resize', applyZoomSize);
+  window.addEventListener('orientationchange', function(){ setTimeout(applyZoomSize, 250); });
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && ZOOMED) closeZoom();
+  });
+})();
+
 /* ═════════ 점프 내비 ═════════ */
 (function(){
   const nav=$('#jump-nav'); if(!nav)return;
@@ -1065,8 +1174,24 @@ $('#c-clear').onclick=()=>{$('#c-in').value='';buildClean();};
   nav.addEventListener('mouseenter',()=>{hover=true;clearTimeout(hideTimer);});
   nav.addEventListener('mouseleave',()=>{hover=false;restart();});
   nav.addEventListener('touchstart',()=>clearTimeout(hideTimer),{passive:true});
-  $('#jump-top').onclick=()=>window.scrollTo({top:0,behavior:'smooth'});
-  $('#jump-bottom').onclick=()=>window.scrollTo({top:document.documentElement.scrollHeight,behavior:'smooth'});
+  // 확대 편집 중에는 페이지가 아니라 그 입력창 내부를 스크롤해야 함
+  const target=()=>(typeof ZOOMED!=='undefined'&&ZOOMED)?ZOOMED:null;
+  $('#jump-top').onclick=()=>{
+    const t=target();
+    if(t){ t.scrollTo({top:0,behavior:'smooth'}); return; }
+    window.scrollTo({top:0,behavior:'smooth'});
+  };
+  $('#jump-bottom').onclick=()=>{
+    const t=target();
+    if(t){ t.scrollTo({top:t.scrollHeight,behavior:'smooth'}); return; }
+    window.scrollTo({top:document.documentElement.scrollHeight,behavior:'smooth'});
+  };
+  // 확대 중엔 입력창 스크롤에도 화살표가 뜨도록
+  document.querySelectorAll('textarea.io-area').forEach(function(ta){
+    ta.addEventListener('scroll',function(){
+      if(ta.classList.contains('zoom')){ nav.classList.add('show'); restart(); }
+    },{passive:true});
+  });
 })();
 
 /* ═════════ 초기화 ═════════ */
@@ -1078,63 +1203,7 @@ parseTableInput();buildList2();buildBlock();buildDetails();buildClean();
 
 
 
-/* 줄바꿈 토글 + 확대 편집 (example.html에서 검증된 방식 그대로) */
-(function(){
-  const ta=document.getElementById('c-in');
-  const bar=document.getElementById('md-zoom-bar');
-  const cnt=document.getElementById('md-zoom-count');
-  const wrapBtn=document.getElementById('c-wrap');
-  const zoomBtn=document.getElementById('c-zoom');
-  if(!ta||!bar)return;
 
-  /* 줄바꿈 토글 — 보이는 방식만 바꾸고 값은 그대로 */
-  const WKEY='md_wrap_on';
-  function applyWrap(on){
-    document.body.classList.toggle('wrap-on',on);
-    wrapBtn.textContent = on ? '↩ 줄바꿈 ON' : '↩ 줄바꿈';
-    try{localStorage.setItem(WKEY,on?'1':'0');}catch(e){}
-  }
-  let wrapOn=false;
-  try{wrapOn=localStorage.getItem(WKEY)==='1';}catch(e){}
-  applyWrap(wrapOn);
-  wrapBtn.onclick=()=>{wrapOn=!wrapOn;applyWrap(wrapOn);};
-
-  /* 확대 편집 — 상단 바를 따로 두어 글자와 겹치지 않게, 높이는 키보드 제외한 실제 높이 기준 */
-  function applyZoomSize(){
-    if(!ta.classList.contains('zoom'))return;
-    const vv=window.visualViewport;
-    const vh=vv?vv.height:window.innerHeight;
-    const vtop=vv?vv.offsetTop:0;
-    bar.style.top=vtop+'px';
-    ta.style.top=(vtop+46)+'px';
-    ta.style.height=Math.max(120,vh-46)+'px';
-  }
-  function updateCount(){ cnt.textContent=ta.value.length.toLocaleString()+'자'; }
-  function toggleZoom(){
-    const on=ta.classList.toggle('zoom');
-    bar.classList.toggle('on',on);
-    zoomBtn.textContent = on ? '⤡ 줄이기' : '⤢ 크게';
-    if(on){
-      applyZoomSize(); updateCount(); ta.focus();
-      setTimeout(applyZoomSize,150);
-      setTimeout(applyZoomSize,400);
-    }else{
-      ta.style.top=''; ta.style.height=''; bar.style.top='';
-    }
-  }
-  zoomBtn.onclick=toggleZoom;
-  document.getElementById('md-zoom-done').onclick=toggleZoom;
-  ta.addEventListener('input',updateCount);
-  if(window.visualViewport){
-    window.visualViewport.addEventListener('resize',applyZoomSize);
-    window.visualViewport.addEventListener('scroll',applyZoomSize);
-  }
-  window.addEventListener('resize',applyZoomSize);
-  window.addEventListener('orientationchange',()=>setTimeout(applyZoomSize,250));
-  document.addEventListener('keydown',e=>{
-    if(e.key==='Escape'&&ta.classList.contains('zoom'))toggleZoom();
-  });
-})();
 </script>
 </body>
 </html>

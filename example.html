@@ -154,9 +154,15 @@ mark.hl{background:rgba(204,170,136,0.3);color:var(--accent4);border-radius:2px;
 .toc-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:40;}
 .toc-overlay.active{display:block;}
 
-::-webkit-scrollbar{width:4px;height:4px;}
-::-webkit-scrollbar-track{background:transparent;}
-::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+::-webkit-scrollbar{width:11px;height:11px;}
+::-webkit-scrollbar-track{background:rgba(0,0,0,0.18);border-radius:6px;}
+::-webkit-scrollbar-thumb{background:#4d3f5f;border-radius:6px;border:2px solid transparent;background-clip:content-box;}
+::-webkit-scrollbar-thumb:hover{background:var(--accent);background-clip:content-box;}
+::-webkit-scrollbar-corner{background:transparent;}
+*{scrollbar-width:thin;scrollbar-color:#4d3f5f transparent;}
+/* 확대 편집 중엔 더 잡기 쉽게 */
+textarea.f-ta.zoom::-webkit-scrollbar{width:14px;}
+textarea.f-ta.zoom::-webkit-scrollbar-thumb{background:#5a4a6e;background-clip:content-box;}
 
 
 /* 스크롤 점프 내비 */
@@ -184,6 +190,19 @@ mark.hl{background:rgba(204,170,136,0.3);color:var(--accent4);border-radius:2px;
   .f-grid{grid-template-columns:1fr;}
   .modal{padding:18px 16px;}
 }
+
+/* 알림 모달 — 빌더(z-index 200) 위에 떠야 하므로 더 높게 */
+#alert-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:400;align-items:center;justify-content:center;padding:24px 16px;}
+#alert-overlay.on{display:flex;}
+#alert-box{max-width:400px;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px 24px 18px;box-shadow:0 24px 70px rgba(0,0,0,0.6);}
+#alert-title{font-size:13px;font-weight:700;color:var(--accent3);margin-bottom:8px;display:flex;align-items:center;gap:7px;}
+#alert-msg{font-size:12.5px;color:var(--text);line-height:1.75;white-space:pre-wrap;word-break:break-word;}
+#alert-acts{display:flex;justify-content:flex-end;margin-top:18px;}
+#alert-ok{padding:7px 20px;background:rgba(136,136,204,0.14);border:1px solid rgba(136,136,204,0.4);border-radius:7px;color:var(--accent);font-family:'Noto Sans KR',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.18s;}
+#alert-ok:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+/* 확대 편집 중: 화살표를 확대 UI(300/301)보다 위로 */
+body.zooming #jump-nav{z-index:320;bottom:26px;}
 </style>
 </head>
 <body>
@@ -319,6 +338,13 @@ mark.hl{background:rgba(204,170,136,0.3);color:var(--accent4);border-radius:2px;
 <div id="jump-nav">
   <button type="button" id="jump-top" title="맨 위로">▲</button>
   <button type="button" id="jump-bottom" title="맨 아래로">▼</button>
+</div>
+<div id="alert-overlay" onclick="if(event.target===this)closeAlert()">
+  <div id="alert-box" role="alertdialog" aria-modal="true">
+    <div id="alert-title"><span>⚠️</span><span id="alert-title-text">알림</span></div>
+    <div id="alert-msg"></div>
+    <div id="alert-acts"><button id="alert-ok" onclick="closeAlert()">확인</button></div>
+  </div>
 </div>
 <script>
 'use strict';
@@ -1842,23 +1868,40 @@ function toggleToc(){
 }
 
 /* ───────── 스크롤 시 목차 활성 표시 ───────── */
-const contentArea = document.querySelector('.content-area');
-if(contentArea){
-  let t=null;
-  contentArea.addEventListener('scroll',function(){
-    clearTimeout(t);
-    t=setTimeout(function(){
-      let active=null;
-      document.querySelectorAll('details.ref-item').forEach(function(el){
-        if(el.getBoundingClientRect().top < 160) active = el.id;
-      });
-      if(active){
-        document.querySelectorAll('.toc-sec-btn').forEach(b=>b.classList.remove('active'));
-        document.querySelectorAll('.toc-sec-btn[data-target="'+active+'"]').forEach(b=>b.classList.add('active'));
-      }
-    },100);
+/* 현재 읽고 있는 카드 = 기준선 아래로 아직 안 지나간 첫 카드
+   (펼친 카드가 화면을 다 채워도 그 카드가 잡히도록) */
+function updateTocActive(){
+  const cards = document.querySelectorAll('details.ref-item');
+  if(!cards.length) return;
+  const line = 170;
+  let active = null;
+  for(const el of cards){
+    const r = el.getBoundingClientRect();
+    if(r.bottom <= line) continue;   // 완전히 위로 지나간 카드는 건너뜀
+    active = el.id; break;           // 기준선에 처음 걸치는 카드가 현재 위치
+  }
+  if(!active) active = cards[cards.length-1].id;   // 전부 지나갔으면 마지막
+  document.querySelectorAll('.toc-sec-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.toc-sec-btn[data-target="'+active+'"]').forEach(function(b){
+    b.classList.add('active');
   });
 }
+(function(){
+  let ticking = false;
+  const onScroll = function(){
+    if(ticking) return;
+    ticking = true;
+    requestAnimationFrame(function(){ updateTocActive(); ticking = false; });
+  };
+  // PC는 .content-area가, 모바일은 페이지가 스크롤되므로 둘 다 연결
+  const ca = document.querySelector('.content-area');
+  if(ca) ca.addEventListener('scroll', onScroll, {passive:true});
+  window.addEventListener('scroll', onScroll, {passive:true});
+  // 카드를 펼치거나 접으면 높이가 바뀌므로 다시 계산
+  document.addEventListener('toggle', function(e){
+    if(e.target && e.target.classList && e.target.classList.contains('ref-item')) updateTocActive();
+  }, true);
+})();
 
 /* ───────── 복사 ───────── */
 function copyText(text){
@@ -1900,6 +1943,21 @@ function openBuilder(){
   $('#b-cat').innerHTML = CATS.map((c,i)=>'<option value="'+c.id+'">'+(i+1)+'장 · '+esc(c.title)+'</option>').join('');
   $('#builder').classList.add('on');
 }
+/* ───── 커스텀 알림 모달 (네이티브 alert 대체) ───── */
+function showAlert(msg, title){
+  const ov = document.getElementById('alert-overlay');
+  if(!ov){ return; }
+  document.getElementById('alert-msg').textContent = msg;
+  document.getElementById('alert-title-text').textContent = title || '알림';
+  ov.classList.add('on');
+  const ok = document.getElementById('alert-ok');
+  if(ok) setTimeout(function(){ ok.focus(); }, 30);
+}
+function closeAlert(){
+  const ov = document.getElementById('alert-overlay');
+  if(ov) ov.classList.remove('on');
+}
+
 function closeBuilder(){ $('#builder').classList.remove('on'); }
 
 function nextId(){
@@ -1919,7 +1977,7 @@ function q1(s){ return JSON.stringify(String(s==null?'':s)); }
 function buildCode(){
   const title = $('#b-title').value.trim();
   const body  = $('#b-body').value;
-  if(!title || !body.trim()){ alert('제목이랑 본문은 있어야 해.'); return; }
+  if(!title || !body.trim()){ showAlert('제목이랑 본문은 있어야 해.', '입력 확인'); return; }
 
   const tags = $('#b-tags').value.split(',').map(s=>s.trim()).filter(Boolean);
   const link = $('#b-link').value.trim();
@@ -1962,6 +2020,7 @@ function toggleZoom(){
   const bar=document.getElementById('zoom-bar');
   const on=ta.classList.toggle('zoom');
   bar.classList.toggle('on',on);
+  document.body.classList.toggle('zooming',on);
   const btn=document.querySelector('.zoom-btn');
   if(btn) btn.textContent = on ? '⤡ 줄이기' : '⤢ 크게';
   if(on){
@@ -1992,6 +2051,12 @@ function updateBodyCount(){
 }
 document.addEventListener('keydown',function(e){
   if(e.key==='Escape'){
+    const ov=document.getElementById('alert-overlay');
+    if(ov&&ov.classList.contains('on')){ closeAlert(); e.stopPropagation(); }
+  }
+},true);
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){
     const ta=document.getElementById('b-body');
     if(ta&&ta.classList.contains('zoom')){ toggleZoom(); return; }   // 확대 중이면 축소만
   }
@@ -2012,9 +2077,16 @@ render();
   }
   let hideTimer=null, hover=false;
   const restart=()=>{clearTimeout(hideTimer);hideTimer=setTimeout(()=>{if(!hover)nav.classList.remove('show');},1800);};
+  // 확대 편집 중인 입력창 (없으면 null)
+  function zoomedTA(){
+    const ta=document.getElementById('b-body');
+    return (ta && ta.classList.contains('zoom')) ? ta : null;
+  }
   const onScroll=()=>{
-    const modal=document.getElementById('builder');
-    if(modal && modal.classList.contains('on'))return;   // 빌더 열려있으면 안 띄움
+    if(!zoomedTA()){
+      const modal=document.getElementById('builder');
+      if(modal && modal.classList.contains('on'))return;  // 빌더만 열려있으면 안 띄움
+    }
     nav.classList.add('show'); restart();
   };
   window.addEventListener('scroll',onScroll,{passive:true});
@@ -2024,11 +2096,18 @@ render();
   nav.addEventListener('mouseleave',()=>{hover=false;restart();});
   nav.addEventListener('touchstart',()=>clearTimeout(hideTimer),{passive:true});
   document.getElementById('jump-top').onclick=()=>{
+    const ta=zoomedTA();
+    if(ta){ ta.scrollTo({top:0,behavior:'smooth'}); return; }
     const el=scroller(); el.scrollTo({top:0,behavior:'smooth'});
   };
   document.getElementById('jump-bottom').onclick=()=>{
+    const ta=zoomedTA();
+    if(ta){ ta.scrollTo({top:ta.scrollHeight,behavior:'smooth'}); return; }
     const el=scroller(); el.scrollTo({top:el.scrollHeight,behavior:'smooth'});
   };
+  // 확대 중엔 입력창 스크롤에도 화살표가 뜨도록
+  const bodyTA=document.getElementById('b-body');
+  if(bodyTA) bodyTA.addEventListener('scroll',()=>{ if(zoomedTA()) onScroll(); },{passive:true});
 })();
 </script>
 <div class="zoom-bar" id="zoom-bar">

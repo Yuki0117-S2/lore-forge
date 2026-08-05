@@ -457,6 +457,7 @@ details.ref-item .ref-body{padding:0 16px 14px 30px;font-size:12px;color:var(--t
           <button class="toc-sec-btn kw" onclick="jumpTo('un-2')">📝 유저노트 Opus</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('un-7')">📝 유저노트1</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('un-8')">🚧 메타발언/프롬프트 누출 억제</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('un-9')">🚧 신체 정합성</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('un-3')">📝 액션트리거</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('un-4')">📝 페르소나</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('un-5')">📝 OOC 모음집</button>
@@ -5917,6 +5918,35 @@ LV창작:창작물 속 캐릭터들의 강함에 따라 레벨 설정
       </details>
       <!-- ▲▲▲ 카드 8 끝 ▲▲▲ -->
 
+      <!-- ▼▼▼ 유저노트 카드 9 (신체 정합성) ▼▼▼ -->
+      <details class="ref-item" id="un-9">
+        <summary><span class="lb-kw">🚧 신체 정합성</span></summary>
+        <div class="ref-body">
+          <div class="ref-desc">종족·성별에 맞지 않는 기관 묘사 억제용 (독립 사용 가능)</div>
+          <div class="lb-code">###신체 정합성
+- 신체를 묘사하기 전, 그 인물의 종족과 성별을 먼저 확인하고 기준으로 삼는다.
+- 판단 순서:
+  1) 카드·페르소나·유저노트에 신체 설정이 명시되어 있으면 그것을 최우선으로 따른다.
+  2) 명시가 없으면 그 인물의 종족·성별상 통상적인 신체 구조를 기준으로 한다.
+     인간이면 해당 성별의 통상 구조를, 수인·이종족이면 그 종족의 통상 구조를 기준으로 삼는다.
+  3) 둘 다 판단이 서지 않는 부위는 묘사하지 말고 넘어간다.
+- 위 기준상 그 인물이 통상적으로 가지고 있지 않은 기관·부위를 묘사하거나
+  언급하지 않는다. 익숙한 관용 표현이거나 흐름상 자연스럽더라도 예외 없다.
+- 반응·감각·절정 묘사도 같은 기준을 따른다. 존재하지 않는 부위의
+  수축·분비·경련 등 다른 신체 구조를 전제한 반응을 쓰지 않는다.
+- 특정 기관·부위를 언급하기 직전, 그 인물이 실제로 가진 부위인지 한 번 확인한 뒤 서술한다.
+- 기준에서 벗어나는 신체는 설정에 명시되었거나 장면에서 이미 확립된
+  경우에만 등장한다. 서술 도중 임의로 만들어 붙이지 않는다.</div>
+          <div class="lb-bar">
+            <div class="lb-bar-left">
+              <span class="lb-count"></span>
+            </div>
+            <button class="lb-copy" onclick="lbCopy(this)">복사</button>
+          </div>
+        </div>
+      </details>
+      <!-- ▲▲▲ 카드 9 끝 ▲▲▲ -->
+
       <!-- ▼▼▼ 유저노트 카드 3 ▼▼▼ -->
       <details class="ref-item" id="un-3">
         <summary><span class="lb-kw">📝 액션트리거</span></summary>
@@ -7250,7 +7280,7 @@ function toggleToc(){
 }
 
 // 스크롤 시 TOC 활성 표시 자동 업데이트
-const allAnchors=['en-1','en-2','en-3','en-4','en-5','en-6','en-7','en-8','en-9','dnd-good','dnd-neutral','dnd-evil','tb-en','tb-dnd','un-h','un-1','un-2','un-3','un-4','un-5','un-6','un-8','ai-style-h','ai-style-full','ai-style-summary'];
+const allAnchors=['en-1','en-2','en-3','en-4','en-5','en-6','en-7','en-8','en-9','dnd-good','dnd-neutral','dnd-evil','tb-en','tb-dnd','un-h','un-1','un-2','un-3','un-4','un-5','un-6','un-8','un-9','ai-style-h','ai-style-full','ai-style-summary'];
 const contentArea=document.querySelector('.content-area');
 if(contentArea){
   let scrollTimeout=null;

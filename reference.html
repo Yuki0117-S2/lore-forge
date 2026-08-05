@@ -404,6 +404,8 @@ details.ref-item .ref-body{padding:0 16px 14px 30px;font-size:12px;color:var(--t
         <div class="toc-sections">
           <button class="toc-sec-btn" onclick="jumpTo('sw-base-h')">상태창</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('sw-skel')">🧱 골격 (wrapper)</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('sw-skel-log')">🧱 log 골격 (색상 wrapper)</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('sw-color')">🎨 코드블록 색상 가이드</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('sw-menu')">📋 전체 메뉴 (골라담기)</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('sw-a')">🅰️ 기본 (턴·일시·위치)</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('sw-b')">🅱️ 외형 (복장)</button>
@@ -4831,6 +4833,57 @@ John/존/◶/-/0/의뢰인&lt;br&gt;
 ```Info
 (아래 필드 중 골라서 배치)
 ```</div>
+          <div class="lb-bar">
+            <div class="lb-bar-left">
+              <span class="lb-count"></span>
+            </div>
+            <button class="lb-copy" onclick="lbCopy(this)">복사</button>
+          </div>
+        </div>
+      </details>
+      <details class="ref-item" id="sw-skel-log">
+        <summary><span class="lb-kw">🧱 log 골격 (색상 wrapper)</span></summary>
+        <div class="ref-body">
+          <div class="lb-code">매 답변 가장 아래쪽에 출력 필요, 하기 양식 준수
+- 캐릭터명·강조 단어는 '작은따옴표'로 감싼다 (문자열 색 적용)
+```log
+(아래 필드 중 골라서 배치)
+'{{char}}' (성별)｜직함/등급
+💗HP 200/200
+```</div>
+          <div class="lb-bar">
+            <div class="lb-bar-left">
+              <span class="lb-count"></span>
+            </div>
+            <button class="lb-copy" onclick="lbCopy(this)">복사</button>
+          </div>
+        </div>
+      </details>
+      <details class="ref-item" id="sw-color">
+        <summary><span class="lb-kw">🎨 코드블록 색상 가이드</span></summary>
+        <div class="ref-body">
+          <div class="lb-code">원리
+- 백틱 3개 뒤의 단어가 블록 제목이자 "언어명"이 된다: ```log → 제목 log
+- 하이라이터가 아는 언어명이면 색칠 규칙 ON, 모르는 단어(예: Info)면 전부 무색
+- 색은 직접 지정 불가 — 언어명과 표기 방식으로 유도만 가능
+
+색 내는 규칙
+- '작은따옴표' 감싼 단어 → 문자열 색 (캐릭터명·키워드용)
+- "큰따옴표"는 다른 색이 나올 수 있음 → 둘 다 실험 권장
+- 맨숫자(450, 09:05, 200/200) → 숫자 색 자동 적용
+
+언어명별 특징 (블록 제목 = 언어명 그대로 표시됨)
+- log   : 문자열·숫자 무난하게 색 적용, 상태창 기본 추천
+- yaml  : 키: 값 구조에서 키에 색 → 상태창 나열과 궁합 좋음, # 줄은 주석색(제목 흉내 가능)
+- json  : 따옴표 문자열·숫자 색 뚜렷
+- ini   : [대괄호 섹션] 줄에 색 → ['이름':관계|...] 줄과 어울림
+- diff  : 줄 앞 + 는 초록, - 는 빨강 → 줄 단위로 색을 고르는 꼼수용
+- python / js : 문자열·숫자 무난
+- css   : 숫자+단위 색이 잘 듦
+
+주의
+- 플랫폼(하이라이터 버전·테마)에 따라 인식 언어명과 색이 다를 수 있음 → 직접 넣어보고 확정
+- 제목을 유지하고 싶은 단어가 언어명이 아니면 색을 포기하거나, 블록 첫 줄에 # 제목 텍스트로 대체</div>
           <div class="lb-bar">
             <div class="lb-bar-left">
               <span class="lb-count"></span>

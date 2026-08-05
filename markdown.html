@@ -21,7 +21,7 @@ button,input,textarea,select{font-family:inherit}
 
 /* ── 헤더 ── */
 header{display:flex;align-items:center;gap:10px;border-bottom:.5px solid var(--border);padding-bottom:.7rem;margin-bottom:.9rem;flex-wrap:wrap}
-.back{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;color:var(--text3);text-decoration:none;border-radius:var(--radius-sm);font-size:18px;flex:0 0 auto}
+.back{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;color:var(--text3);text-decoration:none;border-radius:var(--radius-sm);font-size:18px;flex:0 0 auto;background:none;border:0;padding:0;cursor:pointer;line-height:1}
 .back:hover{background:var(--bg2);color:var(--hot)}
 .logo{font-size:15px;font-weight:800;color:var(--hot);letter-spacing:-.2px;margin-right:6px;white-space:nowrap}
 .tabs{display:flex;gap:5px;flex:1;flex-wrap:wrap}
@@ -154,7 +154,7 @@ table.grid input:focus{background:var(--bg);box-shadow:inset 0 0 0 1.5px var(--h
 <body>
 <div id="app">
 <header>
-  <a class="back" href="lobby.html" title="로비로">←</a>
+  <button class="back" onclick="goBack()" title="로비로">←</button>
   <div class="logo">✦ MARKDOWN</div>
   <nav class="tabs" id="tabs">
     <button class="tab active" data-tab="table">📊 표</button>
@@ -407,6 +407,19 @@ table.grid input:focus{background:var(--bg);box-shadow:inset 0 0 0 1.5px var(--h
 const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
 
 /* ───────── 공통 유틸 ───────── */
+function goBack(){
+  // 새 탭(window.open)으로 열린 경우: 탭 닫고 부모로 (모바일 탭 증식 방지)
+  try{
+    if(window.opener && !window.opener.closed){
+      window.opener.focus();
+      window.close();
+      return;
+    }
+  }catch(e){}
+  // 같은 탭으로 들어온 경우(로비 등): 닫지 않고 로비로
+  location.href='lobby.html';
+}
+
 let toastTimer=null;
 function toast(msg){
   const t=$('#toast'); t.textContent=msg; t.classList.add('show');

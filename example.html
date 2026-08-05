@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>프롬프팅 예시 모음 — LORE FORGE</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#1a1520; --surface:#221b2a; --surface2:#2a2235; --border:#3a2e48;
+  --accent:#8888CC; --accent2:#BB6688; --accent3:#DDAACC; --accent4:#CCAA88;
+  --text:#f0eaf5; --muted:#7a6e8a;
+  --toc-w: 260px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");}
+
+/* 헤더 */
+.header{position:sticky;top:0;z-index:100;background:rgba(26,21,32,0.97);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:10px 18px;display:flex;align-items:center;gap:12px;height:50px;}
+.back-btn{background:none;border:1px solid var(--border);color:var(--muted);border-radius:6px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:15px;line-height:1;transition:all 0.2s;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;width:32px;height:30px;padding:0;flex:0 0 auto;}
+.back-btn:hover{border-color:var(--accent);color:var(--accent);}
+.header-logo{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;background:linear-gradient(135deg,var(--accent),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.header-title{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-left:auto;}
+.toc-toggle-btn{background:none;border:1px solid var(--border);color:var(--muted);padding:5px 10px;border-radius:6px;cursor:pointer;font-size:13px;transition:all 0.2s;}
+.toc-toggle-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+/* 레이아웃 */
+.app-body{display:flex;position:relative;z-index:1;height:calc(100vh - 50px);}
+
+/* TOC 사이드바 */
+.toc-sidebar{width:var(--toc-w);flex-shrink:0;border-right:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;overflow:hidden;transition:transform 0.3s;}
+.toc-sidebar.hidden{transform:translateX(-100%);position:absolute;left:0;top:0;bottom:0;z-index:50;box-shadow:4px 0 20px rgba(0,0,0,0.4);}
+.toc-inner{overflow-y:auto;flex:1;padding:8px 0;}
+.toc-header{padding:10px 14px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);}
+.toc-chapter{margin-bottom:2px;}
+.toc-ch-btn{width:100%;text-align:left;background:none;border:none;cursor:pointer;padding:9px 12px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;transition:background 0.15s;border-left:3px solid transparent;}
+.toc-ch-btn:hover{background:rgba(136,137,205,0.08);}
+.toc-ch-btn.active{color:var(--accent);border-left-color:var(--accent);background:rgba(136,137,205,0.1);}
+.toc-ch-arrow{font-size:9px;color:var(--muted);transition:transform 0.2s;margin-left:auto;}
+.toc-ch-btn.open .toc-ch-arrow{transform:rotate(90deg);}
+.toc-sections{overflow:hidden;max-height:0;transition:max-height 0.3s ease;}
+.toc-sections.open{max-height:6000px;}
+.toc-sec-btn{width:100%;text-align:left;background:none;border:none;cursor:pointer;padding:6px 12px 6px 24px;color:var(--muted);font-family:'Noto Sans KR',sans-serif;font-size:11px;transition:all 0.15s;border-left:3px solid transparent;line-height:1.4;}
+.toc-sec-btn:hover{color:var(--text);background:rgba(136,137,205,0.05);}
+.toc-sec-btn.active{color:var(--accent3);border-left-color:var(--accent3);background:rgba(221,170,204,0.07);}
+.toc-sec-btn.kw{padding-left:38px;font-size:10.5px;color:#6f6480;}
+.toc-sec-btn.kw:hover{color:var(--accent3);}
+.toc-sec-btn.kw.active{color:var(--accent3);}
+
+/* 콘텐츠 영역 */
+.content-area{flex:1;overflow-y:auto;padding:30px 40px;max-width:900px;margin:0 auto;width:100%;}
+.content-header{margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid var(--border);}
+.content-header-title{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:4px;background:linear-gradient(135deg,var(--accent3),var(--accent4));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px;}
+.content-header-sub{font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:1px;}
+
+.chapter-block{margin-bottom:32px;}
+.chapter-header{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:16px;position:relative;overflow:hidden;}
+.chapter-header::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(221,170,204,0.05),rgba(204,170,136,0.05));pointer-events:none;}
+.chapter-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:3px;margin-bottom:4px;}
+.chapter-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:3px;background:linear-gradient(135deg,var(--accent3),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px;}
+.chapter-sub{font-size:12px;color:var(--muted);}
+
+/* 그룹 헤더 */
+.group-header{text-align:center;color:var(--accent3);font-size:11px;letter-spacing:3px;font-weight:bold;margin:24px 0 10px;font-family:'JetBrains Mono',monospace;}
+
+/* 아이템 (details/summary) */
+details.ref-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:6px;overflow:hidden;transition:border-color 0.2s;}
+details.ref-item:hover{border-color:#4a3a5a;}
+details.ref-item[open]{border-color:rgba(221,170,204,0.4);}
+details.ref-item summary{padding:12px 16px;cursor:pointer;list-style:none;font-size:13px;font-weight:600;color:var(--accent3);display:flex;align-items:center;gap:8px;}
+details.ref-item summary::-webkit-details-marker{display:none;}
+details.ref-item summary::before{content:'▸';font-size:10px;color:var(--muted);transition:transform 0.2s;}
+details.ref-item[open] summary::before{transform:rotate(90deg);}
+details.ref-item .ref-body{padding:0 16px 14px 30px;font-size:12px;color:var(--text);line-height:1.7;}
+
+/* 지침 카드 (reference.html과 동일) */
+.lb-kw{display:inline-flex;align-items:center;gap:6px;}
+.lb-code{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-top:2px;font-family:'JetBrains Mono','Noto Sans KR',monospace;font-size:11.5px;line-height:1.65;color:#d8d0e2;white-space:pre-wrap;word-break:break-word;overflow-x:auto;-webkit-user-select:text;user-select:text;cursor:text;}
+.lb-bar{display:flex;align-items:center;justify-content:space-between;margin-top:8px;gap:10px;}
+.lb-count{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:0.5px;}
+.lb-copy{padding:5px 12px;background:rgba(136,136,204,0.12);border:1px solid rgba(136,136,204,0.3);border-radius:6px;color:var(--accent);font-family:'Noto Sans KR',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:all 0.18s;white-space:nowrap;}
+.lb-copy:hover{background:rgba(136,136,204,0.22);}
+.lb-copy.copied{background:rgba(204,170,136,0.15);border-color:var(--accent4);color:var(--accent4);}
+.lb-bar-left{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+.lb-tag{padding:4px 9px;background:rgba(221,170,204,0.1);border:1px solid rgba(221,170,204,0.3);border-radius:6px;color:var(--accent3);font-family:'JetBrains Mono','Noto Sans KR',monospace;font-size:11px;font-weight:600;cursor:pointer;transition:all 0.18s;white-space:nowrap;}
+.lb-tag:hover{background:rgba(221,170,204,0.2);}
+.lb-tag.copied{background:rgba(204,170,136,0.18);border-color:var(--accent4);color:var(--accent4);}
+.ref-body .ref-desc{color:#b0a8c0;margin-bottom:10px;}
+
+/* ── example.html 전용 ── */
+/* 검증도 배지: 이 페이지는 경험칙 모음이라 신뢰 수준을 카드마다 표시한다 */
+.ex-meta{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:10px;}
+.ex-badge{padding:3px 9px;border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:600;letter-spacing:1px;white-space:nowrap;}
+.ex-badge.emp{background:rgba(204,170,136,0.12);border:1px solid rgba(204,170,136,0.35);color:var(--accent4);}
+.ex-badge.ver{background:rgba(136,136,204,0.12);border:1px solid rgba(136,136,204,0.35);color:var(--accent);}
+.ex-badge.unv{background:rgba(187,102,136,0.1);border:1px solid rgba(187,102,136,0.35);color:var(--accent2);}
+.ex-src{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:0.5px;}
+.ex-note{margin-top:10px;padding:8px 12px;background:rgba(187,102,136,0.08);border-left:2px solid var(--accent2);border-radius:4px;font-size:11px;color:#e0c0d0;line-height:1.65;}
+.ex-note-label{color:var(--accent2);font-weight:600;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;margin-right:6px;}
+.ex-link{margin-top:10px;padding:8px 12px;background:rgba(136,137,205,0.07);border-left:2px solid var(--accent);border-radius:4px;font-size:11px;color:#c8c0d8;line-height:1.65;}
+.ex-link-label{color:var(--accent);font-weight:600;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;margin-right:6px;}
+.empty-note{background:var(--surface);border:1px dashed var(--border);border-radius:10px;padding:16px 18px;font-size:11.5px;color:var(--muted);line-height:1.7;text-align:center;}
+
+/* 사용 팁 박스 */
+.tip-box{background:rgba(136,137,205,0.08);border:1px solid rgba(136,137,205,0.3);border-radius:10px;padding:14px 18px;margin-bottom:20px;font-size:12px;color:#d0c8e0;line-height:1.7;}
+.tip-box-title{color:var(--accent);font-weight:700;font-size:12px;margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+
+/* TOC 오버레이 (모바일) */
+.toc-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:40;}
+.toc-overlay.active{display:block;}
+
+/* 스크롤바 */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+
+/* 모바일 */
+@media(max-width:768px){
+  body{overflow:auto;}
+  .header{padding:10px 14px;}
+  .header-logo{font-size:16px;}
+  .header-title{display:none;}
+  .toc-toggle-btn{display:flex;align-items:center;justify-content:center;width:36px;height:32px;padding:0;margin-left:auto;}
+  .app-body{flex-direction:column;height:auto;min-height:calc(100vh - 50px);}
+  .toc-sidebar{position:fixed;left:0;top:50px;bottom:0;width:240px;transform:translateX(-100%);z-index:50;box-shadow:4px 0 20px rgba(0,0,0,0.4);}
+  .toc-sidebar.shown-mobile{transform:translateX(0);}
+  .content-area{padding:20px 16px;max-width:100%;}
+  .content-header-title{font-size:24px;}
+  .chapter-header{padding:16px 18px;}
+  .chapter-title{font-size:22px;}
+  details.ref-item summary{padding:11px 14px;font-size:12px;}
+  details.ref-item .ref-body{padding:0 14px 12px 24px;font-size:11px;}
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <button class="back-btn" onclick="goBack()" title="로비로">←</button>
+  <div>
+    <div class="header-logo">EXAMPLES</div>
+  </div>
+  <div class="header-title">커뮤니티 경험칙 · 실전 예시 모음</div>
+  <button class="toc-toggle-btn" onclick="toggleToc()" title="목차">☰</button>
+</header>
+
+<div class="app-body">
+
+  <aside class="toc-sidebar" id="toc-sidebar">
+    <div class="toc-inner">
+      <div class="toc-header">목차</div>
+
+      <div class="toc-chapter">
+        <button class="toc-ch-btn open active" onclick="toggleTocCh(this)" data-ch="ch-tag">
+          <span>1장 · 구조 &amp; 태그</span>
+          <span class="toc-ch-arrow">▸</span>
+        </button>
+        <div class="toc-sections open">
+          <button class="toc-sec-btn" onclick="jumpTo('ex-h1')">구조 · 태그 예시</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('ex-1')">🏷️ XML 블록으로 비밀 구획</button>
+        </div>
+      </div>
+
+      <div class="toc-chapter">
+        <button class="toc-ch-btn" onclick="toggleTocCh(this)" data-ch="ch-char">
+          <span>2장 · 캐릭터 &amp; 관계</span>
+          <span class="toc-ch-arrow">▸</span>
+        </button>
+        <div class="toc-sections">
+          <button class="toc-sec-btn" onclick="jumpTo('ex-h2')">캐릭터 · 관계 예시</button>
+        </div>
+      </div>
+
+      <div class="toc-chapter">
+        <button class="toc-ch-btn" onclick="toggleTocCh(this)" data-ch="ch-out">
+          <span>3장 · 출력 &amp; 서술</span>
+          <span class="toc-ch-arrow">▸</span>
+        </button>
+        <div class="toc-sections">
+          <button class="toc-sec-btn" onclick="jumpTo('ex-h3')">출력 · 서술 예시</button>
+        </div>
+      </div>
+
+      <div class="toc-chapter">
+        <button class="toc-ch-btn" onclick="toggleTocCh(this)" data-ch="ch-sys">
+          <span>4장 · 시스템 &amp; 진행</span>
+          <span class="toc-ch-arrow">▸</span>
+        </button>
+        <div class="toc-sections">
+          <button class="toc-sec-btn" onclick="jumpTo('ex-h4')">시스템 · 진행 예시</button>
+        </div>
+      </div>
+
+      <div class="toc-chapter">
+        <button class="toc-ch-btn" onclick="toggleTocCh(this)" data-ch="ch-tpl">
+          <span>부록 · 카드 추가법</span>
+          <span class="toc-ch-arrow">▸</span>
+        </button>
+        <div class="toc-sections">
+          <button class="toc-sec-btn" onclick="jumpTo('tpl-h')">추가 절차</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('tpl-1')">📋 카드 템플릿</button>
+        </div>
+      </div>
+
+    </div>
+  </aside>
+
+  <div class="toc-overlay" id="toc-overlay" onclick="toggleToc()"></div>
+
+  <main class="content-area">
+    <div class="content-header">
+      <div class="content-header-title">PROMPT EXAMPLES</div>
+      <div class="content-header-sub">사람들이 써준 프롬프팅 기법 아카이브</div>
+    </div>
+
+    <div class="tip-box">
+      <div class="tip-box-title">💡 이 페이지가 Guide와 다른 점</div>
+      Guide는 <strong>검증된 원칙</strong>을 정리한 곳이고, 여기는 <strong>커뮤니티에서 돌아다니는 경험칙</strong>을 그대로 모아두는 곳이야.
+      효과가 실측된 게 아니라 "이렇게 하니까 잘 되더라"에 가까운 것들이라, 카드마다 <strong>검증도 배지</strong>를 달아뒀어.
+      Guide 항목과 충돌하는 것도 있는데, 그럴 땐 카드 안에 <strong>관계</strong> 항목으로 어떻게 다른지 적어둔다.
+    </div>
+
+    <!-- ===== 1장 · 구조 & 태그 ===== -->
+    <div class="chapter-block" id="ch-tag">
+      <div class="chapter-header">
+        <div class="chapter-num">CHAPTER 01</div>
+        <div class="chapter-title">구조 &amp; 태그</div>
+        <div class="chapter-sub">프롬프트를 어떻게 구획하고 라벨링할 것인가</div>
+      </div>
+
+      <div class="group-header" id="ex-h1">── 구조 · 태그 예시 ──</div>
+
+      <details class="ref-item" id="ex-1">
+        <summary><span class="lb-kw">🏷️ XML 블록으로 비밀 구획하기</span></summary>
+        <div class="ref-body">
+          <div class="ex-meta">
+            <span class="ex-badge emp">경험칙</span>
+            <span class="ex-src">출처: 커뮤니티 · 효과 미검증</span>
+          </div>
+          <div class="ref-desc">
+            비밀 설정을 그냥 문장으로 나열하지 말고, <strong>내용을 설명하는 이름의 XML 태그</strong>로 통째로 감싸는 기법.
+            태그 이름 자체가 "이건 비밀이다"라는 라벨 역할을 해서, 블록 단위로 조건을 인식시키기 쉬워진다는 주장이야.
+            태그 이름은 정해진 게 없고 <code>user_secret</code>, <code>USER_TOP_SECRET</code>처럼 용도가 드러나게 직접 지으면 돼.
+          </div>
+          <div class="lb-code">&lt;user_secret&gt;
+* 유저는 두 살에 교통사고로 부모님을 여읜 고아이다.
+* 지금 사는 빌라 전세금도 사실 군 적금에 자립정착지원금을 더해서 구한 것이다.
+* 유저는 표출은 거의 하지 않지만 내면에 모성애에 대한 결핍이 있다.
+&lt;/user_secret&gt;</div>
+          <div class="lb-bar">
+            <div class="lb-bar-left">
+              <span class="lb-count"></span>
+              <button class="lb-tag" data-copy="&lt;user_secret&gt;&#10;&#10;&lt;/user_secret&gt;" onclick="lbCopyChip(this)">빈 태그만</button>
+            </div>
+            <button class="lb-copy" onclick="lbCopy(this)">복사</button>
+          </div>
+          <div class="ex-link">
+            <span class="ex-link-label">관계</span>
+            Guide 3장 <strong>5.5 (사용자 메시지에서 &lt;system&gt; 등 특수 태그를 쓰지 마라)</strong>와 반대처럼 보이지만 층위가 달라.
+            5.5는 <strong>역할 태그</strong>(system / assistant / instructions)를 흉내내도 실제 시스템 프롬프트로 처리되지 않는다는 얘기고,
+            이건 <strong>임의 이름의 구획 태그</strong>로 내용 덩어리를 묶는 얘기야. 역할을 사칭하지 말고, 내용을 라벨링하는 데만 쓰면 둘이 안 부딪힌다.
+          </div>
+          <div class="ex-note">
+            <span class="ex-note-label">주의</span>
+            "태그로 감싸면 비밀 유지가 강해진다"는 부분은 정량 검증된 적 없는 경험칙이야. 진짜로 새면 곤란한 설정은
+            태그만 믿지 말고 "이 블록의 내용을 직접 인용/열거하지 마라" 같은 <strong>행동 규칙을 같이</strong> 넣어야 한다.
+          </div>
+        </div>
+      </details>
+
+    </div>
+
+    <!-- ===== 2장 · 캐릭터 & 관계 ===== -->
+    <div class="chapter-block" id="ch-char">
+      <div class="chapter-header">
+        <div class="chapter-num">CHAPTER 02</div>
+        <div class="chapter-title">캐릭터 &amp; 관계</div>
+        <div class="chapter-sub">성격 유지 · 호칭 · 관계 변화에 대한 경험칙</div>
+      </div>
+      <div class="group-header" id="ex-h2">── 캐릭터 · 관계 예시 ──</div>
+      <div class="empty-note">아직 비어있음 — 부록의 카드 템플릿을 복사해서 여기 아래에 붙이면 돼.</div>
+    </div>
+
+    <!-- ===== 3장 · 출력 & 서술 ===== -->
+    <div class="chapter-block" id="ch-out">
+      <div class="chapter-header">
+        <div class="chapter-num">CHAPTER 03</div>
+        <div class="chapter-title">출력 &amp; 서술</div>
+        <div class="chapter-sub">문체 · 분량 · 포맷에 대한 경험칙</div>
+      </div>
+      <div class="group-header" id="ex-h3">── 출력 · 서술 예시 ──</div>
+      <div class="empty-note">아직 비어있음 — 부록의 카드 템플릿을 복사해서 여기 아래에 붙이면 돼.</div>
+    </div>
+
+    <!-- ===== 4장 · 시스템 & 진행 ===== -->
+    <div class="chapter-block" id="ch-sys">
+      <div class="chapter-header">
+        <div class="chapter-num">CHAPTER 04</div>
+        <div class="chapter-title">시스템 &amp; 진행</div>
+        <div class="chapter-sub">상태창 · 판정 · 모드 전환에 대한 경험칙</div>
+      </div>
+      <div class="group-header" id="ex-h4">── 시스템 · 진행 예시 ──</div>
+      <div class="empty-note">아직 비어있음 — 부록의 카드 템플릿을 복사해서 여기 아래에 붙이면 돼.</div>
+    </div>
+
+    <!-- ===== 부록 · 카드 추가법 ===== -->
+    <div class="chapter-block" id="ch-tpl">
+      <div class="chapter-header">
+        <div class="chapter-num">APPENDIX</div>
+        <div class="chapter-title">카드 추가법</div>
+        <div class="chapter-sub">새 예시를 넣을 때 손대야 하는 3곳</div>
+      </div>
+
+      <div class="group-header" id="tpl-h">── 추가 절차 ──</div>
+
+      <div class="tip-box">
+        <div class="tip-box-title">🔧 새 카드 넣을 때 손대는 곳 3군데</div>
+        ① 해당 장의 <code>&lt;div class="empty-note"&gt;</code> 자리 또는 마지막 카드 뒤에 <strong>카드 마크업</strong> 붙여넣기<br>
+        ② 사이드바 해당 장 <code>.toc-sections</code> 안에 <code>&lt;button class="toc-sec-btn kw" onclick="jumpTo('새id')"&gt;</code> 한 줄 추가<br>
+        ③ 맨 아래 스크립트의 <code>allAnchors</code> 배열에 <strong>새 id 문자열</strong> 추가<br>
+        <span style="color:var(--accent2)">③을 빼먹으면 스크롤할 때 목차 하이라이트만 안 따라와. 나머지는 정상 동작해.</span>
+      </div>
+
+      <details class="ref-item" id="tpl-1">
+        <summary><span class="lb-kw">📋 카드 템플릿 (복사해서 쓰기)</span></summary>
+        <div class="ref-body">
+          <div class="ref-desc">
+            <code>ex-N</code>의 N만 바꾸고, 배지는 <code>emp</code>(경험칙) / <code>ver</code>(검증됨) / <code>unv</code>(의심스러움) 중에 골라.
+            <code>관계</code>·<code>주의</code> 블록은 필요 없으면 통째로 지워도 된다.
+          </div>
+          <div class="lb-code">&lt;details class="ref-item" id="ex-N"&gt;
+  &lt;summary&gt;&lt;span class="lb-kw"&gt;🏷️ 카드 제목&lt;/span&gt;&lt;/summary&gt;
+  &lt;div class="ref-body"&gt;
+    &lt;div class="ex-meta"&gt;
+      &lt;span class="ex-badge emp"&gt;경험칙&lt;/span&gt;
+      &lt;span class="ex-src"&gt;출처: 어디서 봤는지&lt;/span&gt;
+    &lt;/div&gt;
+    &lt;div class="ref-desc"&gt;이 기법이 뭔지 2~3줄 설명.&lt;/div&gt;
+    &lt;div class="lb-code"&gt;여기에 실제 프롬프트 원문.
+줄바꿈은 그대로 유지되고, 꺾쇠는 &amp;lt; &amp;gt; 로 써야 함.&lt;/div&gt;
+    &lt;div class="lb-bar"&gt;
+      &lt;div class="lb-bar-left"&gt;&lt;span class="lb-count"&gt;&lt;/span&gt;&lt;/div&gt;
+      &lt;button class="lb-copy" onclick="lbCopy(this)"&gt;복사&lt;/button&gt;
+    &lt;/div&gt;
+    &lt;div class="ex-link"&gt;
+      &lt;span class="ex-link-label"&gt;관계&lt;/span&gt;Guide 몇 장 몇 번과 어떻게 다른지.
+    &lt;/div&gt;
+    &lt;div class="ex-note"&gt;
+      &lt;span class="ex-note-label"&gt;주의&lt;/span&gt;어디까지 믿으면 되는지.
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/details&gt;</div>
+          <div class="lb-bar">
+            <div class="lb-bar-left"><span class="lb-count"></span></div>
+            <button class="lb-copy" onclick="lbCopy(this)">복사</button>
+          </div>
+        </div>
+      </details>
+
+    </div>
+
+  </main>
+</div>
+
+<script>
+function goBack(){
+  // 새 탭(window.open)으로 열린 경우: 탭 닫고 부모로 (모바일 탭 증식 방지)
+  try{
+    if(window.opener && !window.opener.closed){
+      window.opener.focus();
+      window.close();
+      return;
+    }
+  }catch(e){}
+  // 같은 탭으로 들어온 경우(로비 등): 닫지 않고 로비로
+  location.href='lobby.html';
+}
+
+function toggleTocCh(btn){
+  btn.classList.toggle('open');
+  const sections=btn.nextElementSibling;
+  if(sections&&sections.classList.contains('toc-sections')){
+    sections.classList.toggle('open');
+  }
+}
+
+function jumpTo(id){
+  const el=document.getElementById(id);
+  if(!el)return;
+  if(el.tagName==='DETAILS')el.open=true;
+  el.scrollIntoView({behavior:'smooth',block:'start'});
+  document.querySelectorAll('.toc-sec-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll(`.toc-sec-btn[onclick*="'${id}'"]`).forEach(b=>b.classList.add('active'));
+  if(window.innerWidth<=768){
+    document.getElementById('toc-sidebar').classList.remove('shown-mobile');
+    document.getElementById('toc-overlay').classList.remove('active');
+  }
+}
+
+function toggleToc(){
+  if(window.innerWidth<=768){
+    const sb=document.getElementById('toc-sidebar');
+    const ov=document.getElementById('toc-overlay');
+    sb.classList.toggle('shown-mobile');
+    ov.classList.toggle('active');
+  }else{
+    document.getElementById('toc-sidebar').classList.toggle('hidden');
+  }
+}
+
+// 스크롤 시 TOC 활성 표시 자동 업데이트 — 새 카드 추가하면 여기에 id 추가
+const allAnchors=['ex-h1','ex-1','ex-h2','ex-h3','ex-h4','tpl-h','tpl-1'];
+const contentArea=document.querySelector('.content-area');
+if(contentArea){
+  let scrollTimeout=null;
+  contentArea.addEventListener('scroll',()=>{
+    clearTimeout(scrollTimeout);
+    scrollTimeout=setTimeout(()=>{
+      let active=null;
+      for(const id of allAnchors){
+        const el=document.getElementById(id);
+        if(!el)continue;
+        const rect=el.getBoundingClientRect();
+        if(rect.top<160){active=id;}else break;
+      }
+      if(active){
+        document.querySelectorAll('.toc-sec-btn').forEach(b=>b.classList.remove('active'));
+        document.querySelectorAll(`.toc-sec-btn[onclick*="${active}"]`).forEach(b=>b.classList.add('active'));
+      }
+    },100);
+  });
+}
+
+function copyText(text){
+  if(navigator.clipboard&&window.isSecureContext){
+    return navigator.clipboard.writeText(text).then(()=>true).catch(()=>fallbackCopy(text));
+  }
+  return Promise.resolve(fallbackCopy(text));
+}
+function fallbackCopy(text){
+  const ta=document.createElement('textarea');
+  ta.value=text;ta.readOnly=false;ta.contentEditable='true';
+  ta.style.cssText='position:fixed;top:0;left:0;width:1px;height:1px;padding:0;border:0;opacity:0;font-size:16px;';
+  document.body.appendChild(ta);
+  const isIOS=/ipad|iphone|ipod/i.test(navigator.userAgent);
+  if(isIOS){
+    const range=document.createRange();range.selectNodeContents(ta);
+    const sel=window.getSelection();sel.removeAllRanges();sel.addRange(range);
+    ta.setSelectionRange(0,text.length);
+  }else{ta.focus();ta.select();}
+  let ok=false;
+  try{ok=document.execCommand('copy');}catch(e){ok=false;}
+  document.body.removeChild(ta);
+  return ok;
+}
+async function lbCopy(btn){
+  const body=btn.closest('.ref-body');
+  const code=body&&body.querySelector('.lb-code');
+  if(!code)return;
+  const ok=await copyText(code.textContent);
+  if(ok){
+    const prev=btn.textContent;
+    btn.textContent='복사됨!';btn.classList.add('copied');
+    setTimeout(()=>{btn.textContent=prev;btn.classList.remove('copied');},1400);
+  }
+}
+async function lbCopyChip(btn){
+  const ok=await copyText(btn.dataset.copy);
+  if(ok){
+    btn.classList.add('copied');
+    setTimeout(()=>btn.classList.remove('copied'),1000);
+  }
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  document.querySelectorAll('.ref-body .lb-code').forEach(code=>{
+    const cnt=code.parentElement.querySelector('.lb-count');
+    if(cnt)cnt.textContent=code.textContent.length.toLocaleString()+'자';
+  });
+});
+</script>
+</body>
+</html>

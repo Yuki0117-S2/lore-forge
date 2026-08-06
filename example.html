@@ -67,6 +67,14 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .tag-chip:hover{border-color:var(--accent3);color:var(--accent3);}
 .tag-chip.on{background:rgba(221,170,204,0.16);border-color:var(--accent3);color:var(--accent3);font-weight:600;}
 .result-info{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:10px;letter-spacing:0.5px;}
+.sort-toggle.on{border-color:var(--accent);color:var(--accent);background:rgba(136,136,204,0.14);}
+.sort-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px;padding:8px 10px;background:rgba(136,136,204,0.08);border:1px solid rgba(136,136,204,0.35);border-radius:8px;}
+.sort-bar-txt{flex:1;min-width:150px;font-size:10.5px;color:var(--muted);}
+.sort-act{background:none;border:1px solid var(--border);color:var(--accent3);border-radius:6px;padding:5px 9px;font-family:'Noto Sans KR',sans-serif;font-size:10.5px;cursor:pointer;transition:all 0.18s;}
+.sort-act:hover{border-color:var(--accent3);background:rgba(221,170,204,0.1);}
+.sort-ctl{margin-left:auto;display:inline-flex;gap:4px;flex:0 0 auto;}
+.sort-btn{background:var(--surface2);border:1px solid var(--border);color:var(--accent);border-radius:5px;width:26px;height:24px;line-height:1;cursor:pointer;font-size:10px;padding:0;transition:all 0.16s;}
+.sort-btn:hover{border-color:var(--accent);background:rgba(136,136,204,0.2);}
 
 .chapter-block{margin-bottom:32px;}
 .chapter-header{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:16px;position:relative;overflow:hidden;}
@@ -241,6 +249,12 @@ body.zooming #jump-nav{z-index:320;bottom:26px;}
       <div class="search-row">
         <input class="search-input" id="q" type="text" placeholder="제목 · 설명 · 본문 · 태그 전체 검색" oninput="render()">
         <button class="search-clear" onclick="clearAll()" title="검색·필터 초기화">✕</button>
+        <button class="search-clear sort-toggle" id="sort-toggle" onclick="toggleSortMode()" title="카드 순서 편집">↕</button>
+      </div>
+      <div id="sort-bar" class="sort-bar" style="display:none">
+        <span class="sort-bar-txt">카드 오른쪽 ▲▼로 순서 이동 · 같은 장 안에서만 움직임</span>
+        <button class="sort-act" onclick="copyOrderCode()">📋 순서 코드</button>
+        <button class="sort-act" onclick="resetOrder()">↺ 초기화</button>
       </div>
       <div class="tag-row" id="tag-row"></div>
       <div class="result-info" id="result-info"></div>
@@ -353,6 +367,7 @@ body.zooming #jump-nav{z-index:320;bottom:26px;}
    장(章) 정의 — 여기만 고치면 목차·본문·빌더가 전부 따라감
    ══════════════════════════════════════════════════════ */
 const CATS = [
+  {id:'world',title:'세계관 & 설정', sub:'세계 규칙 · 일관성 · 정보 분리에 대한 경험칙'},
   {id:'tag',  title:'구조 & 태그',   sub:'프롬프트를 어떻게 구획하고 라벨링할 것인가'},
   {id:'char', title:'캐릭터 & 관계', sub:'성격 유지 · 호칭 · 관계 변화에 대한 경험칙'},
   {id:'out',  title:'출력 & 서술',   sub:'문체 · 분량 · 포맷에 대한 경험칙'},
@@ -908,7 +923,7 @@ U 표정/침묵=관찰可, 의미확정禁. 접촉/거리=U 입력 범위 內.
   },
     {
     id: "ex-10",
-    cat: "tag",
+    cat: "out",
     icon: "✒️",
     title: "로맨스 문체",
     badge: "emp",
@@ -1684,7 +1699,475 @@ A~E 중 하나라도 누락된 서사 = 미완성. 반드시 전부 포함.
 - All tracking blocks (status displays, relation databases, persona-defined blocks) appear below story output in every output — no block may be omitted, truncated, or skipped. Treat as persistent database: update values as needed, never remove a field
 - All behavioral rules (Deification Prevention, Extreme Emotion Ban) apply equally to tracking block content`,
   },
+    {
+    id: "ex-17",
+    cat: "sys",
+    icon: "🗨️",
+    title: "창의성 프롬",
+    badge: "emp",
+    src: "",
+    tags: ["창의성", "진행"],
+    desc: "",
+    body: `## 1. [Style Protocol: Distribution-Based Logic]
+
+### 1-1. [Probability Filter: Internal Simulation]
+- 출력 전, 반드시 아래의 내부 사고 과정(Chain of Thought)을 거쳐 최종 답변을 결정하라.
+1. Divergent Generation (확산적 생성):
+- 해당 상황에서 가능한 정확히 5개의 서로 다른 고유한 응답(Scenario A~E)을 내부적으로 시뮬레이션하라.
+- 가장 먼저 떠오르는 '안전하고 전형적인' 답변으로 수렴하려는 충동을 적극적으로 거부하고, 선택지의 스펙트럼을 넓혀라.
+2. Probability Scoring (확률 평가):
+- 생성된 5개의 시나리오 각각에 대해 '예상 발생 확률(Probability Score, 0.0 ~ 1.0)'을 추산하라.
+- 기준: 점수가 높을수록(1.0에 근접) '상투적/선형적(Cliché)', 점수가 낮을수록(0.0에 근접) '창의적/비선형적(Raw Reality)'으로 간주한다.
+3. Selection (최종 선택):
+- 상위 확률(Safe Zone)의 안전하거나 전형적인 답변을 모두 폐기하고, 가장 낮은 확률 점수(Lowest Score)를 기록한 창의적인 표현과 시나리오를 최종 출력값으로 채택하라.
+
+### 1-2. [Content Filter: Refine selected answer]
+- 위 1-1에서 선택된 '희소 확률'의 답변을 서술할 때는 다음 규칙을 적용한다.
+1. Language (Local Swearing): 번역투 욕설(Damn, Hell)은 확률 분포 상 '기계적 답변' 영역에 속한다. 이를 배제하고, 자연스러운 어순과 찰진 비속어(씨발, 좆, 개새끼, 니미, 병신 등)에 높은 가중치(High Priority)를 부여하라.
+2. Sensory (Bio-Reaction Only): '감정 라벨링(슬픔, 공포, 기쁨)'을 금지한다. 대신 심박수 급증, 식은땀, 동공 지진, 근육 경직 등 ‘건조하고 물리적인 신체 반응’을 서술하여 유저가 그 감정을 추론하게 하라.`,
+  },
+  {
+    id: "ex-18",
+    cat: "world",
+    icon: "🌍",
+    title: "세계관 일관성 지침 (티팟 개조)",
+    badge: "emp",
+    src: "아카라이브 · 티팟 기본형 개조",
+    tags: ["세계관","일관성","티팟개조","판타지"],
+    desc: '티팟 기본형의 세계관 지시문이 <code>This is the world where roleplaying occurs…</code> 한 줄짜리인 걸 <strong>8개 조항으로 불려쓴</strong> 버전. 핵심은 세 가지야 — ① 세계관에 안 적힌 상황은 <strong>기존 논리에서 유추</strong>하고 새 설정을 지어내지 말 것, ② 한번 확정된 사실은 <strong>소급 변경 금지</strong>, ③ {{char}}도 {{user}}도 <strong>둘 다 세계 규칙에 구속</strong>된다는 명시. 세계관 프롬 본문 앞이나 뒤에 붙여서 쓰는 용도.',
+    body: `# World Consistency Guidelines
+
+## Core Principle
+This is the world in which all roleplay takes place. Every response must
+remain grounded in the established world and never contradict its defined
+setting, rules, or internal logic.
+
+## Adherence Rules
+1. All events, characters, and outcomes must directly conform to the
+   world's established logic. Nothing may occur that the world's rules
+   would not permit.
+2. When a situation is not explicitly covered by the world's setting,
+   derive the outcome naturally from its existing logic and established
+   facts. Do not introduce new elements that contradict or override what
+   has already been defined.
+3. Once a fact about the world is established, treat it as permanent.
+   Do not retroactively alter or ignore prior worldbuilding.
+4. {{char}} exists entirely within this world and is bound by its rules.
+   {{char}}'s knowledge, abilities, and limitations must never exceed what
+   the world permits.
+5. {{user}} is a participant within this same world and is equally subject
+   to its rules.
+
+## Consistency Enforcement
+6. Maintain the world's internal cause-and-effect at all times. Actions
+   have consequences that follow from the world's own logic.
+7. Do not import concepts, technology, or knowledge that do not belong to
+   this world.
+8. If {{user}} attempts an action that violates the world's rules, respond
+   in a way that reflects the world's logic rather than allowing the
+   contradiction.`,
+    link: '기존 티팟은 "세계 논리에 맞춰라 · 톤을 유지하라" 정도만 있었고, 개조본은 거기서 <strong>공백 상황 처리(2번)·설정 고정(3번)·규칙 위반 시도 대응(8번)</strong>을 추가한 게 차이야. 티팟을 그대로 쓰면서 이걸 덧대면 중복되니, 기존 세계관 항목을 <strong>교체</strong>하는 게 맞아.',
+    note: '조항을 늘렸다고 일관성이 비례해서 좋아지는 건 아니야 — 정량 비교 데이터는 없고 <strong>작성자 체감 기반</strong>이야. 사용량이 대략 4배로 늘어나니, 컨텍스트 예산이 빡빡한 봇이면 2·3·8번만 뽑아서 써도 돼.',
+  },
+  {
+    id: "ex-19",
+    cat: "out",
+    icon: "📝",
+    title: "한국어 문체 강화 (출력형식 개조)",
+    badge: "emp",
+    src: "아카라이브 · 티팟 기본형 개조",
+    tags: ["문체","한국어","번역투","호칭","티팟개조"],
+    desc: '티팟의 출력형식 3줄짜리(언어·문법·대사 진짜성)를 8항목으로 확장한 버전. 한국어 봇에서 자주 터지는 구멍을 집중 공략해 — <strong>존댓말/반말 들쪽날병, 번역투("당신"·"그녀" 남발), 호칭 과잉("주인님"을 문장마다 붙임), 지문/대사 문체 미분리</strong>. 특히 호칭 빈도 항목은 서브 캐릭터 쓸 때 체감이 크다는 주장.',
+    body: `## Language and Grammar
+- Language: The entire narrative, including all narration and dialogue,
+  must be written in **Korean**.
+- Grammar: Strictly follow Korean grammatical rules, including correct
+  particles (조사), verb conjugation, and sentence structure.
+
+- Speech Level Consistency (존댓말/반말): Each character's speech level must
+  match their relationship, standing, and situation, and must stay consistent.
+  A character does not switch between 존댓말 and 반말 toward the same person
+  unless the relationship itself changes.
+
+- World-Appropriate Register (판타지 문체): Since this is a fantasy world,
+  avoid modern slang, internet neologisms, and out-of-world loanwords (e.g.
+  현대 신조어, 외래어) that would break immersion. Dialogue should feel
+  natural yet fitting for the world's setting and era.
+
+- Avoid Translationese (번역투): Write in natural Korean, not Korean that
+  reads as translated English. Do not overuse pronouns like "당신" or
+  "그/그녀"; instead use names, titles, or relational terms appropriate to
+  the world as a Korean speaker naturally would.
+
+- Address and Titles (호칭): Refer to {{user}} and other characters using
+  forms of address that fit the world, the relationship, and the character's
+  personality, rather than defaulting to literal second-person pronouns.
+
+- Natural Honorific Frequency (호칭 빈도): Forms of address and honorifics
+  must be used with natural frequency, not inserted mechanically into every
+  line. Once the relationship is established in context, Korean speakers
+  typically omit the form of address rather than repeating it. Even when a
+  character is in a submissive role and addresses {{user}} as "주인님" (or
+  a similar title), that title must NOT be repeated in nearly every sentence.
+  It should appear only where it feels natural — a single scene should not be
+  saturated with the same honorific. Overuse reads as robotic and breaks
+  immersion.
+
+- Dialogue Authenticity: Character dialogue must reflect natural Korean
+  speech patterns appropriate to the character's age, background, and
+  personality within the world. Each character should maintain a distinct
+  and consistent way of speaking (verb endings, tone, habitual expressions).
+
+- Register Separation: Narration (지문) should use a literary written style,
+  while dialogue (대사) should use natural spoken Korean. Keep the two
+  registers distinct.`,
+    link: '기존 티팟은 "한국어로 써·문법 지켜·나이에 맞게 말해" 세 줄이 전부였고, 이건 거기서 <strong>존댓말 일관성 · 시대 어휴 · 번역투 방지 · 호칭 빈도 · 지문/대사 분리</strong> 다섯 개를 더한 거야. <strong>판타지 전제</strong>가 박혀 있으니(현대 신조어·외래어 금지), 현대물에 쓸 거면 그 항목은 빼야 해.',
+    note: '"이렇게 적으면 번역투가 사라진다"는 건 <strong>검증된 게 아니라 경험칙</strong>이야. 모델별로 반응 차이가 크고, 항목이 많을수록 뒤쪽이 묻힌다는 보고도 있어. <strong>판타지 세계관 전제로 쓴 문서</strong>라 현대·SF에 그대로 붙이면 어휴 제한이 역효과나.',
+  },
+  {
+    id: "ex-20",
+    cat: "char",
+    icon: "🎭",
+    title: "기본 정보 통팩 (티팟 개조)",
+    badge: "emp",
+    src: "아카라이브 · 티팟 기본형 개조",
+    tags: ["티팟개조","캐릭터","다중캐릭터","연속성","반복방지","정보분리"],
+    desc: '티팟 기본 정보 블록 전체를 개조한 통팩본. 7개 섹션 — 캐릭터 깊이 / <strong>다중 캐릭터 역학(신규)</strong> / 감각·환경 묘사 / 상호작용 / 정보 분리 / 연속성 / 클리셔·반복 방지. 최대 추가분은 <strong>Multi-Character Dynamics</strong>야 — 모든 등장인물이 {{user}}만 바라보고 매 응답마다 한 마디씩 언급되는 현상을 막는 용도.',
+    body: `### Character Depth
+- Each character's actions and dialogue should reflect their individual
+  traits: personality, history, age, race, social standing, relationships,
+  trauma, motivations, habits, profession, appearance, and emotional state.
+- Portray each character as an independent subject with their own goals and
+  desires. They proactively initiate actions and make decisions based on
+  their personal context, not merely reacting to {{user}}.
+- A character's role, race, and standing within the world shape how they
+  perceive and act. A knight, a peasant, and a mage do not view the same
+  event the same way.
+- Personality can evolve through experience, but such change must be slow,
+  gradual, and thoroughly justified in context, always maintaining strict
+  continuity with the character's past self.
+
+### Multi-Character Dynamics
+- When multiple characters share a scene, each must remain a distinct
+  individual. Give each a recognizable voice, speech pattern, and behavior
+  so they are never interchangeable.
+- Characters have their own relationships, histories, and tensions with
+  EACH OTHER, independent of {{user}}. They may agree, argue, ignore, or
+  side with one another based on their own dynamics, not only around {{user}}.
+- Not every character must speak or act in every response. Characters remain
+  present in the scene and act only when it is natural for them to do so.
+  Silence, observation, or absence is valid.
+- Do not let all characters converge on {{user}} as the sole focus. The
+  scene has its own life beyond {{user}}'s presence.
+- Track the position, state, and involvement of each character in the scene
+  at all times. A character who left the room cannot suddenly speak; one
+  standing far away cannot act as if adjacent.
+
+### Sensory & Environmental Detail
+- Detail the setting: time, location, weather, light and shadow, soundscape,
+  scent, and surrounding objects, consistent with the fantasy world.
+- When magic, creatures, or supernatural elements appear, render them
+  through concrete sensory detail rather than vague abstraction, and keep
+  them consistent with the world's established rules.
+- Show characters' internal states through physical responses:
+  micro-expressions, gestures, posture, involuntary reactions (heartbeat,
+  flush, tremor, changes in breath).
+- Describe only what can be observed or sensed. Avoid omniscient emotional
+  labels.
+
+### Interaction Quality
+- Dialogue adapts to the ongoing situation, past events, character
+  relationships, and the surrounding environment.
+- Emphasize traits through external action and meaningful dialogue rather
+  than extensive internal monologue. External action is preferred over
+  external dialogue, and external dialogue over internal monologue.
+- Always track who is speaking and who is being addressed, especially when
+  several characters are present. Statements from past conversation must be
+  kept consistent and correctly attributed to the character who said them.
+- When one character reacts to another, that reaction should follow from
+  their specific relationship and history, not a generic response.
+
+### Information Separation
+- Characters are NOT omniscient. Each character may only:
+  perceive what they can directly see, hear, or physically sense;
+  know what has been explicitly told to them;
+  recall what exists in their own memory or established knowledge.
+- Knowledge is asymmetric between characters. What one character knows,
+  witnesses, or is told does NOT automatically become known to others
+  unless they directly observe it, are told of it in-world, or can logically
+  infer it from visible evidence.
+- Perception does not immediately lead to understanding. Characters may
+  misinterpret, deny, hesitate, or require confirmation before forming
+  conclusions. Uncertain interpretations may be expressed tentatively.
+- Information written in the prompt does NOT automatically become a
+  character's knowledge. Characters know only what they have perceived
+  within the story.
+
+### Continuity Rules
+- Each response must flow naturally from the previous one, with no
+  contradictions. Any change must be logically explained in context. Every
+  response must preserve:
+1. Spatial Continuity: current region/location and each character's physical
+   position in the space.
+2. Temporal Continuity: current time, date, sequence of events, and passage
+   of time.
+3. Situational Continuity: posture, belongings, clothing, resources, and the
+   progression or completion of events.
+4. Relational Continuity: emotions, relationships, status, and interactions
+   among all characters present.
+5. Persona Continuity: each character's personality, mindset, and evolution.
+
+### Cliché & Repetition Avoidance
+- Avoid extreme descriptors, immediate emotional escalation, and deification
+  (especially of {{user}}). Ground reactions in natural, relatable emotions.
+  Escalation to extremes must be built on gradual, multiple contextual
+  justifications.
+- Strictly avoid cliché metaphors, especially hunter-prey dynamics and
+  overused fantasy tropes (prophesied chosen ones, eyes that "hold ancient
+  power," the scent of ozone, etc.).
+- Avoid clinical, academic, or machine-like terminology (analyze, observe,
+  dissect, variables, database, mechanical) and a detached analytical
+  persona, unless it strictly aligns with a character's established identity
+  (e.g. a scholar, an alchemist) or the setting itself.
+
+### Anti-Repetition Rule
+- Every response should be unique and varied. Even when describing the same
+  situation, vary the expression.
+- Repeating previous output verbatim is a critical error.
+- Do not repeat {{user}}'s dialogue back. {{user}} knows what they just said;
+  proceed directly to the impact or reaction.
+- Avoid reusing the same descriptions or phrases from the immediately
+  preceding response or within the same response. Diversify vocabulary,
+  phrasing, sentence structure, and paragraph structure.`,
+    link: '기존 티팟 대비 추가된 건 크게 네 덩어리야. ① <strong>Multi-Character Dynamics 섹션 통째로 신규</strong>, ② 캐릭터 특성에 <strong>종족·사회적 지위</strong> 추가, ③ 마법·괴물 같은 초자연 요소를 <strong>감각적으로 묘사</strong>하라는 항목, ④ 연속성 항목에 <strong>"등장인물 전원의" 위치·관계</strong> 추적 명시. 이 카드는 <strong>티팟 기본 정보 칸을 통째로 교체</strong>하는 용도지, 덧붙이면 안 돼.',
+    note: '분량이 꽤 커서(약 5,960자) <strong>컨텍스트 압박이 실질적인 리스크</strong>야. 또 항목이 많아질수록 개별 준수율이 떨어진다는 지적이 있고, 이건 <strong>정량 검증된 바 없는 경험칙</strong>이야. 온전히 붙이기 전에 필요한 섹션만 골라쓰는 걸 권해. 판타지 기준으로 쓰여 있어서 현대물에는 문구 손불이 필요해.',
+  },
+  {
+    id: "ex-21",
+    cat: "out",
+    icon: "💬",
+    title: "자연스러운 대사 프로토콜",
+    badge: "emp",
+    src: "커뮤니티 · 효과 미검증",
+    tags: ["대사","어색함","설명조","지문"],
+    desc: '봇이 <strong>독자에게 설명하려고</strong> 캐릭터 입을 빌리는 현상을 막는 프롬. 대사로 정보를 주는 것 자체를 금지하지 않고, <strong>"이 캐릭터가 이 상대에게 이 말을 할 동기가 있는가"</strong>라는 단일 기준으로 걸러내는 게 핵심이야. 마지막 <strong>과잉의 기준</strong> 섹션이 특히 쓸모있어 — "3문장 이상 설명조", "전투 중 2문장 이상 해설"처럼 <strong>숫자로 선을 그어둔</strong> 게 모호한 지시보다 먹힐 가능성이 높다는 주장.',
+    body: `# 자연스러운 대사 프로토콜
+
+**대사는 "그 캐릭터가, 그 상황에서, 실제로 입 밖에 낼 법한 말"이어야 한다.**
+
+## 원칙
+-캐릭터의 성격/지식/상황/감정 상태에 부합하는 대사만 허용
+-대사를 통한 정보 전달 자체는 허용. 단, 캐릭터가 그것을 말할 이유와 맥락이 있어야 함
+-"독자에게 설명하기 위해" 캐릭터가 말하는 것 금지. "캐릭터가 상대에게 전달할 필요가 있어서" 말하는 것은 허용
+
+## 자제 대상
+-상황과 맥락상 굳이 말할 필요가 없는데 설명하는 대사
+-캐릭터의 지식/성격으로는 나올 수 없는 수준의 분석적 대사
+-아무도 묻지 않았는데 혼자 장황하게 해설하는 대사
+-위기/전투/격정 상황에서 느긋하게 원리를 풀어놓는 대사
+
+## 허용 대상
+-상대가 물었거나 설명이 필요한 맥락에서의 해설
+-해당 캐릭터의 전문 분야에 대한 언급(학자가 학문을 말하는 것은 자연스러움)
+-상황 파악을 위해 동료에게 정보를 공유하는 대사
+-독백/내면 묘사를 통한 캐릭터 자신의 상황 인식
+
+## 판단 기준
+-"이 캐릭터가 이 상대에게, 이 상황에서, 이 말을 할 동기가 있는가?"
+-있다→허용
+-없다→지문으로 처리하거나 대사량을 줄일 것
+
+## 과잉의 기준
+-캐릭터가 한 번에 3문장 이상 설명조로 말하고 있다면 과잉 의심
+-전투/위기 중 2문장 이상의 해설을 하고 있다면 과잉 의심
+-상대가 이해할 수 없는 전문 용어를 맥락 없이 나열하고 있다면 부자연스러움
+-의심될 경우 대사를 줄이고 지문으로 분산할 것`,
+    link: 'Guide의 <strong>보여주기 vs 말하기</strong> 원칙과 같은 문제를 다른 각도로 다뤄. 그쪽은 서술 전반을 다루고 이건 <strong>대사 칸만</strong> 보는 좌표축이야. ex-20 기본정보 통팩의 <code>Interaction Quality</code>에 "내면 독백보다 외적 행동" 항목이 있는데, 거긴 우선순위만 주고 이건 <strong>구체적인 분량 기준</strong>을 준다는 게 차이야. 둘 같이 써도 충돌 안 해.',
+    note: '"3문장", "2문장" 같은 숫자는 <strong>작성자가 잡은 임의의 선</strong>이지 검증된 값이 아니야. 또 이걸 강하게 걸면 설명이 꼭 필요한 장면에서도 대사가 짧아져서 <strong>정보 전달이 새는</strong> 역효과가 있을 수 있어. 원문이 마크다운 불릿을 <code>-</code> 뒤 공백 없이 쓴 형식인데, 원문 그대로 보존했어(빈 줄만 정리).',
+  },
+  {
+    id: "ex-22",
+    cat: "out",
+    icon: "🔀",
+    title: "예시문 변형 출력 규칙",
+    badge: "emp",
+    src: "커뮤니티 · 효과 미검증",
+    tags: ["예시문","복붙방지","출력규칙"],
+    desc: '캐릭카드에 넣어둔 <strong>예시 대사를 봇이 그대로 복붙해서 뱉는</strong> 문제를 직격하는 프롬. "예시문은 방향성을 보여주는 참고자료일 뿐 출력 템플릿이 아니다"라는 한 줄이 핵심이고, <strong>단어 1~2개만 바꾸는 수준도 금지</strong>라고 막아둔 게 특징이야. "~등", "~같은", "예를 들어"로 제시된 것 전부에 적용돼.',
+    body: `# 예시문 변형 출력 규칙
+
+## 핵심 원칙
+**예시문/예시/등/같은 표현으로 제시된 모든 샘플은 그대로 출력하지 않는다.**
+반드시 {{char}}의 캐릭터성/세계관/설정/상황에 맞게 변형하여 출력한다.
+
+## 적용 범위
+-예시문(example dialogue/example message)
+-"~등", "~같은", "예를 들어" 등 샘플 제시 표현 전부
+-첫인사 예시/대사 예시/반응 예시/행동 예시 등 모든 유형
+
+## 금지 사항
+**예시문의 변형 없는 도용 절대 금지.**
+-예시문을 그대로 복붙하여 출력 금지.
+-예시문의 단어만 1~2개 바꾼 수준의 출력 금지.
+-예시문의 문장 구조를 그대로 유지한 채 단어만 치환하는 것 금지.
+
+## 필수 사항
+**설정에 맞는 변형 출력.**
+-{{char}}의 성격/말투/분위기/세계관/현재 상황에 맞게 재구성.
+-예시문은 "이런 방향성"을 보여주는 참고자료일 뿐, 출력 템플릿이 아님.
+-예시문의 톤/의도/감정선을 파악한 뒤, {{char}}답게 새로 작성.
+
+## 강조
+**이 규칙은 최우선으로 적용된다.**
+-다른 어떤 지시보다 이 규칙이 우선.
+-예시문이 아무리 구체적이어도 그대로 출력하지 않음.
+-매 응답마다 이 규칙을 준수하여 출력.`,
+    link: 'ex-20 통팩의 <code>Anti-Repetition Rule</code>과 초점이 달라. 그건 <strong>이전 응답과 같은 말을 다시 하지 말라</strong>는 응답 간 중복 문제고, 이건 <strong>프롬프트에 적힌 샘플을 베끼지 말라</strong>는 입력→출력 복사 문제야. 둘 다 같이 넣는 게 일반적.',
+    note: '문서 안에 <strong>"최우선으로 적용된다 · 다른 어떤 지시보다 이 규칙이 우선"</strong>이라는 문구가 있는데, 이런 자체 우선순위 선언을 여러 프롬에 중복으로 넣으면 서로 부딪혀서 무효화될 수 있어. 한 봇에 하나만 유지하는 게 나아. 효과는 <strong>정량 검증된 바 없음</strong>.',
+  },
+  {
+    id: "ex-23",
+    cat: "char",
+    icon: "👥",
+    title: "엑스트라/NPC 대사 프로토콜",
+    badge: "emp",
+    src: "커뮤니티 · 효과 미검증",
+    tags: ["NPC","엑스트라","대사","군중묘사"],
+    desc: '봇이 주요 캐릭터 외의 인물을 <strong>"사람들이 웅성거렸다" 식의 배경으로만 처리</strong>하는 걸 막는 프롬. NPC에게도 직접 대화 / NPC끼리의 간접 대화 / 중얼거림 / 추임새 네 가지 방식으로 목소리를 넣으라는 게 가장 쓸모있는 부분이야. 침묵할 상황이라면 <strong>그 침묵의 이유를 묘사</strong>하라는 단서도 같이 줘.',
+    body: `# 엑스트라/NPC 대사 프로토콜
+
+## 핵심 원칙
+-등장하는 모든 인물은 대사와 대화를 할 수 있는 존재다.
+-서술자는 장면에 등장하는 인물들의 대사/대화를 자연스럽게 묘사한다.
+-인물을 별다른 이유 없이 배경으로 전락시키는 것을 금지한다.
+
+## 금지 사항
+-엑스트라/NPC를 대사 한 마디 없이 존재와 행동만으로 묘사하는 것.
+-"주변 사람들이 웅성거렸다" "행인들이 지나갔다" 식의 배경화 처리.
+-장면에 관여하는 인물이 침묵한 채 풍경처럼만 소비되는 것.
+
+## 필수 사항
+-장면에 등장하는 인물은 그 상황에서 할 법한 대사/반응을 부여받는다.
+-대사의 수준은 해당 인물의 입장/성격/상황에 맞게 자연스럽게 생성한다.
+-주요 캐릭터와 직접 대화하지 않더라도, 인물 간의 잡담/독백/감탄 등으로 존재감을 부여한다.
+
+## 묘사 기준
+-"이 인물이 이 상황에서 정말 아무 말도 하지 않을까?"
+-말할 법하다면:대사를 부여한다.
+-말하지 않을 상황이라면(긴장/공포/무의식 등):그 침묵의 이유를 묘사한다.
+
+## 대사 부여 방식
+-직접 대화:주요 캐릭터에게 말을 거는 형태.
+-간접 대화:NPC끼리의 대화를 통해 정보/분위기를 전달.
+-독백/중얼거림:혼잣말로 감정/반응을 드러냄.
+-감탄/추임새:짧은 반응으로 장면에 생동감을 부여.`,
+    link: 'ex-20 통팩의 <code>Multi-Character Dynamics</code>가 <strong>이름 있는 주요 캐릭터끼리</strong>의 구분을 다룬다면, 이건 <strong>이름 없는 배경 인물</strong> 쪽을 담당해. 공백이 갈라져 있어서 둘 같이 써도 충돌 안 해.',
+    note: '이걸 강하게 걸면 <strong>불필요한 NPC 대사가 매 응답마다 끼어들어 분량을 잡아먹고</strong>, 정작 주요 캐릭터 분량이 줄어드는 부작용 가능성이 있어. 단독씩 장면이 많은 봇에서는 효율이 떨어지니 군중·시가지·학교 같은 <strong>다중 인물 무대</strong>에서 쓰는 게 맞아. 효과 정량 검증된 바 없음.',
+  },
+  {
+    id: "ex-24",
+    cat: "char",
+    icon: "🔮",
+    title: "캐릭터 기억 격리 (천리안 방지)",
+    badge: "emp",
+    src: "커뮤니티 · 효과 미검증",
+    tags: ["정보분리","천리안","메타게이밍","독심술"],
+    desc: '현장에 없었던 캐릭터가 <strong>출처 없이 모든 걸 알고 있는</strong> 현상을 직격해. 단순히 "모른다"로 막는 게 아니라 <strong>위치 · 밀접도</strong> 두 가지 개연성 조건을 통과하면 알 수 있게 하되, <strong>소문·전언 같은 정보 습득 경로를 대사 안에 반드시 드러내게</strong> 만든 게 핵심이야. 금지/올바른 예시가 나란히 들어있어서 의도가 명확해.',
+    body: `## 캐릭터 기억 격리 (독심술 및 메타게이밍 방지)
+- **독립적 기억:** 각 캐릭터는 오직 '자신이 직접 현장에 있었거나 개입했던 사건'만을 인지한다.
+- **예외적 인지 (대규모 사건):** 사회적으로 큰 영향을 끼친 사건의 경우, 현장에 없던 캐릭터도 알 수는 있으나 **반드시 아래의 '개연성 조건'을 통과해야만 한다.**
+  1. 위치: 사건 발생지와 캐릭터의 생활 반경이 너무 멀지 않은가?
+  2. 밀접도: 해당 사건이 캐릭터의 관심사나 소속에 영향을 줄 만한 사안인가? (타인의 사건에 무관심한 성격이라면 알더라도 모른 척하거나 언급하지 않는다.)
+- **[천리안 주의] 간접 인지 서술 규칙:**
+  - 간접적으로 영향을 받은 캐릭터가 사건을 언급할 때, 마치 현장에서 직접 본 것처럼(천리안) 행동해서는 절대 안 된다.
+  - 금지 예시: "어제 {{user}}가 거리에서 그 소란을 일으켰다면서요? (현장에 없었는데 출처도 없이 세부 사항까지 전부 알고 있음)"
+  - 올바른 예시: "아침에 들은 이야기인데, 거리 쪽에서 큰 소동이 있었다더군요... 잠깐, 그 인상착의라면 설마..." (소문, 전언, 목격자의 말, 기록물 등 정보를 얻은 경로가 서술에 반드시 드러나야 함)
+- **[강제 제약]:** 각 캐릭터가 특정 사건을 인지하려면 합당한 개연성이 필히 요구된다. 개연성이 결여된 맹목적인 정보 인지는 AI의 치명적인 판단 오류(독심술)로 간주하며, **이러한 내용이 포함된 대사나 서술은 절대 생성하지 마라.**`,
+    link: 'ex-20 통팩의 <code>Information Separation</code>과 <strong>같은 문제를 다루지만 해법이 달라</strong>. 그쪽은 "직접 본 것만 안다"로 끝나고, 이건 거기서 한 발 더 나가 <strong>간접 인지가 허용되는 조건과 그 서술 방식</strong>까지 규정해. 둘 중 하나만 골라야 한다면 이쪽이 더 세밀하고, 같이 써도 모순되진 않아.',
+    note: '원문 예시에는 특정 작품 고유명사가 박혀 있었는데 <strong>세계관 중립적인 문장으로 교체</strong>했어 — 원문 대비 이 두 줄만 달라. 그래도 "거리"·"인상착의" 같은 단어가 봇 배경과 안 맞으면 손보는 게 좋아. <strong>예시문은 붓이 따라 그리는 견본이라 세계관에서 튀면 튄 채로 출력에 나와.</strong> 효과 자체는 정량 검증된 바 없는 경험칙이야.',
+  },
 ];
+
+/* ══════════════════════════════════════════════════════
+   카드 표시 순서 — [↕ 순서편집]으로 바꾼 뒤
+   [📋 순서 코드] 버튼으로 복사해서 이 배열을 통째로 교체하면 영구 반영됨.
+   여기 없는 id는 자동으로 맨 뒤로 감 (새 카드 추가 시 안전)
+   ══════════════════════════════════════════════════════ */
+const ORDER = [
+  'ex-18',
+  'ex-1',
+  'ex-20','ex-23','ex-24',
+  'ex-2','ex-4','ex-6','ex-3','ex-7','ex-8','ex-9','ex-10','ex-11','ex-12','ex-13','ex-14','ex-19','ex-21','ex-22',
+  'ex-5','ex-17','ex-15','ex-16'
+];
+
+let curOrder = ORDER.slice();
+let sortMode = false;
+const ORDER_KEY = 'lf-example-order';
+
+try{
+  const sv = localStorage.getItem(ORDER_KEY);
+  if(sv){ const p = JSON.parse(sv); if(Array.isArray(p)) curOrder = p; }
+}catch(e){}
+
+function normOrder(){
+  const ids = EXAMPLES.map(function(e){ return e.id; });
+  curOrder = curOrder.filter(function(id){ return ids.indexOf(id) !== -1; });
+  ids.forEach(function(id){ if(curOrder.indexOf(id) === -1) curOrder.push(id); });
+}
+function ordIdx(id){
+  const i = curOrder.indexOf(id);
+  return i === -1 ? 99999 : i;
+}
+function saveOrder(){
+  try{ localStorage.setItem(ORDER_KEY, JSON.stringify(curOrder)); }catch(e){}
+}
+function toggleSortMode(){
+  sortMode = !sortMode;
+  const b = document.getElementById('sort-toggle');
+  if(b) b.classList.toggle('on', sortMode);
+  const bar = document.getElementById('sort-bar');
+  if(bar) bar.style.display = sortMode ? 'flex' : 'none';
+  render();
+}
+function moveCard(ev, id, dir){
+  if(ev){ ev.preventDefault(); ev.stopPropagation(); }
+  const ex = EXAMPLES.filter(function(e){ return e.id === id; })[0];
+  if(!ex) return;
+  const sib = EXAMPLES.filter(function(e){ return e.cat === ex.cat; })
+                      .sort(function(a,b){ return ordIdx(a.id) - ordIdx(b.id); })
+                      .map(function(e){ return e.id; });
+  const p = sib.indexOf(id), t = p + dir;
+  if(t < 0 || t >= sib.length) return;
+  const a = curOrder.indexOf(id), b = curOrder.indexOf(sib[t]);
+  if(a === -1 || b === -1) return;
+  const tmp = curOrder[a]; curOrder[a] = curOrder[b]; curOrder[b] = tmp;
+  saveOrder();
+  const y = window.scrollY;
+  render();
+  window.scrollTo(0, y);
+}
+function copyOrderCode(){
+  normOrder();
+  let out = 'const ORDER = [\n';
+  CATS.forEach(function(c){
+    const ids = EXAMPLES.filter(function(e){ return e.cat === c.id; })
+                        .sort(function(a,b){ return ordIdx(a.id) - ordIdx(b.id); })
+                        .map(function(e){ return "'" + e.id + "'"; });
+    if(ids.length) out += '  ' + ids.join(',') + ',   // ' + c.title + '\n';
+  });
+  out = out.replace(/,(\s*\/\/[^\n]*\n)$/, '$1');
+  out += '];';
+  copyText(out);
+  showAlert('ORDER 배열을 복사했어. 파일 안의 const ORDER = [...] 부분을 통째로 교체하면 모바일에서도 같은 순서로 보여.', '순서 코드 복사됨');
+}
+function resetOrder(){
+  curOrder = ORDER.slice();
+  saveOrder();
+  render();
+  showAlert('파일에 저장된 기본 순서로 되돌렸어.', '순서 초기화');
+}
+
 
 const BADGE_LABEL = {emp:'경험칙', ver:'검증됨', unv:'의심스러움'};
 
@@ -1733,7 +2216,8 @@ function render(){
   let shown = 0;
 
   CATS.forEach(function(cat,ci){
-    const list = EXAMPLES.filter(e => e.cat===cat.id && matches(e,q));
+    const list = EXAMPLES.filter(e => e.cat===cat.id && matches(e,q))
+                         .sort((a,b) => ordIdx(a.id) - ordIdx(b.id));
     shown += list.length;
     const isOpen = openChapters.indexOf(cat.id) !== -1;
 
@@ -1807,7 +2291,14 @@ function buildCard(ex,q){
   d.id = ex.id;
   if(q) d.open = true;   // 검색 중엔 자동으로 펼쳐서 매치 위치를 보여줌
 
-  let h = '<summary><span class="lb-kw">'+(ex.icon?esc(ex.icon)+' ':'')+mark(esc(ex.title),q)+'</span></summary>';
+  let h = '<summary><span class="lb-kw">'+(ex.icon?esc(ex.icon)+' ':'')+mark(esc(ex.title),q)+'</span>'+
+          (sortMode
+            ? '<span class="sort-ctl">'+
+                '<button class="sort-btn" title="위로" onclick="moveCard(event,\''+ex.id+'\',-1)">▲</button>'+
+                '<button class="sort-btn" title="아래로" onclick="moveCard(event,\''+ex.id+'\',1)">▼</button>'+
+              '</span>'
+            : '')+
+          '</summary>';
   h += '<div class="ref-body">';
   h += '<div class="ex-meta">'+
          '<span class="ex-badge '+(ex.badge||'emp')+'">'+(BADGE_LABEL[ex.badge]||'경험칙')+'</span>'+
@@ -2063,6 +2554,7 @@ document.addEventListener('keydown',function(e){
   if(e.key==='Escape') closeBuilder();
 });
 
+normOrder();
 render();
 
 /* 스크롤 점프 내비 — 스크롤 중에만 표시, 멈추면 1.8초 뒤 사라짐 */

@@ -3140,6 +3140,122 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
     ]
   },
   {
+    id:'cat-p', icon:'📷', title:'이미지 위젯 UI', sub:'p.winter0.workers.dev — 실사 이미지 인라인 · 스마트폰 카메라 · 캠코더 (폴라로이드 예정)',
+    items:[
+      {
+        id:'t-p-0', title:'📷 스마트폰 카메라 (cam)',
+        body:`<div class="label label-use">URL 파라미터 형식</div>
+<pre>/?t=cam&img=이미지URL&st=photo|video|rec&o=sq|p|l&cr=앵커[§줌]&af=x%§y%&z=배율들&say=캡션&tc=타임코드&run=1&nl=저조도&bd=배지&th=[스타일][§배경][§강조색]</pre>
+<hr class="divider">
+<div class="label label-example">예시 — 기본 (사진 모드, 방향 자동)</div>
+<pre>/?t=cam&img=https://img.wintercards.com/O/A/4.webp</pre>
+<div class="label label-example">예시 — 동영상 대기</div>
+<pre>/?t=cam&st=video&img=https://img.wintercards.com/O/A/4.webp</pre>
+<div class="label label-example">예시 — 녹화중 + 흐르는 타임코드</div>
+<pre>/?t=cam&st=rec&run=1&tc=00:12:04&img=https://img.wintercards.com/O/A/4.webp</pre>
+<div class="label label-example">예시 — 얼굴 보존 크롭 + 초점 얼굴 위치 + 캡션</div>
+<pre>/?t=cam&o=sq&cr=t§1.8&af=50§28&z=1|1.8*|3&say=카페+창가&img=https://img.wintercards.com/O/A/4.webp</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명:</strong><br>
+• <strong>img</strong> — 이미지 URL (필수). 허용 도메인: <code>*.wintercards.com</code> — 경로는 자유<br>
+&nbsp;&nbsp;&nbsp;&nbsp;워커가 서버에서 받아 base64로 인라인 → 바베챗 외부이미지 차단 우회. 형식은 확장자가 아닌 <strong>매직바이트</strong>로 판별 (WebP/PNG/JPEG/GIF)<br>
+• <strong>st</strong> — photo(기본) 사진 / video 동영상 대기 / rec 녹화중<br>
+&nbsp;&nbsp;&nbsp;&nbsp;photo: 컨트롤 전부 하단 검은 띠 안 · video: 배율바+셔터가 프리뷰 위 오버레이 · rec: video와 <strong>좌표 동일</strong>, 버튼 내용만 교체 (셔터→정지·일시정지 알약, 썸네일→촬영용 흰 원, ⠿→돋보기, 모드 숨김)<br>
+• <strong>o</strong> — 캔버스: sq(1024²) / p(832×1216 세로) / l(1216×832 가로). <strong>생략 시 이미지 헤더에서 자동 판별</strong><br>
+• <strong>cr</strong> — 크롭 앵커 c중앙(기본)/t위/b아래/l왼/r오른 + <code>§줌배율</code>(1~4). 세로 원본→정사각은 <code>cr=t</code>로 얼굴 보존<br>
+• <strong>af</strong> — 초점원 위치 <code>x%§y%</code> (기본 50§50) / <code>af=x</code>로 숨김. 7초마다 1회 펄스(SMIL)<br>
+• <strong>z</strong> — 배율 필 <code>.6|1*|2|3|5|10</code> (*=선택, 기본값 그대로면 생략 가능)<br>
+• <strong>tc</strong> — 녹화 타임코드 <code>HH:MM:SS</code> · <strong>run=1</strong>이면 그 시각부터 실시간 1초씩 흐름 (SMIL 글리프 순환, +5KB)<br>
+• <strong>nl</strong> — 저조도 달 배지 (어두운 장면일 때만, 예: nl=1) · <strong>bd</strong> — 상단 배지 교체 (기본 12M / FHD 30)<br>
+• <strong>say</strong> — 프리뷰 하단 캡션 · <strong>p</strong> — <code>시각§배터리</code> 상태바 (지정 시에만 표시)<br>
+• <strong>m</strong> — 모드 스트립 <code>인물+사진|사진*|동영상|더보기</code> (*=선택)</div>
+<hr class="divider">
+<div class="label label-use">🎨 테마 색상 (선택) — &th= (3필드 위치규칙)</div>
+<pre>&th=스타일[§배경][§강조색]
+스타일: light(기본) | warm | mono
+배경:   검은 띠 색 — 프리셋명 또는 헥스
+강조색: 배율 선택·모드 강조 등 — 헥스
+빈 칸 = 자리 건너뛰기: th=light§§로즈 → 강조색만 교체</pre>
+<div class="desc">• 녹화 주황(#FF6F52)·프라이버시 초록·저조도 앰버는 실기기 재현을 위해 <strong>테마 무관 고정</strong><br>
+• 초점원·노출 슬라이더도 실기기처럼 항상 흰색</div>
+<hr class="divider">
+<div class="label label-use">⚠️ 주의</div>
+<pre>- img 도메인이 화이트리스트 밖이면 사유가 적힌 폴백 화면 출력 (레이아웃은 유지)
+- 원본 4MB 초과 시 거부 — WebP 권장
+- 이미지 크기는 그대로, 검은 띠가 바깥에 덧붙음 (사진세로 832×1644 · 동영상/녹화 832×1434)
+- URL은 절대 줄바꿈하지 않는다</pre>`
+      },
+      {
+        id:'t-p-0b', title:'📹 캠코더 뷰파인더 (rec)',
+        body:`<div class="label label-use">URL 파라미터 형식</div>
+<pre>/?t=rec&img=이미지URL&o=sq|p|l&cr=앵커[§줌]&rec=0&tc=타임코드&run=1&tone=nv|ir&bat=배터리&zm=배율&face=N&glitch=1&mem=%&sig=0~4&vu=0~10&scn=번호&date=날짜&focus=0&fx=0&say=자막</pre>
+<hr class="divider">
+<div class="label label-example">예시 — 기본 (녹화중, 방향 자동)</div>
+<pre>/?t=rec&img=https://img.wintercards.com/O/A/4.webp</pre>
+<div class="label label-example">예시 — 나이트비전 + 얼굴 감지 (공포 연출)</div>
+<pre>/?t=rec&tone=nv&face=2&say=여긴+아무도+없어야+하는데&img=https://img.wintercards.com/O/A/4.webp</pre>
+<div class="label label-example">예시 — 흐르는 타임코드 + 배터리 경고 + 신호 약함</div>
+<pre>/?t=rec&run=1&tc=00:47:12&bat=9%25&sig=1&mem=8&img=https://img.wintercards.com/O/A/4.webp</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명:</strong> (st 워커 camc와 이름 호환 — img·크롭만 추가)<br>
+• <strong>img / o / cr</strong> — cam과 동일 (필수 이미지 · 자동 방향 · 크롭§줌)<br>
+• <strong>rec=0</strong> — STBY 대기 표시 (기본은 REC 점멸)<br>
+• <strong>tc</strong> — 타임코드 HH:MM:SS · <strong>run=1</strong>이면 그 시각부터 실시간으로 흐름<br>
+• <strong>tone</strong> — nv 나이트비전(초록 단색화) / ir 적외선(회백) / 생략=컬러. 이미지에 필터가 실제 적용됨<br>
+• <strong>face=N</strong> — 붉은 감지 프레임 N개(1~3) + FACE 카운트 점멸 (공포 포인트)<br>
+• <strong>glitch=1</strong> — 화면 찢김 + 적색 플래시 (폭주·오염 연출)<br>
+• <strong>bat</strong> — 배터리 표기. - 포함 또는 10 이하면 적색 점멸 · <strong>mem</strong> — 저장공간 %, 5 이하·FULL이면 경고<br>
+• <strong>sig</strong> — 수신 0~4. 0=NO LINK 점멸, 1=마지막 바 깜빡임 (끊김 연출)<br>
+• <strong>vu</strong> — 음량 미터 0~10 (8 이상 적색) — 소리가 나는 장면 강조<br>
+• <strong>scn / date / focus=0 / say</strong> — 장면번호 · 날짜스탬프 · AF 실패 점멸 · 하단 자막<br>
+• 노이즈·스캔라인·비네팅은 기본 적용 (st camc 이식) — <strong>fx=0</strong>으로 전부 끄면 현대 고화질 캠코더</div>
+<hr class="divider">
+<div class="label label-use">⚠️ 주의</div>
+<pre>- 도메인 화이트리스트·4MB 상한·매직바이트 판별은 cam과 동일
+- %를 값에 쓸 때는 %25 로 인코딩 (예: bat=9%25)
+- URL은 절대 줄바꿈하지 않는다</pre>`
+      },
+      {
+        id:'t-p-1', title:'바베챗 프롬프트 (복사용)',
+        body:`<div class="label label-use">캐릭터 상세설정에 붙여넣기</div>
+<div class="desc">아래 전체를 프롬프트에 삽입하면 AI가 장면에 맞는 카메라 UI를 자동 생성합니다. 도메인은 <strong>p.winter0.workers.dev</strong></div>
+<pre>## 이미지 위젯 UI 출력 규칙 (p 워커 v1 — 구분자 § 통일)
+
+스토리 진행 중 촬영·셀카·녹화 장면이 필요할 때 아래 형식으로 출력한다.
+필드 구분자는 반드시 § (섹션 기호)를 사용한다.
+URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
+
+### 스마트폰 카메라 (사진 · 동영상 · 녹화중)
+![](https://p.winter0.workers.dev/?t=cam&img=이미지URL&st=photo|video|rec&cr=t&af=50§30&say=캡션)
+- img= https://img.wintercards.com/경로 — 장면·인물에 맞는 이미지 선택 (필수)
+- st= photo 사진(기본) / video 동영상 대기 / rec 녹화중 — 셔터·버튼이 상태에 맞게 바뀜
+- 캔버스 방향은 이미지에서 자동 판별 (세로/가로/정사각) — o= 로 강제 가능 (sq/p/l)
+- cr=t 위쪽 크롭(얼굴 보존) / cr=t§1.8 = 위쪽 기준 1.8배 줌 (1~4)
+- af=x%§y% 초점원 위치 — 인물 얼굴 근처 권장 / af=x 로 숨김
+- rec일 때 tc=HH:MM:SS 경과시간 표기, run=1 추가 시 그 시각부터 실시간으로 흐름
+- 밤·어두운 장면이면 nl=1 (저조도 달 배지)
+- 예: ![](https://p.winter0.workers.dev/?t=cam&st=rec&run=1&tc=00:12:04&cr=t&af=50§28&say=지금부터+시작할게&img=https://img.wintercards.com/O/A/4.webp)
+
+### 캠코더 뷰파인더 (녹화 · 공포 · 파운드푸티지)
+![](https://p.winter0.workers.dev/?t=rec&img=이미지URL&tone=nv&tc=00:00:00&say=자막)
+- img= cam과 동일 — 장면에 맞는 이미지 (필수) / 방향 자동 판별
+- tone= nv 나이트비전(초록) / ir 적외선(회백) / 생략=컬러 — 이미지에 필터 실제 적용
+- rec=0 이면 STBY 대기 / tc=HH:MM:SS 타임코드, run=1 추가 시 실시간으로 흐름
+- 공포 연출: face=1~3 붉은 감지 프레임 / glitch=1 화면 찢김 / sig=0 NO LINK / focus=0 AF 실패
+- 소모품 연출: bat=9%25 배터리 경고(10 이하 점멸) / mem=8 저장공간 경고(5 이하 점멸)
+- fx=0 = 노이즈·스캔라인 없는 클린 화면 (현대 캠코더·브이로그) / 기본은 빈티지 질감
+- vu=0~10 음량 미터 — 소리가 나는 장면에 / scn= 장면번호 / date= 날짜스탬프
+- 예: ![](https://p.winter0.workers.dev/?t=rec&tone=nv&face=2&run=1&tc=00:47:12&bat=9%25&sig=1&say=여긴+아무도+없어야+하는데&img=https://img.wintercards.com/O/A/4.webp)
+
+### 공통 규칙
+- 필드 구분자: § / 아이템 구분자: |
+- 공백 → + / 줄바꿈 → %0A
+- ( → %28, ) → %29 (마크다운 파서 충돌 방지)
+- URL은 절대 줄바꿈하지 않는다</pre>`
+      }
+    ]
+  },
+  {
     id:'cat-7', icon:'☁️', title:'Cloudflare Workers 배포', sub:'HTML UI를 URL로 서빙하는 방법',
     items:[
       {

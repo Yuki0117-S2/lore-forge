@@ -8,7 +8,7 @@
 // 이미지는 워커가 서버사이드로 fetch해서 base64 data URI로 인라인한다.
 //   → 바베챗이 SVG 내부의 외부 리소스 로딩을 전면 차단하는 제약을 우회
 //
-// 라우트: ?t=cam   (스마트폰 카메라)   ※ ?t=rec (캠코더) 자리 예약
+// 라우트: ?t=cam (스마트폰 카메라) · ?t=rec (캠코더 뷰파인더)
 // ══════════════════════════════════════════════════════════════
 
 // ── 이미지 출처 화이트리스트 ──────────────────────────────────
@@ -637,13 +637,232 @@ function camModes(modes, cx, cy, u, dim, vert) {
   });
   return d;
 }
+// ══════════════════════════════════════════════════════════════
+// 📹 REC (캠코더 뷰파인더) — st `camc`의 이미지판
+// t=rec · img= · o=sq|p|l · cr=앵커[§줌]  ← cam과 동일한 인프라
+//
+// camc 계승 파라미터 (st에서 검증된 이름 그대로):
+//   rec=0(STBY) · tc=타임코드 · run=1(흐름) · bat=배터리 · zm=배율표기
+//   face=N(0~3 감지 프레임) · glitch=1 · mem=% or FULL · sig=0~4
+//   vu=0~10 · scn=장면번호 · date=날짜스탬프 · focus=0(AF실패) · say=하단자막
+//   tone=nv(나이트비전)/ir(적외선)/생략(컬러)
+// ══════════════════════════════════════════════════════════════
+
+function renderRec(params, dataURI, autoOri, errMsg) {
+  const U = camUid(params);
+  const oRaw = (params.get('o') || '').trim().toLowerCase();
+  const ori = CAM_IMG[oRaw] ? oRaw : (CAM_IMG[autoOri] ? autoOri : 'sq');
+  const [W, H] = CAM_IMG[ori];
+
+  // 크롭/줌 — cam과 동일 규칙
+  const cf = (params.get('cr') || 'c').split('\u00a7');
+  const [par, ax, ay] = CAM_ANCHOR[(cf[0] || 'c').trim().toLowerCase()] || CAM_ANCHOR.c;
+  let zoom = parseFloat(cf[1]);
+  if (!(zoom >= 1 && zoom <= 4)) zoom = 1;
+
+  // camc 계승 옵션
+  const tone = (params.get('tone') || '').trim().toLowerCase();     // nv / ir / ''
+  const isRec = (params.get('rec') || '1') !== '0';
+  const tcode = esc((params.get('tc') || '00:00:00').trim()).slice(0, 12);
+  const run = (params.get('run') || '') === '1';
+  const bat = esc((params.get('bat') || '84%').trim()).slice(0, 8);
+  const batWarn = bat.includes('-') || parseInt(bat, 10) <= 10;
+  const zm = esc((params.get('zm') || '').trim()).slice(0, 6);
+  const face = Math.max(0, Math.min(3, parseInt(params.get('face'), 10) || 0));
+  const glitch = (params.get('glitch') || '') === '1';
+  const memRaw = (params.get('mem') || '').trim();
+  const sigRaw = (params.get('sig') || '').trim();
+  const vuRaw = (params.get('vu') || '').trim();
+  const scn = esc((params.get('scn') || '').trim()).slice(0, 10);
+  const dateStamp = esc((params.get('date') || '').trim()).slice(0, 20);
+  const afFail = (params.get('focus') || '') === '0';
+  const fx = (params.get('fx') || '1') !== '0';   // fx=0 = 클린 화면 (노이즈·스캔라인·비네팅 OFF)
+  const say = esc((params.get('say') || '').trim()).slice(0, 40);
+
+  // camc 색: 나이트비전 연두 / IR 회백 / 컬러 모드는 흰색 UI
+  const ui = tone === 'ir' ? '#e8e8e8' : (tone === 'nv' ? '#aef0c2' : '#f2f2f2');
+  const warn = '#ff4d4d';
+
+  let s = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"`
+        + ` width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" font-family="ui-monospace,Menlo,monospace">`;
+  // 컬러 모드에서 흰 이미지 위 텍스트 가독용 외곽선
+  const SH = ` style="paint-order:stroke" stroke="#000" stroke-opacity="0.55" stroke-width="3"`;
+
+  // ── defs: 노이즈(camc 이식) + 비네팅 + 색조 + 클립 ──
+  s += `<defs>`
+    + `<filter id="nz${U}"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" result="n">`
+    + `<animate attributeName="seed" values="1;9" dur="0.5s" repeatCount="indefinite" calcMode="discrete"/></feTurbulence>`
+    + `<feColorMatrix in="n" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.10 0"/>`
+    + `<feComposite operator="over" in2="SourceGraphic"/></filter>`
+    + `<radialGradient id="vig${U}" cx="0.5" cy="0.5" r="0.75">`
+    + `<stop offset="0.6" stop-color="#000" stop-opacity="0"/>`
+    + `<stop offset="1" stop-color="#000" stop-opacity="0.62"/></radialGradient>`;
+  if (tone === 'nv')                                   // 나이트비전: 초록 단색화
+    s += `<filter id="tn${U}"><feColorMatrix type="matrix"`
+      + ` values="0 0 0 0 0.10  0.55 0.65 0.30 0 0.06  0 0 0 0 0.14  0 0 0 1 0"/></filter>`;
+  else if (tone === 'ir')                              // 적외선: 회백 반전풍
+    s += `<filter id="tn${U}"><feColorMatrix type="saturate" values="0"/>`
+      + `<feComponentTransfer><feFuncR type="gamma" amplitude="1.25" exponent="0.8" offset="0"/>`
+      + `<feFuncG type="gamma" amplitude="1.25" exponent="0.8" offset="0"/>`
+      + `<feFuncB type="gamma" amplitude="1.25" exponent="0.8" offset="0"/></feComponentTransfer></filter>`;
+  s += `<clipPath id="rc${U}"><rect x="0" y="0" width="${W}" height="${H}"/></clipPath></defs>`;
+
+  s += `<rect width="${W}" height="${H}" fill="#0a0c0a"/>`;
+
+  // ── 이미지 (색조필터 → 클립 → 줌: cam과 같은 중첩 규칙) ──
+  if (dataURI) {
+    const ox = ax * W, oy = ay * H;
+    const tf = zoom > 1
+      ? ` transform="translate(${ox.toFixed(1)},${oy.toFixed(1)}) scale(${zoom}) translate(${(-ox).toFixed(1)},${(-oy).toFixed(1)})"` : '';
+    const tn = tone === 'nv' || tone === 'ir' ? ` filter="url(#tn${U})"` : '';
+    s += `<g clip-path="url(#rc${U})"><g${tf}><image x="0" y="0" width="${W}" height="${H}"`
+       + ` preserveAspectRatio="${par} slice"${tn} href="${dataURI}" xlink:href="${dataURI}"/></g></g>`;
+  } else {
+    s += `<text x="${W/2}" y="${H/2}" text-anchor="middle" fill="#5a6a5e" font-size="26">`
+       + `${esc(errMsg || '이미지 없음')}</text>`;
+  }
+
+  // ── 노이즈·스캔라인 (fx=0이면 생략 — 현대 고화질 캠코더) ──
+  if (fx) {
+    s += `<g filter="url(#nz${U})" opacity="0.55"><rect width="${W}" height="${H}" fill="none"/></g>`;
+    s += `<g opacity="0.13">`;
+    for (let y = 0; y < H; y += 8) s += `<rect x="0" y="${y}" width="${W}" height="2" fill="#000"/>`;
+    s += `</g>`;
+  }
+
+  // ── 화면 찢김 (glitch, camc 이식) ──
+  if (glitch) {
+    s += `<rect x="0" y="300" width="${W}" height="26" fill="#ffffff" opacity="0.25">`
+      +  `<animate attributeName="y" values="${H*0.13|0};${H*0.82|0};${H*0.35|0};${H*0.63|0};${H*0.13|0}"`
+      +  ` keyTimes="0;0.3;0.55;0.8;1" dur="1.1s" repeatCount="indefinite" calcMode="discrete"/></rect>`
+      +  `<rect width="${W}" height="${H}" fill="${warn}" opacity="0.06">`
+      +  `<animate attributeName="opacity" values="0.06;0.16;0.06" dur="0.4s" repeatCount="indefinite"/></rect>`;
+  }
+  if (fx) s += `<rect width="${W}" height="${H}" fill="url(#vig${U})"/>`;
+
+  // ── 코너 브래킷 (뷰파인더 프레임) ──
+  {
+    const m = 56, L = 60;
+    s += `<g stroke="${ui}" stroke-width="4" fill="none" opacity="0.8" stroke-linecap="square">`
+      + `<path d="M ${m} ${m+L} L ${m} ${m} L ${m+L} ${m}"/>`
+      + `<path d="M ${W-m-L} ${m} L ${W-m} ${m} L ${W-m} ${m+L}"/>`
+      + `<path d="M ${m} ${H-m-L} L ${m} ${H-m} L ${m+L} ${H-m}"/>`
+      + `<path d="M ${W-m-L} ${H-m} L ${W-m} ${H-m} L ${W-m} ${H-m-L}"/></g>`;
+  }
+
+  // ── 중앙 포커스 브래킷 ──
+  {
+    const bw = W * 0.28, bh = H * 0.30, bx = (W - bw) / 2, by = (H - bh) / 2, L = 34;
+    s += `<g stroke="${ui}" stroke-width="3" fill="none" opacity="0.75">`;
+    for (const [x, y, dx, dy] of [[bx, by, 1, 1], [bx + bw, by, -1, 1], [bx, by + bh, 1, -1], [bx + bw, by + bh, -1, -1]])
+      s += `<path d="M ${x} ${y + dy * L} L ${x} ${y} L ${x + dx * L} ${y}"/>`;
+    s += `</g>`;
+  }
+
+  // ── 상단: REC/STBY + SCN + 타임코드 ──
+  const PAD = 90;                 // 코너 브래킷 안쪽 공통 여백 (좌우 대칭 기준선)
+  const topY = 96;                // 상단 행 baseline — 브래킷 세로 중앙과 일치
+  if (isRec)
+    s += `<circle cx="${PAD + 13}" cy="${topY - 10}" r="13" fill="${warn}">`
+      +  `<animate attributeName="opacity" values="1;0.1;1" dur="1s" repeatCount="indefinite"/></circle>`
+      +  `<text x="${PAD + 40}" y="${topY}" font-size="30" font-weight="700" fill="${ui}" letter-spacing="3"${SH}>REC</text>`;
+  else
+    s += `<text x="${PAD}" y="${topY}" font-size="30" font-weight="700" fill="${ui}" letter-spacing="3"${SH}>STBY</text>`;
+  if (scn)
+    s += `<text x="${W/2}" y="${topY - 2}" font-size="24" fill="${ui}" text-anchor="middle" opacity="0.85">SCN ${scn}</text>`;
+  if (run) {
+    // 내용물(TC 라벨 + 간격 + 숫자열)의 실측 폭을 먼저 구하고,
+    // 알약을 그 폭 + 좌우 동일 패딩으로 만들어 완전 중앙 정렬한다.
+    const fs2 = 28, W1 = fs2 * 0.62;
+    const tkw = tickWidth(fs2);           // 숫자열 폭
+    const tcW = 2 * W1;                   // 'TC' 라벨 폭 (모노스페이스 2글자)
+    const gap = 14, inPad = 16;           // 라벨↔숫자 간격 / 알약 내부 좌우 패딩
+    const content = tcW + gap + tkw;
+    const pr = W - PAD, pl = pr - content - inPad * 2;   // 우단은 PAD 기준선 고정
+    s += `<rect x="${pl.toFixed(1)}" y="${topY - 29}" width="${(content + inPad * 2).toFixed(1)}" height="40" rx="20" fill="#000" opacity="0.35"/>`
+      +  `<text x="${(pl + inPad + tcW).toFixed(1)}" y="${topY - 1}" font-size="${fs2}" fill="${ui}" text-anchor="end">TC</text>`
+      +  camTick(pl + inPad + tcW + gap + tkw / 2, topY - 1, fs2, camSecs(tcode), ui);
+  } else {
+    s += `<text x="${W - PAD}" y="${topY - 1}" font-size="28" fill="${ui}" text-anchor="end"${SH}>TC ${tcode}</text>`;
+  }
+
+  // ── 우상단 2행: 배율 / 신호 ──
+  let ry = 158;
+  if (zm) { s += `<text x="${W - PAD}" y="${ry}" font-size="24" fill="${ui}" text-anchor="end">x${zm}</text>`; ry += 46; }
+  if (sigRaw !== '') {
+    const sig = Math.max(0, Math.min(4, parseInt(sigRaw, 10) || 0));
+    if (sig === 0) {
+      s += `<text x="${W - PAD}" y="${ry}" font-size="22" fill="${warn}" text-anchor="end">NO LINK`
+        +  `<animate attributeName="opacity" values="1;0.2;1" dur="0.6s" repeatCount="indefinite"/></text>`;
+    } else {
+      for (let i = 0; i < 4; i++) {
+        const on = i < sig, bx2 = W - PAD - 70 + i * 20, bh2 = 12 + i * 7;
+        s += `<rect x="${bx2}" y="${ry - bh2}" width="13" height="${bh2}" fill="${ui}" opacity="${on ? 0.95 : 0.25}"`;
+        s += (on && i === sig - 1 && sig <= 1)
+          ? `><animate attributeName="opacity" values="0.95;0.1;0.95" dur="0.5s" repeatCount="indefinite"/></rect>` : `/>`;
+      }
+      s += `<text x="${W - PAD - 82}" y="${ry - 2}" font-size="20" fill="${ui}" text-anchor="end" opacity="0.75">LINK</text>`;
+    }
+  }
+
+  // ── 얼굴 감지 프레임 (공포 연출, camc 이식 — % 좌표로 환산) ──
+  if (face > 0) {
+    const spots = [[0.47, 0.42, 0.086, 0.14], [0.15, 0.53, 0.071, 0.12], [0.79, 0.29, 0.067, 0.114]];
+    for (let i = 0; i < face; i++) {
+      const [fx, fy, fw, fh] = spots[i];
+      s += `<rect x="${(fx * W)|0}" y="${(fy * H)|0}" width="${(fw * W)|0}" height="${(fh * H)|0}"`
+        +  ` fill="none" stroke="${warn}" stroke-width="3.6">`
+        +  `<animate attributeName="opacity" values="1;0.35;1" dur="0.8s" repeatCount="indefinite"/></rect>`;
+    }
+    s += `<text x="${PAD}" y="176" font-size="26" font-weight="700" fill="${warn}">FACE ${face}`
+      +  `<animate attributeName="opacity" values="1;0.4;1" dur="0.8s" repeatCount="indefinite"/></text>`;
+  }
+
+  // ── 좌하단: MODE / MEM / VU ──
+  const modeTxt = tone === 'ir' ? 'IR MODE' : (tone === 'nv' ? 'NIGHT VISION' : 'AUTO');
+  const botY = H - 78;            // 하단 행 baseline — 하단 브래킷 세로 중앙과 일치
+  s += `<text x="${PAD}" y="${botY}" font-size="22" fill="${ui}" letter-spacing="4"${SH}>${modeTxt}</text>`;
+  if (memRaw) {
+    const full = memRaw.toUpperCase() === 'FULL' || parseInt(memRaw, 10) <= 5;
+    s += `<text x="${PAD}" y="${botY - 46}" font-size="22" fill="${full ? warn : ui}">MEM ${esc(memRaw)}${/^\d+$/.test(memRaw) ? '%' : ''}`;
+    s += full ? `<animate attributeName="opacity" values="1;0.2;1" dur="0.7s" repeatCount="indefinite"/></text>` : `</text>`;
+  }
+  if (vuRaw !== '') {
+    const vu = Math.max(0, Math.min(10, parseInt(vuRaw, 10) || 0));
+    for (let i = 0; i < 10; i++) {
+      const lit = i < vu, c = i >= 8 ? warn : ui;
+      s += `<rect x="${PAD + i * 18}" y="${botY - 108}" width="11" height="20" fill="${c}" opacity="${lit ? 0.9 : 0.2}"`;
+      s += lit ? `><animate attributeName="opacity" values="0.9;${(0.35 + i * 0.05).toFixed(2)};0.9"`
+               + ` dur="${(0.3 + i * 0.06).toFixed(2)}s" repeatCount="indefinite"/></rect>` : `/>`;
+    }
+    s += `<text x="${PAD + 10 * 18 + 12}" y="${botY - 91}" font-size="20" fill="${ui}" opacity="0.8">AUDIO</text>`;
+  }
+
+  // ── 우하단: BAT / 날짜 / AF 실패 / 자막 ──
+  s += `<text x="${W - PAD}" y="${botY}" font-size="24" fill="${batWarn ? warn : ui}" text-anchor="end"${SH}>BAT ${bat}`;
+  s += batWarn ? `<animate attributeName="opacity" values="1;0.2;1" dur="0.6s" repeatCount="indefinite"/></text>` : `</text>`;
+  if (dateStamp)
+    s += `<text x="${W - PAD}" y="${botY - 46}" font-size="21" fill="${ui}" text-anchor="end" opacity="0.8">${dateStamp}</text>`;
+  if (afFail)
+    s += `<text x="${W/2}" y="${botY - 46}" font-size="24" fill="${warn}" text-anchor="middle">AF ---`
+      +  `<animate attributeName="opacity" values="1;0.15;1" dur="0.5s" repeatCount="indefinite"/></text>`;
+  if (say) {
+    // 밝은 이미지 위에서도 읽히도록 어두운 알약 스크림을 깐다
+    const sw = 60 + say.length * 20;
+    s += `<rect x="${W/2 - sw/2}" y="${H - 76}" width="${sw}" height="48" rx="24" fill="#000" opacity="0.45"/>`
+      +  `<text x="${W/2}" y="${H - 43}" font-size="27" fill="${ui}" text-anchor="middle">${say}</text>`;
+  }
+
+  return s + `</svg>`;
+}
+
 
 // ══════════════════════════════════════════════════════════════
 // 라우팅
 // ══════════════════════════════════════════════════════════════
 const RENDERERS = {
   'cam': renderCam,
-  // 'rec': renderRec,   // 캠코더 — 자리 예약
+  'rec': renderRec,
 };
 
 function indexPage() {

@@ -1,0 +1,646 @@
+// ══════════════════════════════════════════════════════════════
+// 겨울의 이미지 위젯 Workers (p) v1  —  p.winter0.workers.dev
+//
+// 구조: st 워커 방식(렌더러가 완성된 SVG 문자열을 직접 반환).
+//       i/j의 TEMPLATES→wrapInSVG(foreignObject) 경로는 쓰지 않는다.
+//       이미지 레이어에 native <image>가 필요하므로 HTML 경유가 불필요하기 때문.
+//
+// 이미지는 워커가 서버사이드로 fetch해서 base64 data URI로 인라인한다.
+//   → 바베챗이 SVG 내부의 외부 리소스 로딩을 전면 차단하는 제약을 우회
+//
+// 라우트: ?t=cam   (스마트폰 카메라)   ※ ?t=rec (캠코더) 자리 예약
+// ══════════════════════════════════════════════════════════════
+
+// ── 이미지 출처 화이트리스트 ──────────────────────────────────
+// 호스트만 검사. 경로(/OA/90.png 등)는 자유롭게 바뀌어도 무관.
+// 서브도메인까지 허용하려면 SUFFIX 쪽에 루트 도메인을 추가할 것.
+const IMG_HOSTS = ['img.wintercards.com'];
+const IMG_SUFFIX = ['.wintercards.com'];        // *.wintercards.com 전부 허용
+const IMG_MAX_BYTES = 4 * 1024 * 1024;          // 원본 4MB 상한 (base64 ≈ 5.3MB)
+const IMG_TIMEOUT_MS = 8000;
+
+function hostAllowed(h) {
+  h = (h || '').toLowerCase();
+  if (IMG_HOSTS.includes(h)) return true;
+  return IMG_SUFFIX.some(sfx => h === sfx.slice(1) || h.endsWith(sfx));
+}
+
+// ── 매직바이트 → MIME ────────────────────────────────────────
+// URL 확장자(endsWith)로 판별하면 ?v=1 같은 쿼리에 오판하므로 바이트로 본다
+function sniffMime(b) {
+  if (b.length > 12) {
+    if (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47) return 'image/png';
+    if (b[0] === 0xff && b[1] === 0xd8) return 'image/jpeg';
+    if (b[0] === 0x47 && b[1] === 0x49 && b[2] === 0x46) return 'image/gif';
+    if (b[0] === 0x52 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x46
+     && b[8] === 0x57 && b[9] === 0x45 && b[10] === 0x42 && b[11] === 0x50) return 'image/webp';
+  }
+  return null;
+}
+
+// ── 바이트 → base64 (8KB 청크; 대용량에서 스택 오버플로 방지) ──
+function toBase64(b) {
+  let bin = '';
+  const CH = 0x2000;
+  for (let i = 0; i < b.length; i += CH) {
+    bin += String.fromCharCode.apply(null, b.subarray(i, i + CH));
+  }
+  return btoa(bin);
+}
+
+// ══════════════════════════════════════════════════════════════
+// 이미지 헤더 → [폭, 높이]  (PNG / WebP 3종 / JPEG)
+// base64 만들려고 arrayBuffer를 어차피 받으므로 추가 비용 0
+// ══════════════════════════════════════════════════════════════
+function imgSize(b) {
+  if (!b || b.length < 26) return null;
+  const s4 = (o) => String.fromCharCode(b[o], b[o + 1], b[o + 2], b[o + 3]);
+
+  // PNG: 시그니처 8B + IHDR, 폭@16 높이@20 (빅엔디안 4B)
+  if (b[0] === 0x89 && s4(1) === 'PNG\r' && s4(12) === 'IHDR') {
+    const be = (o) => (b[o] << 24 | b[o + 1] << 16 | b[o + 2] << 8 | b[o + 3]) >>> 0;
+    return [be(16), be(20)];
+  }
+
+  // WebP: RIFF....WEBP + 청크별 분기
+  if (s4(0) === 'RIFF' && s4(8) === 'WEBP') {
+    const c = s4(12);
+    if (c === 'VP8 ') {                                   // 손실
+      if (b[23] === 0x9d && b[24] === 0x01 && b[25] === 0x2a) {
+        return [((b[27] << 8 | b[26]) & 0x3fff), ((b[29] << 8 | b[28]) & 0x3fff)];
+      }
+      return null;
+    }
+    if (c === 'VP8L') {                                   // 무손실
+      if (b[20] !== 0x2f) return null;
+      const n = b[21] | b[22] << 8 | b[23] << 16 | b[24] << 24;
+      return [(n & 0x3fff) + 1, ((n >>> 14) & 0x3fff) + 1];
+    }
+    if (c === 'VP8X') {                                   // 확장(알파/애니)
+      const le3 = (o) => b[o] | b[o + 1] << 8 | b[o + 2] << 16;
+      return [le3(24) + 1, le3(27) + 1];
+    }
+    return null;
+  }
+
+  // JPEG: SOF0~SOF15 마커 스캔 (SOF4/8/12 = DHT/JPG/DAC 제외)
+  if (b[0] === 0xff && b[1] === 0xd8) {
+    let o = 2;
+    while (o + 9 < b.length) {
+      if (b[o] !== 0xff) { o++; continue; }
+      const m = b[o + 1];
+      if (m === 0xd8 || m === 0x01 || (m >= 0xd0 && m <= 0xd7)) { o += 2; continue; }
+      const len = b[o + 2] << 8 | b[o + 3];
+      if (len < 2) return null;
+      if ((m >= 0xc0 && m <= 0xcf) && m !== 0xc4 && m !== 0xc8 && m !== 0xcc) {
+        return [b[o + 7] << 8 | b[o + 8], b[o + 5] << 8 | b[o + 6]];
+      }
+      o += 2 + len;
+    }
+  }
+  return null;
+}
+
+// 폭/높이 비율 → 캔버스 프리셋 키
+function oriOf(dim) {
+  if (!dim) return null;
+  const [w, h] = dim;
+  if (!(w > 0 && h > 0)) return null;
+  const r = w / h;
+  if (r > 1.12) return 'l';
+  if (r < 0.89) return 'p';
+  return 'sq';
+}
+
+// ══════════════════════════════════════════════════════════════
+// 이미지 로드 → { uri, dim, err }
+// err 코드: none(URL없음) host(도메인거부) bad(URL형식) http(응답실패)
+//           big(용량초과) type(이미지아님) net(네트워크/타임아웃)
+// ══════════════════════════════════════════════════════════════
+async function loadImg(raw) {
+  const src = (raw || '').trim();
+  if (!src) return { uri: null, dim: null, err: 'none' };
+
+  let u;
+  try { u = new URL(src); } catch { return { uri: null, dim: null, err: 'bad' }; }
+  if (u.protocol !== 'https:' && u.protocol !== 'http:') return { uri: null, dim: null, err: 'bad' };
+  if (!hostAllowed(u.hostname)) return { uri: null, dim: null, err: 'host' };
+
+  try {
+    const res = await fetch(u.toString(), {
+      headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'image/*,*/*' },
+      signal: AbortSignal.timeout(IMG_TIMEOUT_MS),
+      cf: { cacheEverything: true, cacheTtl: 3600 },
+    });
+    if (!res.ok) return { uri: null, dim: null, err: 'http' };
+
+    // Content-Length로 선차단 (없으면 본문 받고 재검사)
+    const cl = parseInt(res.headers.get('content-length') || '', 10);
+    if (cl > IMG_MAX_BYTES) return { uri: null, dim: null, err: 'big' };
+
+    const buf = await res.arrayBuffer();
+    if (buf.byteLength > IMG_MAX_BYTES) return { uri: null, dim: null, err: 'big' };
+
+    const b = new Uint8Array(buf);
+    const mime = sniffMime(b);
+    if (!mime) return { uri: null, dim: null, err: 'type' };
+
+    return { uri: `data:${mime};base64,${toBase64(b)}`, dim: imgSize(b), err: null };
+  } catch {
+    return { uri: null, dim: null, err: 'net' };
+  }
+}
+
+const ERR_MSG = {
+  none: 'img= 파라미터가 비어 있음',
+  bad:  'URL 형식이 올바르지 않음',
+  host: '허용되지 않은 이미지 도메인',
+  http: '이미지를 불러오지 못함',
+  big:  `이미지가 너무 큼 (${IMG_MAX_BYTES / 1024 / 1024}MB 초과)`,
+  type: '이미지 파일이 아님',
+  net:  '이미지 서버 응답 없음',
+};
+
+
+const esc = (v) => String(v ?? '')
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+// ── 이미지 박스 (원본 크기 고정 — 띠는 바깥에 덧붙는다) ────────
+const CAM_IMG = { sq: [1024, 1024], p: [832, 1216], l: [1216, 832] };
+
+const CAM_ANCHOR = {
+  c: ['xMidYMid', 0.5, 0.5], t: ['xMidYMin', 0.5, 0.0], b: ['xMidYMax', 0.5, 1.0],
+  l: ['xMinYMid', 0.0, 0.5], r: ['xMaxYMid', 1.0, 0.5],
+};
+
+const CAM_TH = {
+  light: { ui: '#ffffff', dim: '#a9a9b2', bar: '#000000', acc: '#DDAACC' },
+  warm:  { ui: '#fff6ec', dim: '#9a8d84', bar: '#0d0805', acc: '#CCAA88' },
+  mono:  { ui: '#e8e8ee', dim: '#83839a', bar: '#05050a', acc: '#8888CC' },
+};
+const CAM_PRESETS = {
+  pink: '#DDAACC', 핑크: '#DDAACC', indigo: '#8888CC', 인디고: '#8888CC',
+  gold: '#CCAA88', 골드: '#CCAA88', rose: '#BB6688', 로즈: '#BB6688',
+};
+// 칩(알약/원형 버튼) 배경 — 프리뷰 위에선 검정, 검은 띠 위에선 흰색 저투명
+const chipF = (ov) => ov ? '#000000' : '#ffffff';
+const chipO = (ov) => ov ? 0.45 : 0.14;
+
+const REC_COL = '#FF6F52';   // 삼성 녹화 주황 (실기기 색)
+const NL_COL   = '#FFC94D';  // 저조도(야간) 배지 앰버 — 실기기 색
+const LIVE_COL = '#3ECF7E';  // 안드로이드 프라이버시 표시 (초록)
+
+function camHex(s) {
+  s = (s || '').trim().replace(/^#/, '');
+  if (/^[0-9a-fA-F]{3}$/.test(s)) s = s.split('').map(c => c + c).join('');
+  return /^[0-9a-fA-F]{6}$/.test(s) ? '#' + s.toLowerCase() : null;
+}
+function camTheme(params) {
+  const f = (params.get('th') || '').split('\u00a7');
+  const th = { ...(CAM_TH[(f[0] || '').trim().toLowerCase()] || CAM_TH.light) };
+  if (f.length >= 2 && f[1]) {
+    const g = f[1].trim().toLowerCase();
+    th.bar = camHex(g) || CAM_PRESETS[g] || th.bar;
+  }
+  if (f.length >= 3 && f[2]) {
+    const g = f[2].trim().toLowerCase();
+    th.acc = camHex(g) || CAM_PRESETS[g] || th.acc;
+  }
+  return th;
+}
+
+function camList(raw, def) {
+  const out = ((raw && raw.trim()) ? raw : def).split('|').map(s => s.trim())
+    .filter(Boolean).map(s => {
+      const on = s.endsWith('*');
+      return { txt: on ? s.slice(0, -1) : s, on };
+    });
+  if (!out.some(i => i.on) && out.length) out[0].on = true;
+  return out.slice(0, 7);
+}
+
+// ── 레이아웃: 이미지 크기는 고정, 띠만 상태별로 달라진다 ───────
+function camLayout(ori, st) {
+  const [IW, IH] = CAM_IMG[ori];
+  const wide = ori === 'l';
+  const barT = wide ? 88 : 66;
+  // photo=전부 띠 안 / video=모드만 / rec=모드 없음
+  // 가로: 사진·동영상 모두 컨트롤이 우측 띠 안 (실기기 확인) → 같은 두께
+  // 세로: 사진만 띠 안, 동영상은 오버레이 → 띠는 모드 스트립만
+  // 녹화중: 모드 스트립 소멸 → 여백만
+  const barB = st === 'rec'   ? (wide ?  92 :  96)
+             : st === 'video' ? (wide ? 340 : 152)
+             :                  (wide ? 340 : 362);
+  return {
+    IW, IH, wide, barT, barB,
+    W: wide ? IW + barT + barB : IW,
+    H: wide ? IH : IH + barT + barB,
+    ix: wide ? barT : 0,
+    iy: wide ? 0 : barT,
+  };
+}
+
+function camUid(params) {
+  let h = 5381;
+  for (const c of params.toString()) h = ((h * 33) ^ c.charCodeAt(0)) >>> 0;
+  return h.toString(36).slice(0, 6);
+}
+
+// ══════════════════════════════════════════════════════════════
+function renderCam(params, dataURI, autoOri, errMsg) {
+  const U = camUid(params);
+  const oRaw = (params.get('o') || '').trim().toLowerCase();
+  const ori = CAM_IMG[oRaw] ? oRaw : (CAM_IMG[autoOri] ? autoOri : 'sq');
+
+  let st = (params.get('st') || 'photo').trim().toLowerCase();
+  if (!['photo', 'video', 'rec'].includes(st)) st = 'photo';
+  const vid = st !== 'photo';                    // 동영상 계열
+  const L = camLayout(ori, st);
+  const { W, H, IW, IH, ix, iy, wide, barB } = L;
+  const th = camTheme(params);
+  const u = th.ui, dim = th.dim, acc = th.acc;
+
+  // 크롭
+  const cf = (params.get('cr') || 'c').split('\u00a7');
+  const [par, ax, ay] = CAM_ANCHOR[(cf[0] || 'c').trim().toLowerCase()] || CAM_ANCHOR.c;
+  let zoom = parseFloat(cf[1]);
+  if (!(zoom >= 1 && zoom <= 4)) zoom = 1;
+
+  // 텍스트류
+  const badge = esc((params.get('bd') || (vid ? 'FHD 30' : '12M')).trim()).slice(0, 10);
+  const tcode = esc((params.get('tc') || '00:00:01').trim()).slice(0, 12);
+  const nl = (params.get('nl') || '').trim();
+  const say = esc((params.get('say') || '').trim()).slice(0, 40);
+  const zooms = camList(params.get('z'), '.6|1*|2|3|5|10');
+  const modes = camList(params.get('m'), '인물 사진|사진*|동영상|더보기');
+  const pf = (params.get('p') || '').split('\u00a7');
+  const clock = pf[0] ? esc(pf[0].trim()) : null;   // 지정 시에만 표시 (실기기는 없음)
+  const batt = Math.max(0, Math.min(100, parseInt(pf[1], 10) || 87));
+
+  // AF
+  const afRaw = (params.get('af') || '').trim().toLowerCase();
+  const afOff = afRaw === 'x' || afRaw === 'off';
+  const af = afRaw.split('\u00a7');
+  const afx = ix + Math.max(10, Math.min(90, parseFloat(af[0]) || 50)) / 100 * IW;
+  const afy = iy + Math.max(10, Math.min(90, parseFloat(af[1]) || 50)) / 100 * IH;
+
+  let s = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"`
+        + ` width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"`
+        + ` font-family="-apple-system,'Noto Sans KR',sans-serif">`
+        + `<defs><clipPath id="cv${U}"><rect x="${ix}" y="${iy}" width="${IW}" height="${IH}"/></clipPath></defs>`
+        + `<rect width="${W}" height="${H}" fill="${th.bar}"/>`;
+
+  // ── 프리뷰 이미지 ──
+  if (dataURI) {
+    const ox = ix + ax * IW, oy = iy + ay * IH;
+    const tf = zoom > 1
+      ? ` transform="translate(${ox.toFixed(1)},${oy.toFixed(1)}) scale(${zoom}) translate(${(-ox).toFixed(1)},${(-oy).toFixed(1)})"` : '';
+    // clip-path는 자기 transform 이후의 좌표계에서 해석된다.
+    // 같은 <g>에 걸면 클립 사각형까지 확대돼 이미지가 검은 띠로 새어나온다.
+    // → 바깥 <g>가 클립, 안쪽 <g>가 줌.
+    s += `<g clip-path="url(#cv${U})"><g${tf}><image x="${ix}" y="${iy}" width="${IW}" height="${IH}"`
+       + ` preserveAspectRatio="${par} slice" href="${dataURI}" xlink:href="${dataURI}"/></g></g>`;
+  } else {
+    s += `<rect x="${ix}" y="${iy}" width="${IW}" height="${IH}" fill="#1c1828"/>`
+       + `<g opacity="0.5" stroke="#6a6280" stroke-width="4" fill="none">`
+       + `<rect x="${ix + IW/2 - 52}" y="${iy + IH/2 - 84}" width="104" height="80" rx="12"/>`
+       + `<circle cx="${ix + IW/2}" cy="${iy + IH/2 - 44}" r="24"/></g>`
+       + `<text x="${ix + IW/2}" y="${iy + IH/2 + 46}" text-anchor="middle" fill="#8f88a8"`
+       + ` font-size="26">${esc(errMsg || '이미지 없음')}</text>`;
+  }
+
+  // ── 3×3 격자 ──
+  s += `<g stroke="${u}" stroke-width="1.6" opacity="0.55">`;
+  for (let i = 1; i <= 2; i++) {
+    s += `<line x1="${ix + IW*i/3}" y1="${iy}" x2="${ix + IW*i/3}" y2="${iy + IH}"/>`
+      +  `<line x1="${ix}" y1="${iy + IH*i/3}" x2="${ix + IW}" y2="${iy + IH*i/3}"/>`;
+  }
+  s += `</g>`;
+
+  // ── AF 원 + 노출 슬라이더 ──
+  if (!afOff) {
+    s += `<g transform="translate(${afx.toFixed(1)},${afy.toFixed(1)})">`
+      +  `<g fill="none" stroke="${u}" stroke-width="2.6" stroke-linecap="round">`
+      +  `<animateTransform attributeName="transform" type="scale" values="1.12;1;1"`
+      +  ` keyTimes="0;0.3;1" dur="2.4s" repeatCount="indefinite"/>`
+      +  `<circle r="86"/>`;
+    for (let i = 0; i < 3; i++) {                        // 노출 눈금 (중심 대칭)
+      const off = 20 + i * 20;
+      s += `<line x1="-30" y1="${-off}" x2="30" y2="${-off}"/>`
+        +  `<line x1="-30" y1="${off}"  x2="30" y2="${off}"/>`;
+    }
+    s += `</g><line x1="-108" y1="6" x2="108" y2="-6" stroke="${u}" stroke-width="4" stroke-linecap="round"/></g>`;
+  }
+
+  // ── 저조도 배지 (어두울 때만 나오는 것 → nl= 지정 시에만) ──
+  if (nl) {
+    const nx = wide ? ix + IW - 78 : ix + IW - 78, ny = iy + IH - 78;
+    s += `<circle cx="${nx}" cy="${ny}" r="42" fill="#000" opacity="0.55"/>`
+      +  `<path d="M${nx - 8} ${ny - 16} a17 17 0 1 0 12 28 21 21 0 0 1-12-28z" fill="${NL_COL}"/>`
+      +  `<text x="${nx + 16}" y="${ny + 8}" text-anchor="middle" fill="${NL_COL}" font-size="24" font-weight="700">${esc(nl).slice(0,2)}</text>`;
+  }
+
+  // ══ 상단 띠 (세로=위 / 가로=좌측 세로 스택) ══════════════════
+  {
+    // 녹화중에는 플래시만 남는다 (실기기 확인)
+    const ico = [{ k: 'flash' }];
+    if (st !== 'rec') {
+      ico.push({ k: 'txt', t: badge });
+      ico.push({ k: vid ? 'stab' : 'timer' });
+      ico.push({ k: vid ? 'hdr' : 'filter' });
+    }
+
+    if (!wide) {
+      const cy = 34;
+      const wOf = (it) => it.k === 'txt' ? 92 : (it.k === 'hdr' ? 84 : 74);
+      let cx = W - 40 - ico.reduce((a, it) => a + wOf(it), 0) + wOf(ico[0]) / 2;
+      for (const it of ico) { s += camIcon(it, cx, cy, u, th.acc); cx += wOf(it); }
+      if (clock) {
+        s += `<text x="30" y="${cy + 9}" fill="${u}" font-size="25" font-weight="600">${clock}</text>`;
+        s += camBatt(96, cy, batt, u);
+      }
+    } else {
+      const cx = 44;
+      let cy = 62;
+      for (const it of ico) { s += camIcon(it, cx, cy, u, th.acc); cy += it.k === 'txt' ? 78 : 66; }
+      if (clock) s += `<text x="${cx}" y="${H - 26}" text-anchor="middle" fill="${u}" font-size="21" font-weight="600"`
+                   + ` transform="rotate(-90 ${cx} ${H - 26})">${clock}</text>`;
+    }
+  }
+
+  // ══ 컨트롤 영역 ═════════════════════════════════════════════
+  // photo → 전부 검은 띠 안 / video·rec → 배율·셔터는 프리뷰 위 오버레이
+  const zc = zooms.map(z => z.txt), zi = zooms.findIndex(z => z.on);
+
+  const overlay = (!wide && vid) || (st === 'rec');
+
+  if (st === 'rec') {
+    // ══ 녹화중 전용 배치 (실기기와 구성이 완전히 다름) ══
+    //  · ⠿ 대신 돋보기+ (주황 점 배지)
+    //  · 일시정지/정지가 하나의 알약 안에 나란히
+    //  · 녹화 중 사진촬영용 흰 원이 별도로 존재
+    //  · 썸네일·모드 스트립 없음
+    if (!wide) {
+      // 실기기(프리뷰 1080폭) 좌표를 0.77배로 환산한 값
+      const bTop = iy + IH;
+      const zY = bTop - 458, cy = bTop - 273;    // 배율바 중심 bTop-420 / 컨트롤 행 bTop-273
+      s += camZoomH(W / 2 - 34, zY, zc, zi, u, true);
+      s += camMag(W - 78, zY + 38, u);
+      s += camStopPair(W / 2, cy, false, u);
+      s += `<circle cx="135" cy="${cy}" r="40" fill="${u}"/>`;
+      s += camFlip(W - 135, cy, u, true);
+    } else {
+      // 실기기(프리뷰 1920×1080) 환산: 배율바·돋보기 열 = 우측끝-242, 나머지 = 우측끝-100
+      const rx = ix + IW, cy = H / 2;
+      s += camMag(rx - 242, 77, u);
+      s += camFlip(rx - 100, 134, u, true);
+      s += camZoomV(rx - 242, cy, zc, zi, u, true);
+      s += camStopPair(rx - 100, cy, true, u);
+      s += `<circle cx="${rx - 100}" cy="${H - 135}" r="40" fill="${u}"/>`;
+    }
+  } else if (!wide) {
+    // ── 세로 ──
+    const bTop = iy + IH;                       // 하단 띠 시작 y
+    // 배율바(높이 76)와 셔터(r=63)가 겹치지 않도록 간격 확보
+    const zY  = overlay ? bTop - 288 : bTop + 26;   // 하단: zY+76
+    const shY = overlay ? bTop - 118 : bTop + 190;  // 상단: shY-63
+    s += camZoomH(W / 2 - 34, zY, zc, zi, u, overlay);
+    s += `<circle cx="${W - 78}" cy="${zY + 38}" r="34" fill="${chipF(overlay)}" opacity="${chipO(overlay)}"/>`
+      +  camDots(W - 78, zY + 38, u);
+    s += camShutter(W / 2, shY, st, u);
+    s += camThumb(W / 2 - 244, shY, u, overlay);
+    s += camFlip(W / 2 + 244, shY, u, overlay);
+    s += camModes(modes, W / 2, overlay ? H - 46 : bTop + 320, u, dim, false);
+  } else {
+    // ── 가로 (모든 컨트롤이 우측으로) ──
+    const rx = ix + IW;                          // 우측 띠 시작 x
+    const zX  = overlay ? rx - 196 : rx + 48;
+    const shX = overlay ? rx -  84 : rx + 180;
+    s += camZoomV(zX, H / 2, zc, zi, u, overlay);
+    s += `<circle cx="${shX}" cy="72" r="34" fill="${chipF(overlay)}" opacity="${chipO(overlay)}"/>`
+      +  camDots(shX, 72, u);
+    s += camFlip(shX, 170, u, overlay);
+    s += camShutter(shX, H / 2, st, u);
+    s += camThumb(shX, H - 82, u, overlay);
+    s += camModes(modes, rx + 296, H / 2, u, dim, true);
+  }
+
+  // ── 녹화중 오버레이: 타임코드 + 라이브 배지 ──
+  if (st === 'rec') {
+    const tw = 44 + tcode.length * 21;
+    const tx = ix + IW / 2, ty = iy + 62;
+    s += `<rect x="${tx - tw/2}" y="${ty - 34}" width="${tw}" height="68" rx="34" fill="${REC_COL}"/>`
+      +  `<text x="${tx}" y="${ty + 11}" text-anchor="middle" fill="#fff" font-size="34"`
+      +  ` font-weight="700" letter-spacing="1">${tcode}</text>`;
+    const lx = ix + IW - 78, ly = iy + 44;
+    if (wide) s += `<rect x="${lx - 52}" y="${ly - 27}" width="104" height="54" rx="27" fill="${LIVE_COL}"/>`
+      +  `<g fill="#fff"><rect x="${lx - 36}" y="${ly - 11}" width="26" height="21" rx="4"/>`
+      +  `<path d="M${lx - 8} ${ly - 8} l10-6v22l-10-6z"/>`
+      +  `<rect x="${lx + 14}" y="${ly - 13}" width="12" height="18" rx="6"/>`
+      +  `<path d="M${lx + 12} ${ly + 2} a8 8 0 0 0 16 0" fill="none" stroke="#fff" stroke-width="3"/></g>`;
+  }
+
+  // ── 캡션 ──
+  if (say) {
+    const cw = 60 + say.length * 19, cy2 = iy + IH - (vid ? 300 : 60);
+    s += `<rect x="${ix + IW/2 - cw/2}" y="${cy2 - 32}" width="${cw}" height="58" rx="29" fill="#000" opacity="0.42"/>`
+      +  `<text x="${ix + IW/2}" y="${cy2 + 7}" text-anchor="middle" fill="${u}" font-size="26">${say}</text>`;
+  }
+
+  return s + `</svg>`;
+}
+
+// ══ 부품 ══════════════════════════════════════════════════════
+function camIcon(it, cx, cy, u, acc) {
+  if (it.k === 'txt')
+    return `<text x="${cx}" y="${cy + 9}" text-anchor="middle" fill="${u}" font-size="25" font-weight="600">${it.t}</text>`;
+  if (it.k === 'hdr')
+    return `<rect x="${cx - 33}" y="${cy - 17}" width="66" height="34" rx="17" fill="none" stroke="${acc}" stroke-width="2.4"/>`
+         + `<text x="${cx}" y="${cy + 8}" text-anchor="middle" fill="${acc}" font-size="21" font-weight="700">HDR</text>`;
+  if (it.k === 'flash')                      // 번개 + 취소선
+    return `<g stroke="${u}" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round">`
+         + `<path d="M${cx+4} ${cy-15} L${cx-8} ${cy+1} L${cx-1} ${cy+1} L${cx-4} ${cy+15} L${cx+8} ${cy-1} L${cx+1} ${cy-1} Z"/>`
+         + `<line x1="${cx-14}" y1="${cy+15}" x2="${cx+14}" y2="${cy-15}"/></g>`;
+  if (it.k === 'timer')                      // 원 + 사선
+    return `<g stroke="${u}" stroke-width="2.6" fill="none" stroke-linecap="round">`
+         + `<circle cx="${cx}" cy="${cy}" r="14"/><line x1="${cx-13}" y1="${cy+13}" x2="${cx+13}" y2="${cy-13}"/></g>`;
+  if (it.k === 'stab')                       // 손떨림 보정 (사람 + 사선)
+    return `<g stroke="${u}" stroke-width="2.6" fill="none" stroke-linecap="round">`
+         + `<circle cx="${cx-2}" cy="${cy-11}" r="3.6" fill="${u}"/>`
+         + `<path d="M${cx-11} ${cy-1} l9-3 9 3M${cx-2} ${cy-4} v9M${cx-2} ${cy+5} l-6 10M${cx-2} ${cy+5} l6 10"/>`
+         + `<line x1="${cx-14}" y1="${cy+15}" x2="${cx+14}" y2="${cy-15}"/></g>`;
+  // filter — 점 채운 원
+  let d = `<circle cx="${cx}" cy="${cy}" r="14" fill="none" stroke="${u}" stroke-width="2.4"/>`;
+  for (let i = 0; i < 5; i++)
+    d += `<circle cx="${cx - 6 + (i % 3) * 6}" cy="${cy - 5 + Math.floor(i / 3) * 8}" r="2.1" fill="${u}"/>`;
+  return d;
+}
+
+function camBatt(x, cy, pct, u) {
+  return `<rect x="${x}" y="${cy - 10}" width="40" height="20" rx="6" fill="none" stroke="${u}" stroke-width="2.4" opacity="0.9"/>`
+       + `<rect x="${x + 43}" y="${cy - 4}" width="4" height="9" rx="2" fill="${u}" opacity="0.9"/>`
+       + `<rect x="${x + 3.5}" y="${cy - 6.5}" width="${33 * pct / 100}" height="13" rx="3" fill="${pct <= 20 ? '#EE1166' : u}"/>`;
+}
+
+function camDots(cx, cy, u) {
+  let d = '';
+  for (let i = 0; i < 4; i++)
+    d += `<circle cx="${cx - 7 + (i % 2) * 14}" cy="${cy - 7 + Math.floor(i / 2) * 14}" r="3.6" fill="${u}"/>`;
+  return d;
+}
+
+// 배율 알약바 — 가로형(세로 화면용)
+function camZoomH(cx, cy, list, act, u, overlay) {
+  const gap = 66, w = list.length * gap + 22, x = cx - w / 2;
+  let d = `<rect x="${x}" y="${cy}" width="${w}" height="76" rx="38" fill="${chipF(overlay)}" opacity="${chipO(overlay)}"/>`;
+  list.forEach((t, i) => {
+    const px2 = x + 11 + gap * i + gap / 2, on = i === act;
+    if (on) d += `<circle cx="${px2}" cy="${cy + 38}" r="30" fill="#fff" opacity="0.22"/>`;
+    d += `<text x="${px2}" y="${cy + 47}" text-anchor="middle" fill="${u}"`
+      +  ` font-size="${on ? 27 : 25}" font-weight="${on ? 700 : 500}">${esc(t)}${on ? '\u00d7' : ''}</text>`;
+  });
+  return d;
+}
+
+// 배율 알약바 — 세로형(가로 화면용). 위에서부터 큰 배율
+function camZoomV(cx, cy, list, act, u, overlay) {
+  const rev = list.slice().reverse(), ra = list.length - 1 - act;
+  const gap = 78, h = rev.length * gap + 22, y = cy - h / 2;
+  let d = `<rect x="${cx - 38}" y="${y}" width="76" height="${h}" rx="38" fill="${chipF(overlay)}" opacity="${chipO(overlay)}"/>`;
+  rev.forEach((t, i) => {
+    const py = y + 11 + gap * i + gap / 2, on = i === ra;
+    if (on) d += `<circle cx="${cx}" cy="${py}" r="30" fill="#fff" opacity="0.22"/>`;
+    d += `<text x="${cx}" y="${py + 9}" text-anchor="middle" fill="${u}"`
+      +  ` font-size="${on ? 27 : 25}" font-weight="${on ? 700 : 500}">${esc(t)}${on ? '\u00d7' : ''}</text>`;
+  });
+  return d;
+}
+
+function camShutter(cx, cy, st, u) {
+  if (st === 'photo') return `<circle cx="${cx}" cy="${cy}" r="63" fill="${u}"/>`;
+  if (st === 'video')
+    return `<circle cx="${cx}" cy="${cy}" r="63" fill="${u}"/>`
+         + `<circle cx="${cx}" cy="${cy}" r="29" fill="${REC_COL}"/>`;
+  // rec — 정지(사각). 일시정지는 camPause로 분리
+  return `<circle cx="${cx}" cy="${cy}" r="63" fill="${u}"/>`
+       + `<rect x="${cx - 21}" y="${cy - 21}" width="42" height="42" rx="7" fill="${REC_COL}"/>`;
+}
+
+// 녹화중 전용 — 줌 돋보기(+). 우상단에 주황 점 배지
+function camMag(cx, cy, u) {
+  return `<circle cx="${cx}" cy="${cy}" r="34" fill="#000" opacity="0.45"/>`
+       + `<g fill="none" stroke="${u}" stroke-width="3" stroke-linecap="round">`
+       + `<circle cx="${cx - 3}" cy="${cy - 3}" r="12"/>`
+       + `<line x1="${cx + 6}" y1="${cy + 6}" x2="${cx + 15}" y2="${cy + 15}"/>`
+       + `<line x1="${cx - 8}" y1="${cy - 3}" x2="${cx + 2}" y2="${cy - 3}"/>`
+       + `<line x1="${cx - 3}" y1="${cy - 8}" x2="${cx - 3}" y2="${cy + 2}"/></g>`
+       + `<circle cx="${cx + 26}" cy="${cy - 26}" r="5" fill="${REC_COL}"/>`;
+}
+
+// 녹화중 전용 — 일시정지(‖)와 정지(■)가 하나의 알약 안에
+function camStopPair(cx, cy, vert, u) {
+  const half = 139, r = 59;
+  let d = vert
+    ? `<rect x="${cx - r}" y="${cy - half}" width="${r * 2}" height="${half * 2}" rx="${r}" fill="#000" opacity="0.42"/>`
+    : `<rect x="${cx - half}" y="${cy - r}" width="${half * 2}" height="${r * 2}" rx="${r}" fill="#000" opacity="0.42"/>`;
+  // 가로화면(vert): 정지가 위 / 세로화면: 일시정지가 왼쪽
+  const a = vert ? [cx, cy - 58] : [cx - 58, cy];
+  const b = vert ? [cx, cy + 58] : [cx + 58, cy];
+  const stop = vert ? a : b, ps = vert ? b : a;
+  return d
+    + `<rect x="${stop[0] - 21}" y="${stop[1] - 21}" width="42" height="42" rx="6" fill="${u}"/>`
+    + `<g fill="${u}"><rect x="${ps[0] - 15}" y="${ps[1] - 21}" width="11" height="42" rx="5"/>`
+    + `<rect x="${ps[0] + 4}" y="${ps[1] - 21}" width="11" height="42" rx="5"/></g>`;
+}
+
+function camPause(cx, cy, u, overlay) {
+  return `<circle cx="${cx}" cy="${cy}" r="40" fill="${chipF(overlay)}" opacity="${chipO(overlay)}"/>`
+       + `<g fill="${u}"><rect x="${cx - 13}" y="${cy - 16}" width="9" height="32" rx="4"/>`
+       + `<rect x="${cx + 4}" y="${cy - 16}" width="9" height="32" rx="4"/></g>`;
+}
+
+function camThumb(cx, cy, u, overlay) {
+  return `<circle cx="${cx}" cy="${cy}" r="40" fill="${chipF(overlay)}" opacity="${chipO(overlay)}"/>`
+       + `<circle cx="${cx}" cy="${cy}" r="40" fill="none" stroke="${u}" stroke-width="2.4" opacity="0.5"/>`;
+}
+
+function camFlip(cx, cy, u, overlay) {
+  return `<circle cx="${cx}" cy="${cy}" r="42" fill="${chipF(overlay)}" opacity="${chipO(overlay)}"/>`
+       + `<g fill="none" stroke="${u}" stroke-width="3.4" stroke-linecap="round">`
+       + `<path d="M${cx - 18} ${cy - 5} a18 18 0 0 1 30-9"/>`
+       + `<path d="M${cx + 18} ${cy + 5} a18 18 0 0 1-30 9"/>`
+       + `<path d="M${cx + 6} ${cy - 20} l7 6-6 7M${cx - 6} ${cy + 20} l-7-6 6-7"/></g>`;
+}
+
+// 모드 스트립. vert=true면 90° 회전 (가로 화면)
+function camModes(modes, cx, cy, u, dim, vert) {
+  const fs = 25, gap = 54;
+  const wOf = (t) => { let w = 0; for (const c of t) w += c.charCodeAt(0) > 0x7f ? fs : fs * 0.55; return w; };
+  const ws = modes.map(m => wOf(m.txt));
+  const tot = ws.reduce((a, b) => a + b, 0) + gap * (modes.length - 1);
+  let p = -tot / 2;
+  let d = '';
+  modes.forEach((m, i) => {
+    const off = p + ws[i] / 2;
+    const x = vert ? cx : cx + off, y = vert ? cy - off : cy;
+    const rot = vert ? ` transform="rotate(-90 ${x} ${y})"` : '';
+    d += `<text x="${x}" y="${y + (vert ? 0 : 9)}" text-anchor="middle"${rot}`
+      +  ` fill="${m.on ? u : dim}" font-size="${fs}" font-weight="${m.on ? 800 : 500}">${esc(m.txt)}</text>`;
+    p += ws[i] + gap;
+  });
+  return d;
+}
+
+// ══════════════════════════════════════════════════════════════
+// 라우팅
+// ══════════════════════════════════════════════════════════════
+const RENDERERS = {
+  'cam': renderCam,
+  // 'rec': renderRec,   // 캠코더 — 자리 예약
+};
+
+function indexPage() {
+  const links = Object.keys(RENDERERS).map(k =>
+    `<li><a href="/?t=${k}" style="color:#DDAACC">/?t=${k}</a></li>`).join('');
+  return `<html><head><meta charset="UTF-8"></head>`
+    + `<body style="font-family:sans-serif;padding:40px;background:#14121c;color:#e6e1ef">`
+    + `<h1 style="color:#8888CC">겨울의 이미지 위젯 v1 (p)</h1>`
+    + `<p>사용 가능한 타입 (${Object.keys(RENDERERS).length}종):</p><ul>${links}</ul>`
+    + `<p style="color:#8f88a3;font-size:13px">이미지 출처: ${IMG_HOSTS.concat(IMG_SUFFIX.map(s => '*' + s)).join(' / ')}</p>`
+    + `</body></html>`;
+}
+
+export default {
+  async fetch(request) {
+    const url = new URL(request.url);
+    const params = url.searchParams;
+    const t = (params.get('t') || '').trim();
+
+    if (!t) {
+      return new Response(indexPage(), {
+        headers: { 'content-type': 'text/html;charset=UTF-8' },
+      });
+    }
+
+    const renderer = RENDERERS[t];
+    if (!renderer) {
+      return new Response(
+        '사용 가능: ' + Object.keys(RENDERERS).map(k => '?t=' + k).join(' / '),
+        { status: 400, headers: { 'content-type': 'text/plain;charset=utf-8' } }
+      );
+    }
+
+    const { uri, dim, err } = await loadImg(params.get('img'));
+    const svg = renderer(params, uri, oriOf(dim), err ? ERR_MSG[err] : null);
+
+    return new Response(svg, {
+      headers: {
+        'content-type': 'image/svg+xml; charset=utf-8',
+        // 이미지 인라인이라 응답이 크다 → 텍스트 워커의 no-cache와 달리 장기 캐시
+        'cache-control': err ? 'no-cache' : 'public, max-age=3600',
+        'access-control-allow-origin': '*',
+      },
+    });
+  }
+};

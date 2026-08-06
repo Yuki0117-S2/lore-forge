@@ -229,9 +229,9 @@ function camLayout(ori, st) {
   // 가로: 사진·동영상 모두 컨트롤이 우측 띠 안 (실기기 확인) → 같은 두께
   // 세로: 사진만 띠 안, 동영상은 오버레이 → 띠는 모드 스트립만
   // 녹화중: 모드 스트립 소멸 → 여백만
-  const barB = st === 'rec'   ? (wide ?  92 :  96)
-             : st === 'video' ? (wide ? 340 : 152)
-             :                  (wide ? 340 : 362);
+  // 녹화중은 동영상과 동일한 뼈대를 쓴다 — 재생 시작해도 버튼이 움직이면 안 되므로
+  // 띠 두께·캔버스 크기까지 동영상과 완전히 일치시킨다
+  const barB = st === 'photo' ? (wide ? 340 : 362) : (wide ? 340 : 152);
   return {
     IW, IH, wide, barT, barB,
     W: wide ? IW + barT + barB : IW,
@@ -322,8 +322,8 @@ function renderCam(params, dataURI, autoOri, errMsg) {
   if (!afOff) {
     s += `<g transform="translate(${afx.toFixed(1)},${afy.toFixed(1)})">`
       +  `<g fill="none" stroke="${u}" stroke-width="2.6" stroke-linecap="round">`
-      +  `<animateTransform attributeName="transform" type="scale" values="1.12;1;1"`
-      +  ` keyTimes="0;0.3;1" dur="2.4s" repeatCount="indefinite"/>`
+      +  `<animateTransform attributeName="transform" type="scale" values="1.1;1;1"`
+      +  ` keyTimes="0;0.1;1" dur="7s" repeatCount="indefinite"/>`
       +  `<circle r="86"/>`;
     for (let i = 0; i < 3; i++) {                        // 노출 눈금 (중심 대칭)
       const off = 20 + i * 20;
@@ -373,66 +373,63 @@ function renderCam(params, dataURI, autoOri, errMsg) {
   // photo → 전부 검은 띠 안 / video·rec → 배율·셔터는 프리뷰 위 오버레이
   const zc = zooms.map(z => z.txt), zi = zooms.findIndex(z => z.on);
 
-  const overlay = (!wide && vid) || (st === 'rec');
+  // 녹화중도 동영상과 동일 취급 — 오버레이 여부까지 일치시켜야 버튼이 안 움직인다
+  const overlay = !wide && vid;
 
-  if (st === 'rec') {
-    // ══ 녹화중 전용 배치 (실기기와 구성이 완전히 다름) ══
-    //  · ⠿ 대신 돋보기+ (주황 점 배지)
-    //  · 일시정지/정지가 하나의 알약 안에 나란히
-    //  · 녹화 중 사진촬영용 흰 원이 별도로 존재
-    //  · 썸네일·모드 스트립 없음
-    if (!wide) {
-      // 실기기(프리뷰 1080폭) 좌표를 0.77배로 환산한 값
-      const bTop = iy + IH;
-      const zY = bTop - 458, cy = bTop - 273;    // 배율바 중심 bTop-420 / 컨트롤 행 bTop-273
-      s += camZoomH(W / 2 - 34, zY, zc, zi, u, true);
-      s += camMag(W - 78, zY + 38, u);
-      s += camStopPair(W / 2, cy, false, u);
-      s += `<circle cx="135" cy="${cy}" r="40" fill="${u}"/>`;
-      s += camFlip(W - 135, cy, u, true);
-    } else {
-      // 실기기(프리뷰 1920×1080) 환산: 배율바·돋보기 열 = 우측끝-242, 나머지 = 우측끝-100
-      const rx = ix + IW, cy = H / 2;
-      s += camMag(rx - 242, 77, u);
-      s += camFlip(rx - 100, 134, u, true);
-      s += camZoomV(rx - 242, cy, zc, zi, u, true);
-      s += camStopPair(rx - 100, cy, true, u);
-      s += `<circle cx="${rx - 100}" cy="${H - 135}" r="40" fill="${u}"/>`;
-    }
-  } else if (!wide) {
+  // 녹화중(rec)은 동영상(video)과 좌표를 100% 공유한다.
+  // 바뀌는 것은 버튼의 '내용'뿐 — 셔터→정지·일시정지 알약, 썸네일→촬영용 흰 원,
+  // ⠿→돋보기(+주황 점), 모드 스트립→숨김.
+  const rec = st === 'rec';
+
+  if (!wide) {
     // ── 세로 ──
     const bTop = iy + IH;                       // 하단 띠 시작 y
     // 배율바(높이 76)와 셔터(r=63)가 겹치지 않도록 간격 확보
     const zY  = overlay ? bTop - 288 : bTop + 26;   // 하단: zY+76
     const shY = overlay ? bTop - 118 : bTop + 190;  // 상단: shY-63
     s += camZoomH(W / 2 - 34, zY, zc, zi, u, overlay);
-    s += `<circle cx="${W - 78}" cy="${zY + 38}" r="34" fill="${chipF(overlay)}" opacity="${chipO(overlay)}"/>`
-      +  camDots(W - 78, zY + 38, u);
-    s += camShutter(W / 2, shY, st, u);
-    s += camThumb(W / 2 - 244, shY, u, overlay);
+    if (rec) s += camMag(W - 78, zY + 38, u);
+    else s += `<circle cx="${W - 78}" cy="${zY + 38}" r="34" fill="${chipF(overlay)}" opacity="${chipO(overlay)}"/>`
+            +  camDots(W - 78, zY + 38, u);
+    if (rec) {
+      s += camStopPair(W / 2, shY, false, u);
+      s += `<circle cx="${W / 2 - 244}" cy="${shY}" r="40" fill="${u}"/>`;
+    } else {
+      s += camShutter(W / 2, shY, st, u);
+      s += camThumb(W / 2 - 244, shY, u, overlay);
+    }
     s += camFlip(W / 2 + 244, shY, u, overlay);
-    s += camModes(modes, W / 2, overlay ? H - 46 : bTop + 320, u, dim, false);
+    if (!rec) s += camModes(modes, W / 2, overlay ? H - 46 : bTop + 320, u, dim, false);
   } else {
     // ── 가로 (모든 컨트롤이 우측으로) ──
     const rx = ix + IW;                          // 우측 띠 시작 x
     const zX  = overlay ? rx - 196 : rx + 48;
     const shX = overlay ? rx -  84 : rx + 180;
     s += camZoomV(zX, H / 2, zc, zi, u, overlay);
-    s += `<circle cx="${shX}" cy="72" r="34" fill="${chipF(overlay)}" opacity="${chipO(overlay)}"/>`
-      +  camDots(shX, 72, u);
+    if (rec) s += camMag(shX, 72, u);
+    else s += `<circle cx="${shX}" cy="72" r="34" fill="${chipF(overlay)}" opacity="${chipO(overlay)}"/>`
+            +  camDots(shX, 72, u);
     s += camFlip(shX, 170, u, overlay);
-    s += camShutter(shX, H / 2, st, u);
-    s += camThumb(shX, H - 82, u, overlay);
-    s += camModes(modes, rx + 296, H / 2, u, dim, true);
+    if (rec) {
+      s += camStopPair(shX, H / 2, true, u);
+      s += `<circle cx="${shX}" cy="${H - 82}" r="40" fill="${u}"/>`;
+    } else {
+      s += camShutter(shX, H / 2, st, u);
+      s += camThumb(shX, H - 82, u, overlay);
+    }
+    if (!rec) s += camModes(modes, rx + 296, H / 2, u, dim, true);
   }
 
   // ── 녹화중 오버레이: 타임코드 + 라이브 배지 ──
   if (st === 'rec') {
-    const tw = 44 + tcode.length * 21;
+    const run = (params.get('run') || '') === '1';
+    const tw = run ? Math.round(tickWidth(34)) + 62 : 44 + tcode.length * 21;
     const tx = ix + IW / 2, ty = iy + 62;
-    s += `<rect x="${tx - tw/2}" y="${ty - 34}" width="${tw}" height="68" rx="34" fill="${REC_COL}"/>`
-      +  `<text x="${tx}" y="${ty + 11}" text-anchor="middle" fill="#fff" font-size="34"`
-      +  ` font-weight="700" letter-spacing="1">${tcode}</text>`;
+    s += `<rect x="${tx - tw/2}" y="${ty - 34}" width="${tw}" height="68" rx="34" fill="${REC_COL}"/>`;
+    s += run
+      ? camTick(tx, ty + 12, 34, camSecs(tcode), '#ffffff')
+      : `<text x="${tx}" y="${ty + 11}" text-anchor="middle" fill="#fff" font-size="34"`
+        + ` font-weight="700" letter-spacing="1">${tcode}</text>`;
     const lx = ix + IW - 78, ly = iy + 44;
     if (wide) s += `<rect x="${lx - 52}" y="${ly - 27}" width="104" height="54" rx="27" fill="${LIVE_COL}"/>`
       +  `<g fill="#fff"><rect x="${lx - 36}" y="${ly - 11}" width="26" height="21" rx="4"/>`
@@ -449,6 +446,55 @@ function renderCam(params, dataURI, autoOri, errMsg) {
   }
 
   return s + `</svg>`;
+}
+
+// ── 흐르는 타임코드 (run=1) ─────────────────────────────────
+// SMIL은 텍스트 '내용'을 바꿀 수 없다. 그래서 자릿수마다 글리프를 겹쳐두고
+// opacity를 discrete로 순환시킨다. 자릿수별 주기가 정확히 배수 관계라
+// 별도 로직 없이 자리올림이 저절로 맞물린다. begin에 음수를 주면 그 시각부터 출발.
+const TICK_COLS = [
+  [10, 36000], [10, 3600], null,   // HH
+  [6, 600],    [10, 60],   null,   // MM
+  [6, 10],     [10, 1],            // SS
+];
+const tickWidth = (fs2) => fs2 * 0.62 * 7.1;
+
+function camTick(cx, cy, fs2, offset, col) {
+  const W1 = fs2 * 0.62;
+  let x = cx - tickWidth(fs2) / 2 + W1 / 2, g = '';
+  for (const c of TICK_COLS) {
+    if (!c) {
+      g += `<text x="${(x - W1 * 0.22).toFixed(1)}" y="${cy}" text-anchor="middle"`
+        +  ` font-size="${fs2}" font-family="ui-monospace,monospace" fill="${col}" font-weight="700">:</text>`;
+      x += W1 * 0.55; continue;
+    }
+    const [n, unit] = c, dur = n * unit;
+    for (let i = 0; i < n; i++) {
+      // keyTimes는 반드시 0에서 시작해 1에서 끝나야 한다.
+      // (i+1)/n 으로 끝내면 규격 위반이라 브라우저가 값을 물고 있어
+      // 여러 글자가 동시에 보이는 버그가 난다 → 위치별로 3점 형태를 나눠 쓴다.
+      // 1/6 같은 순환소수를 반올림하면 전환 시점이 미세하게 '늦어' 경계에서 빈틈이 생긴다.
+      // 내림(truncate)하면 아주 살짝 이르게 걸려 빈틈이 사라진다.
+      const tr = (v) => (Math.floor(v * 1e7) / 1e7).toFixed(7);
+      const a = tr(i / n), b2 = tr((i + 1) / n);
+      const anim = i === 0        ? `values="1;0;0" keyTimes="0;${b2};1"`
+                 : i === n - 1    ? `values="0;1;1" keyTimes="0;${a};1"`
+                 :                  `values="0;1;0;0" keyTimes="0;${a};${b2};1"`;
+      g += `<text x="${x.toFixed(1)}" y="${cy}" text-anchor="middle" opacity="0"`
+        +  ` font-size="${fs2}" font-family="ui-monospace,monospace" fill="${col}" font-weight="700">${i}`
+        +  `<animate attributeName="opacity" dur="${dur}s" repeatCount="indefinite" calcMode="discrete"`
+        +  ` begin="${-offset}s" ${anim}/></text>`;
+    }
+    x += W1;
+  }
+  return g;
+}
+
+// "SS" / "MM:SS" / "HH:MM:SS" → 초 (100시간 순환)
+function camSecs(t) {
+  const f = String(t).split(':').map(v => parseInt(v, 10) || 0);
+  while (f.length < 3) f.unshift(0);
+  return (f[0] * 3600 + f[1] * 60 + f[2]) % 360000;
 }
 
 // ══ 부품 ══════════════════════════════════════════════════════

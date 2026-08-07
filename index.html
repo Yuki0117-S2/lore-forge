@@ -149,6 +149,13 @@
   .preview-char-btn.active{background:rgba(136,137,205,0.15);border-color:var(--accent);color:var(--accent);}
   .preview-char-btn.all-btn{border-color:rgba(204,170,136,0.4);color:var(--accent4);}
   .preview-char-btn.all-btn.active{background:rgba(204,170,136,0.15);}
+  .order-bar{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-bottom:7px;padding:6px 8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;}
+  .order-label{font-size:9px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:0.5px;flex-basis:100%;margin-bottom:2px;}
+  .order-chip{padding:3px 8px;border-radius:20px;border:1px solid rgba(136,136,204,0.35);background:none;color:var(--accent);font-size:10px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all 0.15s;white-space:nowrap;}
+  .order-chip:hover{background:rgba(136,136,204,0.12);}
+  .order-chip:active{transform:translateX(-2px);}
+  .order-chip.order-reset{border-color:var(--border);color:var(--muted);padding:3px 7px;}
+  .order-chip.order-reset:hover{border-color:var(--accent4);color:var(--accent4);}
   .prompt-output{background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:11px;font-family:'JetBrains Mono',monospace;font-size:10.5px;line-height:1.8;color:#b0a8c0;white-space:pre-wrap;word-break:break-word;flex:1;min-height:200px;overflow-y:auto;}
   .prompt-stats{display:flex;gap:12px;margin-top:7px;}
   .stat{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);display:flex;align-items:center;gap:3px;}
@@ -650,6 +657,7 @@
     <div class="char-select-bar" id="preview-char-bar">
       <button class="preview-char-btn all-btn active" onclick="setPreviewMode('all',this)">전체 합치기</button>
     </div>
+    <div class="order-bar" id="section-order-bar" style="display:none;"></div>
     <div class="prompt-output" id="prompt-output">// 프로젝트를 선택하고
 // 캐릭터를 추가해봐.</div>
     <div class="prompt-stats">
@@ -767,7 +775,7 @@ function getCurrentChar(){const p=getProject();if(!p)return null;return p.charac
 
 function newProjectData(name){
   return{id:'proj_'+Date.now(),name:name||'새 프로젝트',characters:[],currentCharId:null,archived:false,
-    globalTagData:{},lorebook:[],
+    globalTagData:{},lorebook:[],sectionOrder:['world','char','output','rules'],
     world:{name:'',era:'',desc:'',magic:'',society:'',taboo:'',places:'',toneVal:'50',ruleTags:[],atmoTags:[],placeTags:[],genreChips:[],worldTraits:[]},
     output:{povChips:[],styleChips:[],densityChips:[],lengthChips:[],actionChips:[],narrDetail:'',lengthDetail:'',status:'',affection:'',affectionFactor:'',extra:'',outputTraits:[]},
     rules:{extra:'',mustTags:[],neverTags:[]}
@@ -2026,6 +2034,41 @@ function setVal(id,val){const el=document.getElementById(id);if(el)el.value=val|
 // ===== 프리뷰 모드 =====
 function setPreviewMode(mode,btn){previewMode=mode;document.querySelectorAll('.preview-char-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');updatePreview();}
 
+// ===== 섹션 순서 (프롬프트 조립 순서 커스텀) =====
+const SECTION_ORDER_DEFAULT=['world','char','output','rules'];
+const SECTION_ORDER_LABELS={world:'🌍 세계관',char:'🎭 캐릭터',output:'📋 출력',rules:'📜 규칙'};
+function getSectionOrder(proj){
+  // 구버전 프로젝트/외부 import 방어: 누락·중복·불량 키 자동 복구
+  let o=Array.isArray(proj.sectionOrder)?proj.sectionOrder.filter(k=>SECTION_ORDER_DEFAULT.includes(k)):[];
+  o=[...new Set(o)];
+  SECTION_ORDER_DEFAULT.forEach(k=>{if(!o.includes(k))o.push(k);});
+  return o;
+}
+function moveSectionOrder(key){
+  const proj=getProject();if(!proj)return;
+  const o=getSectionOrder(proj);
+  const i=o.indexOf(key);
+  if(i<=0)return; // 맨 앞 칩은 이동 없음
+  [o[i-1],o[i]]=[o[i],o[i-1]];
+  proj.sectionOrder=o;saveAll();updatePreview();
+}
+function resetSectionOrder(){
+  const proj=getProject();if(!proj)return;
+  proj.sectionOrder=[...SECTION_ORDER_DEFAULT];saveAll();updatePreview();
+  showToast('↺ 기본 순서로 되돌렸어!');
+}
+function renderSectionOrderBar(){
+  const bar=document.getElementById('section-order-bar');if(!bar)return;
+  const proj=getProject();
+  if(!proj||previewMode==='lorebook'){bar.style.display='none';return;}
+  bar.style.display='flex';
+  const o=getSectionOrder(proj);
+  let h='<span class="order-label">조립 순서 · 탭=한 칸 앞으로</span>';
+  h+=o.map((k,i)=>`<button class="order-chip" onclick="moveSectionOrder('${k}')">${i+1}. ${SECTION_ORDER_LABELS[k]}</button>`).join('');
+  h+='<button class="order-chip order-reset" onclick="resetSectionOrder()" title="기본 순서로">↺</button>';
+  bar.innerHTML=h;
+}
+
 function updatePreviewBar(){
   const bar=document.getElementById('preview-char-bar');const proj=getProject();
   bar.innerHTML=`<button class="preview-char-btn all-btn${previewMode==='all'?' active':''}" onclick="setPreviewMode('all',this)">전체 합치기</button>`;
@@ -2197,18 +2240,25 @@ function buildFullPrompt(){
     return lb.map(item=>`# 로어북: ${item.title}\n트리거 키워드: ${(item.keywords||[]).join(', ')||'(없음)'}\n\n${item.content||'(내용 없음)'}`).join('\n\n---\n\n');
   }
   if(previewMode==='all'){
-    const parts=proj.characters.map(c=>buildCharPrompt(c)).filter(Boolean);
-    if(world)parts.push(world);if(output)parts.push(output);if(rules)parts.push(rules);
+    const order=getSectionOrder(proj);
+    const charParts=proj.characters.map(c=>buildCharPrompt(c)).filter(Boolean);
+    const sec={world,output,rules};
+    const parts=[];
+    order.forEach(k=>{if(k==='char')parts.push(...charParts);else if(sec[k])parts.push(sec[k]);});
     return parts.join('\n\n---\n\n');
   }else{
     const char=proj.characters.find(c=>c.id===previewMode);if(!char)return'';
-    const parts=[buildCharPrompt(char)];
-    if(world)parts.push(world);if(output)parts.push(output);if(rules)parts.push(rules);
-    return parts.filter(Boolean).join('\n\n---\n\n');
+    const order=getSectionOrder(proj);
+    const charParts=[buildCharPrompt(char)].filter(Boolean);
+    const sec={world,output,rules};
+    const parts=[];
+    order.forEach(k=>{if(k==='char')parts.push(...charParts);else if(sec[k])parts.push(sec[k]);});
+    return parts.join('\n\n---\n\n');
   }
 }
 
 function updatePreview(){
+  renderSectionOrderBar();
   const prompt=buildFullPrompt();const out=document.getElementById('prompt-output');
   if(!prompt){out.textContent='// 프로젝트를 선택하고\n// 캐릭터를 추가해봐.';document.getElementById('stat-chars').textContent='0';document.getElementById('stat-tokens').textContent='0';return;}
   out.textContent=prompt;

@@ -3140,7 +3140,7 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
     ]
   },
   {
-    id:'cat-p', icon:'📷', title:'이미지 위젯 UI', sub:'p.winter0.workers.dev — 실사 이미지 인라인 · 스마트폰 카메라 · 캠코더 (폴라로이드 예정)',
+    id:'cat-p', icon:'📷', title:'이미지 위젯 UI', sub:'p.winter0.workers.dev — 실사 이미지 인라인 · 스마트폰 카메라 · 캠코더 · 폴라로이드',
     items:[
       {
         id:'t-p-0', title:'📷 스마트폰 카메라 (cam)',
@@ -3216,6 +3216,55 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
 - URL은 절대 줄바꿈하지 않는다</pre>`
       },
       {
+        id:'t-p-0c', title:'🖼️ 폴라로이드 (pol)',
+        body:`<div class=\"label label-use\">URL 파라미터 형식</div>
+<pre>/?t=pol&img=이미지URL&o=sq|p|l&cr=앵커[§줌]&say=캡션&date=날짜&th=[스타일][§종이색][§강조색]&fx=vintage|fade&run=1&dec=tape|tapex|pin&tilt=각도&hand=1</pre>
+<hr class=\"divider\">
+<div class=\"label label-example\">예시 — 기본 (방향 자동)</div>
+<pre>/?t=pol&say=그날+바다&img=https://img.wintercards.com/O/A/4.webp</pre>
+<div class=\"label label-example\">예시 — 손글씨 캡션</div>
+<pre>/?t=pol&hand=1&say=그날+바다&img=https://img.wintercards.com/O/A/4.webp</pre>
+<div class=\"label label-example\">예시 — 현상 애니메이션 (9초에 걸쳐 사진이 떠오름)</div>
+<pre>/?t=pol&run=1&hand=1&say=기억해줘&img=https://img.wintercards.com/O/A/4.webp</pre>
+<div class=\"label label-example\">예시 — 크림 인화지 + 압정 + 대각 테이프 + 기울기 + 빈티지</div>
+<pre>/?t=pol&hand=1&th=cream§§gold&dec=pin|tapex&tilt=-2.5&fx=vintage&say=여름의+끝&date=26+08+07&img=https://img.wintercards.com/O/A/4.webp</pre>
+<hr class=\"divider\">
+<div class=\"desc\"><strong>파라미터 설명:</strong> (img·o·cr은 cam/rec과 완전 동일 규약)<br>
+• <strong>img</strong> — 이미지 URL (필수). 허용 도메인 <code>*.wintercards.com</code> · 4MB 상한 · 매직바이트 판별<br>
+• <strong>o</strong> — sq(1024²) / p(832×1216) / l(1216×832). <strong>생략 시 이미지 헤더에서 자동 판별</strong><br>
+&nbsp;&nbsp;&nbsp;&nbsp;프레임 두께는 <strong>짧은 변 기준</strong>으로 계산 — 가로 원본에서 하단 여백이 폭주하지 않는다<br>
+• <strong>cr</strong> — 크롭 앵커 c/t/b/l/r + <code>§줌</code>(1~4). 가로 원본을 정사각 인화지에 담을 때 <code>cr=t</code>로 얼굴 보존<br>
+• <strong>say</strong> — 하단 여백의 캡션 (최대 40자) · <strong>date</strong> — 우하단 작은 날짜 (최대 20자)<br>
+• <strong>fx</strong> — vintage 노란기 색바램 / fade 채도 낮은 빛바램 / 생략=원본<br>
+• <strong>run=1</strong> — 미현상 유백막에서 9초에 걸쳐 사진이 떠오름 (SMIL, <code>fill=freeze</code> 1회 — 되감기 없음)<br>
+• <strong>dec</strong> — 장식(기본 없음). tape 위쪽 2개 / tapex 대각 모서리 2개 / pin 압정. <code>|</code>로 중복 지정<br>
+• <strong>tilt</strong> — 기울기 각도 −12~12 (기본 0). 여백 안에서 회전하므로 잘리지 않음</div>
+<hr class=\"divider\">
+<div class=\"label label-use\">✍️ 손글씨 캡션 — &hand=1</div>
+<pre>hand=1  → 캡션 문자를 스캔해 필요한 폰트만 서버에서 받아 인라인
+한글 포함  → 나눔손글씨 펜 + Zen Kurenaido  (전송 약 571KB)
+가나·영문만 → Zen Kurenaido 만               (전송 약 27KB)
+생략      → 시스템 산세리프 (0KB)</pre>
+<div class=\"desc\">• 폰트도 이미지와 같은 방식 — 워커가 R2에서 받아 base64로 SVG에 인라인 (바베챗 외부 리소스 차단 우회)<br>
+• 한 폰트로 한·영·일이 모두 되는 손글씨체는 없어 <strong>두 폰트를 겹쳐 글자 단위 폴백</strong>시킨다 (한글=펜 / 가나·라틴=젠)<br>
+• <strong>일본어 한자는 손글씨가 아닌 시스템 폰트로 표시</strong> (zen 서브셋에 한자 미포함)<br>
+• 폰트를 못 받아와도 위젯은 깨지지 않고 조용히 산세리프로 폴백</div>
+<hr class=\"divider\">
+<div class=\"label label-use\">🎨 테마 색상 (선택) — &th= (3필드 위치규칙)</div>
+<pre>&th=스타일[§종이색][§강조색]
+스타일: white(기본) | cream | black
+종이색: 인화지 색 — 프리셋명 또는 헥스
+강조색: 압정 색 등 — 프리셋명 또는 헥스
+빈 칸 = 자리 건너뛰기: th=cream§§gold → 종이는 크림, 압정만 골드</pre>
+<hr class=\"divider\">
+<div class=\"label label-use\">⚠️ 주의</div>
+<pre>- 출력 크기: 정사각 기준 1372×1643 (인화지 1148×1419 + 여백 112)
+- 여백과 그림자는 항상 적용 — 배경색과 무관하게 카드 경계가 생기고
+  바베챗이 씌우는 border-radius에도 모서리가 잘리지 않는다
+- hand=1 은 응답이 무거워지므로 캡션이 중요한 장면에만 사용
+- URL은 절대 줄바꿈하지 않는다</pre>`
+      },
+      {
         id:'t-p-1', title:'바베챗 프롬프트 (복사용)',
         body:`<div class="label label-use">캐릭터 상세설정에 붙여넣기</div>
 <div class="desc">아래 전체를 프롬프트에 삽입하면 AI가 장면에 맞는 카메라 UI를 자동 생성합니다. 도메인은 <strong>p.winter0.workers.dev</strong></div>
@@ -3246,6 +3295,20 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
 - fx=0 = 노이즈·스캔라인 없는 클린 화면 (현대 캠코더·브이로그) / 기본은 빈티지 질감
 - vu=0~10 음량 미터 — 소리가 나는 장면에 / scn= 장면번호 / date= 날짜스탬프
 - 예: ![](https://p.winter0.workers.dev/?t=rec&tone=nv&face=2&run=1&tc=00:47:12&bat=9%25&sig=1&say=여긴+아무도+없어야+하는데&img=https://img.wintercards.com/O/A/4.webp)
+
+### 폴라로이드 (즉석사진 · 추억 · 증거사진)
+![](https://p.winter0.workers.dev/?t=pol&img=이미지URL&hand=1&say=캡션)
+- img= cam과 동일 — 장면에 맞는 이미지 (필수) / 방향 자동 판별
+- say= 인화지 하단에 적는 캡션 — 짧은 한 마디가 어울린다 (최대 40자)
+- hand=1 이면 캡션이 손글씨체로 바뀐다. 응답이 무거워지므로 캡션이 중요한 장면에만
+- date= 우하단 작은 날짜 (예: date=26+08+07)
+- run=1 이면 미현상 상태에서 9초에 걸쳐 사진이 떠오른다 — 방금 찍어 뽑은 순간에
+- th= white(기본) / cream 오래된 인화지 / black 검은 필름
+- fx= vintage 노란 색바램 / fade 빛바램 — 과거 회상·오래된 사진에
+- dec= pin 압정 / tape 위쪽 테이프 / tapex 대각 테이프 — 벽이나 보드에 붙인 연출
+- tilt=-2.5 처럼 살짝 기울이면 손으로 놓아둔 느낌
+- 방향은 이미지에서 자동 판별 — o=sq/p/l 로 강제 가능, cr=t 로 위쪽 크롭(얼굴 보존)
+- 예: ![](https://p.winter0.workers.dev/?t=pol&hand=1&run=1&th=cream&fx=vintage&dec=pin&tilt=-2&say=여름의+끝&date=26+08+07&img=https://img.wintercards.com/O/A/4.webp)
 
 ### 공통 규칙
 - 필드 구분자: § / 아이템 구분자: |

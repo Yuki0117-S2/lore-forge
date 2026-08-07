@@ -858,11 +858,230 @@ function renderRec(params, dataURI, autoOri, errMsg) {
 
 
 // ══════════════════════════════════════════════════════════════
+// 폰트 로더 — hand=1 일 때만 동작
+//   바베챗이 SVG 내부의 외부 리소스를 전면 차단하므로, 이미지와 같은 방식으로
+//   워커가 서버사이드 fetch → base64 인라인한다.
+//   캡션에 한글이 있을 때만 pen(567KB)을 받고, 없으면 zen(27KB)만 받는다.
+//   실패해도 null을 돌려 조용히 시스템 폰트로 폴백한다 (위젯은 안 깨진다).
+// ══════════════════════════════════════════════════════════════
+const FONT_URL = {
+  pen: 'https://img.wintercards.com/font/pen.woff2',   // 나눔손글씨 펜 · 한글 11172 + 라틴
+  zen: 'https://img.wintercards.com/font/zen.woff2',   // Zen Kurenaido · 가나 182 + 라틴
+};
+const FONT_MAX_BYTES = 2 * 1024 * 1024;
+const FONT_TIMEOUT_MS = 6000;
+const RE_KO = /[\uac00-\ud7a3\u1100-\u11ff\u3130-\u318f]/;
+
+async function fetchFont(url) {
+  try {
+    const res = await fetch(url, {
+      signal: AbortSignal.timeout(FONT_TIMEOUT_MS),
+      cf: { cacheEverything: true, cacheTtl: 86400 },
+    });
+    if (!res.ok) return null;
+    const buf = await res.arrayBuffer();
+    if (buf.byteLength > FONT_MAX_BYTES) return null;
+    return toBase64(new Uint8Array(buf));
+  } catch { return null; }
+}
+
+// 반환값: <style>에 넣을 @font-face CSS 문자열 ('' 면 손글씨 없이 진행)
+async function loadFonts(params, t) {
+  if (t !== 'pol') return '';
+  if ((params.get('hand') || '').trim() !== '1') return '';
+
+  const txt = (params.get('say') || '') + (params.get('date') || '');
+  const needKo = RE_KO.test(txt);
+
+  const [zen, pen] = await Promise.all([
+    fetchFont(FONT_URL.zen),
+    needKo ? fetchFont(FONT_URL.pen) : Promise.resolve(null),
+  ]);
+
+  const ff = (n, b) => `@font-face{font-family:'${n}';font-style:normal;font-weight:400;`
+    + `src:url(data:font/woff2;base64,${b}) format('woff2');}`;
+  let css = '';
+  if (pen) css += ff('WPen', pen);
+  if (zen) css += ff('WZen', zen);
+  return css;
+}
+
+
+// ══════════════════════════════════════════════════════════════
+// ?t=pol — 폴라로이드
+//   실물 폴라로이드 600 비율 근사(이미지 79mm · 좌우 4.75 · 상 4.5 · 하 26)
+//   프레임 두께는 짧은 변 기준 → 가로 원본에서 하단 여백이 폭주하지 않는다.
+//   여백 96px + 그림자 상시: 배경색과 무관하게 카드 경계가 생기고,
+//   바베챗이 씌우는 border-radius에 모서리가 잘리지 않는다.
+// ══════════════════════════════════════════════════════════════
+const POL_PAD = 112;   // tapex 대각 테이프 끝(약 100px)까지 여유 있게 감싼다
+
+const POL_TH = {
+  white: { paper: '#f6f4ef', edge: '#ddd8cf', ink: '#3a3a44' },
+  cream: { paper: '#efe6d4', edge: '#d9cdb4', ink: '#5a4c3c' },
+  black: { paper: '#1c1a20', edge: '#0e0d12', ink: '#e8e4ee' },
+};
+
+function polTheme(params) {
+  const f = (params.get('th') || '').split('\u00a7');
+  const th = { ...(POL_TH[(f[0] || '').trim().toLowerCase()] || POL_TH.white) };
+  th.acc = '#BB6688';
+  if (f.length >= 2 && f[1]) {                       // 2번째 = 종이색
+    const g = f[1].trim().toLowerCase();
+    th.paper = camHex(g) || CAM_PRESETS[g] || th.paper;
+  }
+  if (f.length >= 3 && f[2]) {                       // 3번째 = 강조색(압정 등)
+    const g = f[2].trim().toLowerCase();
+    th.acc = camHex(g) || CAM_PRESETS[g] || th.acc;
+  }
+  return th;
+}
+
+function renderPol(params, dataURI, autoOri, errMsg, fontCss) {
+  const U = camUid(params);
+  const oRaw = (params.get('o') || '').trim().toLowerCase();
+  const ori = CAM_IMG[oRaw] ? oRaw : (CAM_IMG[autoOri] ? autoOri : 'sq');
+  const [IW, IH] = CAM_IMG[ori];
+
+  // 프레임 두께 (짧은 변 기준 mm 환산)
+  const k = Math.min(IW, IH) / 79;
+  const bs = Math.round(4.75 * k), bt = Math.round(4.5 * k), bb = Math.round(26 * k);
+  const PW = IW + bs * 2, PH = IH + bt + bb;
+  const W = PW + POL_PAD * 2, H = PH + POL_PAD * 2;
+  const px = POL_PAD, py = POL_PAD;               // 종이 좌상단
+  const ix = px + bs, iy = py + bt;               // 사진 좌상단
+
+  const th = polTheme(params);
+  const run = (params.get('run') || '').trim() === '1';
+  const say = esc((params.get('say') || '').trim()).slice(0, 40);
+  const date = esc((params.get('date') || '').trim()).slice(0, 20);
+
+  let tilt = parseFloat(params.get('tilt'));
+  if (!(tilt >= -12 && tilt <= 12)) tilt = 0;
+
+  const fx = (params.get('fx') || '').trim().toLowerCase();
+  const hasFx = fx === 'vintage' || fx === 'fade';
+
+  const decs = (params.get('dec') || '').split('|').map(s => s.trim().toLowerCase())
+    .filter(d => ['tape', 'tapex', 'pin'].includes(d)).slice(0, 3);
+
+  // 크롭 (cam/rec과 동일 규약)
+  const cf = (params.get('cr') || 'c').split('\u00a7');
+  const [par, ax, ay] = CAM_ANCHOR[(cf[0] || 'c').trim().toLowerCase()] || CAM_ANCHOR.c;
+  let zoom = parseFloat(cf[1]);
+  if (!(zoom >= 1 && zoom <= 4)) zoom = 1;
+
+  const HAND = fontCss
+    ? `'WPen','WZen',-apple-system,'Noto Sans KR',sans-serif`
+    : `-apple-system,'Noto Sans KR',sans-serif`;
+
+  let s = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"`
+        + ` width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">`;
+
+  s += `<defs>`;
+  if (fontCss) s += `<style type="text/css"><![CDATA[${fontCss}]]></style>`;
+  s += `<clipPath id="cv${U}"><rect x="${ix}" y="${iy}" width="${IW}" height="${IH}"/></clipPath>`
+     + `<filter id="sh${U}" x="-30%" y="-30%" width="160%" height="160%">`
+     + `<feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#000" flood-opacity="0.42"/>`
+     + `<feDropShadow dx="0" dy="0" stdDeviation="1.5" flood-color="#fff" flood-opacity="0.30"/></filter>`;
+  if (fx === 'vintage') {
+    s += `<filter id="fx${U}"><feColorMatrix type="matrix" values="`
+       + `0.92 0.10 0.02 0 0.04  0.05 0.86 0.06 0 0.03  0.03 0.08 0.74 0 0.05  0 0 0 1 0"/>`
+       + `<feComponentTransfer><feFuncR type="gamma" amplitude="1" exponent="0.92" offset="0.02"/>`
+       + `<feFuncB type="gamma" amplitude="1" exponent="1.08" offset="0"/></feComponentTransfer></filter>`;
+  } else if (fx === 'fade') {
+    s += `<filter id="fx${U}"><feColorMatrix type="saturate" values="0.55"/>`
+       + `<feComponentTransfer><feFuncR type="linear" slope="0.88" intercept="0.10"/>`
+       + `<feFuncG type="linear" slope="0.88" intercept="0.10"/>`
+       + `<feFuncB type="linear" slope="0.88" intercept="0.12"/></feComponentTransfer></filter>`;
+  }
+  s += `</defs>`;
+
+  s += `<g transform="rotate(${tilt} ${(W / 2).toFixed(1)} ${(H / 2).toFixed(1)})" filter="url(#sh${U})">`;
+
+  // ── 인화지 ──
+  s += `<rect x="${px}" y="${py}" width="${PW}" height="${PH}" rx="10" fill="${th.paper}"`
+     + ` stroke="${th.edge}" stroke-width="2"/>`;
+  s += `<rect x="${ix}" y="${iy}" width="${IW}" height="${IH}" fill="#141118"/>`;
+
+  // ── 사진 ──
+  if (dataURI) {
+    const ox = ix + ax * IW, oy = iy + ay * IH;
+    const tf = zoom > 1
+      ? ` transform="translate(${ox.toFixed(1)},${oy.toFixed(1)}) scale(${zoom}) translate(${(-ox).toFixed(1)},${(-oy).toFixed(1)})"` : '';
+    const ftr = hasFx ? ` filter="url(#fx${U})"` : '';
+    const op = run
+      ? `<animate attributeName="opacity" values="0.04;0.35;1" keyTimes="0;0.45;1" dur="9s" repeatCount="1" fill="freeze"/>`
+      : '';
+    s += `<g clip-path="url(#cv${U})"><g${tf}><image x="${ix}" y="${iy}" width="${IW}" height="${IH}"`
+       + ` preserveAspectRatio="${par} slice"${ftr}${run ? ' opacity="0.04"' : ''}`
+       + ` href="${dataURI}" xlink:href="${dataURI}">${op}</image></g></g>`;
+    // 현상 중 유백막 (실물 미현상 필름의 뿌연 연녹빛)
+    if (run) {
+      s += `<rect x="${ix}" y="${iy}" width="${IW}" height="${IH}" fill="#dde0d2" opacity="0.95">`
+         + `<animate attributeName="opacity" values="0.95;0.55;0" keyTimes="0;0.45;1" dur="9s" repeatCount="1" fill="freeze"/></rect>`
+         + `<rect x="${ix}" y="${iy}" width="${IW}" height="${IH}" fill="#9fb08f" opacity="0.30">`
+         + `<animate attributeName="opacity" values="0.30;0.16;0" keyTimes="0;0.45;1" dur="9s" repeatCount="1" fill="freeze"/></rect>`;
+    }
+  } else {
+    s += `<rect x="${ix}" y="${iy}" width="${IW}" height="${IH}" fill="#1c1828"/>`
+       + `<text x="${ix + IW / 2}" y="${iy + IH / 2}" text-anchor="middle" fill="#8f88a8"`
+       + ` font-size="${Math.round(IW * 0.035)}" font-family="-apple-system,'Noto Sans KR',sans-serif">`
+       + `${esc(errMsg || '이미지 없음')}</text>`;
+  }
+
+  // 사진 안쪽 음영 (필름 깊이감)
+  s += `<rect x="${ix}" y="${iy}" width="${IW}" height="${IH}" fill="none"`
+     + ` stroke="#000" stroke-opacity="0.35" stroke-width="3"/>`;
+
+  // ── 캡션 / 날짜 ──
+  if (say) {
+    const cy = iy + IH + bb * 0.52;
+    s += `<text x="${px + PW / 2}" y="${cy.toFixed(1)}" text-anchor="middle"`
+       + ` font-size="${Math.round(bb * 0.30)}" fill="${th.ink}" font-family="${HAND}"`
+       + ` transform="rotate(-1.2 ${px + PW / 2} ${cy.toFixed(1)})">${say}</text>`;
+  }
+  if (date) {
+    s += `<text x="${px + PW - bs - 14}" y="${py + PH - 30}" text-anchor="end"`
+       + ` font-size="${Math.round(bb * 0.16)}" fill="${th.ink}" opacity="0.55"`
+       + ` font-family="${HAND}">${date}</text>`;
+  }
+
+  // ── 장식 ──
+  const TP = '#e8dcc0', TPE = '#cfbf99';
+  for (const d of decs) {
+    if (d === 'tape') {
+      for (const [cx, rot] of [[px + PW * 0.24, -6], [px + PW * 0.76, 5]]) {
+        s += `<g transform="rotate(${rot} ${cx.toFixed(1)} ${py})" opacity="0.80">`
+           + `<rect x="${(cx - 100).toFixed(1)}" y="${py - 30}" width="200" height="62" fill="${TP}" stroke="${TPE}" stroke-width="1.5"/>`
+           + `<rect x="${(cx - 100).toFixed(1)}" y="${py - 30}" width="200" height="10" fill="#fff" opacity="0.35"/></g>`;
+      }
+    } else if (d === 'tapex') {
+      for (const [cx, cy] of [[px, py], [px + PW, py + PH]]) {
+        s += `<g transform="rotate(-45 ${cx} ${cy})" opacity="0.80">`
+           + `<rect x="${cx - 110}" y="${cy - 31}" width="220" height="62" fill="${TP}" stroke="${TPE}" stroke-width="1.5"/>`
+           + `<rect x="${cx - 110}" y="${cy - 31}" width="220" height="10" fill="#fff" opacity="0.35"/></g>`;
+      }
+    } else if (d === 'pin') {
+      const cx = px + PW / 2, cy = py + bt * 0.30;
+      s += `<g><ellipse cx="${(cx + 4).toFixed(1)}" cy="${(cy + 10).toFixed(1)}" rx="44" ry="17" fill="#000" opacity="0.28"/>`
+         + `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="44" fill="${th.acc}"/>`
+         + `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="44" fill="none" stroke="#000" stroke-opacity="0.35" stroke-width="3"/>`
+         + `<circle cx="${(cx - 13).toFixed(1)}" cy="${(cy - 15).toFixed(1)}" r="13" fill="#fff" opacity="0.55"/>`
+         + `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="10" fill="#000" opacity="0.30"/></g>`;
+    }
+  }
+
+  return s + `</g></svg>`;
+}
+
+// ══════════════════════════════════════════════════════════════
 // 라우팅
 // ══════════════════════════════════════════════════════════════
 const RENDERERS = {
   'cam': renderCam,
   'rec': renderRec,
+  'pol': renderPol,
 };
 
 function indexPage() {
@@ -897,7 +1116,8 @@ export default {
     }
 
     const { uri, dim, err } = await loadImg(params.get('img'));
-    const svg = renderer(params, uri, oriOf(dim), err ? ERR_MSG[err] : null);
+    const fontCss = await loadFonts(params, t);
+    const svg = renderer(params, uri, oriOf(dim), err ? ERR_MSG[err] : null, fontCss);
 
     return new Response(svg, {
       headers: {

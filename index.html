@@ -534,20 +534,11 @@
         </div>
         <div class="panel" id="p-out-length">
           <div class="panel-header" onclick="togglePanel('p-out-length')">
-            <div class="panel-icon" style="background:rgba(255,176,106,0.15)">📏</div>
-            <div class="panel-title">출력량 설정</div>
-            <span class="panel-badge">LENGTH</span><span class="panel-arrow">▾</span>
+            <div class="panel-icon" style="background:rgba(255,176,106,0.15)">✒️</div>
+            <div class="panel-title">문체·출력 상세</div>
+            <span class="panel-badge">STYLE</span><span class="panel-arrow">▾</span>
           </div>
           <div class="panel-body">
-            <div>
-              <div class="field-label">답변 길이</div>
-              <div class="chip-group" id="length-chips">
-                <div class="chip" onclick="toggleChip(this,'length')" ontouchend="event.preventDefault();toggleChip(this,'length')">짧게 (1~2문장)</div>
-                <div class="chip" onclick="toggleChip(this,'length')" ontouchend="event.preventDefault();toggleChip(this,'length')">보통 (3~5문장)</div>
-                <div class="chip" onclick="toggleChip(this,'length')" ontouchend="event.preventDefault();toggleChip(this,'length')">길게 (상세 묘사)</div>
-                <div class="chip chip-add" onclick="addCustomChip('length-chips','length')">＋</div>
-              </div>
-            </div>
             <div>
               <div class="field-label">행동 묘사 방식</div>
               <div class="chip-group" id="action-chips">
@@ -558,7 +549,10 @@
                 <div class="chip chip-add" onclick="addCustomChip('action-chips','action')">＋</div>
               </div>
             </div>
-            <div><div class="field-label">글자수 / 분량 지정</div><input type="text" id="out-length-detail" placeholder="예: 800자 이상 1000자 이하, 문단 수 2배..." oninput="saveAll();updatePreview()"></div>
+            <div class="hint">💡 문체 규칙을 [라벨+내용] 블록으로 나눠 담아봐. 블록마다 ### 소제목으로 프롬프트에 들어가.</div>
+            <div id="style-traits-list"></div>
+            <button class="add-btn" id="style-trait-add-btn" onclick="addStyleTrait()">＋ 항목 추가</button>
+            <div id="style-trait-limit-msg" class="trait-limit-msg" style="display:none;">최대 15개까지만 추가할 수 있어.</div>
           </div>
         </div>
         <div class="panel" id="p-out-status">
@@ -777,7 +771,7 @@ function newProjectData(name){
   return{id:'proj_'+Date.now(),name:name||'새 프로젝트',characters:[],currentCharId:null,archived:false,
     globalTagData:{},lorebook:[],sectionOrder:['world','char','output','rules'],
     world:{name:'',era:'',desc:'',magic:'',society:'',taboo:'',places:'',toneVal:'50',ruleTags:[],atmoTags:[],placeTags:[],genreChips:[],worldTraits:[]},
-    output:{povChips:[],styleChips:[],densityChips:[],lengthChips:[],actionChips:[],narrDetail:'',lengthDetail:'',status:'',affection:'',affectionFactor:'',extra:'',outputTraits:[]},
+    output:{povChips:[],styleChips:[],densityChips:[],actionChips:[],narrDetail:'',status:'',affection:'',affectionFactor:'',extra:'',outputTraits:[],styleTraits:[]},
     rules:{extra:'',mustTags:[],neverTags:[]}
   };
 }
@@ -822,7 +816,7 @@ function resetProject(){
     if(!(await showConfirm(`"${proj.name}" 세계관/출력지침/행동규칙을 초기화할까?\n캐릭터는 유지돼.`,{danger:true,title:'⚠️ 프로젝트 초기화'})))return;
     safetyBackup('프로젝트 초기화: '+proj.name);
     proj.world={name:'',era:'',desc:'',magic:'',society:'',taboo:'',places:'',toneVal:'50',ruleTags:[],atmoTags:[],placeTags:[],genreChips:[],worldTraits:[]};
-    proj.output={povChips:[],styleChips:[],densityChips:[],lengthChips:[],actionChips:[],narrDetail:'',lengthDetail:'',status:'',affection:'',affectionFactor:'',extra:'',outputTraits:[]};
+    proj.output={povChips:[],styleChips:[],densityChips:[],actionChips:[],narrDetail:'',status:'',affection:'',affectionFactor:'',extra:'',outputTraits:[],styleTraits:[]};
     proj.rules={extra:'',mustTags:[],neverTags:[]};
     proj.globalTagData={};proj.lorebook=[];
     saveAll();loadProjectUI();showToast('↺ 초기화 완료! (실수면 F12 콘솔에서 loreForgeDebug.listBackups())');
@@ -992,12 +986,12 @@ function saveCurrentProjectFromUI(){
     povChips:uniqStrings(getActiveChips(document.getElementById('pov-chips'))),
     styleChips:uniqStrings(getActiveChips(document.getElementById('style-chips'))),
     densityChips:uniqStrings(getActiveChips(document.getElementById('density-chips'))),
-    lengthChips:uniqStrings(getActiveChips(document.getElementById('length-chips'))),
     actionChips:uniqStrings(getActiveChips(document.getElementById('action-chips'))),
-    narrDetail:gv('out-narr-detail'),lengthDetail:gv('out-length-detail'),
+    narrDetail:gv('out-narr-detail'),
     status:gv('out-status'),affection:gv('out-affection'),
     affectionFactor:gv('out-affection-factor'),
     outputTraits:Array.isArray(prevOutput.outputTraits)?prevOutput.outputTraits:[],
+    styleTraits:Array.isArray(prevOutput.styleTraits)?prevOutput.styleTraits:[],
   };
   proj.rules={
     extra:gv('rules-extra-text'),
@@ -1008,7 +1002,7 @@ function saveCurrentProjectFromUI(){
 function loadProjectUI(){
   const proj=getProject();previewMode='all';
   const globalIds=['world-name','world-era','world-desc','world-magic','world-society','world-taboo','world-places',
-    'out-narr-detail','out-length-detail','out-status','out-affection','out-affection-factor',
+    'out-narr-detail','out-status','out-affection','out-affection-factor',
     'rules-extra-text'];
   globalIds.forEach(id=>setVal(id,''));
   document.querySelectorAll('.chip.active').forEach(c=>c.classList.remove('active'));
@@ -1029,7 +1023,7 @@ function loadProjectUI(){
     renderWorldTraits();
 
     const o=proj.output||{};
-    setVal('out-narr-detail',o.narrDetail);setVal('out-length-detail',o.lengthDetail);
+    setVal('out-narr-detail',o.narrDetail);
     setVal('out-status',o.status);setVal('out-affection',o.affection);
     setVal('out-affection-factor',o.affectionFactor);
     // ── 마이그레이션: 구버전 o.extra 단일 텍스트를 outputTraits 첫 카드로 변환 ──
@@ -1038,9 +1032,18 @@ function loadProjectUI(){
       o.outputTraits.push({label:'추가 출력 지침',content:o.extra});
       o.extra='';
     }
-    renderOutputTraits();
+    // ── 마이그레이션: 구버전 답변길이 칩·글자수 입력을 styleTraits 블록으로 이관 ──
+    if(!Array.isArray(o.styleTraits))o.styleTraits=[];
+    {
+      const mig=[];
+      if(Array.isArray(o.lengthChips)&&o.lengthChips.length)mig.push('답변 길이: '+o.lengthChips.join(', '));
+      if(o.lengthDetail&&o.lengthDetail.trim())mig.push(o.lengthDetail.trim());
+      if(mig.length){o.styleTraits.push({label:'답변 길이',content:mig.join('\n')});}
+      delete o.lengthChips;delete o.lengthDetail;
+    }
+    renderOutputTraits();renderStyleTraits();
     restoreChips('pov-chips',o.povChips||[]);restoreChips('style-chips',o.styleChips||[]);
-    restoreChips('density-chips',o.densityChips||[]);restoreChips('length-chips',o.lengthChips||[]);
+    restoreChips('density-chips',o.densityChips||[]);
     restoreChips('action-chips',o.actionChips||[]);
 
     const r=proj.rules||{};
@@ -1596,7 +1599,7 @@ function removeCustomChip(e,groupId,group,name){
 
 function injectAllCustomChips(){
   injectCustomChips('genre-chips','genre');injectCustomChips('action-chips','action');
-  injectCustomChips('length-chips','length');injectCustomChips('pov-chips','pov');
+  injectCustomChips('pov-chips','pov');
   injectCustomChips('style-chips','style');injectCustomChips('density-chips','density');
   injectCustomChips('c-speech-chips','speech');injectOutfitChips();
 }
@@ -1875,6 +1878,87 @@ function moveOutputTrait(i,dir){
   if(j<0||j>=arr.length)return;
   [arr[i],arr[j]]=[arr[j],arr[i]];
   renderOutputTraits();saveAll();updatePreview();
+}
+
+// ===== 문체·출력 상세 블록 =====
+const STYLE_TRAIT_MAX=15;
+function ensureStyleTraits(){
+  const p=getProject();if(!p)return null;
+  if(!p.output)p.output={};
+  if(!Array.isArray(p.output.styleTraits))p.output.styleTraits=[];
+  return p.output.styleTraits;
+}
+function addStyleTrait(){
+  const arr=ensureStyleTraits();if(!arr)return;
+  if(arr.length>=STYLE_TRAIT_MAX){
+    const m=document.getElementById('style-trait-limit-msg');
+    if(m){m.style.display='block';setTimeout(()=>{m.style.display='none';},2000);}
+    return;
+  }
+  arr.push({label:'',content:''});
+  renderStyleTraits();saveAll();updatePreview();
+  setTimeout(()=>{
+    const list=document.getElementById('style-traits-list');
+    if(!list)return;
+    const inputs=list.querySelectorAll('.trait-item-head input');
+    if(inputs.length)inputs[inputs.length-1].focus();
+  },50);
+}
+function renderStyleTraits(){
+  const arr=ensureStyleTraits();const list=document.getElementById('style-traits-list');
+  if(!arr||!list)return;
+  list.innerHTML='';
+  const isMob=window.innerWidth<=768;
+  arr.forEach((t,i)=>{
+    const div=document.createElement('div');div.className='trait-item';
+    const upDisabled=i===0?'disabled':'';
+    const downDisabled=i===arr.length-1?'disabled':'';
+    if(isMob){
+      div.innerHTML=`
+        <div class="trait-item-head">
+          <input type="text" placeholder="라벨 (예: 표현 다양성 규칙, 문체 톤... 비워도 됨)" value="${esc(t.label||'')}" oninput="saveStyleTrait(${i},'label',this.value)">
+          <div class="trait-actions-row">
+            <button class="trait-move-btn" ${upDisabled} onclick="moveStyleTrait(${i},-1)" title="위로">▲</button>
+            <button class="trait-move-btn" ${downDisabled} onclick="moveStyleTrait(${i},1)" title="아래로">▼</button>
+            <button class="del-btn" onclick="removeStyleTrait(${i})">×</button>
+          </div>
+        </div>
+        <textarea placeholder="내용을 자유롭게 작성해..." oninput="saveStyleTrait(${i},'content',this.value)">${esc(t.content||'')}</textarea>`;
+    }else{
+      div.innerHTML=`
+        <div class="trait-item-head">
+          <input type="text" placeholder="라벨 (예: 표현 다양성 규칙, 문체 톤... 비워도 됨)" value="${esc(t.label||'')}" oninput="saveStyleTrait(${i},'label',this.value)">
+          <button class="trait-move-btn" ${upDisabled} onclick="moveStyleTrait(${i},-1)" title="위로">▲</button>
+          <button class="trait-move-btn" ${downDisabled} onclick="moveStyleTrait(${i},1)" title="아래로">▼</button>
+          <button class="del-btn" onclick="removeStyleTrait(${i})">×</button>
+        </div>
+        <textarea placeholder="내용을 자유롭게 작성해..." oninput="saveStyleTrait(${i},'content',this.value)">${esc(t.content||'')}</textarea>`;
+    }
+    list.appendChild(div);
+  });
+  const addBtn=document.getElementById('style-trait-add-btn');
+  if(addBtn){
+    if(arr.length>=STYLE_TRAIT_MAX){addBtn.style.opacity='0.4';addBtn.style.cursor='not-allowed';}
+    else{addBtn.style.opacity='1';addBtn.style.cursor='pointer';}
+  }
+}
+function saveStyleTrait(i,f,v){
+  const arr=ensureStyleTraits();if(!arr||!arr[i])return;
+  arr[i][f]=v;saveAll();updatePreview();
+}
+function removeStyleTrait(i){
+  const arr=ensureStyleTraits();if(!arr)return;
+  (async()=>{
+    if(!(await showConfirm('이 항목을 삭제할까?')))return;
+    arr.splice(i,1);renderStyleTraits();saveAll();updatePreview();
+  })();
+}
+function moveStyleTrait(i,dir){
+  const arr=ensureStyleTraits();if(!arr)return;
+  const j=i+dir;
+  if(j<0||j>=arr.length)return;
+  [arr[i],arr[j]]=[arr[j],arr[i]];
+  renderStyleTraits();saveAll();updatePreview();
 }
 
 // ===== 로어북 =====
@@ -2186,22 +2270,33 @@ function buildOutputPrompt(){
   const pov=getActiveChips(document.getElementById('pov-chips'));
   const style=getActiveChips(document.getElementById('style-chips'));
   const density=getActiveChips(document.getElementById('density-chips'));
-  const length=getActiveChips(document.getElementById('length-chips'));
   const action=getActiveChips(document.getElementById('action-chips'));
-  const narrDetail=gv('out-narr-detail');const lengthDetail=gv('out-length-detail');
+  const narrDetail=gv('out-narr-detail');
   const status=gv('out-status');const affection=gv('out-affection');
   const affectionFactor=gv('out-affection-factor');
   const ot=(proj.output&&Array.isArray(proj.output.outputTraits))?proj.output.outputTraits:[];
   const otValid=ot.filter(t=>(t.label&&t.label.trim())||(t.content&&t.content.trim()));
-  const hasContent=pov.length||style.length||density.length||length.length||action.length||narrDetail||lengthDetail||status||affection||otValid.length;
+  const st=(proj.output&&Array.isArray(proj.output.styleTraits))?proj.output.styleTraits:[];
+  const stValid=st.filter(t=>(t.label&&t.label.trim())||(t.content&&t.content.trim()));
+  const hasContent=pov.length||style.length||density.length||action.length||narrDetail||status||affection||otValid.length||stValid.length;
   if(!hasContent)return'';
   p('# 출력 지침');p('');
   if(pov.length||style.length||density.length||narrDetail){
     p('## 나레이션 스타일');
     if(pov.length)p(`시점: ${pov.join(', ')}`);if(style.length)p(`문체: ${style.join(', ')}`);if(density.length)p(`묘사 밀도: ${density.join(', ')}`);if(narrDetail)p(narrDetail);p('');
   }
-  if(length.length||action.length||lengthDetail){
-    p('## 출력량');if(length.length)p(`답변 길이: ${length.join(', ')}`);if(action.length)p(`행동 묘사: ${action.join(', ')}`);if(lengthDetail)p(lengthDetail);p('');
+  if(action.length||stValid.length){
+    p('## 문체·출력 상세');
+    if(action.length)p(`행동 묘사: ${action.join(', ')}`);
+    if(action.length&&stValid.length)p('');
+    stValid.forEach(t=>{
+      const lbl=(t.label||'').trim();
+      const ctn=(t.content||'').trim();
+      if(lbl&&ctn){p(`### ${lbl}`);p(ctn);p('');}
+      else if(ctn){p(ctn);p('');}
+      else if(lbl){p(`### ${lbl}`);p('');}
+    });
+    p('');
   }
   if(status){p('## 상태창');p(status);p('');}
   if(affection||affectionFactor){p('## 호감도 시스템');if(affection)p(affection);if(affectionFactor){p('');p('[변화 요인]');p(affectionFactor);}p('');}
@@ -2776,19 +2871,18 @@ const CHIP_PROJ_APPLY_MAP={
   'pov-chips':['output','povChips'],
   'style-chips':['output','styleChips'],
   'density-chips':['output','densityChips'],
-  'length-chips':['output','lengthChips'],
   'action-chips':['output','actionChips']
 };
 const CHIP_CAT_LABELS={
   'c-outfit-chips':'의상','c-speech-chips':'말투',
   'genre-chips':'장르','pov-chips':'시점','style-chips':'스타일',
-  'density-chips':'밀도','length-chips':'분량','action-chips':'액션'
+  'density-chips':'밀도','action-chips':'액션'
 };
 
 // incomingCC: 가져온 파일의 customChips, importedProjects: 이번에 병합되는 project 객체 배열
 // 기본칩 스냅샷 캐시: 페이지 로드 때 한 번 긁어두고, 이후엔 화면 상태와 무관하게 캐시 사용.
 let BASE_CHIPS_CACHE={};
-const BASE_CHIP_GROUPS=['genre-chips','pov-chips','style-chips','density-chips','length-chips','action-chips','c-speech-chips','c-bdsm-chips'];
+const BASE_CHIP_GROUPS=['genre-chips','pov-chips','style-chips','density-chips','action-chips','c-speech-chips','c-bdsm-chips'];
 function scrapeBaseChips(groupId){
   const el=document.getElementById(groupId);if(!el)return [];
   return Array.from(el.querySelectorAll('.chip:not(.chip-custom):not(.chip-add)')).map(c=>c.textContent.replace('×','').trim()).filter(Boolean);

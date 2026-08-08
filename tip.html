@@ -3140,7 +3140,7 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
     ]
   },
   {
-    id:'cat-p', icon:'📷', title:'이미지 위젯 UI', sub:'p.winter0.workers.dev — 실사 이미지 인라인 · 스마트폰 카메라 · 캠코더 · 폴라로이드 · 감시카메라 · 대사창 · 초상 상태창 · 신분증 · 액자',
+    id:'cat-p', icon:'📷', title:'이미지 위젯 UI', sub:'p.winter0.workers.dev — 실사 이미지 인라인 · 스마트폰 카메라 · 캠코더 · 폴라로이드 · 감시카메라 · 대사창 · 초상 상태창 · 신분증 · 액자 · 조준경',
     items:[
       {
         id:'t-p-0', title:'📷 스마트폰 카메라 (cam)',
@@ -3514,6 +3514,70 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
 - URL은 절대 줄바꿈하지 않는다</pre>`
       },
       {
+        id:'t-p-0i', title:'🔭 조준경 (scope)',
+        body:`<div class=\"label label-use\">URL 파라미터 형식</div>
+<pre>/?t=scope&img=이미지URL&sk=rifle|peep|holo&ret=tick|mildot|duplex|german|circle|dot|0&rc=색|ui&tone=nv|ir|bw&fish=0~100&fc=x§y&rng=거리&wnd=풍향&zm=배율&ele=고각&lv=수평각&br=1&tgt=x§y§가로§세로&say=자막&cr=앵커[§줌]&th=[§경통색][§UI색]</pre>
+<hr class=\"divider\">
+<div class=\"label label-example\">예시 — 저격 (야간투시 + 락온 + 호흡)</div>
+<pre>/?t=scope&sk=rifle&ret=tick&tone=nv&rng=420m&wnd=L+3.5&zm=x12&ele=2.5&lv=-3&br=1&tgt=48§42§16§26&say=숨+참아&cr=t&img=https://img.wintercards.com/O/A/4.webp</pre>
+<div class=\"label label-example\">예시 — 문구멍 (어안 왜곡)</div>
+<pre>/?t=scope&sk=peep&say=누구세요&cr=t&img=https://img.wintercards.com/O/A/4.webp</pre>
+<div class=\"label label-example\">예시 — 도트사이트 (근거리 총격전)</div>
+<pre>/?t=scope&sk=holo&tone=nv&rng=85m&zm=x1&tgt=55§48§18§30&say=문+열린다&img=https://img.wintercards.com/O/A/4.webp</pre>
+<div class=\"label label-example\">예시 — 문구멍 (왜곡 중심 이동)</div>
+<pre>/?t=scope&sk=peep&fc=32§38&say=왼쪽에서+본다&cr=t&img=https://img.wintercards.com/O/A/4.webp</pre>
+<div class=\"label label-example\">예시 — 사냥 (구식 독일식 십자선)</div>
+<pre>/?t=scope&sk=rifle&ret=german&rng=90m&zm=x6&say=사슴이야&cr=t&img=https://img.wintercards.com/O/A/4.webp</pre>
+<div class=\"label label-example\">예시 — 관측 (흑백 + 고배율)</div>
+<pre>/?t=scope&sk=rifle&ret=mildot&tone=bw&rng=1.2km&wnd=R+1.0&zm=x20&lv=2&cr=t§1.6&img=https://img.wintercards.com/O/A/4.webp</pre>
+<hr class=\"divider\">
+<div class=\"desc\"><strong>파라미터 설명:</strong><br>
+• <strong>img</strong> — 조준경 너머로 보이는 장면 (필수)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<strong>캔버스는 정사각 고정</strong>이다 (원형 시야가 잘리면 안 되므로 <code>o=</code> 는 무시된다)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;세로 이미지를 넣으면 위아래가 잘리므로 <strong>세로 이미지는 <code>cr=t</code> 를 붙여 얼굴을 보존</strong>한다<br>
+• <strong>sk</strong> — 조준기 종류<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<code>rifle</code> 저격경(기본) — 원형 시야 + 다층 금속 베젤 + 유리 반사<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<code>peep</code> 문구멍 — 황동 링 + <strong>어안 왜곡</strong> + 강한 비네팅 (십자선·OSD 없음)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<code>holo</code> 도트사이트 — 네모 창 + 붉은 점(명멸) + 얇은 원. 근거리 총격전에<br>
+• <strong>ret</strong> — 십자선. 기본 <code>tick</code><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<code>tick</code> 촘촘한 눈금 + 코너 브래킷 (제일 흔한 형태) / <code>mildot</code> 축을 따라 점, 군용<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<code>duplex</code> 바깥 굵고 중앙 가늘게, 사냥용 / <code>german</code> 좌·우·아래만 굵은 기둥, 유럽식·구시대<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<code>circle</code> 중앙 원 + 십자 / <code>dot</code> 가는 십자 + 중심점 / <code>ret=0</code> 십자선 없음<br>
+• <strong>rc</strong> — 십자선 색. <strong>기본은 검정</strong>(실총과 동일, 밝은 밑선이 자동으로 깔린다)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<code>rc=ui</code> 면 OSD와 같은 색 단색 / <code>rc=EE1166</code> 처럼 직접 지정도 된다<br>
+• <strong>tone</strong> — <code>nv</code> 야간투시(초록) / <code>ir</code> 적외선(회백) / <code>bw</code> 흑백 / 생략=컬러<br>
+• <strong>fish</strong> — 어안 왜곡 <code>0~100</code>. <strong>peep은 기본 100</strong>, 나머지는 기본 0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;낮은 값(<code>fish=25</code>)을 rifle에 주면 저배율 광각 렌즈 느낌이 난다<br>• <strong>fc</strong> — <strong>어안 왜곡의 중심</strong>. <code>x§y</code>, 시야 지름 기준 % (기본 <code>50§50</code> 정중앙)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<code>fc=28§40</code> 이면 중심이 왼쪽 위로 옮겨져 화면 한쪽이 부풀고 반대쪽이 눌린다<br>
+&nbsp;&nbsp;&nbsp;&nbsp;중심만 옮기는 것이지 <strong>시점이 바뀌는 것은 아니다</strong> — 올려다보는 구도는 원본 이미지가 그래야 한다<br>
+• <strong>rng / wnd / zm / ele</strong> — 화면 네 모서리 OSD. 거리 / 풍향 / 배율 / 고각<br>
+• <strong>lv</strong> — 수평계(캔트). <code>-20~20</code>. 값을 주면 하단에 기울어진 수평선과 각도가 뜬다<br>
+• <strong>br=1</strong> — <strong>호흡 흔들림</strong>. 시야가 6.5초 주기로 미세하게 흔들린다 (십자선은 고정)<br>
+• <strong>tgt</strong> — 표적 락온 코너 브래킷. <code>x§y§가로§세로</code> (전부 화면 비율 %)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;cctv의 <code>mot=</code> 과 같은 규약이다. 인물 얼굴 위에 정확히 씌울 수 있다<br>
+• <strong>say</strong> — 하단 자막 (최대 44자) · <strong>cr</strong> 크롭 <code>앵커[§줌]</code></div>
+<hr class=\"divider\">
+<div class=\"label label-use\">🎨 테마 색상 (선택) — &th= (3필드 위치규칙)</div>
+<pre>&th=§경통색§UI색
+1번 스타일 자리는 scope에서 사용하지 않는다 (비워둘 것)
+2번 경통색 — 시야 바깥 몸체 색
+3번 UI색 — OSD 글자 / 락온 브래킷 / holo 도트
+기본값: rifle #8ef0a8 / peep #e8dcc0 / holo #ff5a5a
+프리셋: pink / indigo / gold / rose (한글도 가능)</pre>
+<hr class=\"divider\">
+<div class=\"label label-use\">⚠️ 주의</div>
+<pre>- 캔버스는 정사각 고정이다. o= 를 줘도 무시된다
+- 세로 이미지는 위아래가 잘린다 — cr=t 를 붙일 것
+- peep 은 십자선과 OSD가 나오지 않는다 (say 만 나온다)
+- peep 의 자막은 시야 안쪽 하단에 어두운 띠와 함께 얹힌다 (바깥 여백이 없으므로)
+- fc 는 극단값(0§0 등)을 줘도 화면이 찢어지지 않는다 — 맵 바깥은 중립값으로 채워진다
+- say / rng / wnd / zm / ele / lv / tgt 는 값을 주지 않으면 아예 그려지지 않는다
+- fish>0 이면 어안 변위맵 약 50KB 가 인라인되어 응답이 무거워진다
+- 십자선 기본색은 검정이다. 아주 어두운 장면이면 rc=ui 로 바꾸는 편이 낫다
+- tgt 는 네 값 모두 0~100 사이여야 하고, 하나라도 벗어나면 그려지지 않는다
+- URL은 절대 줄바꿈하지 않는다</pre>`
+      },
+      {
         id:'t-p-1', title:'바베챗 프롬프트 (복사용)',
         body:`<div class="label label-use">캐릭터 상세설정에 붙여넣기</div>
 <div class="desc">아래 전체를 프롬프트에 삽입하면 AI가 장면에 맞는 카메라 UI를 자동 생성합니다. 도메인은 <strong>p.winter0.workers.dev</strong></div>
@@ -3633,6 +3697,27 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
 - 방향은 이미지에서 자동 판별 — o=sq/p/l 로 강제 가능, cr=t 로 위쪽 크롭(얼굴 보존)
 - th=§벽색§명판색 으로 벽·명판 색을 바꾼다 / plq=0 이면 제목이 있어도 명판을 숨긴다
 - 예: ![](https://p.winter0.workers.dev/?t=frame&fr=ornate&mat=0.05&wall=rose&lit=1&fx=vintage&ti=성녀의+밤&by=W.&yr=MDCCCXCII&img=https://img.wintercards.com/O/A/4.webp)
+
+### 조준경 (저격 · 감시 · 문구멍 · 총격전)
+![](https://p.winter0.workers.dev/?t=scope&img=이미지URL&sk=rifle&ret=tick&rng=420m&zm=x12&cr=t)
+- img= 조준경 너머로 보이는 장면 (필수). 캔버스는 정사각 고정이라 o= 는 무시된다
+- 세로 이미지는 위아래가 잘리므로 cr=t 를 붙여 얼굴을 보존한다
+- sk= rifle 저격경(기본) / peep 문구멍(어안 왜곡) / holo 도트사이트(근거리 총격전)
+- ret= tick 눈금(기본) / mildot 군용 / duplex 사냥 / german 구시대 유럽 / circle / dot / 0 없음
+- tone= nv 야간투시 / ir 적외선 / bw 흑백 — 밤이면 nv
+- rng= 거리 / wnd= 풍향 / zm= 배율 / ele= 고각 — 네 모서리에 표기된다
+- tgt=x§y§가로§세로 (화면 비율 %) 로 인물 위에 표적 락온 브래킷을 씌운다
+- br=1 호흡 흔들림 — 숨 참는 순간, 긴장된 조준에
+- lv=-3 수평계 기울기 / rc=ui 로 십자선을 밝게 바꾼다 (기본은 검정)
+- fish= 어안 왜곡의 세기(0~100). peep은 기본 100, rifle·holo는 기본 0
+  fish=0 이면 어안이 꺼진다 (peep도 fish=0 을 주면 왜곡 없는 순수 원형 시야가 된다)
+  rifle에 fish=25 처럼 낮게 주면 저배율 광각 렌즈 느낌이 난다
+  fish>0 이면 변위맵 약 50KB 가 인라인되므로, 어안이 필요 없는 장면에는 켜지 않는다
+- fc=x§y 로 어안 왜곡의 중심을 옮긴다 (기본 50§50 정중앙). fc=32§38 이면 왼쪽 위가 부푼다
+- say / rng / zm / lv / tgt 등은 값을 주지 않으면 화면에 나오지 않는다 — 필요한 것만 준다
+- say= 하단 자막 / th=§경통색§UI색
+- 예: ![](https://p.winter0.workers.dev/?t=scope&sk=rifle&ret=tick&tone=nv&rng=420m&wnd=L+3.5&zm=x12&lv=-3&br=1&tgt=48§42§16§26&say=숨+참아&cr=t&img=https://img.wintercards.com/O/A/4.webp)
+- 예: ![](https://p.winter0.workers.dev/?t=scope&sk=peep&say=누구세요&cr=t&img=https://img.wintercards.com/O/A/4.webp)
 
 ### 공통 규칙
 - 필드 구분자: § / 아이템 구분자: | / (char 한정) 인물 구분자: ||

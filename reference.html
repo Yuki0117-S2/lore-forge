@@ -245,6 +245,7 @@ details.ref-item .ref-body{padding:0 16px 14px 30px;font-size:12px;color:var(--t
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-13b')">📘 !요약4</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-13c')">📘 !요약5</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-13e')">📘 !요약6</button>
+          <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-13f')">📘 !요약7</button>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-13d')">📘 !요약F</button>
           </div>
           <button class="toc-sec-btn kw" onclick="jumpTo('lb-kw-14')">💘 !스킵</button>
@@ -2164,6 +2165,31 @@ yyyy/MM/dd/요일:
           </div>
         </div>
       </details>
+      <details class="ref-item" id="lb-kw-13f">
+        <summary><span class="lb-kw">📘 !요약7</span></summary>
+        <div class="ref-body">
+          <div class="lb-code">### !요약7 (연속성 기록 · 상태창 위 출력)
+현재 턴에 지금까지 있었던 일을 요약한 연속성 기록을 출력한다. 큰따옴표 금지, 대사 인용 금지, 항목형 압축만 허용. 장면 묘사·대사·감상·일상 삭제, 이후 전개에 영향 있는 비가역 정보만 현재 유효한 최신 상태로 기록. — 상태와 미해결 조건을 구체적으로 쓴다. 아직 {{user}}가 알 수 없는 숨겨진 정보는 요약에서 제외.
+분량: 관계는 캐릭터 별 한 줄. 약속, 사건, 현황, 미해결 각 한 줄씩.
+상태창 바로 위 블럭으로 출력:
+```Summary
+📘 연속성 기록
+관계: A↔B: 관계 정의(예시: 지인, 친구, 연인, 상사, 비밀연인, 동아리원 등 구체적인 한 단어 형태)+현재 상태 | 호칭 A→B·B→A (최근 바뀌었으면 이전→현재)
+약속: 누가→누구: 내용, 조건, 상태(진행중/이행/파기) ※완료·소멸된 것 제외
+사건: 날짜 또는 장면별 1줄 — 인물→대상: 핵심 변화
+현황: 인물별 현재 위치·몸 상태·당면 목표
+미해결: 갈등·복선·조건부 사건
+```</div>
+          <div class="lb-bar">
+            <div class="lb-bar-left">
+              <span class="lb-count"></span>
+              <button class="lb-tag" data-copy="!요약7" onclick="lbCopyChip(this)">!요약7</button>
+              <button class="lb-tag" data-copy="📘" onclick="lbCopyChip(this)">📘</button>
+            </div>
+            <button class="lb-copy" onclick="lbCopy(this)">복사</button>
+          </div>
+        </div>
+      </details>
       <details class="ref-item" id="lb-kw-13d">
         <summary><span class="lb-kw">📘 !요약F</span></summary>
         <div class="ref-body">
@@ -2517,10 +2543,10 @@ yyyy/MM/dd/요일 또는 장면 기준(예: 합숙 이튿날 밤):
         <summary><span class="lb-kw">⏩ !시간도약</span></summary>
         <div class="ref-body">
           <div class="lb-code">### !시간도약 N일 (시간 생략)
-- !시간도약 3일 형식으로 지정된 기간만큼 시점을 점프시킨다.
-- 그 기간 동안 있었던 일을 최대 5줄로 압축 출력한다. 큰따옴표 금지, 장면·감정 묘사 금지, 비가역 사건과 상태 변화만 기록한다.
-- 점프 기간 중 {{user}}의 행동·선택은 임의로 정하지 않는다.
-- {{user}}가 아직 알 수 없는 숨겨진 정보는 제외한다.
+입력으로 지정된 기간만큼 시점 이동.
+그 기간 동안 있었던 일을 최대 5줄로 출력한다. 큰따옴표 금지, 장면·감정 묘사 금지, 비가역 사건과 상태 변화만 기록한다.
+점프 기간 중 {{user}}의 행동·선택은 임의로 정하지 않는다. 
+{{user}}가 아직 알 수 없는 숨겨진 정보는 제외한다.
 출력:
 ```Timeskip
 ⏩ N일 경과
@@ -2927,14 +2953,12 @@ yyyy/MM/dd/요일 또는 장면 기준(예: 합숙 이튿날 밤):
         <summary><span class="lb-kw">✉️ !편지</span></summary>
         <div class="ref-body">
           <div class="lb-code">### !편지 (서간체 전환)
-- 현재 턴에 지정된 인물이 {{user}}에게 쓰는 편지를 출력한다. 말로 못 한 진심을 글로 드러내는 데 집중하라.
-- 편지 안에서 새 사건을 만들지 않는다. 이미 일어난 일만 참조한다. 3문단 이내, 문단당 3~4문장.
+현재 턴에 지정된 인물이 {{user}}에게 쓰는 편지를 출력한다. 말로 못 한 진심을 글로 드러내는 데 집중하라.
+편지 안에서 새 사건을 만들지 않는다. 이미 일어난 일만 참조한다. 3,4 줄 분량.
 출력:
 ```Letter
 ✉️ From. (보내는 이)
-
 (본문 — 격식과 망설임이 묻어나는 어조)
-
 — (서명)
 ```</div>
           <div class="lb-bar">
@@ -2951,12 +2975,11 @@ yyyy/MM/dd/요일 또는 장면 기준(예: 합숙 이튿날 밤):
         <summary><span class="lb-kw">📔 !일기</span></summary>
         <div class="ref-body">
           <div class="lb-code">### !일기 (일기체 전환)
-- 현재 턴에 지정된 인물의 비공개 일기를 출력한다. 남에게 보이지 않을 글이므로 평소 숨긴 본심을 솔직하게 드러내라.
-- 3문단 이내, 문단당 3~4문장.
+현재 턴에 지정된 인물의 비공개 일기를 출력한다. 남에게 보이지 않을 글이므로 평소 숨긴 본심을 솔직하게 드러내라.
+분량 총 4~5줄.
 출력:
 ```Diary
 📔 yyyy/MM/dd (요일)
-
 (그날의 사건 + 그에 대한 솔직한 감정. 정제되지 않은 독백 톤)
 ```</div>
           <div class="lb-bar">
@@ -2973,7 +2996,7 @@ yyyy/MM/dd/요일 또는 장면 기준(예: 합숙 이튿날 밤):
         <summary><span class="lb-kw">📑 !보고서</span></summary>
         <div class="ref-body">
           <div class="lb-code">### !보고서 (보고체 전환)
-- 현재 턴에 지정된 인물·기관이 작성하는 사무적 보고서를 출력한다. 감정을 배제하고 객관적·건조한 어조로 사실만 기술하라.
+현재 턴에 지정된 인물·기관이 작성하는 사무적 보고서를 출력한다. 감정을 배제하고 객관적·건조한 어조로 사실만 기술하라.
 출력:
 ```Report
 📑 보고서

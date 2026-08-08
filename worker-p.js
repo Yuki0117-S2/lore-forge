@@ -1737,6 +1737,296 @@ async function renderTalk(params, dataURI, autoOri, errMsg) {
 }
 
 // ══════════════════════════════════════════════════════════════
+// ?t=char — 초상 상태창 (신규 프로토타입)
+// ══════════════════════════════════════════════════════════════
+const CH_W = 1216;
+
+// 게이지 라벨 → 색 자동 판별
+const GA_RULES = [
+  [/^(hp|체력|생명|life|건강)$/i, '#EE1166'],
+  [/^(mp|마나|mana|sp|정신|기력)$/i, '#00BBDD'],
+  [/^(st|스태미나|stamina|피로|기운)$/i, '#FF7722'],
+  [/^(exp|경험치|숙련|레벨)$/i, '#CCAA88'],
+  [/^(호감|애정|신뢰|affection|love)$/i, '#FF6699'],
+  [/^(광기|오염|타락|공포|스트레스)$/i, '#884499'],
+  [/^(궁극기|필살기|각성|오의|ult|ultimate|burst)$/i, '#0077DD'],
+];
+const gaugeCol = (label, acc) => {
+  for (const [re, c] of GA_RULES) if (re.test(label.trim())) return c;
+  return acc;
+};
+
+// "80/100" → {cur,max} / 아니면 null
+function parseGauge(v) {
+  const m = String(v).match(/^\s*(-?[\d.]+)\s*\/\s*([\d.]+)\s*$/);
+  if (!m) return null;
+  const cur = parseFloat(m[1]), max = parseFloat(m[2]);
+  if (!(max > 0)) return null;
+  return { cur, max, r: Math.max(0, Math.min(1, cur / max)) };
+}
+
+// 인물 단위 파싱: '||' 인물 · '|' 항목 · '§' 라벨/값
+const perPerson = (raw, n) => {
+  const src = String(raw || '').split('||');
+  const out = [];
+  for (let i = 0; i < n; i++) out.push((src[i] || '').trim());
+  return out;
+};
+const listOf = (s) => String(s || '').split('|').map(x => x.trim()).filter(Boolean);
+
+async function renderChar(params) {
+  const U = camUid(params);
+
+  let sk = (params.get('sk') || 'gal').trim().toLowerCase();
+  if (!['gal', 'rm', 'mod'].includes(sk)) sk = 'gal';
+  let ft = (params.get('ft') || 'serif').trim().toLowerCase();
+  if (!FT_STACK[ft]) ft = 'serif';
+  const FF = FT_STACK[ft];
+
+  // ── 인물 목록 ──
+  const imgRaw = String(params.get('img') || '').split('|').map(s => s.trim());
+  const nms  = String(params.get('nm') || '').split('|').map(s => s.trim());
+  const sbs  = String(params.get('sb') || '').split('|').map(s => s.trim());
+  const crs  = String(params.get('cr') || '').split('|').map(s => s.trim());
+  let n = Math.max(1, Math.min(4,
+    Math.max(imgRaw.filter(Boolean).length, nms.filter(Boolean).length, 1)));
+
+  // 인물별 이미지를 렌더러 안에서 직접 병렬 로드한다.
+  // (라우팅의 상단 단일 loadImg는 char일 때 건너뛴다 — img=가 '|' 목록이므로)
+  const imgs = (await Promise.all(
+    imgRaw.slice(0, n).map(u => u ? loadImg(u) : Promise.resolve({ uri: null }))
+  )).map(r => r.uri);
+  const stB  = perPerson(params.get('st'), n);
+  const tagB = perPerson(params.get('tag'), n);
+  const koSet = new Set(listOf(params.get('ko')).map(x => parseInt(x, 10)));
+
+  // ── 테마 ──
+  const thF = (params.get('th') || '').split('\u00a7');
+  const pickTh = (i, d) => {
+    const g = (thF[i] || '').trim().toLowerCase();
+    return g ? (camHex(g) || CAM_PRESETS[g] || d) : d;
+  };
+  const acc = pickTh(2, sk === 'rm' ? '#CCAA88' : '#DDAACC');
+  const base = pickTh(1, sk === 'rm' ? '#1d3a7a' : sk === 'gal' ? '#0b0a14' : '#12111a');
+  const light = lumaOf(base) > 0.45;
+  const ui   = light ? '#1a1420' : '#ffffff';
+  const dim  = light ? '#5d5468' : '#9b95ad';
+  const page = light ? mixHex(base, '#ffffff', 0.55) : mixHex(base, '#000000', 0.55);
+  const rx   = sk === 'rm' ? 6 : sk === 'mod' ? 22 : 16;
+
+  const P = 40, GAP = 26;
+  const ti = esc((params.get('ti') || '').trim()).slice(0, 30);
+  const tiH = ti ? 78 : 0;
+
+  // ── 격자 계산 ──
+  const cols = n === 1 ? 1 : n === 3 ? 3 : 2;
+  const rows = Math.ceil(n / cols);
+  const cardW = n === 1 ? CH_W - P * 2 : (CH_W - P * 2 - GAP * (cols - 1)) / cols;
+  const horiz = n === 1 ? true : cardW >= 460;   // 좌초상/우정보 vs 초상위/정보아래
+
+  // 카드 높이: 스탯 수에 따라 가변
+  const maxRows = (i) => {
+    const items = listOf(stB[i]).map(it => it.split('\u00a7'));
+    const g = items.filter(it => parseGauge(it[1] || '')).length;
+    const p = items.length - g;
+    return { g, p, items };
+  };
+  const per = [];
+  for (let i = 0; i < n; i++) per.push(maxRows(i));
+
+  let portW, portH, cardH;
+  if (n === 1) {
+    portW = 460; portH = 600;
+    const need = 96 + Math.min(per[0].g, 8) * 70 + Math.ceil(Math.min(per[0].p, 20) / 2) * 52 + (tagB[0] ? 78 : 0);
+    cardH = Math.max(portH + P * 2 - 24, need + 92);
+  } else if (horiz) {
+    portW = Math.round(cardW * 0.38); portH = Math.round(portW * 1.32);
+    const need = 74 + Math.max(...per.map(x => Math.min(x.g, 8) * 52 + Math.ceil(x.p / 2) * 44))
+               + (tagB.some(Boolean) ? 50 : 0);
+    cardH = Math.max(portH + 44, need + 60);
+  } else {
+    portW = Math.round(cardW - 36); portH = Math.round(portW * 1.05);
+    const need = 70 + Math.max(...per.map(x => Math.min(x.g, 8) * 52 + Math.min(x.p, 20) * 42))
+               + (tagB.some(Boolean) ? 70 : 0);
+    cardH = portH + need + 44;
+  }
+  const H = tiH + P * 2 + cardH * rows + GAP * (rows - 1);
+
+  let s = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"`
+        + ` width="${CH_W}" height="${H}" viewBox="0 0 ${CH_W} ${H}">`;
+  s += `<defs>`
+    +  `<filter id="ko${U}"><feColorMatrix type="matrix" values="`
+    +  `0.32 0.5 0.18 0 0  0.32 0.5 0.18 0 0  0.32 0.5 0.18 0 0  0 0 0 1 0"/>`
+    +  `<feComponentTransfer><feFuncR type="gamma" exponent="1.25" amplitude="0.9"/>`
+    +  `<feFuncG type="gamma" exponent="1.25" amplitude="0.9"/>`
+    +  `<feFuncB type="gamma" exponent="1.25" amplitude="0.9"/></feComponentTransfer></filter>`;
+  if (sk === 'rm') {
+    s += `<linearGradient id="cg${U}" x1="0" y1="0" x2="0" y2="1">`
+      +  `<stop offset="0" stop-color="${mixHex(base, '#ffffff', 0.06)}"/>`
+      +  `<stop offset="1" stop-color="${mixHex(base, '#000000', 0.62)}"/></linearGradient>`;
+  }
+  s += `</defs>`;
+  s += `<rect width="${CH_W}" height="${H}" fill="${page}"/>`;
+
+  // ── 타이틀 ──
+  if (ti) {
+    s += `<text x="${P}" y="${P + 44}" font-family="${FF}" font-size="42" font-weight="700"`
+      +  ` fill="${ui}" letter-spacing="3">${ti}</text>`
+      +  `<rect x="${P}" y="${P + 60}" width="${CH_W - P * 2}" height="2" fill="${acc}" opacity="0.45"/>`;
+  }
+
+  // ── 카드 ──
+  for (let i = 0; i < n; i++) {
+    const cx = P + (i % cols) * (cardW + GAP);
+    const cy = P + tiH + Math.floor(i / cols) * (cardH + GAP);
+    const ko = koSet.has(i + 1);
+    s += card(i, cx, cy);
+    // ko= 인물은 흑백 처리만 한다 (문구·오버레이 없음)
+
+    function card(idx, x, y) {
+      let o = `<g${ko ? ` filter="url(#ko${U})"` : ''}>`;
+      // 카드 바탕
+      if (sk === 'rm') {
+        o += `<rect x="${x}" y="${y}" width="${cardW}" height="${cardH}" rx="${rx}" fill="url(#cg${U})"/>`
+          +  `<rect x="${x + 5}" y="${y + 5}" width="${cardW - 10}" height="${cardH - 10}" rx="${rx}"`
+          +  ` fill="none" stroke="${acc}" stroke-width="3" opacity="0.9"/>`
+          +  `<rect x="${x + 12}" y="${y + 12}" width="${cardW - 24}" height="${cardH - 24}" rx="${rx}"`
+          +  ` fill="none" stroke="#ffffff" stroke-width="1.5" opacity="0.3"/>`;
+      } else if (sk === 'gal') {
+        o += `<rect x="${x}" y="${y}" width="${cardW}" height="${cardH}" rx="${rx}" fill="${base}"/>`
+          +  `<rect x="${x}" y="${y}" width="${cardW}" height="${cardH}" rx="${rx}" fill="none"`
+          +  ` stroke="${acc}" stroke-width="2" opacity="0.5"/>`;
+      } else {
+        o += `<rect x="${x}" y="${y}" width="${cardW}" height="${cardH}" rx="${rx}" fill="${base}"/>`
+          +  `<rect x="${x}" y="${y}" width="${cardW}" height="${cardH}" rx="${rx}" fill="none"`
+          +  ` stroke="${light ? '#00000022' : '#ffffff18'}" stroke-width="1.5"/>`;
+      }
+
+      const pad = n === 1 ? 44 : 22;
+      const px = x + pad, py = y + pad;
+      // 초상
+      o += portrait(idx, px, py);
+
+      // 정보 영역 원점
+      const ix = horiz ? px + portW + (n === 1 ? 40 : 20) : px;
+      const iy = horiz ? py + 2 : py + portH + 18;
+      const iw = horiz ? (x + cardW - pad) - ix : cardW - pad * 2;
+      o += info(idx, ix, iy, iw);
+
+      return o + `</g>`;
+    }
+
+    function portrait(idx, x, y) {
+      const cf = (crs[idx] || 'c').split('\u00a7');
+      const [par, ax, ay] = CAM_ANCHOR[(cf[0] || 'c').trim().toLowerCase()] || CAM_ANCHOR.c;
+      let zoom = parseFloat(cf[1]); if (!(zoom >= 1 && zoom <= 4)) zoom = 1;
+      const prx = sk === 'mod' ? 18 : sk === 'rm' ? 4 : 10;
+      const uri = imgs[idx];
+      let o = `<clipPath id="pc${U}_${idx}"><rect x="${x}" y="${y}" width="${portW}" height="${portH}" rx="${prx}"/></clipPath>`;
+      if (uri) {
+        const ox = x + ax * portW, oy = y + ay * portH;
+        const tf = zoom > 1 ? ` transform="translate(${ox.toFixed(1)},${oy.toFixed(1)}) scale(${zoom}) translate(${(-ox).toFixed(1)},${(-oy).toFixed(1)})"` : '';
+        o += `<g clip-path="url(#pc${U}_${idx})"><g${tf}><image x="${x}" y="${y}" width="${portW}" height="${portH}"`
+          +  ` preserveAspectRatio="${par} slice" href="${uri}" xlink:href="${uri}"/></g></g>`;
+      } else {
+        // 실루엣 플레이스홀더
+        const cxp = x + portW / 2, r = portW * 0.19;
+        o += `<g clip-path="url(#pc${U}_${idx})">`
+          +  `<rect x="${x}" y="${y}" width="${portW}" height="${portH}" fill="${mixHex(base, light ? '#000000' : '#ffffff', 0.09)}"/>`
+          +  `<circle cx="${cxp}" cy="${(y + portH * 0.36).toFixed(1)}" r="${r.toFixed(1)}" fill="${dim}" opacity="0.42"/>`
+          +  `<ellipse cx="${cxp}" cy="${(y + portH * 1.02).toFixed(1)}" rx="${(portW * 0.38).toFixed(1)}"`
+          +  ` ry="${(portH * 0.42).toFixed(1)}" fill="${dim}" opacity="0.42"/></g>`;
+      }
+      o += `<rect x="${x}" y="${y}" width="${portW}" height="${portH}" rx="${prx}" fill="none"`
+        +  ` stroke="${acc}" stroke-width="${n === 1 ? 3 : 2}" opacity="0.8"/>`;
+      return o;
+    }
+
+    function info(idx, x, y, w) {
+      const big = n === 1;
+      const nmFs = big ? 58 : (horiz ? 34 : 30);
+      const sbFs = big ? 28 : 21;
+      const nm = esc((nms[idx] || '').trim()).slice(0, 20);
+      const sb = esc((sbs[idx] || '').trim()).slice(0, 24);
+      let o = '', cy2 = y + nmFs * 0.9;
+      if (nm) {
+        o += `<text x="${x}" y="${cy2.toFixed(1)}" font-family="${FF}" font-size="${nmFs}"`
+          +  ` font-weight="700" fill="${ui}">${nm}</text>`;
+        cy2 += sb ? sbFs * 1.25 : nmFs * 0.34;
+      }
+      if (sb) {
+        o += `<text x="${x}" y="${cy2.toFixed(1)}" font-family="${FF}" font-size="${sbFs}"`
+          +  ` fill="${acc}" letter-spacing="1.5">${sb}</text>`;
+        cy2 += sbFs * 0.9;
+      }
+      o += `<rect x="${x}" y="${(cy2 + 8).toFixed(1)}" width="${w}" height="1.5" fill="${acc}" opacity="0.3"/>`;
+      cy2 += big ? 48 : 34;
+
+      const { items } = per[idx];
+      const gauges = [], plains = [];
+      for (const it of items) {
+        const label = (it[0] || '').trim(), val = (it[1] || '').trim();
+        // 3번째 § 필드가 있으면 게이지 색을 직접 지정한다 (라벨 자동판별보다 우선)
+        const cRaw = (it[2] || '').trim().toLowerCase();
+        const cOwn = cRaw ? (camHex(cRaw) || CAM_PRESETS[cRaw] || null) : null;
+        const g = parseGauge(val);
+        if (g) gauges.push([label, val, g, cOwn]); else plains.push([label, val]);
+      }
+      // 게이지
+      const gh = big ? 26 : 18, gStep = big ? 70 : (horiz ? 54 : 52);
+      const gFs = big ? 26 : 20;
+      for (const [label, val, g, cOwn] of gauges.slice(0, 8)) {
+        const col = cOwn || gaugeCol(label, acc);
+        o += `<text x="${x}" y="${cy2.toFixed(1)}" font-family="${FF}" font-size="${gFs}" fill="${dim}">${esc(label).slice(0, 8)}</text>`
+          +  `<text x="${(x + w).toFixed(1)}" y="${cy2.toFixed(1)}" text-anchor="end" font-family="${FF}"`
+          +  ` font-size="${gFs}" fill="${ui}">${esc(val)}</text>`;
+        const by = cy2 + 10;
+        o += `<rect x="${x}" y="${by.toFixed(1)}" width="${w}" height="${gh}" rx="${gh / 2}"`
+          +  ` fill="${light ? '#00000022' : '#ffffff1c'}"/>`
+          +  `<rect x="${x}" y="${by.toFixed(1)}" width="${(w * g.r).toFixed(1)}" height="${gh}" rx="${gh / 2}" fill="${col}"/>`
+          +  `<rect x="${x}" y="${(by + 2).toFixed(1)}" width="${(w * g.r).toFixed(1)}" height="${(gh * 0.34).toFixed(1)}"`
+          +  ` rx="${(gh * 0.17).toFixed(1)}" fill="#ffffff" opacity="0.22"/>`;
+        cy2 += gStep;
+      }
+      // 숫자 스탯 — 1인/가로카드는 2열, 세로카드는 1열
+      const sCols = (big || horiz) ? 2 : 1;
+      const sFs = big ? 28 : 21;
+      const sStep = big ? 52 : 42;
+      const colW = w / sCols;
+      const lim = 20;
+      plains.slice(0, lim).forEach(([label, val], k) => {
+        const gx = x + (k % sCols) * colW;
+        const gy = cy2 + Math.floor(k / sCols) * sStep;
+        o += `<text x="${gx}" y="${gy.toFixed(1)}" font-family="${FF}" font-size="${sFs}" fill="${dim}">${esc(label).slice(0, 8)}</text>`
+          +  `<text x="${(gx + colW - (sCols > 1 ? 24 : 0)).toFixed(1)}" y="${gy.toFixed(1)}" text-anchor="end"`
+          +  ` font-family="${FF}" font-size="${sFs}" font-weight="700" fill="${ui}">${esc(val).slice(0, 12)}</text>`;
+      });
+      cy2 += Math.ceil(Math.min(plains.length, lim) / sCols) * sStep;
+
+      // 상태 칩
+      const tags = listOf(tagB[idx]).slice(0, 6);
+      if (tags.length) {
+        const tFs = big ? 24 : 19;
+        let tx = x;
+        for (const t of tags) {
+          const tw = lineW(t) * tFs + 30;
+          if (tx + tw > x + w) break;
+          o += `<rect x="${tx.toFixed(1)}" y="${(cy2 - tFs).toFixed(1)}" width="${tw.toFixed(1)}"`
+            +  ` height="${(tFs * 1.85).toFixed(1)}" rx="${(tFs * 0.92).toFixed(1)}" fill="${acc}" opacity="0.16"/>`
+            +  `<rect x="${tx.toFixed(1)}" y="${(cy2 - tFs).toFixed(1)}" width="${tw.toFixed(1)}"`
+            +  ` height="${(tFs * 1.85).toFixed(1)}" rx="${(tFs * 0.92).toFixed(1)}" fill="none" stroke="${acc}" stroke-width="1.5" opacity="0.6"/>`
+            +  `<text x="${(tx + tw / 2).toFixed(1)}" y="${(cy2 + tFs * 0.42).toFixed(1)}" text-anchor="middle"`
+            +  ` font-family="${FF}" font-size="${tFs}" fill="${acc}">${esc(t)}</text>`;
+          tx += tw + 10;
+        }
+      }
+      return o;
+    }
+  }
+  return s + `</svg>`;
+}
+
+// ══════════════════════════════════════════════════════════════
 // 라우팅
 // ══════════════════════════════════════════════════════════════
 const RENDERERS = {
@@ -1745,6 +2035,7 @@ const RENDERERS = {
   'pol': renderPol,
   'cctv': renderCctv,
   'talk': renderTalk,
+  'char': renderChar,
 };
 
 function indexPage() {
@@ -1778,7 +2069,10 @@ export default {
       );
     }
 
-    const { uri, dim, err } = await loadImg(params.get('img'));
+    // char은 img=가 '|' 구분 인물별 목록이라 상단 단일 로드를 건너뛴다 (렌더러가 직접 로드)
+    const { uri, dim, err } = t === 'char'
+      ? { uri: null, dim: null, err: null }
+      : await loadImg(params.get('img'));
     const fontCss = await loadFonts(params, t);
     const svg = await renderer(params, uri, oriOf(dim), err ? ERR_MSG[err] : null, fontCss);
 

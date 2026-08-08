@@ -3140,7 +3140,7 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
     ]
   },
   {
-    id:'cat-p', icon:'📷', title:'이미지 위젯 UI', sub:'p.winter0.workers.dev — 실사 이미지 인라인 · 스마트폰 카메라 · 캠코더 · 폴라로이드 · 감시카메라 · 대사창',
+    id:'cat-p', icon:'📷', title:'이미지 위젯 UI', sub:'p.winter0.workers.dev — 실사 이미지 인라인 · 스마트폰 카메라 · 캠코더 · 폴라로이드 · 감시카메라 · 대사창 · 초상 상태창',
     items:[
       {
         id:'t-p-0', title:'📷 스마트폰 카메라 (cam)',
@@ -3355,6 +3355,61 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
 - URL은 절대 줄바꿈하지 않는다</pre>`
       },
       {
+        id:'t-p-0f', title:'🎴 초상 상태창 (char)',
+        body:`<div class=\"label label-use\">URL 파라미터 형식</div>
+<pre>/?t=char&img=URL1|URL2&nm=이름1|이름2&sb=부제1|부제2&st=라벨§값|라벨§값||라벨§값&tag=칩|칩||칩&ko=번호&ti=제목&sk=gal|rm|mod&ft=serif|sans|hand&cr=앵커[§줌]|앵커&th=[§창색][§강조색]</pre>
+<hr class=\"divider\">
+<div class=\"label label-example\">예시 — 1인 상세 (초상 크게 + 스탯 많이)</div>
+<pre>/?t=char&ti=인물+기록&nm=세라피나&sb=제7기사단+·+서약기사+Lv.34&cr=t§1.15&st=HP§182/240|MP§64/90|광기§31/100|힘§18|민첩§14|지력§11|의지§20&tag=서약|성흔&img=https://img.wintercards.com/O/A/4.webp</pre>
+<div class=\"label label-example\">예시 — 게이지 색 직접 지정 (3번째 § 필드)</div>
+<pre>/?t=char&nm=세라피나&st=HP§182/240|궁극기§70/100|각인§2/3§8888CC|서약도§55/100§rose</pre>
+<div class=\"label label-example\">예시 — 2인 파티 (쯔꾸르)</div>
+<pre>/?t=char&sk=rm&ti=파티+편성&nm=루시아|카일&sb=백마도사|중장기사&st=HP§88/120|MP§70/80|힘§7||HP§210/210|MP§12/40|힘§22&tag=축복||도발&img=https://img.wintercards.com/O/A/1.webp|https://img.wintercards.com/O/A/2.webp</pre>
+<div class=\"label label-example\">예시 — 4인 + 쓰러진 인물 (2번)</div>
+<pre>/?t=char&sk=mod&ti=SQUAD+STATUS&ko=2&nm=A|B|C|D&st=HP§182/240||HP§0/120||HP§210/210||HP§?/?&img=URL1|URL2|URL3|</pre>
+<div class=\"label label-example\">예시 — 정체불명 (이미지 없이 실루엣)</div>
+<pre>/?t=char&sk=mod&ti=미확인+개체&th=§#ecebf3§#884499&nm=???&sb=분류+불가+·+위험도+A&st=오염§77/100|추정+연령§불명|생존자§0&tag=격리|접촉+금지</pre>
+<hr class=\"divider\">
+<div class=\"desc\"><strong>파라미터 설명:</strong><br>
+• <strong>구분자 3단</strong> — <code>§</code> 라벨/값 · <code>|</code> 항목 · <code>||</code> 인물. <code>st=HP§80/100|힘§14||HP§45/70</code> = 1번은 HP·힘, 2번은 HP<br>
+• <strong>img</strong> — 인물별 이미지 <code>URL1|URL2</code> (최대 4명). <strong>빈 자리는 실루엣</strong>으로 그려진다 (<code>URL1||URL3</code> 처럼 가운데를 비워도 됨)<br>
+• <strong>nm</strong> 이름 · <strong>sb</strong> 부제(직함·Lv 등) — 둘 다 <code>|</code> 로 인물 구분<br>
+• <strong>st</strong> — 스탯. <strong>라벨·값 모두 자유</strong>다. 값이 <code>80/100</code> 꼴이면 <strong>자동으로 게이지</strong>, 아니면 숫자 줄로 나온다<br>
+&nbsp;&nbsp;&nbsp;&nbsp;게이지 색은 라벨로 자동 판별: HP·체력·생명(붉은분홍) / MP·마나·SP(청록) / 스태미나·피로(주황) / 경험치(금색) / 호감·신뢰(분홍) / 광기·오염·타락·공포(보라) / <strong>궁극기·필살기·각성·오의(파랑)</strong><br>
+&nbsp;&nbsp;&nbsp;&nbsp;그 외 라벨은 <strong>강조색</strong>으로 나온다<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<strong>색을 직접 주려면 3번째 § 필드</strong>: <code>st=각인§2/3§8888CC</code> — 자동 판별보다 우선한다. <code>#</code>은 빼고 6자리(또는 pink/indigo/gold/rose). 잘못된 값이면 조용히 강조색으로 돌아간다<br>
+• <strong>tag</strong> — 상태 칩(버프·디버프). 인물당 최대 6개<br>
+• <strong>ko</strong> — 쓰러진 인물 번호 (<code>ko=2</code> 또는 <code>ko=2|4</code>). 해당 카드가 <strong>흑백으로 처리</strong>된다 (문구는 없음)<br>
+• <strong>ti</strong> — 상단 제목 · <strong>cr</strong> — 인물별 초상 크롭 <code>앵커[§줌]</code>, talk과 동일 규약 (<code>t</code> 위쪽 권장)<br>
+• <strong>sk</strong> — <code>gal</code> 미연시(기본) / <code>rm</code> 쯔꾸르 이중테두리 / <code>mod</code> 모던 카드 — talk의 sk와 같은 이름·같은 계열<br>
+• <strong>ft</strong> — <code>serif</code> 명조(기본) / <code>sans</code> 고딕 / <code>hand</code> 손글씨</div>
+<hr class=\"divider\">
+<div class=\"label label-use\">📐 레이아웃 (인원수 자동 분기)</div>
+<pre>1명 → 초상 460×600 좌측 + 스탯 우측 (제일 크게 보인다)
+2명 → 가로 2열, 카드마다 초상 좌 · 정보 우
+3명 → 가로 3열, 초상 위 · 정보 아래 (세로 카드)
+4명 → 2×2 격자, 2인과 같은 가로 카드
+캔버스 폭은 1216 고정, 높이는 스탯 수에 맞춰 자동으로 늘어난다
+상한: 게이지 8 · 스탯 20 · 칩 6 (넘으면 잘림)</pre>
+<hr class=\"divider\">
+<div class=\"label label-use\">🎨 테마 색상 (선택) — &th= (3필드 위치규칙)</div>
+<pre>&th=§창색§강조색
+1번 스타일 자리는 char에서 사용하지 않는다 (비워둘 것)
+2번 창색   — 카드 바탕 (배경은 이 색에서 자동 파생)
+3번 강조색 — 초상 테두리 / 부제 / 구분선 / 칩 / 미분류 게이지
+기본값: gal #0b0a14 · rm #1d3a7a · mod #12111a / 강조 #DDAACC (rm은 #CCAA88)
+프리셋: pink / indigo / gold / rose (한글도 가능)</pre>
+<hr class=\"divider\">
+<div class=\"label label-use\">⚠️ 주의</div>
+<pre>- 이미지가 인원수만큼 base64로 인라인된다 — 4명이면 응답도 4배다
+  인물당 512px 안쪽으로 잘라둔 얼굴·반신 이미지를 쓸 것 (장당 상한 4MB)
+- 창색을 밝게 주면 글자·구분선이 자동으로 어두워진다
+- 카드 높이는 인물 중 스탯이 가장 많은 쪽에 맞춰 통일된다
+- 값에 /가 있어도 숫자가 아니면(?/? 등) 게이지가 아니라 그냥 텍스트다
+- 이미지 로딩에 실패하면 조용히 실루엣으로 대체된다
+- URL은 절대 줄바꿈하지 않는다</pre>`
+      },
+      {
         id:'t-p-1', title:'바베챗 프롬프트 (복사용)',
         body:`<div class="label label-use">캐릭터 상세설정에 붙여넣기</div>
 <div class="desc">아래 전체를 프롬프트에 삽입하면 AI가 장면에 맞는 카메라 UI를 자동 생성합니다. 도메인은 <strong>p.winter0.workers.dev</strong></div>
@@ -3427,8 +3482,24 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
 - 대사가 길면 창이 알아서 커지고, 화면의 45%를 넘으면 캔버스가 아래로 늘어난다
 - 예: ![](https://p.winter0.workers.dev/?t=talk&sk=rm&nm=유리&th=§7A1E2E§CCAA88&fc=https://img.wintercards.com/O/A/평온.webp&say=…아무것도+아니야.+정말로.&img=https://img.wintercards.com/O/A/4.webp)
 
+### 초상 상태창 (캐릭터 시트 · 파티 상태 · 인물 소개)
+![](https://p.winter0.workers.dev/?t=char&img=이미지URL&nm=이름&sb=부제&st=HP§80/100|힘§14&ti=제목)
+- 최대 4명. img= 인물별 이미지를 | 로 잇는다 (img=URL1|URL2) — 빈 자리는 실루엣이 된다
+- nm= 이름 / sb= 부제(직함·Lv) — 인물 구분은 동일하게 |
+- st= 스탯. § 라벨/값, | 항목, || 인물. 라벨과 값은 자유롭게 정한다
+  값이 80/100 꼴이면 게이지로, 아니면 숫자로 나온다
+  게이지 색은 라벨이 정한다: HP·체력 / MP·마나 / 스태미나 / 경험치 / 호감 / 광기·오염 / 궁극기·필살기·각성
+  그 외 라벨은 강조색. 색을 직접 주려면 3번째 § 필드 (예: 각인§2/3§8888CC — #은 뺀다)
+- tag= 상태 칩 (독|출혈||기절) / ko=2 = 2번 인물을 흑백 처리 (쓰러짐·사망)
+- sk= gal 미연시(기본) / rm 쯔꾸르 / mod 모던 카드 — talk의 sk와 같은 계열로 맞추면 통일된다
+- cr=t 로 위쪽 크롭하면 얼굴이 보존된다 (인물별로 cr=t|c 처럼 따로 줄 수 있다)
+- 1명이면 초상이 크게, 2~4명이면 카드 격자로 자동 전환된다
+- ft= serif 명조(기본) / sans 고딕 / hand 손글씨 — hand는 특별한 장면에만
+- th=§창색§강조색 으로 카드 색을 바꾼다 (예: th=§1a1226§00BBDD)
+- 예: ![](https://p.winter0.workers.dev/?t=char&sk=rm&ti=파티+편성&nm=루시아|카일&sb=백마도사|중장기사&cr=t|t&st=HP§88/120|MP§70/80|힘§7||HP§210/210|MP§12/40|힘§22&tag=축복||도발&img=https://img.wintercards.com/O/A/1.webp|https://img.wintercards.com/O/A/2.webp)
+
 ### 공통 규칙
-- 필드 구분자: § / 아이템 구분자: |
+- 필드 구분자: § / 아이템 구분자: | / (char 한정) 인물 구분자: ||
 - 공백 → + / 줄바꿈 → %0A
 - ( → %28, ) → %29 (마크다운 파서 충돌 방지)
 - URL은 절대 줄바꿈하지 않는다</pre>`

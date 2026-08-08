@@ -1451,6 +1451,291 @@ function renderCctv(params, dataURI, autoOri, errMsg) {
   return s + `</svg>`;
 }
 
+function mixHex(hex, target, r) {
+  const a = hex.replace('#', ''), b = target.replace('#', '');
+  const p = (h, i) => parseInt(h.substr(i * 2, 2), 16);
+  const o = (i) => Math.round(p(a, i) + (p(b, i) - p(a, i)) * r).toString(16).padStart(2, '0');
+  return '#' + o(0) + o(1) + o(2);
+}
+
+function lumaOf(hex) {
+  const h = hex.replace('#', '');
+  const c = (i) => parseInt(h.substr(i * 2, 2), 16) / 255;
+  const g = (v) => (v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4));
+  return 0.2126 * g(c(0)) + 0.7152 * g(c(1)) + 0.0722 * g(c(2));
+}
+
+
+// ══════════════════════════════════════════════════════════════
+// 대사 줄바꿈 — 서버에서 폭을 추정해 감싼다.
+//   한글·가나·한자는 1자 ≈ 1em, 라틴·숫자·기호는 ≈ 0.52em.
+//   명시적 \n(%0A)은 강제 개행으로 먼저 쪼갠다.
+// ══════════════════════════════════════════════════════════════
+const RE_WIDE = /[\u1100-\u11ff\u3000-\u303f\u3040-\u30ff\u3130-\u318f\u3400-\u4dbf\u4e00-\u9fff\uac00-\ud7a3\uff00-\uff60]/;
+const chW = (c) => (RE_WIDE.test(c) ? 1 : 0.52);
+const lineW = (s) => { let w = 0; for (const c of s) w += chW(c); return w; };
+
+function wrapText(text, maxEm, maxLines) {
+  const out = [];
+  for (const para of String(text).split('\n')) {
+    if (para === '') { out.push(''); continue; }
+    // 한국어는 어절(공백) 단위로 끊는 게 자연스럽다.
+    // 공백이 없는 언어(일본어·중국어)는 통째로 한 덩어리가 되어
+    // 아래 '어절이 한 줄보다 길 때' 경로에서 글자 단위로 떨어진다.
+    let cur = '';
+    for (const word of para.split(/(?<=\s)/)) {
+      const w = word.replace(/\s+$/, '');
+      if (cur === '') {
+        cur = word;
+      } else if (lineW(cur.replace(/\s+$/, '') + ' ' + w) <= maxEm) {
+        cur += word;
+      } else {
+        out.push(cur.replace(/\s+$/, ''));
+        if (out.length >= maxLines) return out.slice(0, maxLines);
+        cur = word;
+      }
+      // 어절 하나가 한 줄보다 길면 그 안에서 글자 단위로 쪼갠다
+      while (lineW(cur.replace(/\s+$/, '')) > maxEm) {
+        let acc = '', rest = '';
+        for (const ch of cur) {
+          if (rest === '' && lineW(acc + ch) <= maxEm) acc += ch; else rest += ch;
+        }
+        if (acc === '') break;
+        out.push(acc.replace(/\s+$/, ''));
+        if (out.length >= maxLines) return out.slice(0, maxLines);
+        cur = rest;
+      }
+    }
+    if (cur.replace(/\s+$/, '') !== '') out.push(cur.replace(/\s+$/, ''));
+    if (out.length >= maxLines) return out.slice(0, maxLines);
+  }
+  return out.slice(0, maxLines);
+}
+
+const FT_STACK = {
+  serif: "'Noto Serif KR',AppleMyungjo,Batang,serif",
+  sans:  "'Apple SD Gothic Neo','Malgun Gothic',sans-serif",
+  hand:  "'WPen','WZen','Noto Serif KR',serif",
+};
+
+// ══════════════════════════════════════════════════════════════
+// ?t=talk — 대사창 (sk=gal 미연시 / rm 쯔꾸르 / mod 모던)
+// ══════════════════════════════════════════════════════════════
+async function renderTalk(params, dataURI, autoOri, errMsg) {
+  // 이 렌더러만 async다. 얼굴칩 이미지(fc=)와 손글씨 폰트를 여기서 직접 받아오므로
+  // loadFonts()의 pol 전용 게이트를 건드리지 않는다.
+  const U = camUid(params);
+  const oRaw = (params.get('o') || '').trim().toLowerCase();
+  const ori = CAM_IMG[oRaw] ? oRaw : (CAM_IMG[autoOri] ? autoOri : 'sq');
+  const [W, IH] = CAM_IMG[ori];
+  const K = Math.min(W, IH) / 1024;
+
+  let sk = (params.get('sk') || 'gal').trim().toLowerCase();
+  if (!['gal', 'rm', 'mod'].includes(sk)) sk = 'gal';
+
+  let ft = (params.get('ft') || 'serif').trim().toLowerCase();
+  if (!FT_STACK[ft]) ft = 'serif';
+  const FF = FT_STACK[ft];
+
+  const cf = (params.get('cr') || 'c').split('\u00a7');
+  const [par, ax, ay] = CAM_ANCHOR[(cf[0] || 'c').trim().toLowerCase()] || CAM_ANCHOR.c;
+  let zoom = parseFloat(cf[1]); if (!(zoom >= 1 && zoom <= 4)) zoom = 1;
+
+  const nm = esc((params.get('nm') || '').trim()).slice(0, 20);
+  const sayRaw = (params.get('say') || '').replace(/\r/g, '').slice(0, 400);
+  const nx = (params.get('nx') || '1') !== '0';
+
+  // 얼굴칩: face=0 기본, fc= 이미지를 주면 자동으로 켜진다
+  const fcRaw = (params.get('fc') || '').trim();
+  const faceParam = (params.get('face') || '').trim();
+  const faceOn = faceParam === '1' || (faceParam !== '0' && !!fcRaw);
+  const ff = (params.get('fcr') || 't').split('\u00a7');
+  const [fpar, fax, fay] = CAM_ANCHOR[(ff[0] || 't').trim().toLowerCase()] || CAM_ANCHOR.t;
+  let fzoom = parseFloat(ff[1]); if (!(fzoom >= 1 && fzoom <= 4)) fzoom = 1;
+  let faceURI = null;
+  if (faceOn && fcRaw) {
+    const r = await loadImg(fcRaw);
+    faceURI = r.uri;                       // 실패하면 조용히 본 이미지로 대체
+  }
+  const chipURI = faceURI || dataURI;
+
+  const thF = (params.get('th') || '').split('\u00a7');
+  const pickTh = (i, d) => {
+    const g = (thF[i] || '').trim().toLowerCase();
+    return g ? (camHex(g) || CAM_PRESETS[g] || d) : d;
+  };
+
+  // ── 스킨별 상수 ──
+  const SK = {
+    gal:  { boxFill: '#0b0a14', boxOp: 0.72, rx: 18 * K, pad: 40 * K, mgn: 26 * K,
+            fs: 40 * K, lh: 1.62, nameFs: 30 * K, chip: 148 * K },
+    rm:   { boxFill: '#0b1636', boxOp: 0.94, rx: 6 * K,  pad: 34 * K, mgn: 16 * K,
+            fs: 39 * K, lh: 1.55, nameFs: 29 * K, chip: 152 * K },
+    mod:  { boxFill: '#000000', boxOp: 0.55, rx: 0,      pad: 34 * K, mgn: 0,
+            fs: 38 * K, lh: 1.58, nameFs: 25 * K, chip: 120 * K },
+  }[sk];
+  // th 규칙은 3스킨 공통 — 2번 자리 = 창 색, 3번 자리 = 강조색
+  const acc = pickTh(2, sk === 'rm' ? '#CCAA88' : '#DDAACC');
+  const boxBase = pickTh(1, sk === 'rm' ? '#1d3a7a' : sk === 'gal' ? '#0b0a14' : '#000000');
+  // 창이 밝으면 본문 글자를 어둡게 뒤집는다
+  const lightBox = lumaOf(boxBase) > 0.45;
+  const ui = lightBox ? '#1a1420' : '#ffffff';
+  if (lightBox) SK.boxOp = Math.max(SK.boxOp, 0.9);
+
+  // ── 대사 배치 계산 ──
+  const chipW = faceOn ? SK.chip : 0;
+  const chipGap = faceOn ? 22 * K : 0;
+  const innerW = W - SK.mgn * 2 - SK.pad * 2 - chipW - chipGap;
+  const maxEm = Math.max(6, (innerW / SK.fs) * 0.94);   // 우측 6% 여백
+  const HARD_MAX = 8;
+  let lines = wrapText(sayRaw, maxEm, HARD_MAX);
+  if (lines.length === 0) lines = [''];
+
+  const lineH = SK.fs * SK.lh;
+  const nameH = nm ? SK.nameFs * 1.5 : 0;
+  let textH = lines.length * lineH;
+  if (faceOn) textH = Math.max(textH, SK.chip);          // 얼굴칩보다 작아지지 않게
+  let boxH = SK.pad * 2 + nameH + textH;
+
+  // 얹기 기본. 박스가 화면의 45%를 넘으면 아래로 확장한다. ex=0/1로 강제.
+  const exRaw = (params.get('ex') || '').trim();
+  const RATIO = 0.45;
+  const over = boxH + SK.mgn * 2 > IH * RATIO;
+  const expand = exRaw === '1' ? true : exRaw === '0' ? false : over;
+  const extra = expand ? Math.max(0, Math.ceil(boxH + SK.mgn * 2 - IH * RATIO)) : 0;
+  const H = IH + extra;
+
+  const boxX = SK.mgn, boxW = W - SK.mgn * 2;
+  const boxY = H - SK.mgn - boxH;
+
+  let fontCss = '';
+  if (ft === 'hand') {
+    const scan = (params.get('say') || '') + (params.get('nm') || '');
+    const [zen, pen] = await Promise.all([
+      fetchFont(FONT_URL.zen),
+      RE_KO.test(scan) ? fetchFont(FONT_URL.pen) : Promise.resolve(null),
+    ]);
+    const ffc = (n, b) => `@font-face{font-family:'${n}';font-style:normal;font-weight:400;`
+      + `src:url(data:font/woff2;base64,${b}) format('woff2');}`;
+    if (pen) fontCss += ffc('WPen', pen);
+    if (zen) fontCss += ffc('WZen', zen);
+  }
+
+  let s = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"`
+        + ` width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">`;
+  if (fontCss) s += `<style>${fontCss}</style>`;
+  s += `<rect width="${W}" height="${H}" fill="#07060c"/>`;
+
+  // ── 화면 이미지 ──
+  if (dataURI) {
+    const ox = ax * W, oy = ay * IH;
+    const tf = zoom > 1
+      ? ` transform="translate(${ox.toFixed(1)},${oy.toFixed(1)}) scale(${zoom}) translate(${(-ox).toFixed(1)},${(-oy).toFixed(1)})"` : '';
+    s += `<clipPath id="mc${U}"><rect width="${W}" height="${IH}"/></clipPath>`
+      +  `<g clip-path="url(#mc${U})"><g${tf}><image width="${W}" height="${IH}"`
+      +  ` preserveAspectRatio="${par} slice" href="${dataURI}" xlink:href="${dataURI}"/></g></g>`;
+  } else {
+    s += `<rect width="${W}" height="${IH}" fill="#141220"/>`
+      +  `<text x="${W / 2}" y="${IH / 2}" text-anchor="middle" fill="#5a5a72"`
+      +  ` font-size="${(26 * K).toFixed(0)}" font-family="${FF}">${esc(errMsg || '이미지 없음')}</text>`;
+  }
+  // 확장분 배경 — 이미지 하단색이 이어지도록 어둡게
+  if (extra > 0) s += `<rect y="${IH}" width="${W}" height="${extra}" fill="#0a0910"/>`;
+  // 박스 뒤 그라디언트(글자 가독성)
+  if (sk !== 'rm') {
+    s += `<defs><linearGradient id="fg${U}" x1="0" y1="0" x2="0" y2="1">`
+      +  `<stop offset="0" stop-color="#000" stop-opacity="0"/>`
+      +  `<stop offset="1" stop-color="#000" stop-opacity="${lightBox ? 0.2 : 0.55}"/></linearGradient></defs>`
+      +  `<rect x="0" y="${(boxY - 110 * K).toFixed(1)}" width="${W}" height="${(boxH + 110 * K + SK.mgn).toFixed(1)}" fill="url(#fg${U})"/>`;
+  }
+
+  // ── 대사 박스 ──
+  if (sk === 'rm') {
+    // 쯔꾸르: 파란 그라디언트 + 이중 테두리
+    // 창 색은 기준색 하나에서 위(밝게)·아래(어둡게)를 만들어 낸다
+    const top = mixHex(boxBase, '#ffffff', 0.06);
+    const bot = mixHex(boxBase, '#000000', 0.62);
+    s += `<defs><linearGradient id="bg${U}" x1="0" y1="0" x2="0" y2="1">`
+      +  `<stop offset="0" stop-color="${top}"/><stop offset="1" stop-color="${bot}"/></linearGradient></defs>`
+      +  `<rect x="${boxX}" y="${boxY.toFixed(1)}" width="${boxW}" height="${boxH.toFixed(1)}" rx="${SK.rx}"`
+      +  ` fill="url(#bg${U})" opacity="${SK.boxOp}"/>`
+      +  `<rect x="${(boxX + 5 * K).toFixed(1)}" y="${(boxY + 5 * K).toFixed(1)}" width="${(boxW - 10 * K).toFixed(1)}"`
+      +  ` height="${(boxH - 10 * K).toFixed(1)}" rx="${SK.rx}" fill="none" stroke="${acc}" stroke-width="${(3 * K).toFixed(1)}" opacity="0.9"/>`
+      +  `<rect x="${(boxX + 12 * K).toFixed(1)}" y="${(boxY + 12 * K).toFixed(1)}" width="${(boxW - 24 * K).toFixed(1)}"`
+      +  ` height="${(boxH - 24 * K).toFixed(1)}" rx="${SK.rx}" fill="none" stroke="#ffffff" stroke-width="${(1.5 * K).toFixed(1)}" opacity="0.32"/>`;
+  } else if (sk === 'gal') {
+    s += `<rect x="${boxX}" y="${boxY.toFixed(1)}" width="${boxW}" height="${boxH.toFixed(1)}" rx="${SK.rx}"`
+      +  ` fill="${boxBase}" opacity="${SK.boxOp}"/>`
+      +  `<rect x="${boxX}" y="${boxY.toFixed(1)}" width="${boxW}" height="${boxH.toFixed(1)}" rx="${SK.rx}"`
+      +  ` fill="none" stroke="${acc}" stroke-width="${(2 * K).toFixed(1)}" opacity="0.5"/>`;
+  } else {
+    s += `<rect x="0" y="${boxY.toFixed(1)}" width="${W}" height="${(boxH + SK.mgn).toFixed(1)}"`
+      +  ` fill="${boxBase}" opacity="${SK.boxOp}"/>`;
+  }
+
+  // ── 얼굴칩 ──
+  const textX0 = boxX + SK.pad + chipW + chipGap;
+  if (faceOn) {
+    const cx0 = boxX + SK.pad, cy0 = boxY + SK.pad + (sk === 'mod' ? 0 : nameH * 0.15);
+    const cs = SK.chip;
+    if (chipURI) {
+      const ox = cx0 + fax * cs, oy = cy0 + fay * cs;
+      const tf = fzoom > 1
+        ? ` transform="translate(${ox.toFixed(1)},${oy.toFixed(1)}) scale(${fzoom}) translate(${(-ox).toFixed(1)},${(-oy).toFixed(1)})"` : '';
+      const rr = sk === 'mod' ? cs / 2 : 8 * K;
+      s += `<clipPath id="fc${U}"><rect x="${cx0.toFixed(1)}" y="${cy0.toFixed(1)}" width="${cs.toFixed(1)}"`
+        +  ` height="${cs.toFixed(1)}" rx="${rr.toFixed(1)}"/></clipPath>`
+        +  `<g clip-path="url(#fc${U})"><g${tf}><image x="${cx0.toFixed(1)}" y="${cy0.toFixed(1)}"`
+        +  ` width="${cs.toFixed(1)}" height="${cs.toFixed(1)}" preserveAspectRatio="${fpar} slice"`
+        +  ` href="${chipURI}" xlink:href="${chipURI}"/></g></g>`
+        +  `<rect x="${cx0.toFixed(1)}" y="${cy0.toFixed(1)}" width="${cs.toFixed(1)}" height="${cs.toFixed(1)}"`
+        +  ` rx="${rr.toFixed(1)}" fill="none" stroke="${acc}" stroke-width="${(2.5 * K).toFixed(1)}" opacity="0.85"/>`;
+    }
+  }
+
+  // ── 이름표 ──
+  if (nm) {
+    if (sk === 'gal') {
+      // 박스 위에 걸치는 라벨
+      const tw = lineW(nm) * SK.nameFs + 44 * K;
+      const ly = boxY - SK.nameFs * 0.95;
+      s += `<rect x="${(boxX + 26 * K).toFixed(1)}" y="${ly.toFixed(1)}" width="${tw.toFixed(1)}"`
+        +  ` height="${(SK.nameFs * 1.9).toFixed(1)}" rx="${(SK.nameFs * 0.95).toFixed(1)}" fill="${acc}"/>`
+        +  `<text x="${(boxX + 26 * K + tw / 2).toFixed(1)}" y="${(ly + SK.nameFs * 1.32).toFixed(1)}"`
+        +  ` text-anchor="middle" font-family="${FF}" font-size="${SK.nameFs.toFixed(1)}" font-weight="700"`
+        +  ` fill="${lumaOf(acc) > 0.45 ? '#1a1020' : '#ffffff'}">${nm}</text>`;
+    } else if (sk === 'rm') {
+      s += `<text x="${textX0.toFixed(1)}" y="${(boxY + SK.pad + SK.nameFs).toFixed(1)}" font-family="${FF}"`
+        +  ` font-size="${SK.nameFs.toFixed(1)}" font-weight="700" fill="${acc}">${nm}</text>`;
+    } else {
+      s += `<text x="${textX0.toFixed(1)}" y="${(boxY + SK.pad + SK.nameFs).toFixed(1)}" font-family="${FF}"`
+        +  ` font-size="${SK.nameFs.toFixed(1)}" fill="${acc}" letter-spacing="${(2 * K).toFixed(1)}">${nm}</text>`;
+    }
+  }
+
+  // ── 대사 본문 ──
+  let ty = boxY + SK.pad + nameH + SK.fs * 0.86;
+  for (const ln of lines) {
+    if (ln !== '') {
+      s += `<text x="${textX0.toFixed(1)}" y="${ty.toFixed(1)}" font-family="${FF}" font-size="${SK.fs.toFixed(1)}"`
+        +  ` fill="${ui}">${esc(ln)}</text>`;
+    }
+    ty += lineH;
+  }
+
+  // ── 계속 표시 ▼ ──
+  if (nx) {
+    const dx = boxX + boxW - SK.pad * 0.8, dy = boxY + boxH - SK.pad * 0.55;
+    s += `<path d="M${(dx - 15 * K).toFixed(1)} ${(dy - 9 * K).toFixed(1)} L${dx.toFixed(1)} ${(dy + 6 * K).toFixed(1)}`
+      +  ` L${(dx + 15 * K).toFixed(1)} ${(dy - 9 * K).toFixed(1)} Z" fill="${acc}">`
+      +  `<animate attributeName="opacity" values="1;0.15;1" dur="1.3s" repeatCount="indefinite"/>`
+      +  `<animateTransform attributeName="transform" type="translate" values="0 0;0 ${(7 * K).toFixed(1)};0 0"`
+      +  ` dur="1.3s" repeatCount="indefinite"/></path>`;
+  }
+
+  return s + `</svg>`;
+}
+
 // ══════════════════════════════════════════════════════════════
 // 라우팅
 // ══════════════════════════════════════════════════════════════
@@ -1459,6 +1744,7 @@ const RENDERERS = {
   'rec': renderRec,
   'pol': renderPol,
   'cctv': renderCctv,
+  'talk': renderTalk,
 };
 
 function indexPage() {
@@ -1494,7 +1780,7 @@ export default {
 
     const { uri, dim, err } = await loadImg(params.get('img'));
     const fontCss = await loadFonts(params, t);
-    const svg = renderer(params, uri, oriOf(dim), err ? ERR_MSG[err] : null, fontCss);
+    const svg = await renderer(params, uri, oriOf(dim), err ? ERR_MSG[err] : null, fontCss);
 
     return new Response(svg, {
       headers: {

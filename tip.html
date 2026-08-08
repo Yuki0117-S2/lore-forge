@@ -3140,7 +3140,7 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
     ]
   },
   {
-    id:'cat-p', icon:'📷', title:'이미지 위젯 UI', sub:'p.winter0.workers.dev — 실사 이미지 인라인 · 스마트폰 카메라 · 캠코더 · 폴라로이드 · 감시카메라',
+    id:'cat-p', icon:'📷', title:'이미지 위젯 UI', sub:'p.winter0.workers.dev — 실사 이미지 인라인 · 스마트폰 카메라 · 캠코더 · 폴라로이드 · 감시카메라 · 대사창',
     items:[
       {
         id:'t-p-0', title:'📷 스마트폰 카메라 (cam)',
@@ -3312,6 +3312,49 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
 - URL은 절대 줄바꿈하지 않는다</pre>`
       },
       {
+        id:'t-p-0e', title:'💬 대사창 (talk)',
+        body:`<div class="label label-use">URL 파라미터 형식</div>
+<pre>/?t=talk&img=이미지URL&o=sq|p|l&cr=앵커[§줌]&sk=gal|rm|mod&nm=이름&say=대사&ft=serif|sans|hand&fc=얼굴칩URL&fcr=앵커[§줌]&face=1|0&th=[§창색][§강조색]&ex=1|0&nx=0</pre>
+<hr class="divider">
+<div class="label label-example">예시 — 미연시 (기본)</div>
+<pre>/?t=talk&nm=유리&say=…그래서,+아직도+여기+남아+있는+거야?&img=https://img.wintercards.com/O/A/4.webp</pre>
+<div class="label label-example">예시 — 쯔꾸르 창 + 얼굴칩 (표정 분리)</div>
+<pre>/?t=talk&sk=rm&nm=유리&fc=https://img.wintercards.com/O/A/평온.webp&say=…아무것도+아니야&img=https://img.wintercards.com/O/A/우는얼굴.webp</pre>
+<div class="label label-example">예시 — 쯔꾸르 창 색 바꾸기 (핏빛)</div>
+<pre>/?t=talk&sk=rm&nm=???&th=§7A1E2E§CCAA88&say=거기서+뭘+본+거지?&img=https://img.wintercards.com/O/A/4.webp</pre>
+<div class="label label-example">예시 — 모던 자막 + 손글씨</div>
+<pre>/?t=talk&sk=mod&ft=hand&nm=유리&say=미안해.+마지막+편지야.&img=https://img.wintercards.com/O/A/4.webp</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명:</strong><br>
+• <strong>img</strong> — 화면 전체에 깔리는 이미지 (필수). 방향 자동 판별 · <strong>cr</strong> 크롭 앵커<code>[§줌]</code> 동일 규약<br>
+• <strong>sk</strong> — 대사창 껍데기: <code>gal</code> 미연시(기본, 반투명 라운드 + 이름표가 창 위에 걸침) / <code>rm</code> 쯔꾸르(그라디언트 창 + 이중 테두리) / <code>mod</code> 모던(테두리 없는 하단 자막 바)<br>
+• <strong>nm</strong> — 이름 · <strong>say</strong> — 대사 (최대 400자, <code>%0A</code>로 강제 개행)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;줄바꿈은 <strong>어절 단위</strong>로 끊긴다 (띄어쓰기 없는 일본어·중국어는 글자 단위로 자동 전환)<br>
+• <strong>ft</strong> — <code>serif</code> 명조(기본) / <code>sans</code> 고딕 / <code>hand</code> 손글씨<br>
+&nbsp;&nbsp;&nbsp;&nbsp;serif·sans는 기기 폰트라 용량 0. <strong>hand는 한글일 때 폰트 571KB가 인라인</strong>되므로 편지·일기·유서처럼 손글씨가 의미를 갖는 장면에만<br>
+• <strong>fc</strong> — 얼굴칩 전용 이미지. <strong>주면 얼굴칩이 자동으로 켜진다</strong> (생략 시 기본은 꺼짐)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;화면은 우는 얼굴인데 칩은 평소 표정 — 이런 <strong>표정 분리 연출</strong>이 가능하다<br>
+• <strong>face=1</strong> — fc 없이 칩만 켜기 (img를 위쪽 크롭해서 사용) · <strong>face=0</strong> — 강제로 끄기<br>
+• <strong>fcr</strong> — 얼굴칩 전용 크롭 <code>앵커[§줌]</code> (기본 t = 위쪽). 화면의 cr과 독립적으로 동작<br>
+• <strong>ex</strong> — 대사창은 이미지 <strong>위에 얹히는 것이 기본</strong>이고, 창이 화면의 45%를 넘으면 그만큼 캔버스가 아래로 늘어난다. <code>ex=1</code> 항상 확장 / <code>ex=0</code> 절대 확장 안 함(잘려도 유지)<br>
+• <strong>nx=0</strong> — 우하단 ▼ (계속 표시) 숨김</div>
+<hr class="divider">
+<div class="label label-use">🎨 테마 색상 (선택) — &th= (3필드 위치규칙)</div>
+<pre>&th=§창색§강조색
+1번 스타일 자리는 talk에서 사용하지 않는다 (비워둘 것)
+2번 창색   — gal 박스 / rm 창 그라디언트 기준색 / mod 하단 바
+3번 강조색 — gal 이름표 배경 / rm 테두리·이름 / mod 이름·▼
+기본값: gal #0b0a14 · rm #1d3a7a · mod #000000 / 강조 #DDAACC (rm은 #CCAA88)
+프리셋: pink / indigo / gold / rose (한글도 가능)</pre>
+<hr class="divider">
+<div class="label label-use">⚠️ 주의</div>
+<pre>- 창색을 밝게 주면 본문 글자가 자동으로 어두워지고 창 불투명도도 올라간다
+- 줄바꿈은 서버가 글자 폭을 추정해서 자른다 — 기기 폰트에 따라 한 줄 글자 수가 달라질 수 있다
+- 얼굴칩(fc)은 이미지를 한 장 더 받으므로 응답이 그만큼 무거워진다
+- fc 로딩에 실패하면 조용히 img를 크롭해 대신 쓴다
+- URL은 절대 줄바꿈하지 않는다</pre>`
+      },
+      {
         id:'t-p-1', title:'바베챗 프롬프트 (복사용)',
         body:`<div class="label label-use">캐릭터 상세설정에 붙여넣기</div>
 <div class="desc">아래 전체를 프롬프트에 삽입하면 AI가 장면에 맞는 카메라 UI를 자동 생성합니다. 도메인은 <strong>p.winter0.workers.dev</strong></div>
@@ -3371,6 +3414,18 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
 - rec=0 재생중 / sp=x2 배속 / hdd=OVERWRITE 저장장치 상태
 - say= 하단 자막 / fx=0 = 노이즈 없는 깨끗한 화면 (최신 IP카메라)
 - 예: ![](https://p.winter0.workers.dev/?t=cctv&tone=ir&mot=57§43§12§25&ts=tl&cp=br&ch=CAM+02§비상계단&date=2019-02-07&dw=1&tc=05:37:27&run=1&hdd=OVERWRITE&img=https://img.wintercards.com/O/A/4.webp)
+
+### 대사창 (미연시 · 쯔꾸르 · 자막)
+![](https://p.winter0.workers.dev/?t=talk&img=이미지URL&nm=이름&say=대사)
+- img= 화면 전체에 깔릴 이미지 — 지금 장면·표정에 맞는 것 (필수) / 방향 자동 판별
+- nm= 말하는 사람 이름 / say= 대사 (공백은 +, 줄바꿈은 %0A, 최대 400자)
+- sk= gal 미연시(기본) / rm 쯔꾸르 창 / mod 테두리 없는 자막 — 장면 분위기에 맞게 고른다
+- ft= serif 명조(기본) / sans 고딕 / hand 손글씨 — hand는 편지·일기·유서처럼 특별한 장면에만
+- fc= 얼굴칩에 쓸 별도 이미지. 주면 자동으로 칩이 켜진다
+  → 화면은 우는 얼굴, 칩은 평소 표정처럼 어긋나게 쓰면 연출이 된다
+- th=§창색§강조색 으로 대사창 색을 바꾼다 (예: th=§7A1E2E§CCAA88 핏빛)
+- 대사가 길면 창이 알아서 커지고, 화면의 45%를 넘으면 캔버스가 아래로 늘어난다
+- 예: ![](https://p.winter0.workers.dev/?t=talk&sk=rm&nm=유리&th=§7A1E2E§CCAA88&fc=https://img.wintercards.com/O/A/평온.webp&say=…아무것도+아니야.+정말로.&img=https://img.wintercards.com/O/A/4.webp)
 
 ### 공통 규칙
 - 필드 구분자: § / 아이템 구분자: |

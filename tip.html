@@ -3140,7 +3140,7 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
     ]
   },
   {
-    id:'cat-p', icon:'📷', title:'이미지 위젯 UI', sub:'p.winter0.workers.dev — 실사 이미지 인라인 · 스마트폰 카메라 · 캠코더 · 폴라로이드 · 감시카메라 · 대사창 · 초상 상태창 · 신분증',
+    id:'cat-p', icon:'📷', title:'이미지 위젯 UI', sub:'p.winter0.workers.dev — 실사 이미지 인라인 · 스마트폰 카메라 · 캠코더 · 폴라로이드 · 감시카메라 · 대사창 · 초상 상태창 · 신분증 · 액자',
     items:[
       {
         id:'t-p-0', title:'📷 스마트폰 카메라 (cam)',
@@ -3464,6 +3464,56 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
 - URL은 절대 줄바꿈하지 않는다</pre>`
       },
       {
+        id:'t-p-0h', title:'🖼️ 액자 (frame)',
+        body:`<div class=\"label label-use\">URL 파라미터 형식</div>
+<pre>/?t=frame&img=이미지URL&fr=wood|gold|black|white|ornate&mat=매트폭[§매트색]&wall=plain|paper|dark|rose|brick&hang=wire|nail|stand|0&ti=제목&by=작가&yr=연도&plq=0&lit=1&glass=1&tilt=각도&cr=앵커[§줌]&fx=vintage|fade&th=[§벽색][§명판색]&o=l|p|sq</pre>
+<hr class=\"divider\">
+<div class=\"label label-example\">예시 — 미술관 (금테 + 조명 + 명판)</div>
+<pre>/?t=frame&fr=gold&mat=0.09&wall=dark&lit=1&glass=1&ti=겨울의+초상&by=작자미상&yr=1897&img=https://img.wintercards.com/O/A/4.webp</pre>
+<div class=\"label label-example\">예시 — 거실 벽 (원목 + 벽지)</div>
+<pre>/?t=frame&fr=wood&mat=0.06&wall=paper&glass=1&tilt=-2&img=https://img.wintercards.com/O/A/4.webp</pre>
+<div class=\"label label-example\">예시 — 탁상 세움 액자</div>
+<pre>/?t=frame&fr=white&mat=0.08&hang=stand&wall=paper&glass=1&ti=겨울&img=https://img.wintercards.com/O/A/4.webp</pre>
+<div class=\"label label-example\">예시 — 벽돌벽 갤러리 (무광 검정)</div>
+<pre>/?t=frame&fr=black&mat=0.07&wall=brick&hang=nail&glass=1&ti=UNTITLED&by=W.+1998&img=https://img.wintercards.com/O/A/4.webp</pre>
+<div class=\"label label-example\">예시 — 낡은 저택 초상화 (앤티크 조각 + 색바램)</div>
+<pre>/?t=frame&fr=ornate&mat=0.05&wall=rose&lit=1&fx=vintage&ti=성녀의+밤&by=W.&yr=MDCCCXCII&img=https://img.wintercards.com/O/A/4.webp</pre>
+<hr class=\"divider\">
+<div class=\"desc\"><strong>파라미터 설명:</strong><br>
+• <strong>img</strong> — 액자에 걸릴 그림·사진 (필수) · <strong>cr</strong> 크롭 <code>앵커[§줌]</code>, 기본 <code>c</code> 가운데<br>
+• <strong>o</strong> — <code>l</code> 가로 / <code>p</code> 세로 / <code>sq</code> 정사각. 생략하면 이미지에서 자동 판별<br>
+• <strong>fr</strong> — 프레임 재질. 4변 마이터 조인 몰딩으로 그린다<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<code>wood</code> 원목(기본, 나뭇결) / <code>gold</code> 금테(구슬선) / <code>black</code> 무광 검정<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<code>white</code> 모던 화이트 / <code>ornate</code> 앤티크 조각(코너 아라베스크)<br>
+• <strong>mat</strong> — 매트지 폭 비율 <code>0~0.2</code> (기본 <code>0.075</code>), <code>mat=0</code> 이면 매트 없음<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<code>mat=0.09§F4F0E8</code> 처럼 <code>§</code> 뒤에 매트 색을 줄 수 있다 (헥스 또는 프리셋)<br>
+• <strong>ti / by / yr</strong> — 황동 명판. 하나라도 주면 <strong>하단 몰딩이 굵어지고</strong> 명판이 붙는다<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<code>plq=0</code> 이면 값이 있어도 명판을 그리지 않는다<br>
+• <strong>wall</strong> — 배경 벽. <code>plain</code> 단색(기본) / <code>paper</code> 밝은 벽지 / <code>dark</code> 어두운 전시실 / <code>rose</code> 자줏빛 / <code>brick</code> 벽돌<br>
+• <strong>hang</strong> — 설치 방식<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<code>wire</code> 못 + 걸이줄(기본) / <code>nail</code> 못만 / <code>0</code> 걸이 없음<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<code>stand</code> <strong>탁상 세움</strong> — 벽 대신 원목 상판에 세워지고, 뒤 이젤 다리와 접지 그림자가 붙는다<br>
+• <strong>lit=1</strong> — 위에서 떨어지는 스포트라이트 + 주변 감광 (미술관·전시실)<br>
+• <strong>glass=1</strong> — 유리 대각 반사. 액자에 유리가 끼워진 느낌<br>
+• <strong>tilt</strong> — <code>-8~8</code> 기울기. 기본 <code>0</code> (반듯하게 걸림)<br>
+• <strong>fx</strong> — <code>vintage</code> 노란 색바램 / <code>fade</code> 빛바램 — 오래된 초상화에</div>
+<hr class=\"divider\">
+<div class=\"label label-use\">🎨 테마 색상 (선택) — &th= (3필드 위치규칙)</div>
+<pre>&th=§벽색§명판색
+1번 스타일 자리는 frame에서 사용하지 않는다 (비워둘 것)
+2번 벽색 — wall= 프리셋을 덮어쓴다 (단색으로 바뀐다)
+3번 명판색 — 황동 명판 바탕색 (기본 #CCAA88)
+프리셋: pink / indigo / gold / rose (한글도 가능)</pre>
+<hr class=\"divider\">
+<div class=\"label label-use\">⚠️ 주의</div>
+<pre>- hang=stand 일 때 못·걸이줄은 자동으로 사라진다 (같이 그려지지 않는다)
+- 상판은 원목 고정이다. 벽 아래쪽이 자동으로 어두워져 상판과 경계가 생긴다
+- wall=brick 은 반복 패턴이므로 캔버스가 커지면 벽돌 수가 늘어난다
+- 명판 글자는 길수록 작아진다 — 제목 30자 / 작가 24자 / 연도 16자에서 잘린다
+- fr=ornate 는 몰딩이 두꺼워져 전체 캔버스가 커진다
+- URL은 절대 줄바꿈하지 않는다</pre>`
+      },
+      {
         id:'t-p-1', title:'바베챗 프롬프트 (복사용)',
         body:`<div class="label label-use">캐릭터 상세설정에 붙여넣기</div>
 <div class="desc">아래 전체를 프롬프트에 삽입하면 AI가 장면에 맞는 카메라 UI를 자동 생성합니다. 도메인은 <strong>p.winter0.workers.dev</strong></div>
@@ -3568,6 +3618,21 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
 - ft= serif 명조(기본) / sans 고딕 / hand 손글씨
 - o=l 가로 / o=p 세로 로 방향을 강제할 수 있다 (기본은 스킨이 정한다)
 - 예: ![](https://p.winter0.workers.dev/?t=id&ti=제국+시민+등록증&nm=세라피나&sb=제7기사단+·+서약기사&no=IMP-4471-0092&exp=1899.12.31&seal=濟&sig=1&cr=t&fd=등급§S|소속§제7기사단|혈액형§AB+Rh-|등록지§왕도+아르셀&img=https://img.wintercards.com/O/A/4.webp)
+
+### 액자 (그림 · 초상화 · 전시 · 탁상 사진)
+![](https://p.winter0.workers.dev/?t=frame&img=이미지URL&fr=wood&wall=paper&glass=1)
+- img= 액자에 걸릴 그림·사진 (필수) / 방향 자동 판별
+- fr= wood 원목(기본) / gold 금테 / black 무광검정 / white 모던 / ornate 앤티크 조각
+- wall= plain 단색(기본) / paper 밝은 벽지 / dark 어두운 전시실 / rose 자줏빛 / brick 벽돌
+- ti= 제목 / by= 작가 / yr= 연도 — 하나라도 주면 하단에 황동 명판이 붙는다
+- hang= wire 걸이줄(기본) / nail 못만 / stand 탁상 세움(원목 상판 + 이젤 다리) / 0 없음
+- lit=1 위에서 떨어지는 스포트라이트 — 미술관·전시실 장면에
+- glass=1 유리 반사 / mat=0.09 매트지를 넓히면 갤러리 느낌이 강해진다 (mat=0 없음)
+- fx= vintage 노란 색바램 / fade 빛바램 — 낡은 저택의 초상화에
+- tilt=-2 처럼 살짝 기울이면 오래 걸려 있던 느낌
+- 방향은 이미지에서 자동 판별 — o=sq/p/l 로 강제 가능, cr=t 로 위쪽 크롭(얼굴 보존)
+- th=§벽색§명판색 으로 벽·명판 색을 바꾼다 / plq=0 이면 제목이 있어도 명판을 숨긴다
+- 예: ![](https://p.winter0.workers.dev/?t=frame&fr=ornate&mat=0.05&wall=rose&lit=1&fx=vintage&ti=성녀의+밤&by=W.&yr=MDCCCXCII&img=https://img.wintercards.com/O/A/4.webp)
 
 ### 공통 규칙
 - 필드 구분자: § / 아이템 구분자: | / (char 한정) 인물 구분자: ||

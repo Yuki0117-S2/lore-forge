@@ -1076,6 +1076,340 @@ function renderPol(params, dataURI, autoOri, errMsg, fontCss) {
 }
 
 // ══════════════════════════════════════════════════════════════
+// frame — 액자 (벽걸이 / 탁상 세움)
+//   동기 렌더러. 부가 이미지·폰트 로드 없음 → 라우팅 상단 loadImg 결과를 그대로 받는다.
+// ══════════════════════════════════════════════════════════════
+const FR_TH = {
+  wood:  { a: '#8a6a4a', b: '#6a4e34', hi: '#c9a982', lo: '#3d2b1c', lip: '#2a1d12', grain: 1 },
+  gold:  { a: '#CCAA88', b: '#a8814f', hi: '#f4e0be', lo: '#6b4d28', lip: '#5c421f', bead: 1 },
+  black: { a: '#2a2730', b: '#17151d', hi: '#4b4756', lo: '#0a090d', lip: '#000000' },
+  white: { a: '#f4f1ec', b: '#ddd7cf', hi: '#ffffff', lo: '#b3aba1', lip: '#a49b90' },
+  ornate:{ a: '#CCAA88', b: '#9c7745', hi: '#f7e6c6', lo: '#5f4321', lip: '#4e3718', bead: 1, orn: 1 },
+};
+
+const FR_WALL = {
+  plain: { a: '#3a3441', b: '#241f2b' },
+  paper: { a: '#e8e0d4', b: '#cdc2b2' },
+  dark:  { a: '#1a1720', b: '#0c0a11' },
+  rose:  { a: '#5a3a48', b: '#38222c' },
+  brick: { a: '#7a4b52', b: '#4e2f36', brick: 1 },
+};
+
+// 상판(stand 전용) — 원목 고정
+//   wallSh: 벽 하단 감광. 이게 없으면 어두운 벽에서 상판과 명도가 붙어 경계가 사라진다
+const FR_DESK = { g: ['#8a6a4a', '#6a4e34', '#4a3524'], edge: '#d8c2a0', eo: 0.55, gloss: 0.06, refl: 0.06, wallSh: 0.30 };
+
+function frTheme(params) {
+  const f = (params.get('th') || '').split('\u00a7');
+  const wk = (f[1] || '').trim().toLowerCase();
+  const wall = { ...(FR_WALL[(params.get('wall') || 'plain').trim().toLowerCase()] || FR_WALL.plain) };
+  if (wk) { const c = camHex(wk) || CAM_PRESETS[wk]; if (c) { wall.a = c; wall.b = c; } }
+  let acc = '#CCAA88';
+  const ak = (f[2] || '').trim().toLowerCase();
+  if (ak) acc = camHex(ak) || CAM_PRESETS[ak] || acc;
+  return { wall, acc };
+}
+
+function renderFrame(params, dataURI, autoOri, errMsg) {
+  const U = camUid(params);
+  const oRaw = (params.get('o') || '').trim().toLowerCase();
+  const ori = CAM_IMG[oRaw] ? oRaw : (CAM_IMG[autoOri] ? autoOri : 'sq');
+  const [IW, IH] = CAM_IMG[ori];
+  const S = Math.min(IW, IH);
+
+  const frKey = (params.get('fr') || 'wood').trim().toLowerCase();
+  const F = FR_TH[frKey] || FR_TH.wood;
+  const { wall, acc } = frTheme(params);
+
+  // 매트지
+  const mf = (params.get('mat') || '').split('\u00a7');
+  let matR = mf[0] === undefined || mf[0].trim() === '' ? 0.075 : parseFloat(mf[0]);
+  if (!(matR >= 0 && matR <= 0.2)) matR = 0.075;
+  let matC = '#efe8dc';
+  if (mf[1] && mf[1].trim()) {
+    const g = mf[1].trim().toLowerCase();
+    matC = camHex(g) || CAM_PRESETS[g] || matC;
+  }
+  const mw = Math.round(S * matR);
+
+  const ti = esc((params.get('ti') || '').trim()).slice(0, 30);
+  const by = esc((params.get('by') || '').trim()).slice(0, 24);
+  const yr = esc((params.get('yr') || '').trim()).slice(0, 16);
+  const plq = (params.get('plq') || '').trim() !== '0' && !!(ti || by || yr);
+
+  const lit = (params.get('lit') || '').trim() === '1';
+  const glass = (params.get('glass') || '').trim() === '1';
+  const hang = (params.get('hang') || 'wire').trim().toLowerCase();
+  const fx = (params.get('fx') || '').trim().toLowerCase();
+  const hasFx = fx === 'vintage' || fx === 'fade';
+
+  let tilt = parseFloat(params.get('tilt'));
+  if (!(tilt >= -8 && tilt <= 8)) tilt = 0;
+
+  const cf = (params.get('cr') || 'c').split('\u00a7');
+  const [par, ax, ay] = CAM_ANCHOR[(cf[0] || 'c').trim().toLowerCase()] || CAM_ANCHOR.c;
+  let zoom = parseFloat(cf[1]);
+  if (!(zoom >= 1 && zoom <= 4)) zoom = 1;
+
+  // ── 치수 ──
+  const fw = Math.round(S * (F.orn ? 0.085 : 0.062));   // 프레임 두께
+  const fb = plq ? Math.round(fw * 1.75) : fw;          // 명판 있으면 하단 굵게
+  const lip = Math.max(4, Math.round(fw * 0.13));       // 안쪽 립
+  const stand = hang === 'stand';
+  const D = FR_DESK;
+  const wp = Math.round(S * (hang === 'wire' ? 0.16 : 0.11));  // 좌우 여백
+  const wpT = hang === 'wire' ? Math.round(S * 0.24) : (stand ? Math.round(S * 0.13) : wp);
+  const wpB = stand ? Math.round(S * 0.20) : wp;
+
+  const FX0 = wp, FY0 = wpT;
+  const FW = IW + (mw + fw) * 2;
+  const FH = IH + mw * 2 + fw + fb;
+  const W = FW + wp * 2, H = FH + wpT + wpB;
+  const deskY = FY0 + FH;
+  const ix = FX0 + fw + mw, iy = FY0 + fw + mw;
+
+  let s = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"`
+        + ` width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">`;
+
+  // ── defs ──
+  s += `<defs>`;
+  s += `<linearGradient id="wl${U}" x1="0" y1="0" x2="0" y2="1">`
+     + `<stop offset="0" stop-color="${wall.a}"/><stop offset="1" stop-color="${wall.b}"/></linearGradient>`;
+  if (wall.brick) {
+    const bw = Math.round(S * 0.20), bh = Math.round(S * 0.075), mo = Math.max(3, Math.round(S * 0.007));
+    s += `<pattern id="bk${U}" width="${bw}" height="${bh * 2}" patternUnits="userSpaceOnUse">`
+       + `<rect width="${bw}" height="${bh * 2}" fill="#b6a494" opacity="0.55"/>`
+       + `<rect x="0" y="0" width="${bw - mo}" height="${bh - mo}" rx="2" fill="#000" opacity="0.16"/>`
+       + `<rect x="${-bw / 2}" y="${bh}" width="${bw - mo}" height="${bh - mo}" rx="2" fill="#000" opacity="0.16"/>`
+       + `<rect x="${bw / 2}" y="${bh}" width="${bw - mo}" height="${bh - mo}" rx="2" fill="#000" opacity="0.16"/>`
+       + `</pattern>`;
+  }
+  if (stand) {
+    s += `<linearGradient id="dk${U}" x1="0" y1="0" x2="0" y2="1">`
+       + `<stop offset="0" stop-color="${D.g[0]}"/><stop offset="0.5" stop-color="${D.g[1]}"/>`
+       + `<stop offset="1" stop-color="${D.g[2]}"/></linearGradient>`
+       + `<linearGradient id="ws${U}" x1="0" y1="0" x2="0" y2="1">`
+       + `<stop offset="0" stop-color="#000" stop-opacity="0"/>`
+       + `<stop offset="1" stop-color="#000" stop-opacity="${D.wallSh}"/></linearGradient>`
+       + `<linearGradient id="ds${U}" x1="0" y1="0" x2="0" y2="1">`
+       + `<stop offset="0" stop-color="#000000" stop-opacity="0.55"/>`
+       + `<stop offset="1" stop-color="#000000" stop-opacity="0"/></linearGradient>`;
+  }
+  // 몰딩 4변 — 광원 좌상단
+  const G = (id, x1, y1, x2, y2, c1, c2, c3) =>
+    `<linearGradient id="${id}${U}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}">`
+    + `<stop offset="0" stop-color="${c1}"/><stop offset="0.45" stop-color="${c2}"/>`
+    + `<stop offset="1" stop-color="${c3}"/></linearGradient>`;
+  s += G('rT', 0, 0, 0, 1, F.hi, F.a, F.b);
+  s += G('rB', 0, 0, 0, 1, F.b, F.lo, F.a);
+  s += G('rL', 0, 0, 1, 0, F.hi, F.a, F.b);
+  s += G('rR', 0, 0, 1, 0, F.b, F.lo, F.a);
+  if (F.grain) {
+    s += `<filter id="gr${U}" x="0" y="0" width="100%" height="100%">`
+       + `<feTurbulence type="fractalNoise" baseFrequency="0.9 0.014" numOctaves="3" seed="7"/>`
+       + `<feColorMatrix type="matrix" values="0 0 0 0 0.13 0 0 0 0 0.09 0 0 0 0 0.05 0 0 0 0.30 0"/>`
+       + `</filter>`;
+  }
+  s += `<filter id="sh${U}" x="-25%" y="-25%" width="150%" height="150%">`
+     + `<feDropShadow dx="0" dy="${Math.round(S * 0.018)}" stdDeviation="${Math.round(S * 0.020)}"`
+     + ` flood-color="#000" flood-opacity="0.55"/></filter>`;
+  if (lit) {
+    s += `<radialGradient id="lt${U}" cx="0.5" cy="0.06" r="0.85">`
+       + `<stop offset="0" stop-color="#fff6e2" stop-opacity="0.30"/>`
+       + `<stop offset="0.45" stop-color="#fff6e2" stop-opacity="0.10"/>`
+       + `<stop offset="1" stop-color="#000000" stop-opacity="0.42"/></radialGradient>`;
+  }
+  if (glass) {
+    s += `<linearGradient id="gl${U}" x1="0" y1="0" x2="1" y2="1">`
+       + `<stop offset="0" stop-color="#ffffff" stop-opacity="0.16"/>`
+       + `<stop offset="0.30" stop-color="#ffffff" stop-opacity="0.05"/>`
+       + `<stop offset="0.31" stop-color="#ffffff" stop-opacity="0.13"/>`
+       + `<stop offset="0.44" stop-color="#ffffff" stop-opacity="0.02"/>`
+       + `<stop offset="1" stop-color="#ffffff" stop-opacity="0.07"/></linearGradient>`;
+  }
+  if (hasFx) {
+    if (fx === 'vintage') {
+      s += `<filter id="fx${U}"><feColorMatrix type="matrix" values="`
+         + `0.92 0.10 0.02 0 0.04  0.05 0.86 0.06 0 0.03  0.03 0.08 0.74 0 0.05  0 0 0 1 0"/></filter>`;
+    } else {
+      s += `<filter id="fx${U}"><feColorMatrix type="saturate" values="0.55"/></filter>`;
+    }
+  }
+  s += `<clipPath id="cv${U}"><rect x="${ix}" y="${iy}" width="${IW}" height="${IH}"/></clipPath>`;
+  s += `</defs>`;
+
+  // ── 벽 ──
+  s += `<rect width="${W}" height="${H}" fill="url(#wl${U})"/>`;
+  if (wall.brick) s += `<rect width="${W}" height="${H}" fill="url(#bk${U})"/>`;
+
+  // ── 탁상: 상판 + 접지 그림자 + 이젤 다리 ──
+  if (stand) {
+    const hl = Math.max(2, Math.round(S * 0.004));
+    // 벽 아래쪽 감광 — 상판과의 경계를 명도차로 확실히 벌린다
+    s += `<rect x="0" y="${(deskY - S * 0.16).toFixed(1)}" width="${W}" height="${(S * 0.16).toFixed(1)}" fill="url(#ws${U})"/>`
+       + `<rect x="0" y="${deskY}" width="${W}" height="${H - deskY}" fill="url(#dk${U})"/>`
+       + `<rect x="0" y="${deskY}" width="${W}" height="${hl}" fill="${D.edge}" opacity="${D.eo}"/>`;
+    if (D.gloss) s += `<rect x="0" y="${deskY + hl}" width="${W}" height="${(S * 0.055).toFixed(1)}" fill="#ffffff" opacity="${D.gloss}"/>`;
+    // 이젤 다리 (액자 뒤에서 우측으로 삐져나옴)
+    const lgT = FX0 + FW * 0.86, lgB = FX0 + FW * 1.04;
+    s += `<path d="M${lgT.toFixed(1)} ${(FY0 + FH * 0.32).toFixed(1)} L${(lgT + FW * 0.10).toFixed(1)} ${(FY0 + FH * 0.30).toFixed(1)}`
+       + ` L${(lgB + FW * 0.09).toFixed(1)} ${deskY} L${lgB.toFixed(1)} ${deskY} Z"`
+       + ` fill="${F.b}" opacity="0.92"/>`
+       + `<path d="M${lgT.toFixed(1)} ${(FY0 + FH * 0.32).toFixed(1)} L${(lgT + FW * 0.04).toFixed(1)} ${(FY0 + FH * 0.315).toFixed(1)}`
+       + ` L${(lgB + FW * 0.035).toFixed(1)} ${deskY} L${lgB.toFixed(1)} ${deskY} Z"`
+       + ` fill="${F.hi}" opacity="0.25"/>`;
+    // 접지 그림자
+    s += `<ellipse cx="${(W / 2).toFixed(1)}" cy="${(deskY + S * 0.014).toFixed(1)}"`
+       + ` rx="${(FW * 0.60).toFixed(1)}" ry="${(S * 0.050).toFixed(1)}" fill="#000" opacity="0.70"/>`
+       + `<rect x="${FX0}" y="${deskY}" width="${FW}" height="${(S * 0.10).toFixed(1)}" fill="url(#ds${U})"/>`
+       // 액자 하단 반사 (광택 상판)
+       + (D.refl ? `<rect x="${FX0}" y="${deskY}" width="${FW}" height="${(S * 0.095).toFixed(1)}"`
+       + ` fill="${F.a}" opacity="${D.refl}"/>` : '');
+  }
+
+  // ── 걸이 (액자 회전 밖) ──
+  const cxW = W / 2;
+  if (!stand && (hang === 'wire' || hang === 'nail')) {
+    const ny = Math.round(wpT * 0.30);
+    if (hang === 'wire') {
+      const ax1 = FX0 + FW * 0.22, ax2 = FX0 + FW * 0.78;
+      s += `<path d="M${ax1.toFixed(1)} ${FY0 + fw * 0.5} L${cxW.toFixed(1)} ${ny + 10} L${ax2.toFixed(1)} ${FY0 + fw * 0.5}"`
+         + ` fill="none" stroke="#0d0b12" stroke-opacity="0.75" stroke-width="${Math.max(3, Math.round(S * 0.005))}"/>`;
+    }
+    s += `<circle cx="${cxW.toFixed(1)}" cy="${ny}" r="${Math.round(S * 0.013)}" fill="#6f6a78"/>`
+       + `<circle cx="${(cxW - S * 0.004).toFixed(1)}" cy="${(ny - S * 0.004).toFixed(1)}" r="${Math.round(S * 0.005)}" fill="#cfcada" opacity="0.8"/>`;
+  }
+
+  // ── 액자 본체 ──
+  s += `<g transform="rotate(${tilt} ${(W / 2).toFixed(1)} ${(H / 2).toFixed(1)})" filter="url(#sh${U})">`;
+
+  // ── 프레임: 4변 마이터 조인 몰딩 ──
+  const X1 = FX0, X2 = FX0 + FW, Y1 = FY0, Y2 = FY0 + FH;
+  const iX1 = X1 + fw, iX2 = X2 - fw, iY1 = Y1 + fw, iY2 = Y2 - fb;
+  const rail = (pts, g) => `<polygon points="${pts}" fill="url(#${g}${U})"/>`;
+  s += rail(`${X1},${Y1} ${X2},${Y1} ${iX2},${iY1} ${iX1},${iY1}`, 'rT');   // 상
+  s += rail(`${X1},${Y1} ${iX1},${iY1} ${iX1},${iY2} ${X1},${Y2}`, 'rL');   // 좌
+  s += rail(`${X2},${Y1} ${X2},${Y2} ${iX2},${iY2} ${iX2},${iY1}`, 'rR');   // 우
+  s += rail(`${X1},${Y2} ${iX1},${iY2} ${iX2},${iY2} ${X2},${Y2}`, 'rB');   // 하
+  if (F.grain) {
+    s += `<path d="M${X1} ${Y1} H${X2} V${Y2} H${X1} Z M${iX1} ${iY1} H${iX2} V${iY2} H${iX1} Z"`
+       + ` fill-rule="evenodd" filter="url(#gr${U})" opacity="0.9"/>`;
+  }
+  // 마이터 이음선
+  s += `<g stroke="#000" stroke-opacity="0.28" stroke-width="1.5">`
+     + `<line x1="${X1}" y1="${Y1}" x2="${iX1}" y2="${iY1}"/>`
+     + `<line x1="${X2}" y1="${Y1}" x2="${iX2}" y2="${iY1}"/>`
+     + `<line x1="${X1}" y1="${Y2}" x2="${iX1}" y2="${iY2}"/>`
+     + `<line x1="${X2}" y1="${Y2}" x2="${iX2}" y2="${iY2}"/></g>`;
+  // 바깥 모서리
+  s += `<rect x="${X1 + 0.5}" y="${Y1 + 0.5}" width="${FW - 1}" height="${FH - 1}" fill="none"`
+     + ` stroke="${F.lo}" stroke-opacity="0.75" stroke-width="2"/>`;
+
+  // 비드(금테 구슬선) — 몰딩 중앙을 따라 도는 볼록선
+  if (F.bead) {
+    const q = fw * 0.42;
+    s += `<rect x="${(X1 + q).toFixed(1)}" y="${(Y1 + q).toFixed(1)}"`
+       + ` width="${(FW - q * 2).toFixed(1)}" height="${(FH - q - fb * 0.42).toFixed(1)}"`
+       + ` fill="none" stroke="${F.hi}" stroke-opacity="0.60" stroke-width="${Math.max(2, fw * 0.055).toFixed(1)}"/>`
+       + `<rect x="${(X1 + q + fw * 0.07).toFixed(1)}" y="${(Y1 + q + fw * 0.07).toFixed(1)}"`
+       + ` width="${(FW - q * 2 - fw * 0.14).toFixed(1)}" height="${(FH - q - fb * 0.42 - fw * 0.14).toFixed(1)}"`
+       + ` fill="none" stroke="${F.lo}" stroke-opacity="0.45" stroke-width="${Math.max(1, fw * 0.03).toFixed(1)}"/>`;
+  }
+  // 코너 아라베스크
+  if (F.orn) {
+    const r = fw * 0.70;
+    for (const [cx, cy, sx, sy] of [
+      [X1 + fw * 0.52, Y1 + fw * 0.52, 1, 1],
+      [X2 - fw * 0.52, Y1 + fw * 0.52, -1, 1],
+      [X1 + fw * 0.52, Y2 - fb * 0.52, 1, -1],
+      [X2 - fw * 0.52, Y2 - fb * 0.52, -1, -1],
+    ]) {
+      s += `<g transform="translate(${cx.toFixed(1)},${cy.toFixed(1)}) scale(${sx},${sy})">`
+         + `<path d="M${(-r * 0.95).toFixed(1)} ${(r * 0.15).toFixed(1)} C${(-r * 0.55).toFixed(1)} ${(-r * 0.75).toFixed(1)} ${(r * 0.55).toFixed(1)} ${(-r * 0.75).toFixed(1)} ${(r * 0.95).toFixed(1)} ${(r * 0.15).toFixed(1)}"`
+         + ` fill="none" stroke="${F.hi}" stroke-opacity="0.85" stroke-width="${Math.max(2, r * 0.13).toFixed(1)}" stroke-linecap="round"/>`
+         + `<path d="M${(-r * 0.95).toFixed(1)} ${(r * 0.30).toFixed(1)} C${(-r * 0.55).toFixed(1)} ${(-r * 0.60).toFixed(1)} ${(r * 0.55).toFixed(1)} ${(-r * 0.60).toFixed(1)} ${(r * 0.95).toFixed(1)} ${(r * 0.30).toFixed(1)}"`
+         + ` fill="none" stroke="${F.lo}" stroke-opacity="0.55" stroke-width="${Math.max(1, r * 0.06).toFixed(1)}"/>`
+         + `<circle cx="0" cy="${(-r * 0.30).toFixed(1)}" r="${(r * 0.19).toFixed(1)}" fill="${F.hi}" opacity="0.9"/>`
+         + `<circle cx="${(-r * 0.02).toFixed(1)}" cy="${(-r * 0.34).toFixed(1)}" r="${(r * 0.09).toFixed(1)}" fill="#fff" opacity="0.5"/>`
+         + `</g>`;
+    }
+  }
+
+  // 안쪽 립(경사면) — 프레임 → 매트로 떨어지는 단
+  const lx = FX0 + fw - lip, ly = FY0 + fw - lip;
+  const lw = IW + mw * 2 + lip * 2, lh = IH + mw * 2 + lip * 2;
+  s += `<rect x="${lx}" y="${ly}" width="${lw}" height="${lh}" fill="${F.lip}"/>`;
+
+  // ── 매트지 ──
+  if (mw > 0) {
+    s += `<rect x="${FX0 + fw}" y="${FY0 + fw}" width="${IW + mw * 2}" height="${IH + mw * 2}" fill="${matC}"/>`;
+    // 매트 사면(bevel)
+    s += `<path d="M${ix} ${iy} L${ix + IW} ${iy} L${ix + IW + 6} ${iy - 6} L${ix - 6} ${iy - 6} Z" fill="#000" opacity="0.20"/>`
+       + `<path d="M${ix - 6} ${iy - 6} L${ix - 6} ${iy + IH + 6} L${ix} ${iy + IH} L${ix} ${iy} Z" fill="#000" opacity="0.13"/>`
+       + `<path d="M${ix + IW} ${iy} L${ix + IW} ${iy + IH} L${ix + IW + 6} ${iy + IH + 6} L${ix + IW + 6} ${iy - 6} Z" fill="#fff" opacity="0.35"/>`
+       + `<path d="M${ix} ${iy + IH} L${ix + IW} ${iy + IH} L${ix + IW + 6} ${iy + IH + 6} L${ix - 6} ${iy + IH + 6} Z" fill="#fff" opacity="0.28"/>`;
+  }
+
+  // ── 그림 ──
+  s += `<rect x="${ix}" y="${iy}" width="${IW}" height="${IH}" fill="#141118"/>`;
+  if (dataURI) {
+    const ox = ix + ax * IW, oy = iy + ay * IH;
+    const tf = zoom > 1
+      ? ` transform="translate(${ox.toFixed(1)},${oy.toFixed(1)}) scale(${zoom}) translate(${(-ox).toFixed(1)},${(-oy).toFixed(1)})"` : '';
+    const ftr = hasFx ? ` filter="url(#fx${U})"` : '';
+    s += `<g clip-path="url(#cv${U})"><g${tf}><image x="${ix}" y="${iy}" width="${IW}" height="${IH}"`
+       + ` preserveAspectRatio="${par} slice"${ftr} href="${dataURI}" xlink:href="${dataURI}"/></g></g>`;
+  } else {
+    s += `<rect x="${ix}" y="${iy}" width="${IW}" height="${IH}" fill="#1c1828"/>`
+       + `<text x="${ix + IW / 2}" y="${iy + IH / 2}" text-anchor="middle" fill="#8f88a8"`
+       + ` font-size="${Math.round(IW * 0.035)}" font-family="-apple-system,'Noto Sans KR',sans-serif">`
+       + `${esc(errMsg || '이미지 없음')}</text>`;
+  }
+  // 그림 안쪽 음영
+  s += `<rect x="${ix}" y="${iy}" width="${IW}" height="${IH}" fill="none" stroke="#000"`
+     + ` stroke-opacity="0.35" stroke-width="3"/>`;
+
+  // ── 유리 반사 ──
+  if (glass) {
+    s += `<rect x="${FX0 + fw}" y="${FY0 + fw}" width="${IW + mw * 2}" height="${IH + mw * 2}"`
+       + ` fill="url(#gl${U})"/>`;
+  }
+
+  // ── 명판 ──
+  if (plq) {
+    const pw = Math.min(FW * 0.68, Math.round(S * 0.70));
+    const ph = Math.round(fb * 0.64);
+    const pxp = FX0 + (FW - pw) / 2, pyp = FY0 + FH - fb + (fb - ph) / 2;
+    s += `<rect x="${pxp.toFixed(1)}" y="${pyp.toFixed(1)}" width="${pw.toFixed(1)}" height="${ph}" rx="3"`
+       + ` fill="${acc}"/>`
+       + `<rect x="${pxp.toFixed(1)}" y="${pyp.toFixed(1)}" width="${pw.toFixed(1)}" height="${(ph * 0.42).toFixed(1)}" rx="3"`
+       + ` fill="#ffffff" opacity="0.22"/>`
+       + `<rect x="${(pxp + 0.5).toFixed(1)}" y="${(pyp + 0.5).toFixed(1)}" width="${(pw - 1).toFixed(1)}" height="${ph - 1}" rx="3"`
+       + ` fill="none" stroke="#000" stroke-opacity="0.35" stroke-width="1.5"/>`;
+    const FN = `-apple-system,'Noto Serif KR',serif`;
+    const cxp = pxp + pw / 2;
+    if (ti && (by || yr)) {
+      s += `<text x="${cxp.toFixed(1)}" y="${(pyp + ph * 0.46).toFixed(1)}" text-anchor="middle"`
+         + ` font-size="${Math.round(ph * 0.40)}" fill="#241a10" font-family="${FN}" font-weight="700">${ti}</text>`
+         + `<text x="${cxp.toFixed(1)}" y="${(pyp + ph * 0.84).toFixed(1)}" text-anchor="middle"`
+         + ` font-size="${Math.round(ph * 0.29)}" fill="#241a10" opacity="0.75" font-family="${FN}">`
+         + `${[by, yr].filter(Boolean).join(', ')}</text>`;
+    } else {
+      s += `<text x="${cxp.toFixed(1)}" y="${(pyp + ph * 0.66).toFixed(1)}" text-anchor="middle"`
+         + ` font-size="${Math.round(ph * 0.46)}" fill="#241a10" font-family="${FN}" font-weight="700">`
+         + `${ti || by || yr}</text>`;
+    }
+  }
+
+  s += `</g>`;
+
+  // ── 조명 ──
+  if (lit) s += `<rect width="${W}" height="${H}" fill="url(#lt${U})"/>`;
+
+  return s + `</svg>`;
+}
+
+// ══════════════════════════════════════════════════════════════
 // camClock — cctv 전용 24시간 벽시계 (rec의 camTick은 손대지 않는다)
 //   camTick의 HH는 100시간 순환(경과시간용)이라 23:59:59→24:00:00이 된다.
 //   여기서는 HH를 "00"~"23" 24개 글리프 한 덩어리로 돌려 86400s에 정확히 순환.
@@ -2377,6 +2711,7 @@ const RENDERERS = {
   'talk': renderTalk,
   'char': renderChar,
   'id': renderId,
+  'frame': renderFrame,
 };
 
 function indexPage() {

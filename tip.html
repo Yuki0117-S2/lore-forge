@@ -3140,7 +3140,7 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
     ]
   },
   {
-    id:'cat-p', icon:'📷', title:'이미지 위젯 UI', sub:'p.winter0.workers.dev — 실사 이미지 인라인 · 스마트폰 카메라 · 캠코더 · 폴라로이드',
+    id:'cat-p', icon:'📷', title:'이미지 위젯 UI', sub:'p.winter0.workers.dev — 실사 이미지 인라인 · 스마트폰 카메라 · 캠코더 · 폴라로이드 · 감시카메라',
     items:[
       {
         id:'t-p-0', title:'📷 스마트폰 카메라 (cam)',
@@ -3265,6 +3265,53 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
 - URL은 절대 줄바꿈하지 않는다</pre>`
       },
       {
+        id:'t-p-0d', title:'🎥 감시카메라 (cctv)',
+        body:`<div class="label label-use">URL 파라미터 형식</div>
+<pre>/?t=cctv&img=이미지URL&o=sq|p|l&cr=앵커[§줌]&ch=채널[§장소]&ts=위치&cp=위치&date=날짜&dw=1&tc=시각&run=1&tone=bw|ir&rec=0&mot=개수|좌표&lost=1&sp=속도&hdd=상태&nos=문구&grid=4§칸&dead=nos|off|frz&chs=채널명들&fx=0&say=자막&th=[§배경][§강조색]</pre>
+<hr class="divider">
+<div class="label label-example">예시 — 기본 (좌상단 채널 · 우상단 흐르는 시계)</div>
+<pre>/?t=cctv&ch=CAM+03§B1+주차장&date=2024-03-15&tc=03:42:17&run=1&img=https://img.wintercards.com/O/A/4.webp</pre>
+<div class="label label-example">예시 — 야간 적외선 + 움직임 감지</div>
+<pre>/?t=cctv&tone=ir&mot=57§43§12§25&ts=tl&cp=br&date=2019-02-07&dw=1&tc=05:37:27&run=1&hdd=OVERWRITE&img=https://img.wintercards.com/O/A/4.webp</pre>
+<div class="label label-example">예시 — 4분할 중 한 대만 살아있음</div>
+<pre>/?t=cctv&grid=4§3&chs=로비|주차장B1|비상계단|옥상&tone=bw&date=2024-03-15&tc=03:42:17&run=1&img=https://img.wintercards.com/O/A/4.webp</pre>
+<div class="label label-example">예시 — 신호 두절</div>
+<pre>/?t=cctv&lost=1&ch=CAM+02§옥상&ts=bl&cp=tr&date=2024-03-15&tc=03:44:02&run=1&img=https://img.wintercards.com/O/A/4.webp</pre>
+<hr class="divider">
+<div class="desc"><strong>파라미터 설명:</strong><br>
+• <strong>img</strong> — cam과 동일 (필수). 방향 자동 판별 · <strong>cr</strong> 크롭 앵커<code>[§줌]</code>도 동일 규약<br>
+• <strong>ch</strong> — <code>채널명§장소</code> (기본 CAM 01). 장소는 채널명 아래 작게<br>
+• <strong>ts</strong> / <strong>cp</strong> — 타임스탬프 · 채널명 위치를 <code>tl</code>좌상 <code>tr</code>우상(기본 ts) <code>bl</code>좌하 <code>br</code>우하 중에서 각각 지정<br>
+&nbsp;&nbsp;&nbsp;&nbsp;기본은 채널 tl · 시간 tr. 실기기도 기종마다 배치가 달라 4방향 전부 열어둠<br>
+• <strong>date</strong> — 날짜스탬프 <code>YYYY-MM-DD</code> (<code>.</code> <code>/</code> 구분자도 가능) · <strong>dw=1</strong>이면 요일 자동 부가 (THU 등)<br>
+• <strong>tc</strong> — 시각 <code>HH:MM:SS</code> · <strong>run=1</strong>이면 그 시각부터 실시간으로 흐름<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<strong>자정을 정확히 넘긴다</strong> — 23:59:59 → 00:00:00 에서 날짜와 요일도 같이 넘어감 (cam·rec의 경과시간 타임코드와는 다른 벽시계 방식)<br>
+• <strong>tone</strong> — bw 흑백 / ir 적외선 야간(대비 강화 + 광원 블룸) / 생략=컬러<br>
+• <strong>rec=0</strong> — 빨간 녹화 점 숨김 (재생·정지 화면) · <strong>sp</strong> — 재생속도 표기 (예: sp=x2)<br>
+• <strong>mot</strong> — 움직임 감지 박스. 생략하면 박스도 MOTION 라벨도 <strong>안 나온다</strong><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<code>mot=2</code> 프리셋 자리에 2개 / <code>mot=x§y§가로§세로</code> 화면 비율 %로 직접 지정 (<code>|</code>로 최대 4개)<br>
+• <strong>lost=1</strong> — SIGNAL LOST. 화면이 지지직거리고 원본이 희미하게 비침 · <strong>nos</strong> — NO SIGNAL 문구 교체<br>
+• <strong>hdd</strong> — 저장장치 상태 (FULL·OVERWRITE·ERROR 포함 시 빨강)<br>
+• <strong>grid</strong> — <code>4§칸번호</code> 4분할 중 그 칸만 라이브, 나머지는 죽은 화면. 칸은 좌상 1 → 우하 4<br>
+• <strong>dead</strong> — 죽은 칸 처리: nos 지지직+NO SIGNAL(기본) / off 완전 검정 / frz 정지화면<br>
+• <strong>chs</strong> — 칸별 채널명 <code>|</code>로 4개 (grid일 때만) · grid에서는 cp 무시, 채널명은 칸마다 좌상단 고정<br>
+• <strong>fx=0</strong> — 스캔라인·노이즈·비네팅 없는 클린 화면 · <strong>say</strong> — 하단 자막</div>
+<hr class="divider">
+<div class="label label-use">🎨 테마 색상 (선택) — &th= (3필드 위치규칙)</div>
+<pre>&th=§배경§강조색
+1번 스타일 자리는 cctv에서 사용하지 않는다 (비워둘 것)
+2번 배경 자리 = OSD 글자색 (기본 흰색)
+3번 강조 자리 = 움직임 감지 박스색 (기본 초록 #3ECF7E)
+프리셋: pink / indigo / gold / rose (한글도 가능)</pre>
+<hr class="divider">
+<div class="label label-use">⚠️ 주의</div>
+<pre>- 출력 크기는 원본 이미지 그대로 (띠·여백 없음) — 화면 전체가 감시 화면
+- 시계는 벽시계다. 경과시간(녹화 몇 분째)이 필요하면 cam·rec의 tc를 쓸 것
+- dw=1 은 date 형식이 YYYY-MM-DD 계열일 때만 동작 (아니면 요일 생략)
+- mot 좌표는 화면 비율 % — 이미지 픽셀값이 아니다
+- URL은 절대 줄바꿈하지 않는다</pre>`
+      },
+      {
         id:'t-p-1', title:'바베챗 프롬프트 (복사용)',
         body:`<div class="label label-use">캐릭터 상세설정에 붙여넣기</div>
 <div class="desc">아래 전체를 프롬프트에 삽입하면 AI가 장면에 맞는 카메라 UI를 자동 생성합니다. 도메인은 <strong>p.winter0.workers.dev</strong></div>
@@ -3309,6 +3356,21 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
 - tilt=-2.5 처럼 살짝 기울이면 손으로 놓아둔 느낌
 - 방향은 이미지에서 자동 판별 — o=sq/p/l 로 강제 가능, cr=t 로 위쪽 크롭(얼굴 보존)
 - 예: ![](https://p.winter0.workers.dev/?t=pol&hand=1&run=1&th=cream&fx=vintage&dec=pin&tilt=-2&say=여름의+끝&date=26+08+07&img=https://img.wintercards.com/O/A/4.webp)
+
+### 감시카메라 (잠입 · 추적 · 사건현장 · 공포)
+![](https://p.winter0.workers.dev/?t=cctv&img=이미지URL&ch=CAM+03§장소&date=2024-03-15&tc=03:42:17&run=1)
+- img= cam과 동일 — 장면에 맞는 이미지 (필수) / 방향 자동 판별
+- ch= 채널명§장소 (예: ch=CAM+03§B1+주차장) — 화면 구석에 표기된다
+- date= 날짜 + tc= 시각, run=1 추가 시 실시간으로 흐른다. 자정도 정확히 넘어간다
+- dw=1 이면 요일이 자동으로 붙는다 (THU 등)
+- ts= / cp= 로 타임스탬프·채널명 위치 지정: tl 좌상 / tr 우상 / bl 좌하 / br 우하
+- tone= bw 흑백 / ir 적외선 야간 — 밤·어두운 장면이면 ir
+- mot= 움직임 감지 박스. mot=x§y§가로§세로 (화면 비율 %)로 인물 위에 정확히 씌운다
+- lost=1 이면 SIGNAL LOST — 화면이 끊기는 순간에
+- grid=4§칸번호 = 4분할 중 그 칸만 살아있고 나머지는 죽은 화면 (chs= 로 칸별 이름)
+- rec=0 재생중 / sp=x2 배속 / hdd=OVERWRITE 저장장치 상태
+- say= 하단 자막 / fx=0 = 노이즈 없는 깨끗한 화면 (최신 IP카메라)
+- 예: ![](https://p.winter0.workers.dev/?t=cctv&tone=ir&mot=57§43§12§25&ts=tl&cp=br&ch=CAM+02§비상계단&date=2019-02-07&dw=1&tc=05:37:27&run=1&hdd=OVERWRITE&img=https://img.wintercards.com/O/A/4.webp)
 
 ### 공통 규칙
 - 필드 구분자: § / 아이템 구분자: |

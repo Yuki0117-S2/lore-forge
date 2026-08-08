@@ -1076,12 +1076,389 @@ function renderPol(params, dataURI, autoOri, errMsg, fontCss) {
 }
 
 // ══════════════════════════════════════════════════════════════
+// camClock — cctv 전용 24시간 벽시계 (rec의 camTick은 손대지 않는다)
+//   camTick의 HH는 100시간 순환(경과시간용)이라 23:59:59→24:00:00이 된다.
+//   여기서는 HH를 "00"~"23" 24개 글리프 한 덩어리로 돌려 86400s에 정확히 순환.
+//   MM/SS 컬럼 규칙(6/10 분해)과 keyTimes 3점 형태는 camTick과 동일.
+// ══════════════════════════════════════════════════════════════
+const CLK_COLS = [
+  { n: 24, unit: 3600, w: 2, pad: 2 },   // HH  (00~23)
+  null,
+  { n: 6, unit: 600, w: 1 }, { n: 10, unit: 60, w: 1 },   // MM
+  null,
+  { n: 6, unit: 10, w: 1 }, { n: 10, unit: 1, w: 1 },     // SS
+];
+const clockWidth = (fs) => fs * 0.62 * (2 + 1 + 1 + 1 + 1) + fs * 0.62 * 0.55 * 2;
+
+function camClock(x0, cy, fs, offset, col, wt) {
+  const W1 = fs * 0.62;
+  const tr = (v) => (Math.floor(v * 1e7) / 1e7).toFixed(7);
+  let x = x0, g = '';
+  for (const c of CLK_COLS) {
+    if (!c) {
+      g += `<text x="${(x + W1 * 0.14).toFixed(1)}" y="${cy}" text-anchor="middle" font-size="${fs}"`
+        +  ` font-family="ui-monospace,monospace" fill="${col}" font-weight="${wt}">:</text>`;
+      x += W1 * 0.55; continue;
+    }
+    const { n, unit, w, pad } = c, dur = n * unit, cw = W1 * w;
+    for (let i = 0; i < n; i++) {
+      const a = tr(i / n), b2 = tr((i + 1) / n);
+      const anim = i === 0     ? `values="1;0;0" keyTimes="0;${b2};1"`
+                 : i === n - 1 ? `values="0;1;1" keyTimes="0;${a};1"`
+                 :               `values="0;1;0;0" keyTimes="0;${a};${b2};1"`;
+      const glyph = pad ? String(i).padStart(pad, '0') : String(i);
+      g += `<text x="${(x + cw / 2).toFixed(1)}" y="${cy}" text-anchor="middle" opacity="0"`
+        +  ` font-size="${fs}" font-family="ui-monospace,monospace" fill="${col}" font-weight="${wt}">${glyph}`
+        +  `<animate attributeName="opacity" dur="${dur}s" repeatCount="indefinite" calcMode="discrete"`
+        +  ` begin="${-offset}s" ${anim}/></text>`;
+    }
+    x += cw;
+  }
+  return g;
+}
+
+// ── 날짜 롤오버: YYYY-MM-DD / YYYY.MM.DD / YYYY/MM/DD 만 인식 ──
+function nextDate(s) {
+  const m = String(s).match(/^(\d{4})([-./])(\d{1,2})\2(\d{1,2})$/);
+  if (!m) return null;
+  const d = new Date(Date.UTC(+m[1], +m[3] - 1, +m[4]));
+  if (isNaN(d) || d.getUTCMonth() !== +m[3] - 1) return null;   // 2024-02-31 같은 값 거르기
+  d.setUTCDate(d.getUTCDate() + 1);
+  const p = (v) => String(v).padStart(2, '0');
+  return `${d.getUTCFullYear()}${m[2]}${p(d.getUTCMonth() + 1)}${m[2]}${p(d.getUTCDate())}`;
+}
+
+const WD_EN = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+function weekdayOf(str) {                       // 파싱 가능한 날짜만 요일 반환
+  const m = String(str).match(/^(\d{4})([-./])(\d{1,2})\2(\d{1,2})$/);
+  if (!m) return null;
+  const d = new Date(Date.UTC(+m[1], +m[3] - 1, +m[4]));
+  if (isNaN(d) || d.getUTCMonth() !== +m[3] - 1) return null;
+  return WD_EN[d.getUTCDay()];
+}
+
+const CCTV_CORNERS = ['tl', 'tr', 'bl', 'br'];
+
+function renderCctv(params, dataURI, autoOri, errMsg) {
+  const U = camUid(params);
+  const oRaw = (params.get('o') || '').trim().toLowerCase();
+  const ori = CAM_IMG[oRaw] ? oRaw : (CAM_IMG[autoOri] ? autoOri : 'sq');
+  const [W, H] = CAM_IMG[ori];
+  const K = Math.min(W, H) / 1024;                  // 캔버스 스케일 계수
+
+  // ── 파라미터 ──
+  const cf = (params.get('cr') || 'c').split('\u00a7');
+  const [par, ax, ay] = CAM_ANCHOR[(cf[0] || 'c').trim().toLowerCase()] || CAM_ANCHOR.c;
+  let zoom = parseFloat(cf[1]); if (!(zoom >= 1 && zoom <= 4)) zoom = 1;
+
+  const chF = (params.get('ch') || 'CAM 01').split('\u00a7');
+  const chName = esc((chF[0] || 'CAM 01').trim()).slice(0, 16);
+  const chLoc = esc((chF[1] || '').trim()).slice(0, 20);
+
+  const tsPos = CCTV_CORNERS.includes((params.get('ts') || '').trim().toLowerCase())
+    ? params.get('ts').trim().toLowerCase() : 'tr';
+  const cpPos = CCTV_CORNERS.includes((params.get('cp') || '').trim().toLowerCase())
+    ? params.get('cp').trim().toLowerCase() : 'tl';
+
+  const dateRaw = (params.get('date') || '').trim().slice(0, 24);
+  const tcode = (params.get('tc') || '03:42:17').trim().slice(0, 8);
+  const run = (params.get('run') || '') === '1';
+  const dw = (params.get('dw') || '') === '1';
+  const tone = (params.get('tone') || '').trim().toLowerCase();      // '' | bw | ir
+  const isRec = (params.get('rec') || '1') !== '0';
+  // mot — 두 가지 표기를 겸용한다.
+  //   ① 개수 모드   mot=2                     → 프리셋 좌표 앞에서 2개
+  //   ② 좌표 모드   mot=42§48§16§28|12§55§10§18  → x% y% w% h% (|로 여러 개)
+  //   미지정/0/파싱실패 → 박스도 MOTION 라벨도 안 그린다.
+  const MOT_PRESET = [[40, 44, 16, 28], [13, 55, 12, 20], [74, 33, 11, 19]];
+  const motRaw = (params.get('mot') || '').trim();
+  let motBoxes = [];
+  if (motRaw.includes('\u00a7')) {
+    for (const item of motRaw.split('|').slice(0, 4)) {
+      const f = item.split('\u00a7').map(v => parseFloat(v));
+      if (f.length < 4 || f.some(v => !isFinite(v))) continue;
+      const [bx, by, bw, bh] = f;
+      if (!(bw > 0 && bh > 0)) continue;
+      motBoxes.push([
+        Math.max(-20, Math.min(120, bx)), Math.max(-20, Math.min(120, by)),
+        Math.min(140, bw), Math.min(140, bh),
+      ]);
+    }
+  } else {
+    const n = Math.max(0, Math.min(3, parseInt(motRaw, 10) || 0));
+    motBoxes = MOT_PRESET.slice(0, n);
+  }
+  const mot = motBoxes.length;
+  const lost = (params.get('lost') || '') === '1';
+  const sp = esc((params.get('sp') || '').trim()).slice(0, 8);
+  const hdd = esc((params.get('hdd') || '').trim()).slice(0, 18);
+  const fx = (params.get('fx') || '1') !== '0';
+  const say = esc((params.get('say') || '').trim()).slice(0, 40);
+  const nos = esc((params.get('nos') || 'NO SIGNAL').trim()).slice(0, 16);
+
+  const gf = (params.get('grid') || '').split('\u00a7');
+  const gridOn = (gf[0] || '').trim() === '4';
+  const liveCell = Math.max(1, Math.min(4, parseInt(gf[1], 10) || 1));
+  const deadMode = ['nos', 'off', 'frz'].includes((params.get('dead') || '').trim().toLowerCase())
+    ? params.get('dead').trim().toLowerCase() : 'nos';
+  const chsList = (params.get('chs') || '').split('|').map(s => esc(s.trim())).filter(Boolean);
+
+  // 테마: 3필드 위치규칙 (스타일은 cctv에선 미사용 자리 → 색만 받는다)
+  const thF = (params.get('th') || '').split('\u00a7');
+  const pick = (i, d) => {
+    const g = (thF[i] || '').trim().toLowerCase();
+    return g ? (camHex(g) || CAM_PRESETS[g] || d) : d;
+  };
+  const ui = pick(1, '#ffffff');            // OSD 글자색
+  const acc = pick(2, '#3ECF7E');           // 모션 박스색
+  const warn = '#ff3b30';
+
+  let s = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"`
+        + ` width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" font-family="ui-monospace,Menlo,monospace">`;
+  const SH = ` style="paint-order:stroke" stroke="#000" stroke-opacity="0.7" stroke-width="${(3 * K).toFixed(1)}"`;
+
+  // ── defs ──
+  s += `<defs>`
+    + `<filter id="nz${U}"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" result="n">`
+    + `<animate attributeName="seed" values="1;9" dur="0.5s" repeatCount="indefinite" calcMode="discrete"/></feTurbulence>`
+    + `<feColorMatrix in="n" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.09 0"/>`
+    + `<feComposite operator="over" in2="SourceGraphic"/></filter>`
+    + `<filter id="nzh${U}"><feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="3" result="n">`
+    + `<animate attributeName="seed" values="1;7;3;9" dur="0.28s" repeatCount="indefinite" calcMode="discrete"/></feTurbulence>`
+    + `<feColorMatrix in="n" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.55 0"/></filter>`
+    + `<radialGradient id="vig${U}" cx="0.5" cy="0.5" r="0.78">`
+    + `<stop offset="0.62" stop-color="#000" stop-opacity="0"/>`
+    + `<stop offset="1" stop-color="#000" stop-opacity="${tone === 'ir' ? 0.72 : 0.5}"/></radialGradient>`;
+  if (tone === 'bw')
+    s += `<filter id="tn${U}"><feColorMatrix type="saturate" values="0"/></filter>`;
+  else if (tone === 'ir') {
+    // 실기기 IR 야간: 전체를 밝히는 게 아니라 대비를 벌린다.
+    //   그림자는 완전히 뭉개져 검정으로, 조명 맞은 곳만 하얗게 날아가고 번진다.
+    const TBL = '0 0.05 0.13 0.24 0.38 0.54 0.71 0.86 0.96 1';   // 완만한 S커브
+    s += `<filter id="tn${U}" x="-10%" y="-10%" width="120%" height="120%">`
+      +  `<feColorMatrix type="saturate" values="0" result="g"/>`
+      +  `<feComponentTransfer in="g" result="cv">`
+      +  `<feFuncR type="table" tableValues="${TBL}"/>`
+      +  `<feFuncG type="table" tableValues="${TBL}"/>`
+      +  `<feFuncB type="table" tableValues="${TBL}"/></feComponentTransfer>`
+      // 밝은 부분만 뽑아 blur → screen 합성 = 조명 블룸
+      +  `<feComponentTransfer in="cv" result="hi">`
+      +  `<feFuncR type="linear" slope="2.6" intercept="-1.62"/>`
+      +  `<feFuncG type="linear" slope="2.6" intercept="-1.62"/>`
+      +  `<feFuncB type="linear" slope="2.6" intercept="-1.62"/></feComponentTransfer>`
+      +  `<feGaussianBlur in="hi" stdDeviation="7" result="bl"/>`
+      +  `<feBlend in="cv" in2="bl" mode="screen"/></filter>`;
+  }
+  s += `</defs>`;
+
+  s += `<rect width="${W}" height="${H}" fill="#000"/>`;
+
+  // ── 이미지 그리기 유틸 (칸/전체 공용) ──
+  const tnAttr = (tone === 'bw' || tone === 'ir') ? ` filter="url(#tn${U})"` : '';
+  const drawImg = (x, y, w, h, id, extraFilter) => {
+    if (!dataURI) {
+      return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#141416"/>`
+        + `<text x="${x + w / 2}" y="${y + h / 2}" text-anchor="middle" fill="#5a5a62"`
+        + ` font-size="${(24 * K).toFixed(0)}">${esc(errMsg || '이미지 없음')}</text>`;
+    }
+    const ox = x + ax * w, oy = y + ay * h;
+    const tf = zoom > 1
+      ? ` transform="translate(${ox.toFixed(1)},${oy.toFixed(1)}) scale(${zoom}) translate(${(-ox).toFixed(1)},${(-oy).toFixed(1)})"` : '';
+    return `<clipPath id="${id}"><rect x="${x}" y="${y}" width="${w}" height="${h}"/></clipPath>`
+      + `<g clip-path="url(#${id})"><g${tf}><image x="${x}" y="${y}" width="${w}" height="${h}"`
+      + ` preserveAspectRatio="${par} slice"${extraFilter || tnAttr} href="${dataURI}" xlink:href="${dataURI}"/></g></g>`;
+  };
+
+  // ── 죽은 칸 ──
+  const drawDead = (x, y, w, h, i) => {
+    let g = '';
+    if (deadMode === 'off') {
+      g += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#070708"/>`;
+    } else if (deadMode === 'frz' && dataURI) {
+      g += drawImg(x, y, w, h, `dz${U}${i}`, ` filter="url(#tn${U})"`);
+      g += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#000" opacity="0.55"/>`;
+      g += `<text x="${x + w - 14 * K}" y="${y + 30 * K}" text-anchor="end" font-size="${(19 * K).toFixed(0)}"`
+        +  ` fill="${ui}" opacity="0.8"${SH}>FRZ</text>`;
+    } else {
+      g += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#0d0d10"/>`
+        +  `<g clip-path="url(#dc${U}${i})" opacity="0.5"><rect x="${x}" y="${y}" width="${w}" height="${h}"`
+        +  ` fill="#888" filter="url(#nzh${U})"/></g>`
+        +  `<clipPath id="dc${U}${i}"><rect x="${x}" y="${y}" width="${w}" height="${h}"/></clipPath>`
+        +  `<text x="${x + w / 2}" y="${y + h / 2 + 8 * K}" text-anchor="middle" font-size="${(30 * K).toFixed(0)}"`
+        +  ` fill="${ui}" opacity="0.72" letter-spacing="${(3 * K).toFixed(1)}"${SH}>${nos}`
+        +  `<animate attributeName="opacity" values="0.72;0.28;0.72" dur="1.6s" repeatCount="indefinite"/></text>`;
+    }
+    return g;
+  };
+
+  // ── 화면 본체 ──
+  const cw = W / 2, chh = H / 2;
+  if (gridOn) {
+    for (let i = 0; i < 4; i++) {
+      const x = (i % 2) * cw, y = ((i / 2) | 0) * chh;
+      s += (i + 1 === liveCell) ? drawImg(x, y, cw, chh, `lc${U}`) : drawDead(x, y, cw, chh, i);
+    }
+    // 칸 구분선
+    s += `<g stroke="#000" stroke-width="${(4 * K).toFixed(1)}" opacity="0.9">`
+      +  `<line x1="${cw}" y1="0" x2="${cw}" y2="${H}"/><line x1="0" y1="${chh}" x2="${W}" y2="${chh}"/></g>`;
+  } else {
+    s += drawImg(0, 0, W, H, `lc${U}`);
+  }
+
+  // ── 신호 두절 오버레이 ──
+  if (lost) {
+    s += `<rect width="${W}" height="${H}" fill="#000" opacity="0.7"/>`
+      +  `<rect width="${W}" height="${H}" fill="#999" filter="url(#nzh${U})" opacity="0.75"/>`
+      +  `<text x="${W / 2}" y="${H / 2}" text-anchor="middle" font-size="${(52 * K).toFixed(0)}" font-weight="700"`
+      +  ` fill="${ui}" letter-spacing="${(6 * K).toFixed(1)}"${SH}>SIGNAL LOST`
+      +  `<animate attributeName="opacity" values="1;0.25;1" dur="1.1s" repeatCount="indefinite"/></text>`;
+  }
+
+  // ── 화질 효과 (인터레이스 + 미세 노이즈 + 비네팅) ──
+  if (fx) {
+    s += `<g filter="url(#nz${U})" opacity="0.5"><rect width="${W}" height="${H}" fill="none"/></g>`;
+    s += `<g opacity="${tone ? 0.05 : 0.09}">`;
+    for (let y = 0; y < H; y += 4) s += `<rect x="0" y="${y}" width="${W}" height="1" fill="#000"/>`;
+    s += `</g>`;
+    s += `<rect width="${W}" height="${H}" fill="url(#vig${U})"/>`;
+  }
+
+  // ── 모션 감지 박스 (실기기 관례: 초록) ──
+  if (mot > 0 && !lost) {
+    for (const [bx, by, bw, bh] of motBoxes) {
+      s += `<rect x="${(bx / 100 * W).toFixed(1)}" y="${(by / 100 * H).toFixed(1)}"`
+        +  ` width="${(bw / 100 * W).toFixed(1)}" height="${(bh / 100 * H).toFixed(1)}"`
+        +  ` fill="none" stroke="${acc}" stroke-width="${(3.4 * K).toFixed(1)}">`
+        +  `<animate attributeName="opacity" values="1;0.35;1" dur="0.9s" repeatCount="indefinite"/></rect>`;
+    }
+  }
+
+  // ══ OSD 스택 ══════════════════════════════════════════════════
+  const PAD = 30 * K;
+  const stack = { tl: 0, tr: 0, bl: 0, br: 0 };
+  const put = (corner, hgt, fn) => {          // fn(x, y, anchor) — y는 baseline
+    const top = corner[0] === 't';
+    const rightSide = corner[1] === 'r';
+    const x = rightSide ? W - PAD : PAD;
+    const y = top ? PAD + stack[corner] + hgt : H - PAD - stack[corner];
+    stack[corner] += hgt + 8 * K;
+    return fn(x, y, rightSide ? 'end' : 'start');
+  };
+
+  // 타임스탬프
+  {
+    const fs = 34 * K, hgt = fs * 0.78;
+    const dateNext = run && dateRaw ? nextDate(dateRaw) : null;
+    const withWd = (v) => {
+      if (!v) return v;
+      const w = dw ? weekdayOf(v) : null;
+      return w ? `${v} ${w}` : v;
+    };
+    const dispDate = withWd(dateRaw), dispNext = withWd(dateNext);
+    const sec = camSecs(tcode) % 86400;
+    s += put(tsPos, hgt, (x, y, anc) => {
+      let g = '';
+      if (run) {
+        const clkW = clockWidth(fs);
+        const dW = dispDate ? (dispDate.length * fs * 0.62 + fs * 0.5) : 0;
+        const x0 = anc === 'end' ? x - clkW : x + dW;
+        if (dateRaw) {
+          const dx = anc === 'end' ? x - clkW - fs * 0.5 : x;
+          const da = anc === 'end' ? 'end' : 'start';
+          if (dateNext) {
+            const k = ((86400 - sec) / 86400).toFixed(7);
+            g += `<text x="${dx.toFixed(1)}" y="${y}" text-anchor="${da}" font-size="${fs}" fill="${ui}" font-weight="700"${SH}>${esc(dispDate)}`
+              +  `<animate attributeName="opacity" dur="86400s" repeatCount="indefinite" calcMode="discrete"`
+              +  ` values="1;0;0" keyTimes="0;${k};1"/></text>`
+              +  `<text x="${dx.toFixed(1)}" y="${y}" text-anchor="${da}" font-size="${fs}" fill="${ui}" font-weight="700" opacity="0"${SH}>${esc(dispNext)}`
+              +  `<animate attributeName="opacity" dur="86400s" repeatCount="indefinite" calcMode="discrete"`
+              +  ` values="0;1;1" keyTimes="0;${k};1"/></text>`;
+          } else {
+            g += `<text x="${dx.toFixed(1)}" y="${y}" text-anchor="${da}" font-size="${fs}" fill="${ui}" font-weight="700"${SH}>${esc(dispDate)}</text>`;
+          }
+        }
+        g += camClock(x0, y, fs, sec, ui, 700);
+      } else {
+        const txt = (dispDate ? esc(dispDate) + ' ' : '') + esc(tcode);
+        g += `<text x="${x.toFixed(1)}" y="${y}" text-anchor="${anc}" font-size="${fs}" fill="${ui}" font-weight="700"${SH}>${txt}</text>`;
+      }
+      return g;
+    });
+  }
+
+  // 채널명 (+ REC 점) — 그리드에서는 칸마다 그리므로 전역 표시는 생략
+  if (!gridOn) {
+    const fs = 32 * K, hgt = fs * 0.78;
+    s += put(cpPos, hgt, (x, y, anc) => {
+      let g = '';
+      const r = 9 * K, gap = 15 * K;
+      const tw = chName.length * fs * 0.62;
+      if (isRec) {
+        const cxd = anc === 'end' ? x - tw - gap - r : x + r;
+        g += `<circle cx="${cxd.toFixed(1)}" cy="${(y - fs * 0.3).toFixed(1)}" r="${r.toFixed(1)}" fill="${warn}">`
+          +  `<animate attributeName="opacity" values="1;0.15;1" dur="1s" repeatCount="indefinite"/></circle>`;
+      }
+      const tx = isRec && anc !== 'end' ? x + r * 2 + gap : x;
+      g += `<text x="${tx.toFixed(1)}" y="${y}" text-anchor="${anc}" font-size="${fs}" fill="${ui}" font-weight="700"${SH}>${chName}</text>`;
+      return g;
+    });
+    if (chLoc) {
+      const fs2 = 24 * K;
+      s += put(cpPos, fs2 * 0.78, (x, y, anc) =>
+        `<text x="${x.toFixed(1)}" y="${y}" text-anchor="${anc}" font-size="${fs2}" fill="${ui}" opacity="0.85"${SH}>${chLoc}</text>`);
+    }
+  } else {
+    // 칸별 라벨: 좌상단 채널명 · 라이브 칸 우상단 REC 점
+    const fs = 22 * K;
+    for (let i = 0; i < 4; i++) {
+      const x = (i % 2) * cw, y = ((i / 2) | 0) * chh;
+      const nm = chsList[i] || `CAM 0${i + 1}`;
+      s += `<text x="${(x + 16 * K).toFixed(1)}" y="${(y + 34 * K).toFixed(1)}" font-size="${fs}" fill="${ui}"`
+        +  ` font-weight="700" opacity="0.95"${SH}>${nm}</text>`;
+      if (i + 1 === liveCell && isRec)
+        s += `<circle cx="${(x + cw - 22 * K).toFixed(1)}" cy="${(y + 28 * K).toFixed(1)}" r="${(8 * K).toFixed(1)}" fill="${warn}">`
+          +  `<animate attributeName="opacity" values="1;0.15;1" dur="1s" repeatCount="indefinite"/></circle>`;
+    }
+  }
+
+  // 모션 라벨 · 재생속도 · HDD — 비어 있는 하단 코너부터 채운다
+  const freeBottom = (pref) => (stack[pref] === 0 ? pref : (pref === 'bl' ? 'br' : 'bl'));
+  if (mot > 0 && !lost) {
+    const c = freeBottom('bl'), fs = 26 * K;
+    s += put(c, fs * 0.78, (x, y, anc) =>
+      `<text x="${x.toFixed(1)}" y="${y}" text-anchor="${anc}" font-size="${fs}" fill="${acc}" font-weight="700"`
+      + ` letter-spacing="${(2 * K).toFixed(1)}"${SH}>MOTION`
+      + `<animate attributeName="opacity" values="1;0.35;1" dur="0.9s" repeatCount="indefinite"/></text>`);
+  }
+  if (sp) {
+    const c = freeBottom('bl'), fs = 24 * K;
+    s += put(c, fs * 0.78, (x, y, anc) =>
+      `<text x="${x.toFixed(1)}" y="${y}" text-anchor="${anc}" font-size="${fs}" fill="${ui}" opacity="0.9"${SH}>▶▶ ${sp}</text>`);
+  }
+  if (hdd) {
+    const c = freeBottom('br'), fs = 22 * K;
+    const bad = /FULL|OVERWRITE|ERROR/i.test(hdd);
+    s += put(c, fs * 0.78, (x, y, anc) =>
+      `<text x="${x.toFixed(1)}" y="${y}" text-anchor="${anc}" font-size="${fs}" fill="${bad ? warn : ui}" opacity="0.9"${SH}>HDD ${hdd}</text>`);
+  }
+  if (say) {
+    const fs = 27 * K, sw = (60 + say.length * 20) * K;
+    s += `<rect x="${(W / 2 - sw / 2).toFixed(1)}" y="${(H - 76 * K).toFixed(1)}" width="${sw.toFixed(1)}"`
+      +  ` height="${(48 * K).toFixed(1)}" rx="${(24 * K).toFixed(1)}" fill="#000" opacity="0.45"/>`
+      +  `<text x="${W / 2}" y="${(H - 43 * K).toFixed(1)}" font-size="${fs}" fill="${ui}" text-anchor="middle">${say}</text>`;
+  }
+
+  return s + `</svg>`;
+}
+
+// ══════════════════════════════════════════════════════════════
 // 라우팅
 // ══════════════════════════════════════════════════════════════
 const RENDERERS = {
   'cam': renderCam,
   'rec': renderRec,
   'pol': renderPol,
+  'cctv': renderCctv,
 };
 
 function indexPage() {

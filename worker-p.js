@@ -2027,6 +2027,346 @@ async function renderChar(params) {
 }
 
 // ══════════════════════════════════════════════════════════════
+// ?t=id — 신분증 (gov 공적 / corp 사원증 / crim 수용자 / fant 길드증)
+// ══════════════════════════════════════════════════════════════
+const ID_MONO = "'DejaVu Sans Mono','Consolas',monospace";
+const ID_SIZE = { l: [1216, 768], p: [832, 1216] };
+const ID_SK = {
+  gov:  { ori: 'l', base: '#eef0f6', acc: '#8888CC' },
+  corp: { ori: 'p', base: '#ffffff', acc: '#BB6688' },
+  crim: { ori: 'l', base: '#17161c', acc: '#EE1166' },
+  fant: { ori: 'p', base: '#e8dcc0', acc: '#CCAA88' },
+};
+
+// 결정론적 난수 (카드번호·바코드·QR 생성용)
+function idRand(seed) {
+  let h = 2166136261 >>> 0;
+  for (const c of String(seed)) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619) >>> 0; }
+  return () => { h ^= h << 13; h >>>= 0; h ^= h >> 17; h ^= h << 5; h >>>= 0; return h / 4294967296; };
+}
+function idBarcode(seed, x, y, w, h, col) {
+  const r = idRand(seed);
+  const M = 2.6;                       // 모듈 폭 — 실제 바코드처럼 촘촘하게
+  let s = '', cx = x, ink = true;
+  s += `<rect x="${x}" y="${y}" width="${M * 2}" height="${h}" fill="${col}"/>`;   // 시작 가드
+  cx = x + M * 4;
+  while (cx < x + w - M * 6) {
+    const mw = (1 + Math.floor(r() * 3)) * M;
+    if (ink) s += `<rect x="${cx.toFixed(1)}" y="${y}" width="${mw.toFixed(1)}" height="${h}" fill="${col}"/>`;
+    cx += mw; ink = !ink;
+  }
+  s += `<rect x="${(x + w - M * 2).toFixed(1)}" y="${y}" width="${M * 2}" height="${h}" fill="${col}"/>`; // 끝 가드
+  return s;
+}
+function idQR(seed, x, y, size, col) {
+  const N = 21, u = size / N, r = idRand(seed);
+  let s = `<rect x="${x}" y="${y}" width="${size}" height="${size}" fill="#ffffff"/>`;
+  const fin = (fx, fy) => {
+    s += `<rect x="${(x + fx * u).toFixed(1)}" y="${(y + fy * u).toFixed(1)}" width="${(7 * u).toFixed(1)}" height="${(7 * u).toFixed(1)}" fill="${col}"/>`
+      +  `<rect x="${(x + (fx + 1) * u).toFixed(1)}" y="${(y + (fy + 1) * u).toFixed(1)}" width="${(5 * u).toFixed(1)}" height="${(5 * u).toFixed(1)}" fill="#ffffff"/>`
+      +  `<rect x="${(x + (fx + 2) * u).toFixed(1)}" y="${(y + (fy + 2) * u).toFixed(1)}" width="${(3 * u).toFixed(1)}" height="${(3 * u).toFixed(1)}" fill="${col}"/>`;
+  };
+  for (let gy = 0; gy < N; gy++) for (let gx = 0; gx < N; gx++) {
+    const inFin = (gx < 8 && gy < 8) || (gx > N - 9 && gy < 8) || (gx < 8 && gy > N - 9);
+    if (inFin) continue;
+    if (r() > 0.52) s += `<rect x="${(x + gx * u).toFixed(1)}" y="${(y + gy * u).toFixed(1)}" width="${u.toFixed(1)}" height="${u.toFixed(1)}" fill="${col}"/>`;
+  }
+  fin(0, 0); fin(N - 7, 0); fin(0, N - 7);
+  return s;
+}
+
+async function renderId(params, imgURI) {
+  // char과 마찬가지로 부가 이미지(문장·배경)와 손글씨 폰트를 렌더러 안에서 직접 받는다.
+  // loadFonts()의 pol 전용 게이트는 건드리지 않는다.
+  const U = camUid(params);
+  let sk = (params.get('sk') || 'gov').trim().toLowerCase();
+  if (!ID_SK[sk]) sk = 'gov';
+  const SK = ID_SK[sk];
+  let ft = (params.get('ft') || 'serif').trim().toLowerCase();
+  if (!FT_STACK[ft]) ft = 'serif';
+  const FF = FT_STACK[ft];
+
+  const oRaw = (params.get('o') || '').trim().toLowerCase();
+  const ori = ID_SIZE[oRaw] ? oRaw : SK.ori;
+  const [W, H] = ID_SIZE[ori];
+  const wide = ori === 'l';
+
+  const thF = (params.get('th') || '').split('\u00a7');
+  const pickTh = (i, d) => {
+    const g = (thF[i] || '').trim().toLowerCase();
+    return g ? (camHex(g) || CAM_PRESETS[g] || d) : d;
+  };
+  const acc = pickTh(2, SK.acc);
+  const base = pickTh(1, SK.base);
+  const light = lumaOf(base) > 0.45;
+  const ui = light ? '#191722' : '#f4f2f8';
+  const dim = light ? '#6d6880' : '#9b95ad';
+  const line = light ? '#00000024' : '#ffffff26';
+
+  const ti = esc((params.get('ti') || '').trim()).slice(0, 34);
+  const nm = esc((params.get('nm') || '').trim()).slice(0, 20);
+  const sb = esc((params.get('sb') || '').trim()).slice(0, 30);
+  const no = esc((params.get('no') || '').trim()).slice(0, 28);
+  const ex = esc((params.get('exp') || '').trim()).slice(0, 24);
+  const seal = esc((params.get('seal') || '').trim()).slice(0, 8);
+  const sigOn = (params.get('sig') || '') === '1';
+  // code= 로 코드 표기 제어. 생략 시 스킨 기본값 (gov·crim 바코드 / corp QR / fant 없음)
+  let code = (params.get('code') || '').trim().toLowerCase();
+  if (!['0', 'x', 'off', 'bar', 'qr'].includes(code)) code = '';
+  const codeOff = code === '0' || code === 'x' || code === 'off';
+  const fields = String(params.get('fd') || '').split('|').map(s => s.trim()).filter(Boolean)
+    .map(s => s.split('\u00a7')).slice(0, 10);
+
+  // emb= 문장·로고 (투명 PNG 권장) / bg= fant 배경 이미지
+  const embRaw = (params.get('emb') || '').trim();
+  // emb=0 이면 문장을 아예 그리지 않는다 (fant는 제목·사진이 그만큼 위로 올라간다)
+  const embOff = ['0', 'x', 'off'].includes(embRaw.toLowerCase());
+  const bgRaw = (params.get('bg') || '').trim();
+  const [embR, bgR] = await Promise.all([
+    (embRaw && !embOff) ? loadImg(embRaw) : Promise.resolve({ uri: null }),
+    bgRaw ? loadImg(bgRaw) : Promise.resolve({ uri: null }),
+  ]);
+  const embURI = embR.uri, bgURI = bgR.uri;
+
+  // 서명(sig=1)과 ft=hand 는 손글씨 폰트를 인라인한다
+  let fontCss = '';
+  if (sigOn || ft === 'hand') {
+    const scan = (params.get('nm') || '') + (ft === 'hand'
+      ? (params.get('ti') || '') + (params.get('sb') || '') + (params.get('fd') || '') : '');
+    const [zen, pen] = await Promise.all([
+      fetchFont(FONT_URL.zen),
+      RE_KO.test(scan) ? fetchFont(FONT_URL.pen) : Promise.resolve(null),
+    ]);
+    const ffc = (n, x) => `@font-face{font-family:'${n}';font-style:normal;font-weight:400;`
+      + `src:url(data:font/woff2;base64,${x}) format('woff2');}`;
+    if (pen) fontCss += ffc('WPen', pen);
+    if (zen) fontCss += ffc('WZen', zen);
+  }
+
+  const cf = (params.get('cr') || 't').split('\u00a7');
+  const [par, ax, ay] = CAM_ANCHOR[(cf[0] || 't').trim().toLowerCase()] || CAM_ANCHOR.t;
+  let zoom = parseFloat(cf[1]); if (!(zoom >= 1 && zoom <= 4)) zoom = 1;
+
+  let s = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"`
+        + ` width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">`;
+  if (fontCss) s += `<style>${fontCss}</style>`;
+  s += `<defs><linearGradient id="hd${U}" x1="0" y1="0" x2="1" y2="0">`
+    +  `<stop offset="0" stop-color="${acc}"/><stop offset="1" stop-color="${mixHex(acc, light ? '#ffffff' : '#000000', 0.42)}"/></linearGradient>`
+    +  `<linearGradient id="ho${U}" x1="0" y1="0" x2="1" y2="1">`
+    +  `<stop offset="0" stop-color="#ffffff" stop-opacity="0.5"/><stop offset="0.5" stop-color="${acc}" stop-opacity="0.28"/>`
+    +  `<stop offset="1" stop-color="#ffffff" stop-opacity="0.5"/></linearGradient></defs>`;
+  s += `<rect width="${W}" height="${H}" fill="${sk === 'fant' ? mixHex(base, '#000000', 0.72) : mixHex(base, light ? '#000000' : '#ffffff', 0.1)}"/>`;
+
+  // 카드 판
+  const M = wide ? 40 : 36;
+  const CW = W - M * 2, CH = H - M * 2, CX = M, CY = M, CR = sk === 'fant' ? 8 : 26;
+  if (sk !== 'fant') s += `<rect x="${CX}" y="${CY}" width="${CW}" height="${CH}" rx="${CR}" fill="${base}"/>`;
+
+  const photo = (px, py, pw, ph, rx) => {
+    let o = `<clipPath id="ph${U}"><rect x="${px}" y="${py}" width="${pw}" height="${ph}" rx="${rx}"/></clipPath>`;
+    if (imgURI) {
+      const ox = px + ax * pw, oy = py + ay * ph;
+      const tf = zoom > 1 ? ` transform="translate(${ox.toFixed(1)},${oy.toFixed(1)}) scale(${zoom}) translate(${(-ox).toFixed(1)},${(-oy).toFixed(1)})"` : '';
+      o += `<g clip-path="url(#ph${U})"><g${tf}><image x="${px}" y="${py}" width="${pw}" height="${ph}"`
+        +  ` preserveAspectRatio="${par} slice" href="${imgURI}" xlink:href="${imgURI}"/></g></g>`;
+    } else {
+      const cxp = px + pw / 2;
+      o += `<g clip-path="url(#ph${U})"><rect x="${px}" y="${py}" width="${pw}" height="${ph}" fill="${mixHex(base, light ? '#000000' : '#ffffff', 0.1)}"/>`
+        +  `<circle cx="${cxp}" cy="${(py + ph * 0.36).toFixed(1)}" r="${(pw * 0.2).toFixed(1)}" fill="${dim}" opacity="0.4"/>`
+        +  `<ellipse cx="${cxp}" cy="${(py + ph * 1.05).toFixed(1)}" rx="${(pw * 0.36).toFixed(1)}" ry="${(ph * 0.42).toFixed(1)}" fill="${dim}" opacity="0.4"/></g>`;
+    }
+    o += `<rect x="${px}" y="${py}" width="${pw}" height="${ph}" rx="${rx}" fill="none" stroke="${acc}" stroke-width="3" opacity="0.85"/>`;
+    return o;
+  };
+
+  const fieldRows = (fx, fy, fw, cols, fs, step, labW) => {
+    let o = '';
+    fields.forEach((it, k) => {
+      const gx = fx + (k % cols) * (fw / cols);
+      const gy = fy + Math.floor(k / cols) * step;
+      o += `<text x="${gx}" y="${gy}" font-family="${FF}" font-size="${(fs * 0.86).toFixed(1)}" fill="${dim}" letter-spacing="1">${esc((it[0] || '').trim()).slice(0, 10)}</text>`
+        +  `<text x="${(gx + labW).toFixed(1)}" y="${gy}" font-family="${FF}" font-size="${fs}" font-weight="600" fill="${ui}">${esc((it[1] || '').trim()).slice(0, 22)}</text>`;
+    });
+    return o;
+  };
+
+  // emb= 문장·로고 (투명 PNG 권장). 없으면 fant는 이름 첫 글자 육각 문장으로 대체
+  const emblem = (ex0, ey0, size) => {
+    if (!embURI) return '';
+    return `<image x="${(ex0 - size / 2).toFixed(1)}" y="${(ey0 - size / 2).toFixed(1)}" width="${size}" height="${size}"`
+      +  ` preserveAspectRatio="xMidYMid meet" href="${embURI}" xlink:href="${embURI}"/>`;
+  };
+
+  const stamp = (sx, sy, r) => {
+    if (!seal) return '';
+    const c = '#c0332f';
+    const L = lineW(seal);
+    // 한자 1~2자는 크게 박히는 게 도장답다
+    const sealFs = L <= 1 ? r * 0.94 : L <= 2 ? r * 0.64 : r * 1.28 / L;
+    // 세로 중심: CJK 글자의 시각 중심은 폰트 크기의 약 0.36 아래에 온다
+    const sealDy = sealFs * 0.36;
+    // 가로 중심: letter-spacing 은 마지막 글자 뒤에도 붙어서 middle 정렬을 왼쪽으로 민다 → 절반 보정
+    const sealLs = L <= 1 ? 0 : 2;
+    const sealDx = sealLs / 2;
+    return `<g transform="rotate(-16 ${sx} ${sy})" opacity="0.72">`
+      +  `<circle cx="${sx}" cy="${sy}" r="${r}" fill="none" stroke="${c}" stroke-width="${(r * 0.1).toFixed(1)}"/>`
+      +  `<circle cx="${sx}" cy="${sy}" r="${(r * 0.82).toFixed(1)}" fill="none" stroke="${c}" stroke-width="${(r * 0.045).toFixed(1)}"/>`
+      +  `<rect x="${(sx - r * 0.86).toFixed(1)}" y="${(sy - r * 0.3).toFixed(1)}" width="${(r * 1.72).toFixed(1)}" height="${(r * 0.6).toFixed(1)}" fill="${c}" opacity="0.14"/>`
+      +  `<text x="${(sx + sealDx).toFixed(1)}" y="${(sy + sealDy).toFixed(1)}" text-anchor="middle" font-family="${FF}" font-weight="700"`
+      +  ` font-size="${sealFs.toFixed(1)}" fill="${c}" letter-spacing="${sealLs}">${seal}</text></g>`;
+  };
+
+  const sigLine = (gx, gy, gw) => {
+    let o = `<line x1="${gx}" y1="${gy}" x2="${(gx + gw).toFixed(1)}" y2="${gy}" stroke="${line}" stroke-width="2"/>`
+      +  `<text x="${gx}" y="${(gy + 26).toFixed(1)}" font-family="${FF}" font-size="19" fill="${dim}" letter-spacing="2">SIGNATURE</text>`;
+    if (nm) o += `<text x="${(gx + 10).toFixed(1)}" y="${(gy - 12).toFixed(1)}" font-family="${FT_STACK.hand}" font-size="46" fill="${ui}">${nm}</text>`;
+    return o;
+  };
+
+  // 스킨 기본 코드 종류 + code= 오버라이드
+  const codeKind = codeOff ? '' : (code || (sk === 'corp' ? 'qr' : sk === 'fant' ? '' : 'bar'));
+
+  // ── 스킨별 배치 ──
+  if (sk === 'gov') {
+    s += `<rect x="${CX}" y="${CY}" width="${CW}" height="104" rx="${CR}" fill="url(#hd${U})"/>`
+      +  `<rect x="${CX}" y="${CY + 74}" width="${CW}" height="30" fill="url(#hd${U})"/>`
+      +  `<text x="${CX + 40}" y="${CY + 66}" font-family="${FF}" font-size="40" font-weight="700" fill="#ffffff" letter-spacing="3">${ti}</text>`
+      +  emblem(CX + CW - 78, CY + 52, 72);
+    const px = CX + 48, py = CY + 152;
+    s += photo(px, py, 300, 390, 10);
+    const ix = px + 300 + 52, iw = CX + CW - 48 - ix;
+    s += `<text x="${ix}" y="${py + 62}" font-family="${FF}" font-size="64" font-weight="700" fill="${ui}">${nm}</text>`;
+    if (sb) s += `<text x="${ix}" y="${py + 104}" font-family="${FF}" font-size="27" fill="${acc}" letter-spacing="1.5">${sb}</text>`;
+    s += `<line x1="${ix}" y1="${py + 128}" x2="${ix + iw}" y2="${py + 128}" stroke="${line}" stroke-width="2"/>`;
+    s += fieldRows(ix, py + 178, iw, 2, 27, 58, 130);
+    if (no) s += `<text x="${px}" y="${py + 440}" font-family="${ID_MONO}" font-size="34" fill="${ui}" letter-spacing="4">${no}</text>`;
+    if (ex) s += `<text x="${px}" y="${py + 478}" font-family="${FF}" font-size="22" fill="${dim}">유효기간 ${ex}</text>`;
+    const sigW = 300, sigEnd = ix + sigW;
+    if (sigOn) s += sigLine(ix, CY + CH - 62, sigW);
+    const bx0 = (sigOn ? sigEnd : ix) + 44, bw0 = CX + CW - 48 - bx0;
+    if (codeKind === 'bar' && bw0 > 120) s += idBarcode(no || U, bx0, CY + CH - 108, bw0, 62, ui);
+    else if (codeKind === 'qr') s += idQR(no || U, CX + CW - 176, CY + CH - 184, 128, ui);
+    s += stamp(CX + CW - 190, CY + CH - 210, 92);
+
+  } else if (sk === 'corp') {
+    s += `<rect x="${(W / 2 - 82).toFixed(1)}" y="${CY + 26}" width="164" height="26" rx="13" fill="${mixHex(base, '#000000', 0.18)}"/>`;
+    s += emblem(CX + 96, CY + 108, 84)
+      +  `<text x="${W / 2}" y="${CY + 128}" text-anchor="middle" font-family="${FF}" font-size="36" font-weight="700" fill="${acc}" letter-spacing="4">${ti}</text>`
+      +  `<line x1="${CX + 60}" y1="${CY + 152}" x2="${CX + CW - 60}" y2="${CY + 152}" stroke="${acc}" stroke-width="3" opacity="0.5"/>`;
+    const pw = 300, px = (W - pw) / 2, py = CY + 182;
+    s += photo(px, py, pw, 380, 12);
+    s += `<text x="${W / 2}" y="${py + 452}" text-anchor="middle" font-family="${FF}" font-size="56" font-weight="700" fill="${ui}">${nm}</text>`;
+    if (sb) s += `<text x="${W / 2}" y="${py + 490}" text-anchor="middle" font-family="${FF}" font-size="25" fill="${acc}" letter-spacing="2">${sb}</text>`;
+    s += fieldRows(CX + 70, py + 548, CW - 140, 1, 24, 42, 150);
+    if (codeKind === 'qr') s += idQR(no || U, CX + 56, CY + CH - 176, 136, ui);
+    else if (codeKind === 'bar') s += idBarcode(no || U, CX + 56, CY + CH - 130, 240, 56, ui);
+    const cq = CX + 56 + (codeKind ? (codeKind === 'qr' ? 136 : 240) : 0) + (codeKind ? 30 : 0);
+    if (no) s += `<text x="${CX + CW - 56}" y="${CY + CH - 148}" text-anchor="end" font-family="${ID_MONO}" font-size="26" fill="${ui}" letter-spacing="3">${no}</text>`;
+    if (ex) s += `<text x="${CX + CW - 56}" y="${CY + CH - 116}" text-anchor="end" font-family="${FF}" font-size="20" fill="${dim}">유효 ${ex}</text>`;
+    if (sigOn) s += sigLine(cq, CY + CH - 60, CX + CW - 56 - cq);
+    s += stamp(CX + CW - 168, CY + CH - 330, 88);
+
+  } else if (sk === 'crim') {
+    s += `<rect x="${CX}" y="${CY}" width="${CW}" height="86" rx="${CR}" fill="${acc}" opacity="0.9"/>`
+      +  `<rect x="${CX}" y="${CY + 56}" width="${CW}" height="30" fill="${acc}" opacity="0.9"/>`
+      +  `<text x="${CX + 40}" y="${CY + 58}" font-family="${FF}" font-size="36" font-weight="700" fill="#ffffff" letter-spacing="6">${ti}</text>`
+      +  emblem(CX + CW - 72, CY + 44, 64);
+    const px = CX + 48, py = CY + 132, pw = 360, ph = 450;
+    // 신장 눈금
+    for (let i = 0; i <= 6; i++) {
+      const gy = py + (ph / 6) * i;
+      s += `<line x1="${px - 26}" y1="${gy}" x2="${px}" y2="${gy}" stroke="${dim}" stroke-width="2"/>`
+        +  `<text x="${px - 32}" y="${(gy + 8).toFixed(1)}" text-anchor="end" font-family="${ID_MONO}" font-size="18" fill="${dim}">${190 - i * 10}</text>`;
+    }
+    s += photo(px, py, pw, ph, 4);
+    const ix = px + pw + 56, iw = CX + CW - 48 - ix;
+    s += `<text x="${ix}" y="${py + 56}" font-family="${FF}" font-size="58" font-weight="700" fill="${ui}">${nm}</text>`;
+    if (sb) s += `<text x="${ix}" y="${py + 96}" font-family="${FF}" font-size="25" fill="${acc}" letter-spacing="1.5">${sb}</text>`;
+    if (no) s += `<rect x="${ix}" y="${py + 122}" width="${iw}" height="76" fill="${mixHex(base, '#ffffff', 0.08)}"/>`
+      +  `<text x="${(ix + iw / 2).toFixed(1)}" y="${py + 176}" text-anchor="middle" font-family="${ID_MONO}" font-size="46" fill="${ui}" letter-spacing="8">${no}</text>`;
+    s += fieldRows(ix, py + 250, iw, 1, 26, 50, 150);
+    if (ex) s += `<text x="${ix}" y="${py + 250 + fields.length * 50 + 16}" font-family="${FF}" font-size="22" fill="${dim}">수감기간 ${ex}</text>`;
+    if (codeKind === 'bar') s += idBarcode(no || U, CX + 48, CY + CH - 96, 372, 56, ui);
+    else if (codeKind === 'qr') s += idQR(no || U, CX + 48, CY + CH - 158, 120, ui);
+    if (sigOn) s += sigLine(ix, CY + CH - 62, 300);
+    s += stamp(CX + CW - 180, CY + CH - 200, 96);
+
+  } else { // fant
+    // 찢긴 양피지 — 노이즈 변위 마스크로 자연스러운 결을 만든다 (지그재그 대신)
+    const sd = (parseInt(U, 36) % 900) + 1;
+    s += `<defs>`
+      +  `<filter id="te${U}" x="-12%" y="-8%" width="124%" height="116%">`
+      +  `<feTurbulence type="fractalNoise" baseFrequency="0.011 0.016" numOctaves="5" seed="${sd}" result="t"/>`
+      +  `<feDisplacementMap in="SourceGraphic" in2="t" scale="34" xChannelSelector="R" yChannelSelector="G"/>`
+      +  `</filter>`
+      +  `<mask id="tm${U}"><rect x="${CX + 16}" y="${CY + 14}" width="${CW - 32}" height="${CH - 28}" fill="#ffffff" filter="url(#te${U})"/></mask>`
+      +  `<filter id="pf${U}" x="0" y="0" width="100%" height="100%">`
+      +  `<feTurbulence type="fractalNoise" baseFrequency="0.9 0.045" numOctaves="4" seed="7" result="n"/>`
+      +  `<feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.9 0.5 0 0 -0.28" result="a"/>`
+      +  `<feComposite in="SourceGraphic" in2="a" operator="in"/></filter>`
+      +  `<filter id="pb${U}" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="22"/></filter>`
+      +  `<linearGradient id="pv${U}" x1="0" y1="0" x2="1" y2="1">`
+      +  `<stop offset="0" stop-color="${mixHex(base, '#5a3c14', 0.62)}"/>`
+      +  `<stop offset="0.4" stop-color="${base}" stop-opacity="0"/>`
+      +  `<stop offset="0.6" stop-color="${base}" stop-opacity="0"/>`
+      +  `<stop offset="1" stop-color="${mixHex(base, '#5a3c14', 0.62)}"/></linearGradient>`
+      +  `<radialGradient id="pe${U}" cx="0.5" cy="0.5" r="0.72">`
+      +  `<stop offset="0.62" stop-color="${base}" stop-opacity="0"/>`
+      +  `<stop offset="1" stop-color="${mixHex(base, '#3d2708', 0.8)}" stop-opacity="0.62"/></radialGradient></defs>`;
+    // 마스크 안쪽 = 종이. 글자는 마스크 밖에서 그리므로 흐트러지지 않는다
+    s += `<g mask="url(#tm${U})">`
+      +  `<rect x="${CX}" y="${CY}" width="${CW}" height="${CH}" fill="${base}"/>`
+      +  (bgURI ? `<image x="${CX}" y="${CY}" width="${CW}" height="${CH}" preserveAspectRatio="xMidYMid slice"`
+          + ` href="${bgURI}" xlink:href="${bgURI}"/>` : '')
+      +  `<rect x="${CX}" y="${CY}" width="${CW}" height="${CH}" fill="${mixHex(base, '#6b4a1e', 0.6)}" filter="url(#pf${U})" opacity="${bgURI ? 0.16 : 0.5}"/>`;
+    const r0 = idRand(U);
+    for (let i = 0; i < 9; i++) {
+      const bx = CX + r0() * CW, by = CY + r0() * CH, br = 40 + r0() * 90;
+      s += `<ellipse cx="${bx.toFixed(1)}" cy="${by.toFixed(1)}" rx="${br.toFixed(1)}" ry="${(br * (0.5 + r0() * 0.6)).toFixed(1)}"`
+        +  ` fill="${mixHex(base, '#7a5520', 0.7)}" opacity="${(0.05 + r0() * 0.06).toFixed(3)}" filter="url(#pb${U})"/>`;
+    }
+    for (let i = 0; i < 3; i++) {
+      const fy = CY + CH * (0.24 + i * 0.26) + r0() * 30;
+      s += `<rect x="${CX}" y="${fy.toFixed(1)}" width="${CW}" height="2.5" fill="${mixHex(base, '#6b4a1e', 0.5)}" opacity="0.1"/>`;
+    }
+    s += `<rect x="${CX}" y="${CY}" width="${CW}" height="${CH}" fill="url(#pv${U})" opacity="0.7"/>`
+      +  `<rect x="${CX}" y="${CY}" width="${CW}" height="${CH}" fill="url(#pe${U})"/></g>`;
+    // 안쪽 사각 테두리는 두지 않는다 — 종이 결이 살아야 한다
+    // 문장
+    const ex0 = W / 2, ey0 = CY + 108;
+    // emb=0 이면 문장 자리를 통째로 비우고 그만큼 위로 당긴다
+    const eUp = embOff ? 96 : 0;
+    if (embURI) {
+      s += emblem(ex0, ey0, 132);
+    } else if (!embOff) {
+      s += `<path d="M${ex0} ${ey0 - 44} L${ex0 + 40} ${ey0 - 20} L${ex0 + 40} ${ey0 + 16} L${ex0} ${ey0 + 52} L${ex0 - 40} ${ey0 + 16} L${ex0 - 40} ${ey0 - 20} Z"`
+        +  ` fill="${mixHex(acc, '#000000', 0.15)}" stroke="${mixHex(acc, '#000000', 0.45)}" stroke-width="3"/>`
+        +  `<text x="${ex0}" y="${ey0 + 14}" text-anchor="middle" font-family="${FF}" font-size="34" font-weight="700" fill="${base}">${(nm || '?').slice(0, 1)}</text>`;
+    }
+    s += `<text x="${W / 2}" y="${CY + 210 - eUp}" text-anchor="middle" font-family="${FF}" font-size="34" font-weight="700" fill="${mixHex(ui, acc, 0.25)}" letter-spacing="5">${ti}</text>`;
+    const pw = embOff ? 300 : 264, px = (W - pw) / 2, py = CY + 238 - eUp;
+    s += photo(px, py, pw, embOff ? 388 : 340, 2);
+    const pB = embOff ? 48 : 0;   // 사진이 커진 만큼 아래 요소를 민다
+    s += `<text x="${W / 2}" y="${py + 406 + pB}" text-anchor="middle" font-family="${FF}" font-size="52" font-weight="700" fill="${ui}">${nm}</text>`;
+    if (sb) s += `<text x="${W / 2}" y="${py + 444 + pB}" text-anchor="middle" font-family="${FF}" font-size="24" fill="${mixHex(ui, acc, 0.4)}" letter-spacing="3">${sb}</text>`;
+    s += `<line x1="${CX + 90}" y1="${py + 470 + pB}" x2="${CX + CW - 90}" y2="${py + 470 + pB}" stroke="${acc}" stroke-width="2" opacity="0.7"/>`;
+    s += fieldRows(CX + 92, py + 518 + pB, CW - 184, 1, 23, 42, 140);
+    if (codeKind === 'bar') s += idBarcode(no || U, CX + 92, CY + CH - 176, 240, 44, mixHex(ui, base, 0.25));
+    else if (codeKind === 'qr') s += idQR(no || U, CX + 92, CY + CH - 244, 112, ui);
+    if (sigOn) s += sigLine(CX + 92, CY + CH - 118, 264);
+    if (no) s += `<text x="${CX + CW - 92}" y="${CY + CH - 118}" text-anchor="end" font-family="${ID_MONO}" font-size="24" fill="${dim}" letter-spacing="4">${no}</text>`;
+    if (ex) s += `<text x="${CX + CW - 92}" y="${CY + CH - 84}" text-anchor="end" font-family="${FF}" font-size="20" fill="${dim}">유효 ${ex}</text>`;
+    s += stamp(CX + CW - 148, CY + CH - 236, 84);
+  }
+
+  // 홀로그램 광택 (gov·corp만)
+  if (sk === 'gov' || sk === 'corp') {
+    s += `<rect x="${CX + CW - 150}" y="${CY + (sk === 'gov' ? 140 : 190)}" width="96" height="96" rx="48" fill="url(#ho${U})"/>`;
+  }
+  return s + `</svg>`;
+}
+
+// ══════════════════════════════════════════════════════════════
 // 라우팅
 // ══════════════════════════════════════════════════════════════
 const RENDERERS = {
@@ -2036,6 +2376,7 @@ const RENDERERS = {
   'cctv': renderCctv,
   'talk': renderTalk,
   'char': renderChar,
+  'id': renderId,
 };
 
 function indexPage() {

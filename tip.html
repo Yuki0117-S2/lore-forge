@@ -3140,7 +3140,7 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
     ]
   },
   {
-    id:'cat-p', icon:'📷', title:'이미지 위젯 UI', sub:'p.winter0.workers.dev — 실사 이미지 인라인 · 스마트폰 카메라 · 캠코더 · 폴라로이드 · 감시카메라 · 대사창 · 초상 상태창',
+    id:'cat-p', icon:'📷', title:'이미지 위젯 UI', sub:'p.winter0.workers.dev — 실사 이미지 인라인 · 스마트폰 카메라 · 캠코더 · 폴라로이드 · 감시카메라 · 대사창 · 초상 상태창 · 신분증',
     items:[
       {
         id:'t-p-0', title:'📷 스마트폰 카메라 (cam)',
@@ -3410,6 +3410,60 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
 - URL은 절대 줄바꿈하지 않는다</pre>`
       },
       {
+        id:'t-p-0g', title:'🪪 신분증 (id)',
+        body:`<div class=\"label label-use\">URL 파라미터 형식</div>
+<pre>/?t=id&img=사진URL&sk=gov|corp|crim|fant&ti=발행기관&nm=이름&sb=부제&no=카드번호&fd=라벨§값|라벨§값&exp=유효기간&seal=도장&sig=1&code=0|bar|qr&emb=문장URL&bg=배경URL&cr=앵커[§줌]&ft=serif|sans|hand&th=[§카드색][§강조색]&o=l|p</pre>
+<hr class=\"divider\">
+<div class=\"label label-example\">예시 — 학생증 (gov)</div>
+<pre>/?t=id&ti=국립+세라피나+대학교&nm=미도리&sb=인문대학+사학과+·+3학년&no=2021-14082&exp=2026.02.28&sig=1&cr=t&fd=학번§2021140082|전공§서양사|생년월일§2002-11-04|기숙사§제3생활관&img=https://img.wintercards.com/O/A/4.webp</pre>
+<div class=\"label label-example\">예시 — 만료된 시민 등록증 (한자 도장)</div>
+<pre>/?t=id&ti=제국+시민+등록증&nm=세라피나&sb=제7기사단+·+서약기사&no=IMP-4471-0092&exp=1899.12.31&seal=濟&sig=1&fd=등급§S|소속§제7기사단|혈액형§AB+Rh-&img=https://img.wintercards.com/O/A/4.webp</pre>
+<div class=\"label label-example\">예시 — 옛날 사원증 (코드 없음 + 결재 도장)</div>
+<pre>/?t=id&sk=corp&ti=대한제분공업주식회사&nm=카일&sb=총무부+/+대리&code=0&no=1978-0413&seal=認&sig=1&fd=사번§780413|부서§총무1과|입사§1978-04-13&img=https://img.wintercards.com/O/A/4.webp</pre>
+<div class=\"label label-example\">예시 — 격리시설 수용자 카드 (색 변경)</div>
+<pre>/?t=id&sk=crim&ti=CONTAINMENT+SITE+19&nm=???&sb=개체+등급+·+KETER&th=§0d1418§00BBDD&no=SCP-1904&exp=무기한&seal=封&fd=분류§변칙+개체|확보일§2019-02-07|위험도§A&img=https://img.wintercards.com/O/A/4.webp</pre>
+<div class=\"label label-example\">예시 — 길드증 (문장 PNG)</div>
+<pre>/?t=id&sk=fant&ti=모험가+길드+·+아르셀+지부&nm=세라피나&sb=금등급+모험가&no=GLD-0092-A&emb=https://img.wintercards.com/emblem.png&fd=등급§금(金)|전공§검술|토벌수§147&img=https://img.wintercards.com/O/A/4.webp</pre>
+<hr class=\"divider\">
+<div class=\"desc\"><strong>파라미터 설명:</strong><br>
+• <strong>sk</strong> — 카드 종류. 방향이 자동으로 정해진다<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<code>gov</code> 공적 신분증·학생증 (가로, 상단 띠 + 바코드) / <code>corp</code> 사원증 (세로, 목걸이 슬롯 + QR)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<code>crim</code> 수용자 카드 (가로, 머그샷 + 신장 눈금) / <code>fant</code> 길드증 (세로, 찢긴 양피지)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<code>o=l</code> 가로 / <code>o=p</code> 세로 로 강제할 수 있다<br>
+• <strong>img</strong> — 증명사진 (없으면 실루엣) · <strong>cr</strong> 크롭 <code>앵커[§줌]</code>, 기본 <code>t</code> 위쪽<br>
+• <strong>ti</strong> 발행기관 · <strong>nm</strong> 이름 · <strong>sb</strong> 부제(직함·학과) · <strong>no</strong> 카드번호 · <strong>exp</strong> 유효기간<br>
+• <strong>fd</strong> — 자유 필드. <code>§</code> 라벨/값, <code>|</code> 항목. <strong>라벨도 값도 마음대로</strong> 정한다 (최대 10개)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;gov는 2열, 나머지는 1열로 깔린다<br>
+• <strong>seal</strong> — 비스듬히 찍히는 붉은 도장. 글자 자유 (<code>만료</code> <code>濟</code> <code>禁</code> <code>封</code> <code>認</code> <code>VOID</code>)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<strong>한자 한 글자가 제일 잘 나온다</strong> — 글자 수에 따라 크기가 자동 조정된다<br>
+• <strong>sig=1</strong> — 하단 서명란에 이름이 손글씨로 들어간다. <strong>한글이면 폰트 571KB가 인라인</strong>된다<br>
+• <strong>code</strong> — 코드 표기. 생략 시 스킨 기본(gov·crim 바코드 / corp QR / fant 없음)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<code>code=0</code> 아예 없음 (옛날 회사·구시대 증명서) / <code>code=bar</code> 바코드 / <code>code=qr</code> QR<br>
+&nbsp;&nbsp;&nbsp;&nbsp;무늬는 <strong>no= 에서 결정론적으로 생성</strong>된다 — 같은 번호면 항상 같은 바코드<br>
+• <strong>emb</strong> — 문장·로고 이미지 (투명 PNG 권장, 정사각). fant는 문장 자리, gov·crim은 헤더 우측, corp는 회사명 옆<br>
+&nbsp;&nbsp;&nbsp;&nbsp;fant는 <strong>생략하면 이름 첫 글자가 육각 문장</strong>으로 들어간다. <code>emb=0</code> 이면 문장 자리를 비우고 제목·사진이 위로 올라간다<br>
+• <strong>bg</strong> — <strong>fant 전용</strong> 배경 이미지. 주면 절차생성 종이결이 옅어지고 이 이미지가 깔린다 (찢긴 외곽선은 유지)<br>
+• <strong>ft</strong> — <code>serif</code> 명조(기본) / <code>sans</code> 고딕 / <code>hand</code> 손글씨</div>
+<hr class=\"divider\">
+<div class=\"label label-use\">🎨 테마 색상 (선택) — &th= (3필드 위치규칙)</div>
+<pre>&th=§카드색§강조색
+1번 스타일 자리는 id에서 사용하지 않는다 (비워둘 것)
+2번 카드색 — 카드 바탕 (배경은 이 색에서 자동 파생)
+3번 강조색 — 상단 띠 / 부제 / 사진 테두리 / 문장
+기본값: gov #eef0f6·#8888CC / corp #ffffff·#BB6688
+        crim #17161c·#EE1166 / fant #e8dcc0·#CCAA88
+프리셋: pink / indigo / gold / rose (한글도 가능)</pre>
+<hr class=\"divider\">
+<div class=\"label label-use\">⚠️ 주의</div>
+<pre>- 카드색을 밝게 주면 글자가 자동으로 어두워진다 (crim도 밝게 바꿀 수 있다)
+- emb / bg 는 이미지를 추가로 받으므로 응답이 그만큼 무거워진다
+- emb 는 정사각 투명 PNG 를 권장한다 (비율은 유지되지만 여백이 생긴다)
+- bg 는 fant에서만 동작한다 — 다른 스킨에 주면 무시된다
+- 양피지 외곽선은 노이즈 변위 필터로 만든다. 같은 URL이면 항상 같은 모양이다
+- sig=1 과 ft=hand 를 함께 쓰면 폰트가 한 번만 인라인된다
+- URL은 절대 줄바꿈하지 않는다</pre>`
+      },
+      {
         id:'t-p-1', title:'바베챗 프롬프트 (복사용)',
         body:`<div class="label label-use">캐릭터 상세설정에 붙여넣기</div>
 <div class="desc">아래 전체를 프롬프트에 삽입하면 AI가 장면에 맞는 카메라 UI를 자동 생성합니다. 도메인은 <strong>p.winter0.workers.dev</strong></div>
@@ -3497,6 +3551,23 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
 - ft= serif 명조(기본) / sans 고딕 / hand 손글씨 — hand는 특별한 장면에만
 - th=§창색§강조색 으로 카드 색을 바꾼다 (예: th=§1a1226§00BBDD)
 - 예: ![](https://p.winter0.workers.dev/?t=char&sk=rm&ti=파티+편성&nm=루시아|카일&sb=백마도사|중장기사&cr=t|t&st=HP§88/120|MP§70/80|힘§7||HP§210/210|MP§12/40|힘§22&tag=축복||도발&img=https://img.wintercards.com/O/A/1.webp|https://img.wintercards.com/O/A/2.webp)
+
+### 신분증 (학생증 · 사원증 · 수용자 카드 · 길드증)
+![](https://p.winter0.workers.dev/?t=id&img=사진URL&ti=발행기관&nm=이름&sb=부제&no=카드번호&fd=라벨§값|라벨§값)
+- sk= gov 공적 신분증·학생증(기본) / corp 사원증 / crim 수용자 카드 / fant 길드증 — 방향은 스킨이 정한다
+- img= 증명사진 (없으면 실루엣). cr=t 로 위쪽 크롭하면 얼굴이 보존된다
+- ti= 발행기관 / nm= 이름 / sb= 부제(직함·학과) / no= 카드번호 / exp= 유효기간
+- fd= 자유 필드. § 라벨/값, | 항목. 라벨과 값은 장면에 맞게 자유롭게 정한다 (최대 10개)
+- seal= 비스듬히 찍히는 붉은 도장. 한자 한 글자가 제일 분위기가 산다 (濟 禁 封 認 亡 極秘)
+  만료·정지·사망·기밀 같은 상태를 도장 하나로 보여줄 때 쓴다
+- sig=1 서명란에 이름이 손글씨로 들어간다 (한글이면 폰트가 인라인되므로 중요한 장면에만)
+- code=0 이면 바코드·QR이 사라진다 — 옛날 회사, 구시대 증명서에
+- emb= 길드 문양·회사 로고 이미지 (투명 PNG). fant는 생략 시 이름 첫 글자 문장이 들어가고, emb=0 이면 문장 없이 깔끔해진다
+- bg= fant 배경 이미지
+- th=§카드색§강조색 으로 색을 바꾼다 (예: th=§0d1418§00BBDD 청록 격리시설)
+- ft= serif 명조(기본) / sans 고딕 / hand 손글씨
+- o=l 가로 / o=p 세로 로 방향을 강제할 수 있다 (기본은 스킨이 정한다)
+- 예: ![](https://p.winter0.workers.dev/?t=id&ti=제국+시민+등록증&nm=세라피나&sb=제7기사단+·+서약기사&no=IMP-4471-0092&exp=1899.12.31&seal=濟&sig=1&cr=t&fd=등급§S|소속§제7기사단|혈액형§AB+Rh-|등록지§왕도+아르셀&img=https://img.wintercards.com/O/A/4.webp)
 
 ### 공통 규칙
 - 필드 구분자: § / 아이템 구분자: | / (char 한정) 인물 구분자: ||

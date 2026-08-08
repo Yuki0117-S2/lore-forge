@@ -1006,6 +1006,8 @@ function loadProjectUI(){
     'rules-extra-text'];
   globalIds.forEach(id=>setVal(id,''));
   document.querySelectorAll('.chip.active').forEach(c=>c.classList.remove('active'));
+  // ⚠️ 커스텀칩을 먼저 DOM에 심어야 아래 restoreChips가 커스텀칩 선택까지 복원함 (지연 주입 금지)
+  injectAllCustomChips();
   ['world-rule','atmo','place','must','never'].forEach(k=>{if(proj)proj.globalTagData[k]=proj.globalTagData[k]||[];});
   renderGlobalTags('world-rule');renderGlobalTags('atmo');renderGlobalTags('place');renderGlobalTags('must');renderGlobalTags('never');
 
@@ -1055,7 +1057,6 @@ function loadProjectUI(){
   }
 
   renderSidebar();renderCharEditor();updatePreviewBar();
-  setTimeout(injectAllCustomChips,60);
   updatePreview();
 }
 
@@ -1567,12 +1568,13 @@ function addCustomChip(groupId,group){
 function injectCustomChips(groupId,group){
   const container=document.getElementById(groupId);if(!container)return;
   const addBtn=container.querySelector('.chip-add');
+  // ⚠️ 반드시 제거 '이전'에 활성 상태를 캡처해야 함 — 제거 후 캡처하면 커스텀칩 선택이 통째로 증발함
+  const currentActive=Array.from(container.querySelectorAll('.chip.active')).map(c=>c.textContent.replace('×','').trim());
+  const char=getCurrentChar();
   container.querySelectorAll('.chip-custom').forEach(c=>c.remove());
   customChips[groupId]=uniqStrings(customChips[groupId]||[]);
   (customChips[groupId]||[]).forEach(name=>{
     const chip=document.createElement('div');
-    const currentActive=Array.from(container.querySelectorAll('.chip.active')).map(c=>c.textContent.replace('×','').trim());
-    const char=getCurrentChar();
     const isSpeechActive=group==='speech'&&char&&(char.speechChips||[]).includes(name);
     const isActive=isSpeechActive||currentActive.includes(name);
     chip.className='chip chip-custom'+(isActive?' active':'');
@@ -2099,6 +2101,7 @@ async function copyLbPreview(idx){
 // ===== 유틸 =====
 function togglePanel(id){const el=document.getElementById(id);if(el)el.classList.toggle('collapsed');}
 function switchTab(name){
+  try{localStorage.setItem('lf_last_tab',name);}catch(e){}
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('panel-'+name).classList.add('active');
@@ -3426,6 +3429,16 @@ function startAutoSave(){
   gistAutoSaveTimer = setInterval(gistAutoSave, GIST_AUTO_INTERVAL);
 }
 
+function restoreLastTab(){
+  try{
+    const lt=localStorage.getItem('lf_last_tab');
+    if(!lt||lt==='character')return; // 기본 탭이면 그대로
+    if(!document.getElementById('panel-'+lt)||!document.getElementById('tab-'+lt))return; // 방어
+    switchTab(lt);
+    const mb=document.getElementById('mobtab-'+lt);
+    if(mb){document.querySelectorAll('.mob-tab-btn').forEach(b=>b.classList.remove('active'));mb.classList.add('active');}
+  }catch(e){}
+}
 function init(){
   loadCustomChips();
   const loaded=loadAll();
@@ -3453,6 +3466,7 @@ function init(){
     }
   }
   renderProjectDropdown();loadProjectUI();snapshotBaseChips();if(normalizeCustomChips())loadProjectUI();
+  restoreLastTab();
   startAutoSave();
   driveTrySilentReconnect();
   console.log('[LoreForge] 데이터 손실 시 F12 콘솔에서 loreForgeDebug.listBackups() 입력으로 백업 확인 가능');

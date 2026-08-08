@@ -3140,7 +3140,7 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
     ]
   },
   {
-    id:'cat-p', icon:'📷', title:'이미지 위젯 UI', sub:'p.winter0.workers.dev — 실사 이미지 인라인 · 스마트폰 카메라 · 캠코더 · 폴라로이드 · 감시카메라 · 대사창 · 초상 상태창 · 신분증 · 액자 · 조준경',
+    id:'cat-p', icon:'📷', title:'이미지 위젯 UI', sub:'p.winter0.workers.dev — 실사 이미지 인라인 · 스마트폰 카메라 · 캠코더 · 폴라로이드 · 감시카메라 · 대사창 · 초상 상태창 · 신분증 · 액자 · 조준경 · 전투 타격 컷',
     items:[
       {
         id:'t-p-0', title:'📷 스마트폰 카메라 (cam)',
@@ -3578,6 +3578,72 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
 - URL은 절대 줄바꿈하지 않는다</pre>`
       },
       {
+        id:'t-p-0j', title:'⚔️ 전투 타격 컷 (atk)',
+        body:`<div class=\"label label-use\">URL 파라미터 형식</div>
+<pre>/?t=atk&img=이미지URL&lay=1|2|3&sc=0&nm=대상이름&rk=등급&hp=이전§이후§최대&hb=0&ef=slash|slash2|thrust|holy|impact|magic&dmg=수치|miss&dp=x§y&sh=0&hit=0&ec=주색&ec2=보조색&dc=숫자색&th=[§배경색][§강조색]&lp=주기초&cr=앵커[§줌]&o=l|p|sq</pre>
+<hr class=\"divider\">
+<div class=\"label label-example\">예시 — 검으로 벤 순간 (하단바)</div>
+<pre>/?t=atk&lay=1&nm=고블린+군주&rk=BOSS&hp=5000§3551§5000&dmg=1449&ef=slash&img=https://img.wintercards.com/O/C/3.webp</pre>
+<div class=\"label label-example\">예시 — 마법진 (패널형)</div>
+<pre>/?t=atk&lay=2&nm=심연의+감시자&rk=A급&hp=8000§4210§8000&dmg=3790&ef=magic&img=https://img.wintercards.com/O/C/3.webp</pre>
+<div class=\"label label-example\">예시 — 성광 강타 (상단 보스바)</div>
+<pre>/?t=atk&lay=3&nm=흑염룡&rk=BOSS&hp=12000§7100§12000&dmg=4900&ef=holy&img=https://img.wintercards.com/O/C/3.webp</pre>
+<div class=\"label label-example\">예시 — 속성 마법 (색만 바꿔 화염으로)</div>
+<pre>/?t=atk&lay=2&nm=화염+정령&rk=BOSS&hp=6000§2400§6000&dmg=3600&ef=magic&ec=%23EE1166&ec2=%23FF7722&dc=%23FF7722&img=https://img.wintercards.com/O/C/3.webp</pre>
+<div class=\"label label-example\">예시 — 빗나감 (피격 연출 끔)</div>
+<pre>/?t=atk&lay=1&nm=그림자+암살자&rk=BOSS&hp=5000§5000§5000&dmg=miss&ef=slash&hit=0&img=https://img.wintercards.com/O/C/3.webp</pre>
+<div class=\"label label-example\">예시 — 조우 정지컷 (이펙트·데미지 없음)</div>
+<pre>/?t=atk&lay=3&nm=고블린+군주&rk=BOSS&hp=3551§3551§5000&ef=0&img=https://img.wintercards.com/O/C/3.webp</pre>
+<hr class=\"divider\">
+<div class=\"desc\"><strong>파라미터 설명:</strong><br>
+• <strong>img</strong> — 맞은 대상의 이미지 (필수). 화면을 꽉 채운다<br>
+&nbsp;&nbsp;&nbsp;&nbsp;방향은 이미지에서 자동 판별 — <code>o=sq|p|l</code> 로 강제 가능, <code>cr=t</code> 로 위쪽 크롭(얼굴 보존)<br>
+• <strong>lay</strong> — 레이아웃. <strong>기본 1</strong><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<code>1</code> 미니멀 — 하단에 이름·수치·게이지만. 이미지를 제일 안 가린다<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<code>2</code> 패널형 — 하단 검은 패널에 TARGET·등급·HP 묶음. 정보량 최다<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<code>3</code> 상단 보스바 — 위쪽에 이름 + 가로 긴 게이지. 전신 일러스트에 유리<br>
+• <strong>sc</strong> — 글자 뒤 어두운 띠(스크림). <strong>기본 켜짐</strong>, <code>sc=0</code> 이면 꺼진다<br>
+&nbsp;&nbsp;&nbsp;&nbsp;밝은 이미지에서는 끄면 글씨가 묻힌다 — 특별한 이유가 없으면 켜 둘 것<br>
+• <strong>nm / rk</strong> — 대상 이름 / 등급. 주지 않으면 아예 그려지지 않는다<br>
+• <strong>hp</strong> — <strong>체력. <code>이전§이후§최대</code></strong> 3필드<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<code>hp=5000§3551§5000</code> → 게이지가 5000에서 3551까지 <strong>깎여 들어가고</strong> 닳은 구간이 어두운 자주색으로 남는다<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<code>hp=3551</code> 처럼 한 필드만 주면 <strong>애니 없는 정지컷</strong>이 된다 (조우 장면에)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;최대를 생략하면 이전값을 최대로 본다 · <strong>hp 자체를 생략하면 게이지가 안 나온다</strong><br>
+• <strong>hb=0</strong> — 이름만 띄우고 게이지를 숨긴다<br>
+• <strong>ef</strong> — 공격 이펙트. <strong>기본 <code>slash</code></strong>, <strong><code>ef=0</code> 이면 이펙트 없음</strong><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<code>slash</code> 베기 1연 / <code>slash2</code> 베기 2연(교차) / <code>thrust</code> 찌르기·관통<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<code>holy</code> 위에서 내리쬐는 빛기둥 / <code>impact</code> 순수 타격(충격파 링) / <code>magic</code> 회전 마법진<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<code>ef=0</code> 이면 화면 흔들림·피격 틴트도 같이 꺼진다 (때리지 않은 턴)<br>
+• <strong>dmg</strong> — 데미지 숫자. 자동으로 앞에 <code>-</code> 가 붙는다 · <code>dmg=miss</code> 면 <code>MISS</code><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<strong>값을 주지 않으면 숫자가 안 나온다</strong> (조우 · 회피 후 대치 등)<br>
+• <strong>dp</strong> — 숫자 위치 <code>x§y</code>, 화면 비율 % (기본 <code>50§46</code>, lay=3 은 <code>50§52</code>)<br>
+• <strong>sh=0</strong> — 화면 흔들림 끔 · <strong>hit=0</strong> — 붉은 피격 틴트 끔 (둘 다 <strong>기본 켜짐</strong>)<br>
+• <strong>ec / ec2 / dc</strong> — 이펙트 주색 / 보조색 / 데미지 숫자색<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<strong>같은 <code>magic</code> 이라도 색만 바꾸면 화염·빙결·암흑 속성이 된다</strong><br>
+&nbsp;&nbsp;&nbsp;&nbsp;기본값: slash·slash2 <code>#FF6699</code> / thrust <code>#DDAACC</code> / holy <code>#CCAA88</code> / impact <code>#8888CC</code> / magic <code>#884499</code>+<code>#00BBDD</code><br>
+• <strong>lp</strong> — 재생 주기(초). <strong>기본 10</strong> — 10초에 한 번 터지고 나머지는 정지 화면<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<strong><code>lp=0</code> 이면 1회 재생 후 완전 정지</strong> · 값을 키우면(<code>lp=30</code>) 덜 부산스럽다<br>
+&nbsp;&nbsp;&nbsp;&nbsp;액션은 어느 쪽이든 1.5초 안에 끝난다</div>
+<hr class=\"divider\">
+<div class=\"label label-use\">🎨 테마 색상 (선택) — &th= (3필드 위치규칙)</div>
+<pre>&th=§배경색§강조색
+1번 스타일 자리는 atk에서 사용하지 않는다 (비워둘 것)
+2번 배경색 — 이미지가 못 채운 여백 (기본 검정)
+3번 강조색 — 등급 글자 / HP 수치 (기본은 이펙트 주색)
+프리셋: pink / indigo / gold / rose (한글도 가능)</pre>
+<hr class=\"divider\">
+<div class=\"label label-use\">⚠️ 주의</div>
+<pre>- 선택지(FIGHT/ACT 등) UI는 없다. 때린 결과만 보여주는 컷이다
+- hp 를 한 필드로 주면 정지컷, 세 필드로 주면 깎이는 애니가 된다
+- 같은 URL이어야 캐시가 먹는다. 매 턴 hp 가 달라지므로 사실상 매번 새로 만들어진다
+- 이름에 한글이 있으면 픽셀 폰트 약 43KB 가 추가로 인라인된다 (영문·숫자만이면 3KB)
+- 아주 희귀한 한글 음절(웱·뷁 등)은 폰트에 없어 네모로 깨진다 — 일반 단어는 문제없다
+- sc=0 은 배경이 어두울 때만 쓸 것. 밝은 그림에서 끄면 글씨가 사라진다
+- lay=2 는 하단을 약 20% 가린다. 전신을 보여주려면 lay=3 이 낫다
+- 이펙트는 균등 비율로 덮이므로 o= 를 바꿔도 마법진이 타원이 되지 않는다
+- URL은 절대 줄바꿈하지 않는다</pre>`
+      },
+      {
         id:'t-p-1', title:'바베챗 프롬프트 (복사용)',
         body:`<div class="label label-use">캐릭터 상세설정에 붙여넣기</div>
 <div class="desc">아래 전체를 프롬프트에 삽입하면 AI가 장면에 맞는 카메라 UI를 자동 생성합니다. 도메인은 <strong>p.winter0.workers.dev</strong></div>
@@ -3718,6 +3784,31 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
 - say= 하단 자막 / th=§경통색§UI색
 - 예: ![](https://p.winter0.workers.dev/?t=scope&sk=rifle&ret=tick&tone=nv&rng=420m&wnd=L+3.5&zm=x12&lv=-3&br=1&tgt=48§42§16§26&say=숨+참아&cr=t&img=https://img.wintercards.com/O/A/4.webp)
 - 예: ![](https://p.winter0.workers.dev/?t=scope&sk=peep&say=누구세요&cr=t&img=https://img.wintercards.com/O/A/4.webp)
+
+### 전투 타격 컷 (때린 결과 · HP 감소 · 공격 이펙트)
+![](https://p.winter0.workers.dev/?t=atk&img=이미지URL&lay=1&nm=대상이름&rk=BOSS&hp=5000§3551§5000&dmg=1449&ef=slash)
+- img= 맞은 대상의 이미지 (필수). 화면을 꽉 채운다. o= 생략하면 원본 비율을 따라간다
+- 선택지 UI는 없다. 유저가 공격한 결과를 보여주는 컷이다
+- lay= 1 미니멀 하단바(기본) / 2 패널형(정보 최다) / 3 상단 보스바(전신 일러스트에)
+- nm= 대상 이름 / rk= 등급(BOSS, A급, 희귀 등). 주지 않으면 안 나온다
+- hp=이전§이후§최대 → 게이지가 깎여 들어가고 닳은 구간이 어두운 자주색으로 남는다
+  hp=3551 처럼 한 필드만 주면 애니 없는 정지컷 (적과 막 조우한 장면에)
+  hp 를 아예 주지 않으면 게이지가 나오지 않는다 / hb=0 으로도 숨길 수 있다
+- ef= slash 베기(기본) / slash2 2연참 / thrust 찌르기 / holy 빛기둥 / impact 타격 / magic 마법진
+  검·도끼=slash, 연속기=slash2, 창·화살·관통=thrust, 신성·회심의일격=holy,
+  주먹·둔기·충격=impact, 모든 마법·주문=magic 으로 고른다
+  ef=0 이면 이펙트가 꺼진다 — 공격하지 않은 턴에는 반드시 ef=0 을 줄 것
+- dmg= 이번 턴 피해량. 앞의 - 는 자동으로 붙는다 / dmg=miss 면 MISS
+  타격이 없는 턴에는 dmg 를 아예 생략한다
+- ec= / ec2= 로 이펙트 색을 바꾼다. 같은 magic 이라도 색만 바꾸면 속성이 달라진다
+  화염 ec=%23EE1166&ec2=%23FF7722 / 빙결 ec=%230077DD&ec2=%2300BBDD / 암흑 ec=%23884499
+- lp= 재생 주기(초, 기본 10). lp=0 이면 1회 재생 후 정지 / lp=30 이면 덜 부산스럽다
+- sh=0 화면 흔들림 끔 / hit=0 붉은 피격 틴트 끔 / sc=0 글자 뒤 어두운 띠 끔(밝은 그림에선 금지)
+- cr= 크롭 앵커(c 중앙 기본 / t 위쪽 / b 아래쪽), cr=t§1.4 처럼 줌도 준다 — 세로 이미지는 cr=t 로 얼굴 보존
+- dp=x§y 로 데미지 숫자 위치를 옮긴다 (화면 비율 %, 기본 50§46 · lay=3 은 50§52)
+- dc= 데미지 숫자 색 (기본은 이펙트 주색과 같다)
+- 예: ![](https://p.winter0.workers.dev/?t=atk&lay=3&nm=흑염룡&rk=BOSS&hp=12000§7100§12000&dmg=4900&ef=holy&img=https://img.wintercards.com/O/C/3.webp)
+- 예: ![](https://p.winter0.workers.dev/?t=atk&lay=2&nm=화염+정령&rk=BOSS&hp=6000§2400§6000&dmg=3600&ef=magic&ec=%23EE1166&ec2=%23FF7722&img=https://img.wintercards.com/O/C/3.webp)
 
 ### 공통 규칙
 - 필드 구분자: § / 아이템 구분자: | / (char 한정) 인물 구분자: ||

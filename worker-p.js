@@ -867,6 +867,9 @@ function renderRec(params, dataURI, autoOri, errMsg) {
 const FONT_URL = {
   pen: 'https://img.wintercards.com/font/pen.woff2',   // 나눔손글씨 펜 · 한글 11172 + 라틴
   zen: 'https://img.wintercards.com/font/zen.woff2',   // Zen Kurenaido · 가나 182 + 라틴
+  gal11: 'https://img.wintercards.com/font/gal11.woff2',     // 갈무리11 · 라틴+숫자 (2KB)
+  gal11k: 'https://img.wintercards.com/font/gal11k.woff2',   // 갈무리11 · +KS X 1001 2350자 (42KB)
+  gal14: 'https://img.wintercards.com/font/gal14.woff2',     // 갈무리14 · 라틴+숫자 (3KB)
 };
 const FONT_MAX_BYTES = 2 * 1024 * 1024;
 const FONT_TIMEOUT_MS = 6000;
@@ -887,6 +890,19 @@ async function fetchFont(url) {
 
 // 반환값: <style>에 넣을 @font-face CSS 문자열 ('' 면 손글씨 없이 진행)
 async function loadFonts(params, t) {
+  if (t === 'atk') {
+    const nmTxt = (params.get('nm') || '') + (params.get('rk') || '');
+    const [g14, g11] = await Promise.all([
+      fetchFont(FONT_URL.gal14),
+      fetchFont(RE_KO.test(nmTxt) ? FONT_URL.gal11k : FONT_URL.gal11),
+    ]);
+    const gf = (n, b) => `@font-face{font-family:'${n}';font-style:normal;font-weight:400;`
+      + `src:url(data:font/woff2;base64,${b}) format('woff2');}`;
+    let gcss = '';
+    if (g14) gcss += gf('WGal14', g14);
+    if (g11) gcss += gf('WGal11', g11);
+    return gcss;
+  }
   if (t !== 'pol') return '';
   if ((params.get('hand') || '').trim() !== '1') return '';
 
@@ -3043,6 +3059,366 @@ async function renderId(params, imgURI) {
 // ══════════════════════════════════════════════════════════════
 // 라우팅
 // ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════
+// ?t=atk — 전투 타격 컷
+//   적 이미지 + 공격 이펙트 + HP 감소 + 데미지 숫자.
+//   선택지 UI는 없다. "때린 결과"만 보여주는 컷이라 세계관을 타지 않는다.
+//   이펙트 좌표는 360x270 기준으로 짜고 캔버스에 균등 스케일로 덮는다
+//   (비균등 스케일은 마법진 원이 타원이 되어 못 쓴다).
+// ══════════════════════════════════════════════════════════════
+const ATK_VW = 360, ATK_VH = 270, ATK_CX = 180, ATK_CY = 130;
+const ATK_END = 1.5;                       // 액션이 끝나는 시각(초)
+const ATK_FX_LIST = ['slash', 'slash2', 'thrust', 'holy', 'impact', 'magic'];
+
+// lp>0 이면 lp초 주기 반복, lp=0 이면 1회 재생 후 정지(freeze).
+// 어느 쪽이든 액션은 ATK_END 안에 끝나고 나머지는 정지 화면으로 유지된다.
+function atkTimer(lp) {
+  const once = !(lp > 0);
+  const TOT = once ? ATK_END : lp;
+  const norm = (pairs) => {
+    const ts = pairs.map(p => p[0]), vs = pairs.map(p => String(p[1]));
+    if (ts[0] !== 0) { ts.unshift(0); vs.unshift(vs[0]); }
+    if (ts[ts.length - 1] < TOT) { ts.push(TOT); vs.push(vs[vs.length - 1]); }
+    // keyTimes는 반드시 정확히 1.0으로 끝나야 한다 (부동소수 오차 금지)
+    const kt = ts.map((t, i) => (i === ts.length - 1 ? '1' : (t / TOT).toFixed(6))).join(';');
+    return [vs.join(';'), kt];
+  };
+  const tail = once
+    ? ` dur="${TOT}s" repeatCount="1" fill="freeze"`
+    : ` dur="${TOT}s" repeatCount="indefinite"`;
+  return {
+    a: (attr, pairs, extra) => {
+      const [v, k] = norm(pairs);
+      return `<animate attributeName="${attr}" values="${v}" keyTimes="${k}"${tail} ${extra || ''}/>`;
+    },
+    t: (type, pairs, extra) => {
+      const [v, k] = norm(pairs);
+      return `<animateTransform attributeName="transform" type="${type}" values="${v}"`
+        + ` keyTimes="${k}"${tail} ${extra === undefined ? 'additive="sum"' : extra}/>`;
+    },
+  };
+}
+
+// 양끝이 뾰족한 초승달 참격
+function atkCrescent(x1, y1, x2, y2, b1, b2) {
+  const dx = x2 - x1, dy = y2 - y1;
+  const L = Math.hypot(dx, dy) || 1;
+  const px = -dy / L, py = dx / L;
+  const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+  return `M${x1} ${y1} Q${(mx + px * b1 * 2).toFixed(1)} ${(my + py * b1 * 2).toFixed(1)} ${x2} ${y2}`
+    + ` Q${(mx + px * b2 * 2).toFixed(1)} ${(my + py * b2 * 2).toFixed(1)} ${x1} ${y1} Z`;
+}
+
+function atkSpark(T, n, r0, r1, col, t0, cx, cy, seed, w) {
+  let s = '';
+  for (let i = 0; i < n; i++) {
+    const a = (i * 360 / n + seed) * Math.PI / 180;
+    const c = Math.cos(a), si = Math.sin(a);
+    s += `<line x1="${(cx + c * r0).toFixed(1)}" y1="${(cy + si * r0).toFixed(1)}"`
+      + ` x2="${(cx + c * r0 * 1.5).toFixed(1)}" y2="${(cy + si * r0 * 1.5).toFixed(1)}"`
+      + ` stroke="${col}" stroke-width="${w}" stroke-linecap="round" opacity="0">`
+      + T.a('opacity', [[0, 0], [t0, 0], [t0 + 0.05, 1], [t0 + 0.35, 0]])
+      + T.t('translate', [[0, '0 0'], [t0, '0 0'],
+        [t0 + 0.45, `${(c * r1).toFixed(1)} ${(si * r1).toFixed(1)}`]])
+      + `</line>`;
+  }
+  return s;
+}
+
+function atkSlash(T, C, twin) {
+  const segs = [[334, 30, 30, 226, 18, 6, 0.02]];
+  if (twin) segs.push([36, 46, 326, 218, -13, -5, 0.18]);
+  let s = '';
+  for (const [x1, y1, x2, y2, b1, b2, t0] of segs) {
+    const d = atkCrescent(x1, y1, x2, y2, b1, b2);
+    s += `<g opacity="0">` + T.a('opacity', [[0, 0], [t0, 1], [t0 + 0.26, 1], [t0 + 0.5, 0]])
+      + `<path d="${d}" fill="${C}" opacity="0.22"/><path d="${d}" fill="#FFFFFF" opacity="0.92"/></g>`
+      + `<path d="M${x1} ${y1} L${x2} ${y2}" fill="none" stroke="${C}" stroke-width="7"`
+      + ` stroke-linecap="round" stroke-dasharray="460" opacity="0">`
+      + T.a('stroke-dashoffset', [[0, 460], [t0, 460], [t0 + 0.11, 0]])
+      + T.a('opacity', [[0, 0], [t0, 0.4], [t0 + 0.28, 0.2], [t0 + 0.55, 0]]) + `</path>`;
+  }
+  return s + atkSpark(T, 5, 24, 58, '#FFFFFF', 0.18, ATK_CX, ATK_CY, 15, 2);
+}
+
+function atkThrust(T, C) {
+  return `<g opacity="0">` + T.a('opacity', [[0, 0], [0.03, 1], [0.4, 1], [0.52, 0]])
+    + `<g>` + T.t('translate', [[0, '-300 0'], [0.06, '-300 0'], [0.32, '0 0'], [0.4, '14 0']], '')
+    + `<path d="M20 140 L196 140" stroke="${C}" stroke-width="4"/>`
+    + `<path d="M196 132 L226 140 L196 148 Z" fill="#FFFFFF"/>`
+    + `<path d="M50 140 L170 140" stroke="#FFFFFF" stroke-width="10" opacity="0.2"/></g></g>`
+    + `<path d="M-20 140 L380 140" stroke="${C}" stroke-width="2" opacity="0">`
+    + T.a('opacity', [[0, 0], [0.3, 0.7], [0.7, 0]]) + `</path>`
+    + `<ellipse cx="212" cy="140" rx="8" ry="8" fill="none" stroke="#FFFFFF" stroke-width="3.5" opacity="0">`
+    + T.a('rx', [[0, 8], [0.3, 8], [0.75, 76]]) + T.a('ry', [[0, 8], [0.3, 8], [0.75, 58]])
+    + T.a('opacity', [[0, 0], [0.3, 1], [0.7, 0]]) + `</ellipse>`
+    + atkSpark(T, 5, 22, 60, '#FFFFFF', 0.32, 212, 140, 30, 2);
+}
+
+function atkHoly(T, C, U) {
+  let sp = '';
+  for (const [x, y0, y1, r, t0] of [[140, 216, 84, 2.6, 0.12], [220, 226, 74, 2.2, 0.2],
+                                    [190, 234, 100, 2, 0.3]]) {
+    sp += `<circle cx="${x}" cy="${y0}" r="${r}" fill="#FFFFFF" opacity="0">`
+      + T.a('cy', [[0, y0], [t0, y0], [1.15, y1]])
+      + T.a('opacity', [[0, 0], [t0, 0.9], [0.8, 0.8], [1.15, 0]]) + `</circle>`;
+  }
+  return `<defs><linearGradient id="ahg${U}" x1="0" y1="0" x2="0" y2="1">`
+    + `<stop offset="0" stop-color="#FFFFFF" stop-opacity="0.9"/>`
+    + `<stop offset="0.6" stop-color="${C}" stop-opacity="0.5"/>`
+    + `<stop offset="1" stop-color="${C}" stop-opacity="0"/></linearGradient>`
+    + `<radialGradient id="ahf${U}"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0.7"/>`
+    + `<stop offset="1" stop-color="${C}" stop-opacity="0"/></radialGradient></defs>`
+    + `<g opacity="0">` + T.a('opacity', [[0, 0], [0.16, 1], [0.9, 1], [1.3, 0]])
+    + `<g transform="translate(${ATK_CX} 0)">`
+    + T.t('scale', [[0, '0.12 1'], [0.28, '1 1'], [1.3, '1.04 1']])
+    + `<polygon points="-30,-10 30,-10 64,236 -64,236" fill="url(#ahg${U})"/>`
+    + `<polygon points="-8,-10 8,-10 18,236 -18,236" fill="#FFFFFF" opacity="0.5"/></g>`
+    + `<ellipse cx="${ATK_CX}" cy="4" rx="60" ry="26" fill="url(#ahf${U})"/>`
+    + `<ellipse cx="${ATK_CX}" cy="232" rx="14" ry="5" fill="none" stroke="#FFFFFF" stroke-width="2.5">`
+    + T.a('rx', [[0, 14], [0.24, 14], [1.2, 104]]) + T.a('ry', [[0, 5], [0.24, 5], [1.2, 28]])
+    + T.a('opacity', [[0, 0], [0.24, 0.9], [0.95, 0]]) + `</ellipse>` + sp + `</g>`;
+}
+
+function atkImpact(T, C) {
+  const ring = (t0, col, w) =>
+    `<circle cx="${ATK_CX}" cy="${ATK_CY}" r="10" fill="none" stroke="${col}" stroke-width="${w}" opacity="0">`
+    + T.a('r', [[0, 10], [t0, 10], [t0 + 0.9, 126]])
+    + T.a('stroke-width', [[0, w], [t0, w], [t0 + 0.9, Math.max(1, w - 3.5)]])
+    + T.a('opacity', [[0, 0], [t0, 1], [t0 + 0.85, 0]]) + `</circle>`;
+  return `<circle cx="${ATK_CX}" cy="${ATK_CY}" r="8" fill="#FFFFFF" opacity="0">`
+    + T.a('r', [[0, 8], [0.16, 44], [0.4, 10]])
+    + T.a('opacity', [[0, 0], [0.07, 0.9], [0.4, 0]]) + `</circle>`
+    + ring(0.02, '#FFFFFF', 7) + ring(0.14, '#DDAACC', 5) + ring(0.28, C, 4);
+}
+
+// 룬은 폰트에 의존하면 글리프 없는 환경에서 두부가 된다 → path로 직접 그린다
+const ATK_RUNE = [
+  'M-4 -7 L-4 7 M-4 -7 L4 0 L-4 1', 'M-4 -7 L-4 7 M-4 -7 L4 -1 M-4 0 L4 7',
+  'M-4 -7 L-4 7 M4 -7 L-4 0 L4 7', 'M-4 -7 L4 7 M4 -7 L-4 7',
+  'M-4 -7 L-4 7 M4 -7 L4 7 M-4 -3 L4 3', 'M0 -7 L0 7 M-4 -4 L4 -4 M-4 4 L4 4',
+  'M-4 7 L0 -7 L4 7 M-2 2 L2 2',
+];
+
+function atkMagic(T, C, C2) {
+  const poly = (off) => [0, 120, 240].map(a => {
+    const r = (a + off) * Math.PI / 180;
+    return `${(Math.cos(r) * 62).toFixed(1)},${(Math.sin(r) * 62).toFixed(1)}`;
+  }).join(' ');
+  const hu = poly(-90), hd = poly(90);
+  let ru = '';
+  for (let i = 0; i < 14; i++) {
+    const a = i * 360 / 14 * Math.PI / 180;
+    const x = Math.cos(a) * 76, y = Math.sin(a) * 76;
+    ru += `<g transform="rotate(${(a * 180 / Math.PI + 90).toFixed(1)} ${x.toFixed(1)} ${y.toFixed(1)})`
+      + ` translate(${x.toFixed(1)} ${y.toFixed(1)})"><path d="${ATK_RUNE[i % 7]}" fill="none"`
+      + ` stroke="${C2}" stroke-width="1.7" stroke-linecap="round"/></g>`;
+  }
+  return `<g transform="translate(${ATK_CX} ${ATK_CY})" opacity="0">`
+    + T.a('opacity', [[0, 0], [0.12, 1], [1.0, 1], [1.4, 0]])
+    + `<g>` + T.t('rotate', [[0, 0], [0.5, 160], [1.4, 320]])
+    + T.t('scale', [[0, '0.15'], [0.26, '1'], [1.0, '1.05'], [1.4, '1.35']])
+    + `<circle r="92" fill="none" stroke="${C}" stroke-width="4"/>`
+    + `<circle r="86" fill="none" stroke="${C2}" stroke-width="1.2" opacity="0.7"/>`
+    + `<circle r="64" fill="none" stroke="${C}" stroke-width="1.6" opacity="0.8"/>`
+    + `<circle r="26" fill="none" stroke="#FFFFFF" stroke-width="1.4" opacity="0.6"/>`
+    + `<polygon points="${hu}" fill="none" stroke="#DDAAEE" stroke-width="2.6"/>`
+    + `<polygon points="${hd}" fill="none" stroke="#DDAAEE" stroke-width="2.6"/>${ru}</g>`
+    + `<g>` + T.t('rotate', [[0, 0], [1.4, -240]])
+    + `<circle r="46" fill="none" stroke="${C2}" stroke-width="2" opacity="0.65"/>`
+    + `<polygon points="${hd}" fill="none" stroke="${C2}" stroke-width="1.8" opacity="0.7"/></g></g>`
+    + atkSpark(T, 10, 30, 104, C2, 0.3, ATK_CX, ATK_CY, 18, 2.2);
+}
+
+function atkEffect(ef, T, C, C2, U) {
+  if (ef === 'slash') return atkSlash(T, C, false);
+  if (ef === 'slash2') return atkSlash(T, C, true);
+  if (ef === 'thrust') return atkThrust(T, C);
+  if (ef === 'holy') return atkHoly(T, C, U);
+  if (ef === 'impact') return atkImpact(T, C);
+  if (ef === 'magic') return atkMagic(T, C, C2);
+  return '';
+}
+
+const ATK_EC = {
+  slash: ['#FF6699', '#FFFFFF'], slash2: ['#FF6699', '#FFFFFF'],
+  thrust: ['#DDAACC', '#FFFFFF'], holy: ['#CCAA88', '#FFFFFF'],
+  impact: ['#8888CC', '#DDAACC'], magic: ['#884499', '#00BBDD'],
+};
+
+function atkUid(params) {
+  let h = 5381;
+  const s = params.toString();
+  for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
+  return 'a' + h.toString(36);
+}
+
+function atkNum(v, def) { const n = parseFloat(v); return Number.isFinite(n) ? n : def; }
+
+function renderAtk(params, dataURI, autoOri, errMsg, fontCss) {
+  const oRaw = (params.get('o') || '').trim().toLowerCase();
+  const ori = CAM_IMG[oRaw] ? oRaw : (CAM_IMG[autoOri] ? autoOri : 'sq');
+  const [W, H] = CAM_IMG[ori];
+  const U = atkUid(params);
+
+  const cf = (params.get('cr') || 'c').split('\u00a7');
+  const [par] = CAM_ANCHOR[(cf[0] || 'c').trim().toLowerCase()] || CAM_ANCHOR.c;
+
+  let lay = parseInt(params.get('lay') || '1', 10);
+  if (!(lay >= 1 && lay <= 3)) lay = 1;
+  const scrim = (params.get('sc') || '1') !== '0';
+
+  let ef = (params.get('ef') || 'slash').trim().toLowerCase();
+  if (ef === '0' || ef === 'none') ef = '';
+  else if (!ATK_FX_LIST.includes(ef)) ef = 'slash';
+
+  const [dc1, dc2] = ATK_EC[ef] || ATK_EC.slash;
+  const C = camHex(params.get('ec')) || CAM_PRESETS[(params.get('ec') || '').trim().toLowerCase()] || dc1;
+  const C2 = camHex(params.get('ec2')) || CAM_PRESETS[(params.get('ec2') || '').trim().toLowerCase()] || dc2;
+  const DC = camHex(params.get('dc')) || CAM_PRESETS[(params.get('dc') || '').trim().toLowerCase()] || C;
+
+  const thf = (params.get('th') || '').split('\u00a7');
+  const bgCol = (thf.length >= 2 && thf[1]) ? (camHex(thf[1]) || CAM_PRESETS[thf[1].trim().toLowerCase()] || '#000000') : '#000000';
+  const accCol = (thf.length >= 3 && thf[2]) ? (camHex(thf[2]) || CAM_PRESETS[thf[2].trim().toLowerCase()] || C) : C;
+
+  const lp = Math.max(0, Math.min(120, atkNum(params.get('lp'), 10)));
+  const T = atkTimer(lp);
+
+  const shake = (params.get('sh') || '1') !== '0';
+  const hitOn = (params.get('hit') || '1') !== '0';
+
+  // HP: 이전§이후§최대. 한 필드면 정지컷(애니 없음)
+  const hf = (params.get('hp') || '').split('\u00a7').map(v => v.trim());
+  const hbOn = (params.get('hb') || '1') !== '0' && hf[0] !== '';
+  let hMax = atkNum(hf[2], NaN), hPrev = atkNum(hf[0], NaN), hNow = atkNum(hf[1], NaN);
+  if (!Number.isFinite(hMax)) hMax = Number.isFinite(hPrev) ? Math.max(hPrev, 100) : 100;
+  if (!Number.isFinite(hPrev)) hPrev = hMax;
+  if (!Number.isFinite(hNow)) hNow = hPrev;          // 한 필드 = 정지컷
+  const rPrev = Math.max(0, Math.min(1, hPrev / (hMax || 1)));
+  const rNow = Math.max(0, Math.min(1, hNow / (hMax || 1)));
+
+  const nm = esc((params.get('nm') || '').trim()).slice(0, 40);
+  const rk = esc((params.get('rk') || '').trim()).slice(0, 20);
+  const dmgRaw = (params.get('dmg') || '').trim();
+  const dmgTxt = dmgRaw === '' ? '' : (/^miss$/i.test(dmgRaw) ? 'MISS' : '-' + esc(dmgRaw).slice(0, 12));
+
+  const dpf = (params.get('dp') || '').split('\u00a7');
+  const dpx = Math.max(0, Math.min(100, atkNum(dpf[0], 50)));
+  const dpy = Math.max(0, Math.min(100, atkNum(dpf[1], lay === 3 ? 52 : 46)));
+
+  const FT = fontCss ? `'WGal11',monospace` : 'monospace';
+  const FT2 = fontCss ? `'WGal14',monospace` : 'monospace';
+  const k = Math.max(W / ATK_VW, H / ATK_VH);        // 균등 스케일 (원이 타원 되지 않게)
+  const ox = (W - ATK_VW * k) / 2, oy = (H - ATK_VH * k) / 2;
+  const S = W / 1024;                                // UI 치수 기준 배율
+
+  let s = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"`
+    + ` viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">`;
+  if (fontCss) s += `<defs><style>${fontCss}</style></defs>`;
+  s += `<defs><linearGradient id="asT${U}" x1="0" y1="0" x2="0" y2="1">`
+    + `<stop offset="0" stop-color="#000000" stop-opacity="0.85"/>`
+    + `<stop offset="1" stop-color="#000000" stop-opacity="0"/></linearGradient>`
+    + `<linearGradient id="asB${U}" x1="0" y1="1" x2="0" y2="0">`
+    + `<stop offset="0" stop-color="#000000" stop-opacity="0.88"/>`
+    + `<stop offset="1" stop-color="#000000" stop-opacity="0"/></linearGradient></defs>`;
+  s += `<rect width="${W}" height="${H}" fill="${bgCol}"/>`;
+
+  if (errMsg) {
+    return s + `<text x="${W / 2}" y="${H / 2}" text-anchor="middle" font-family="monospace"`
+      + ` font-size="${Math.round(34 * S)}" fill="#DDAACC">${esc(errMsg)}</text></svg>`;
+  }
+
+  // 흔들림 레이어: 이미지 + 이펙트 + 피격 틴트
+  s += `<g>`;
+  if (shake) s += T.t('translate', [[0, '0 0'], [0.05, `${-8 * S} ${5 * S}`], [0.1, `${7 * S} ${-6 * S}`],
+    [0.16, `${-6 * S} ${4 * S}`], [0.22, `${5 * S} ${-3 * S}`], [0.3, `${-2 * S} ${S}`], [0.38, '0 0']], '');
+  if (dataURI) {
+    s += `<image x="0" y="0" width="${W}" height="${H}" preserveAspectRatio="${par} slice"`
+      + ` href="${dataURI}" xlink:href="${dataURI}"/>`;
+  }
+  if (ef) {
+    s += `<g transform="translate(${ox.toFixed(2)} ${oy.toFixed(2)}) scale(${k.toFixed(4)})">`
+      + atkEffect(ef, T, C, C2, U) + `</g>`;
+  }
+  if (hitOn && ef) {
+    s += `<rect width="${W}" height="${H}" fill="#EE1166" opacity="0">`
+      + T.a('opacity', [[0, 0], [0.04, 0.5], [0.1, 0], [0.15, 0.3], [0.24, 0]]) + `</rect>`;
+  }
+  s += `</g>`;
+
+  // ── UI ──
+  const TX = (x, y, txt, size, fill, anchor) =>
+    `<text x="${x}" y="${y}" text-anchor="${anchor || 'start'}" font-family="${FT}"`
+    + ` font-size="${size}" fill="${fill}" stroke="#000000" stroke-width="${Math.max(2, 3 * S)}"`
+    + ` paint-order="stroke" stroke-linejoin="round">${txt}</text>`;
+
+  const BAR = (x, y, bw, bh, rad) => {
+    const inner = bw - 3 * S;
+    return `<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="${rad}" fill="#111111"`
+      + ` stroke="#FFFFFF" stroke-width="${1.5 * S}"/>`
+      + `<rect x="${x + 1.5 * S}" y="${y + 1.5 * S}" width="${inner}" height="${bh - 3 * S}"`
+      + ` rx="${Math.max(0, rad - S)}" fill="#5a3540"/>`
+      + `<rect x="${x + 1.5 * S}" y="${y + 1.5 * S}" width="${(inner * rPrev).toFixed(1)}"`
+      + ` height="${bh - 3 * S}" rx="${Math.max(0, rad - S)}" fill="#22CC55">`
+      + (rNow < rPrev
+        ? T.a('width', [[0, (inner * rPrev).toFixed(1)], [0.2, (inner * rPrev).toFixed(1)],
+          [0.7, (inner * rNow).toFixed(1)]])
+        : '')
+      + `</rect>`;
+  };
+
+  const hpTxt = hbOn ? `${Math.round(hNow)} / ${Math.round(hMax)}` : '';
+
+  if (lay === 1) {
+    const sh1 = rk ? 158 * S : 82 * S;
+    if (scrim) s += `<rect x="0" y="${H - sh1}" width="${W}" height="${sh1}" fill="url(#asB${U})"/>`;
+    if (nm) s += TX(60 * S, H - 58 * S, nm, 38 * S, '#FFFFFF');
+    if (rk) s += TX(60 * S, H - 112 * S, '[' + rk + ']', 28 * S, accCol);
+    if (hbOn) {
+      s += TX(W - 60 * S, H - 58 * S, hpTxt, 38 * S, accCol, 'end');
+      s += BAR(60 * S, H - 52 * S, W - 120 * S, 34 * S, 0);
+    }
+  } else if (lay === 2) {
+    const PH = 210 * S;
+    if (scrim) {
+      s += `<rect x="0" y="${H - PH}" width="${W}" height="${PH}" fill="#000000" opacity="0.82"/>`
+        + `<rect x="0" y="${H - PH}" width="${W}" height="${4 * S}" fill="${accCol}"/>`;
+    }
+    if (nm) {
+      s += TX(46 * S, H - PH + 58 * S, 'TARGET', 36 * S, accCol);
+      s += TX(200 * S, H - PH + 58 * S, nm, 40 * S, '#FFFFFF');
+    }
+    if (rk) s += TX(W - 46 * S, H - PH + 58 * S, '[' + rk + ']', 34 * S, '#CCAA88', 'end');
+    if (hbOn) {
+      s += TX(46 * S, H - PH + 120 * S, 'HP', 34 * S, '#BB6688');
+      s += TX(W - 46 * S, H - PH + 120 * S, hpTxt, 34 * S, '#FFFFFF', 'end');
+      s += BAR(46 * S, H - PH + 138 * S, W - 92 * S, 40 * S, 20 * S);
+    }
+  } else {
+    if (scrim) s += `<rect x="0" y="0" width="${W}" height="${200 * S}" fill="url(#asT${U})"/>`;
+    if (nm) s += TX(W / 2, 58 * S, nm, 40 * S, '#FFFFFF', 'middle');
+    if (hbOn) {
+      s += BAR(86 * S, 74 * S, W - 172 * S, 20 * S, 10 * S);
+      s += TX(W / 2, 138 * S, (rk ? rk + '  \u00b7  ' : '') + hpTxt, 29 * S, accCol, 'middle');
+    } else if (rk) {
+      s += TX(W / 2, 96 * S, rk, 29 * S, accCol, 'middle');
+    }
+  }
+
+  // 데미지 숫자 (최상단)
+  if (dmgTxt) {
+    const dx = W * dpx / 100, dy = H * dpy / 100;
+    s += `<g opacity="0">` + T.a('opacity', [[0, 0], [0.1, 1]])
+      + `<g>` + T.t('translate', [[0, `${dx} ${dy + 62 * S}`], [0.14, `${dx} ${dy - 46 * S}`],
+        [0.26, `${dx} ${dy}`]], '')
+      + `<text x="0" y="0" text-anchor="middle" font-family="${FT2}" font-size="${114 * S}"`
+      + ` font-weight="700" fill="${DC}" stroke="#180008" stroke-width="${14 * S}"`
+      + ` paint-order="stroke" stroke-linejoin="round">${dmgTxt}</text></g></g>`;
+  }
+
+  return s + `</svg>`;
+}
+
 const RENDERERS = {
   'cam': renderCam,
   'rec': renderRec,
@@ -3053,6 +3429,7 @@ const RENDERERS = {
   'id': renderId,
   'frame': renderFrame,
   'scope': renderScope,
+  'atk': renderAtk,
 };
 
 function indexPage() {

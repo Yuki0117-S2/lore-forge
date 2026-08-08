@@ -535,7 +535,7 @@
         <div class="panel" id="p-out-length">
           <div class="panel-header" onclick="togglePanel('p-out-length')">
             <div class="panel-icon" style="background:rgba(255,176,106,0.15)">✒️</div>
-            <div class="panel-title">문체·출력 상세</div>
+            <div class="panel-title">출력 상세 지침</div>
             <span class="panel-badge">STYLE</span><span class="panel-arrow">▾</span>
           </div>
           <div class="panel-body">
@@ -2286,7 +2286,7 @@ function buildOutputPrompt(){
     if(pov.length)p(`시점: ${pov.join(', ')}`);if(style.length)p(`문체: ${style.join(', ')}`);if(density.length)p(`묘사 밀도: ${density.join(', ')}`);if(narrDetail)p(narrDetail);p('');
   }
   if(action.length||stValid.length){
-    p('## 문체·출력 상세');
+    p('## 출력 상세 지침');
     if(action.length)p(`행동 묘사: ${action.join(', ')}`);
     if(action.length&&stValid.length)p('');
     stValid.forEach(t=>{

@@ -147,6 +147,30 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 #toast.ok{border-color:var(--accent4);color:var(--accent4);}
 #toast.warn{border-color:var(--accent2);color:var(--accent2);}
 @media(max-width:768px){#toast{bottom:20px;font-size:13px;padding:11px 16px;}}
+
+/* ===== 검색 ===== */
+.search-wrap{background:var(--bg);padding:10px 0 8px;margin:0 0 14px;border-bottom:1px solid var(--border);}
+.search-row{display:flex;gap:8px;align-items:center;}
+.search-input{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;outline:none;transition:border-color 0.2s;min-width:0;}
+.search-input:focus{border-color:var(--accent);}
+.search-input::placeholder{color:#5a5068;}
+.search-clear{background:none;border:1px solid var(--border);color:var(--muted);border-radius:6px;width:32px;height:34px;cursor:pointer;font-size:13px;flex:0 0 auto;transition:all 0.2s;font-family:inherit;}
+.search-clear:hover{border-color:var(--accent2);color:var(--accent2);}
+.search-info{margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--muted);}
+.search-empty{display:none;padding:40px 10px;text-align:center;color:var(--muted);font-size:12px;line-height:1.8;}
+.search-empty.on{display:block;}
+mark.s-hit{background:rgba(204,170,136,0.4);color:#EBC79A;border-radius:2px;padding:0 1px;}
+.s-badge{margin-left:auto;flex:0 0 auto;background:rgba(204,170,136,0.16);color:var(--accent4);border:1px solid rgba(204,170,136,0.35);border-radius:999px;padding:2px 8px;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:0.5px;font-weight:400;}
+
+/* ===== 스크롤 점프 화살표 ===== */
+#jump-nav{position:fixed;right:16px;bottom:22px;z-index:150;display:flex;flex-direction:column;gap:8px;opacity:0;pointer-events:none;transform:translateX(8px);transition:opacity .18s,transform .18s;}
+#jump-nav.show{opacity:1;pointer-events:auto;transform:none;}
+#jump-nav button{width:40px;height:40px;border:1px solid var(--border);border-radius:999px;background:var(--surface);color:var(--accent);font-size:13px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,0.35);font-family:inherit;line-height:1;}
+#jump-nav button:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
+@media(max-width:768px){
+  #jump-nav{right:12px;bottom:18px;}
+  #jump-nav button{width:44px;height:44px;font-size:14px;}
+}
 </style>
 </head>
 <body>
@@ -184,6 +208,15 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
       <div class="content-header-title">WORLDMAP REFERENCE</div>
       <div class="content-header-sub">m.winter0.workers.dev · ?t=worldmap · 좌표 · 마커 · 경로</div>
     </div>
+    <div class="search-wrap">
+      <div class="search-row">
+        <input class="search-input" id="q" type="text" placeholder="제목 · 본문 전체 검색" autocomplete="off" spellcheck="false">
+        <button class="search-clear" id="q-clear" type="button" title="검색 초기화">✕</button>
+      </div>
+      <div class="search-info" id="result-info"></div>
+    </div>
+    <div class="search-empty" id="search-empty">검색 결과가 없어.<br>다른 단어로 해볼래?</div>
+
 
     <div id="content-root">
       <div class="loading-skeleton">⏳ 메타데이터 로딩 중…</div>
@@ -1004,7 +1037,195 @@ async function loadAutoPrompt() {
   setupDbgClick();
   loadAutoPrompt();
 })();
+
+/* ============ 검색 (DOM 필터 · 하이브리드) ============ */
+(function(){
+  const input = document.getElementById('q');
+  if(!input) return;
+  const clearBtn = document.getElementById('q-clear');
+  const info     = document.getElementById('result-info');
+  const emptyBox = document.getElementById('search-empty');
+
+  let openSnapshot = null;   // [{el, open}] 검색 시작 전 펼침 상태
+  let marked = [];
+  let badges = [];
+  let curQuery = '';
+
+  function getItems(){ return Array.prototype.slice.call(document.querySelectorAll('details.tip-item')); }
+  function getBlocks(){ return Array.prototype.slice.call(document.querySelectorAll('.cat-block')); }
+
+  function updateTotal(){
+    if(!curQuery) info.textContent = '전체 ' + getItems().length + '개';
+  }
+  updateTotal();
+  setTimeout(updateTotal, 1500);   // 동적 렌더(비동기 로딩) 후 개수 갱신
+
+  function removeBadges(){
+    badges.forEach(function(b){ if(b.parentNode) b.parentNode.removeChild(b); });
+    badges = [];
+  }
+  function clearMarks(){
+    marked.forEach(function(root){
+      const ms = root.querySelectorAll('mark.s-hit');
+      for(let i=0;i<ms.length;i++){
+        const m = ms[i];
+        m.parentNode.replaceChild(document.createTextNode(m.textContent), m);
+      }
+      if(ms.length) root.normalize();
+    });
+    marked = [];
+  }
+  function highlight(root, q){
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode: function(n){
+        if(!n.nodeValue || n.nodeValue.toLowerCase().indexOf(q) === -1) return NodeFilter.FILTER_REJECT;
+        const nm = n.parentNode && n.parentNode.nodeName;
+        if(nm==='MARK'||nm==='SCRIPT'||nm==='STYLE'||nm==='OPTION'||nm==='SELECT'||nm==='TEXTAREA') return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    const targets = [];
+    let n;
+    while((n = walker.nextNode())) targets.push(n);
+    if(!targets.length) return;
+    targets.forEach(function(node){
+      const val = node.nodeValue, low = val.toLowerCase();
+      const frag = document.createDocumentFragment();
+      let i = 0, idx;
+      while((idx = low.indexOf(q, i)) !== -1){
+        if(idx > i) frag.appendChild(document.createTextNode(val.slice(i, idx)));
+        const m = document.createElement('mark');
+        m.className = 's-hit';
+        m.textContent = val.slice(idx, idx + q.length);
+        frag.appendChild(m);
+        i = idx + q.length;
+      }
+      if(i < val.length) frag.appendChild(document.createTextNode(val.slice(i)));
+      node.parentNode.replaceChild(frag, node);
+    });
+    marked.push(root);
+  }
+
+  function reset(){
+    clearMarks();
+    removeBadges();
+    curQuery = '';
+    getItems().forEach(function(el){ el.style.display = ''; });
+    getBlocks().forEach(function(b){ b.style.display = ''; });
+    if(openSnapshot){
+      openSnapshot.forEach(function(o){ if(o.el.isConnected) o.el.open = o.open; });
+      openSnapshot = null;
+    }
+    emptyBox.classList.remove('on');
+    info.textContent = '전체 ' + getItems().length + '개';
+  }
+
+  function apply(){
+    const q = input.value.trim().toLowerCase();
+    if(!q){ reset(); return; }
+    const items = getItems();
+    if(!openSnapshot) openSnapshot = items.map(function(el){ return {el:el, open:el.open}; });
+    clearMarks();
+    removeBadges();
+    curQuery = q;
+
+    const hits = [];
+    items.forEach(function(el){
+      const text = el.textContent.toLowerCase();
+      const hit = text.indexOf(q) !== -1;
+      el.style.display = hit ? '' : 'none';
+      if(hit) hits.push({el:el, text:text});
+    });
+    const shown = hits.length;
+
+    if(shown <= 5){
+      hits.forEach(function(o){ o.el.open = true; highlight(o.el, q); });
+    } else {
+      hits.forEach(function(o){
+        o.el.open = false;
+        const sm = o.el.querySelector('summary');
+        if(sm) highlight(sm, q);
+        let cnt = 0, i = 0;
+        while((i = o.text.indexOf(q, i)) !== -1){ cnt++; i += q.length; }
+        const b = document.createElement('span');
+        b.className = 's-badge';
+        b.textContent = cnt + '곳';
+        if(sm) sm.appendChild(b);
+        badges.push(b);
+      });
+    }
+
+    getBlocks().forEach(function(b){
+      const any = Array.prototype.slice.call(b.querySelectorAll('details.tip-item'))
+                    .some(function(e){ return e.style.display !== 'none'; });
+      b.style.display = any ? '' : 'none';
+    });
+
+    emptyBox.classList.toggle('on', shown === 0);
+    info.textContent = shown + '개 표시 / 전체 ' + items.length + '개';
+  }
+
+  // 접힌 매칭 카드를 열면 그때 본문 하이라이트
+  document.addEventListener('toggle', function(e){
+    const el = e.target;
+    if(!curQuery || !el.open || !el.classList || !el.classList.contains('tip-item')) return;
+    if(marked.indexOf(el) !== -1) return;
+    if(el.style.display !== 'none'){
+      const body = el.querySelector('.tip-body');
+      if(body) highlight(body, curQuery);
+    }
+  }, true);
+
+  let t = null;
+  input.addEventListener('input', function(){
+    clearTimeout(t);
+    t = setTimeout(apply, 130);
+  });
+  input.addEventListener('keydown', function(e){
+    if(e.key === 'Escape'){ input.value = ''; clearTimeout(t); reset(); input.blur(); }
+    if(e.key === 'Enter'){ clearTimeout(t); apply(); input.blur(); }
+  });
+  clearBtn.addEventListener('click', function(){
+    input.value = '';
+    clearTimeout(t);
+    reset();
+  });
+})();
+
+/* ============ 스크롤 점프 화살표 ============ */
+document.addEventListener('DOMContentLoaded', function(){
+  const nav = document.getElementById('jump-nav');
+  if(!nav) return;
+  function scroller(){
+    const ca = document.querySelector('.content-area');
+    if(ca && ca.scrollHeight > ca.clientHeight + 4) return ca;
+    return document.scrollingElement || document.documentElement;
+  }
+  let hideTimer = null, hover = false;
+  const restart = function(){
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(function(){ if(!hover) nav.classList.remove('show'); }, 1800);
+  };
+  const onScroll = function(){ nav.classList.add('show'); restart(); };
+  window.addEventListener('scroll', onScroll, {passive:true});
+  const ca = document.querySelector('.content-area');
+  if(ca) ca.addEventListener('scroll', onScroll, {passive:true});
+  nav.addEventListener('mouseenter', function(){ hover = true; clearTimeout(hideTimer); });
+  nav.addEventListener('mouseleave', function(){ hover = false; restart(); });
+  nav.addEventListener('touchstart', function(){ clearTimeout(hideTimer); }, {passive:true});
+  document.getElementById('jump-top').onclick = function(){
+    scroller().scrollTo({top:0, behavior:'smooth'});
+  };
+  document.getElementById('jump-bottom').onclick = function(){
+    const el = scroller();
+    el.scrollTo({top: el.scrollHeight, behavior:'smooth'});
+  };
+});
 </script>
 
+<div id="jump-nav">
+  <button type="button" id="jump-top" title="맨 위로">▲</button>
+  <button type="button" id="jump-bottom" title="맨 아래로">▼</button>
+</div>
 </body>
 </html>

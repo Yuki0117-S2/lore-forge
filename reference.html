@@ -137,7 +137,7 @@ details.ref-item .ref-body{padding:0 16px 14px 30px;font-size:12px;color:var(--t
   .app-body{flex-direction:column;height:auto;min-height:calc(100vh - 50px);}
   .toc-sidebar{position:fixed;left:0;top:50px;bottom:0;width:240px;transform:translateX(-100%);z-index:50;box-shadow:4px 0 20px rgba(0,0,0,0.4);}
   .toc-sidebar.shown-mobile{transform:translateX(0);}
-  .content-area{padding:20px 16px;max-width:100%;}
+  .content-area{padding:20px 16px;max-width:100%;overflow-y:visible;}
   .content-header-title{font-size:24px;}
   .chapter-header{padding:16px 18px;}
   .chapter-title{font-size:22px;}
@@ -150,7 +150,7 @@ details.ref-item .ref-body{padding:0 16px 14px 30px;font-size:12px;color:var(--t
 }
 
 /* ===== 검색 ===== */
-.search-wrap{position:sticky;top:0;z-index:60;background:var(--bg);padding:10px 0 8px;margin:0 0 14px;border-bottom:1px solid var(--border);}
+.search-wrap{background:var(--bg);padding:10px 0 8px;margin:0 0 14px;border-bottom:1px solid var(--border);}
 .search-row{display:flex;gap:8px;align-items:center;}
 .search-input{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;outline:none;transition:border-color 0.2s;min-width:0;}
 .search-input:focus{border-color:var(--accent);}
@@ -169,7 +169,6 @@ mark.s-hit{background:rgba(204,170,136,0.4);color:#EBC79A;border-radius:2px;padd
 #jump-nav button{width:40px;height:40px;border:1px solid var(--border);border-radius:999px;background:var(--surface);color:var(--accent);font-size:13px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,0.35);font-family:inherit;line-height:1;}
 #jump-nav button:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
 @media(max-width:768px){
-  .search-wrap{top:50px;}
   #jump-nav{right:12px;bottom:18px;}
   #jump-nav button{width:44px;height:44px;font-size:14px;}
 }
@@ -7470,8 +7469,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     const el = e.target;
     if(!curQuery || !el.open || !el.classList || !el.classList.contains('ref-item')) return;
     if(marked.indexOf(el) !== -1) return;
-    const sm = el.querySelector('summary');
-    if(sm && marked.indexOf(sm) !== -1){
+    if(el.style.display !== 'none'){
       // summary만 칠해져 있던 카드 → 본문 마저 칠하기
       const body = el.querySelector('.ref-body');
       if(body) highlight(body, curQuery);
@@ -7614,7 +7612,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 })();
 
 /* ============ 스크롤 점프 화살표 ============ */
-(function(){
+document.addEventListener('DOMContentLoaded', function(){
   const nav = document.getElementById('jump-nav');
   if(!nav) return;
   // PC는 .content-area가, 모바일은 페이지 자체가 스크롤됨 → 실제로 넘치는 쪽을 고름
@@ -7630,6 +7628,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   };
   const onScroll = function(){ nav.classList.add('show'); restart(); };
   window.addEventListener('scroll', onScroll, {passive:true});
+  document.addEventListener('scroll', onScroll, {passive:true, capture:true});
   const ca = document.querySelector('.content-area');
   if(ca) ca.addEventListener('scroll', onScroll, {passive:true});
   nav.addEventListener('mouseenter', function(){ hover = true; clearTimeout(hideTimer); });
@@ -7642,7 +7641,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     const el = scroller();
     el.scrollTo({top: el.scrollHeight, behavior:'smooth'});
   };
-})();
+});
 </script>
 <div id="jump-nav">
   <button type="button" id="jump-top" title="맨 위로">▲</button>

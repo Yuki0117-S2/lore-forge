@@ -1459,7 +1459,7 @@ th 생략 = indigo 기본 배경</pre>
 <pre>/?t=wiki&p=문서명§분류들(콤마)§수정시각&i=라벨§값|라벨§값&s=섹션명§본문|섹션명§본문&q=인용문&f=각주1|각주2&b=이미지URL&e=이모지</pre>
 <hr class="divider">
 <div class="label label-example">예시 — 인물 문서 (라이트)</div>
-<pre>/?t=wiki&e=🌸&p=지수§일러스트레이터,마포구+출신§2026-07-20+14:32&i=출생§1002년//[[마포구]]|직업§일러스트레이터&s=개요§대한민국의+[[일러스트레이터]].|여담§커피를+하루+세+잔.[1]+~~수혐~~&q=그림은+밤에+그려야+제맛이죠.&f=본인+피셜</pre>
+<pre>/?t=wiki&e=🌸&p=지수§일러스트레이터,마포구+출신§2026-07-20+14:32&i=출생§2002년//[[마포구]]|직업§일러스트레이터&s=개요§대한민국의+[[일러스트레이터]].|여담§커피를+하루+세+잔.[1]+~~수혐~~&q=그림은+밤에+그려야+제맛이죠.&f=본인+피셜</pre>
 <div class="label label-example">예시 — 설정/지역 문서 (다크)</div>
 <pre>/?t=wiki&th=dark&e=🏰&p=아인크라드§부유성,SAO&i=층수§100층|관리자§[[카야바+아키히코]]&s=개요§거대+부유+철옹성.|1층§[[시작의+마을]]이+있는+최하층.</pre>
 <hr class="divider">
@@ -1877,7 +1877,7 @@ title — 상단 제목 (선택, 기본: ROUTE STATUS)</pre>`
 <pre>/?t=dark&p=이름§칭호§직업§성향§레벨
 &s=hp§hpmax§mp§mpmax§sp§spmax§exp
 &stat=str§def§agi§int§luk§wis
-&eq=무기§등급§방어구§등급§악세서리§등급
+&eq=무기§등급§방어구§등급§액세서리§등급
 &buf=버프1§!디버프1</pre>
 <hr class="divider">
 <div class="label label-example">예시</div>
@@ -1891,7 +1891,7 @@ title — 상단 제목 (선택, 기본: ROUTE STATUS)</pre>`
 • <strong>p</strong> — 프로필 (이름, 칭호, 직업, 성향, 레벨)<br>
 • <strong>s</strong> — 바이탈 (HP/MP/SP 현재§최대, EXP%)<br>
 • <strong>stat</strong> — 능력치 6개 (STR/DEF/AGI/INT/LUK/WIS, 각 0~99)<br>
-• <strong>eq</strong> — 장비 3슬롯 (무기§등급§방어구§등급§악세서리§등급)<br>
+• <strong>eq</strong> — 장비 3슬롯 (무기§등급§방어구§등급§액세서리§등급)<br>
 • <strong>등급</strong> — LEGEND / EPIC / RARE / UNCOMMON / COMMON / CURSED (한글 alias 자동 매핑, 색은 통일된 6단계)<br>
 • <strong>buf</strong> — 상태 효과 (!로 시작하면 디버프=로즈색, 아니면 버프=인디고색)</div>
 <hr class="divider">
@@ -1906,7 +1906,7 @@ stat (§로 구분):
   STR§DEF§AGI§INT§LUK§WIS (각 0~99)
 
 eq (§로 구분):
-  무기명§등급§방어구명§등급§악세서리명§등급
+  무기명§등급§방어구명§등급§액세서리명§등급
   등급(영문 대문자 표준, 한글 alias 자동 매핑):
     LEGEND(샌드) / EPIC(퍼플) / RARE(인디고) / UNCOMMON(로즈) / COMMON(회색) / CURSED(빨강)
 
@@ -1920,7 +1920,7 @@ buf (§로 구분):
 <pre>/?t=pixel&p=이름§직업§레벨§exp
 &s=hp§hpmax§mp§mpmax§sp§spmax
 &stat=atk§def§agi§mag§luk
-&eq=무기§방어구§악세서리
+&eq=무기§방어구§액세서리
 &buf=버프1§!디버프1
 &av=직업아이콘</pre>
 <hr class="divider">
@@ -1935,7 +1935,7 @@ buf (§로 구분):
 • <strong>p</strong> — 프로필 (이름, 직업명, 레벨, 경험치%)<br>
 • <strong>s</strong> — HP/MP/SP 현재§최대<br>
 • <strong>stat</strong> — 능력치 5개 (ATK/DEF/AGI/MAG/LUK, 각 0~99)<br>
-• <strong>eq</strong> — 장비 3슬롯 (무기§방어구§악세서리)<br>
+• <strong>eq</strong> — 장비 3슬롯 (무기§방어구§액세서리)<br>
 • <strong>buf</strong> — 상태 효과 (!로 시작하면 디버프)<br>
 • <strong>av</strong> — 직업 아이콘 (영어 키, 아래 표 참고)</div>
 <hr class="divider">
@@ -1959,7 +1959,7 @@ stat (§로 구분):
   ATK§DEF§AGI§MAG§LUK (각 0~99)
 
 eq (§로 구분):
-  무기§방어구§악세서리
+  무기§방어구§액세서리
 
 buf (§로 구분):
   버프명 / !디버프명
@@ -2727,12 +2727,12 @@ potion(포션)    note(음표)     eye(눈)        mask(가면)</pre>
 - date/time/title: vn과 동일
 
 ### 다크판타지 상태창
-![](https://st.winter0.workers.dev/?t=dark&p=이름§칭호§직업§성향§레벨&s=hp§hpmax§mp§mpmax§sp§spmax§exp&stat=str§def§agi§int§luk§wis&eq=무기§등급§방어구§등급§악세서리§등급&buf=버프§!디버프)
+![](https://st.winter0.workers.dev/?t=dark&p=이름§칭호§직업§성향§레벨&s=hp§hpmax§mp§mpmax§sp§spmax§exp&stat=str§def§agi§int§luk§wis&eq=무기§등급§방어구§등급§액세서리§등급&buf=버프§!디버프)
 - 등급(rarity): 「장비 등급 공통」 섹션 참고 (LEGEND/EPIC/RARE/UNCOMMON/COMMON/CURSED, 한글 alias 자동 매핑)
 - !로 시작하면 디버프 (로즈색)
 
 ### 픽셀 RPG 상태창
-![](https://st.winter0.workers.dev/?t=pixel&p=이름§직업§레벨§exp&s=hp§hpmax§mp§mpmax§sp§spmax&stat=atk§def§agi§mag§luk&eq=무기§방어구§악세서리&buf=버프§!디버프&av=직업아이콘)
+![](https://st.winter0.workers.dev/?t=pixel&p=이름§직업§레벨§exp&s=hp§hpmax§mp§mpmax§sp§spmax&stat=atk§def§agi§mag§luk&eq=무기§방어구§액세서리&buf=버프§!디버프&av=직업아이콘)
 - av 직업 아이콘 (영어 키):
   근접: warrior(전사) knight(기사) berserker(광전사) swordsman(검사) monk(격투가)
   민첩: rogue(도적) archer(궁수) assassin(암살자) hunter(사냥꾼)
@@ -3462,7 +3462,7 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
 • <strong>sk</strong> — 카드 종류. 방향이 자동으로 정해진다<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<code>gov</code> 공적 신분증·학생증 (가로, 상단 띠 + 바코드) / <code>corp</code> 사원증 (세로, 목걸이 슬롯 + QR)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<code>crim</code> 수용자 카드 (가로, 머그샷 + 신장 눈금) / <code>fant</code> 길드증 (세로, 찢긴 양피지)<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<code>o=l</code> 가로 / <code>o=p</code> 세로 로 강제할 수 있다<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<code>o=l</code> 가로 / <code>o=p</code> 세로로 강제할 수 있다<br>
 • <strong>img</strong> — 증명사진 (없으면 실루엣) · <strong>cr</strong> 크롭 <code>앵커[§줌]</code>, 기본 <code>t</code> 위쪽<br>
 • <strong>ti</strong> 발행기관 · <strong>nm</strong> 이름 · <strong>sb</strong> 부제(직함·학과) · <strong>no</strong> 카드번호 · <strong>exp</strong> 유효기간<br>
 • <strong>fd</strong> — 자유 필드. <code>§</code> 라벨/값, <code>|</code> 항목. <strong>라벨도 값도 마음대로</strong> 정한다 (최대 10개)<br>
@@ -3779,7 +3779,7 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
 - bg= fant 배경 이미지
 - th=§카드색§강조색 으로 색을 바꾼다 (예: th=§0d1418§00BBDD 청록 격리시설)
 - ft= serif 명조(기본) / sans 고딕 / hand 손글씨
-- o=l 가로 / o=p 세로 로 방향을 강제할 수 있다 (기본은 스킨이 정한다)
+- o=l 가로 / o=p 세로로 방향을 강제할 수 있다 (기본은 스킨이 정한다)
 - 예: ![](https://p.winter0.workers.dev/?t=id&ti=제국+시민+등록증&nm=세라피나&sb=제7기사단+·+서약기사&no=IMP-4471-0092&exp=1899.12.31&seal=濟&sig=1&cr=t&fd=등급§S|소속§제7기사단|혈액형§AB+Rh-|등록지§왕도+아르셀&img=https://img.wintercards.com/O/A/4.webp)
 
 ### 액자 (그림 · 초상화 · 전시 · 탁상 사진)
@@ -3880,7 +3880,7 @@ URL은 반드시 한 줄로 작성하고, 공백은 + 로 변환한다.
 <pre>const TEMPLATES = {
   'insta':   \`인스타 HTML 전체\`,
   'twitter': \`트위터 HTML 전체\`,
-  // 18종 등록 (구분자 § 통일)
+  // 26종 등록 (구분자 § 통일)
 };
 
 // 타입별 서버사이드 렌더러
@@ -3934,7 +3934,7 @@ export default {
 /?t=wiki          위키 문서 📖     /?t=music         뮤직 플레이어 🎵
 /?t=poll          투표 📊       /?t=ask           익명 질문함 💌</pre>
 <hr class="divider">
-<div class="label label-example">st.winter0.workers.dev — RPG / VN 상태창 + 엔딩 + 선택지 + 던전 + MMO + 보상 + 게임오버 + 인벤 + 능력치 + 주사위 + 소나레이더 + 통신터미널 + 생체모니터 (17종)</div>
+<div class="label label-example">st.winter0.workers.dev — RPG / VN 상태창 + 엔딩 + 선택지 + 던전 + MMO + 보상 + 게임오버 + 인벤 + 능력치 + 주사위 + 소나레이더 + 통신터미널 + 생체모니터 + EMF탐지기 + 무전기 + 캠코더 (20종)</div>
 <pre># URL 형식 — 모두 /?t=타입&파라미터 형식
 /?t=vn            미연시 상태창
 /?t=vn2           미연시 상태창 v2 (상대 정보 풍부형, 1~6명 자동 레이아웃)
@@ -3949,7 +3949,13 @@ export default {
 /?t=gameover      게임오버 화면 (modern/pixel 스타일)
 /?t=inv           인벤토리 / 장비창 (mmo/dark/pixel 스타일)
 /?t=stat          능력치 상태창 (list/hex/hybrid)
-/?t=roll          주사위 판정 / 데미지 (NdM+K, dc/dmg)</pre>
+/?t=roll          주사위 판정 / 데미지 (NdM+K, dc/dmg)
+/?t=radar         소나 레이더 / 탐지 화면
+/?t=term          통신 터미널 / 로그 (CRT 콘솔)
+/?t=vital         생체 모니터 / 환자 감시
+/?t=emf           EMF 탐지기 (k2/an)
+/?t=radio         무전기 (rx/tx/lost)
+/?t=camc          캠코더 뷰파인더</pre>
 <hr class="divider">
 <div class="desc"><strong>무료 한도:</strong> 하루 10만 건 요청까지 무료 (Worker 당). 롤플레이용으로는 충분.</div>`
       }

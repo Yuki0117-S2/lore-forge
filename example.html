@@ -66,6 +66,9 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .tag-chip{padding:4px 10px;background:rgba(122,110,138,0.12);border:1px solid var(--border);border-radius:20px;color:var(--muted);font-family:'Noto Sans KR',sans-serif;font-size:10.5px;cursor:pointer;transition:all 0.16s;}
 .tag-chip:hover{border-color:var(--accent3);color:var(--accent3);}
 .tag-chip.on{background:rgba(221,170,204,0.16);border-color:var(--accent3);color:var(--accent3);font-weight:600;}
+.tag-more{padding:4px 10px;background:rgba(136,137,205,0.10);border:1px dashed var(--accent);border-radius:20px;color:var(--accent);font-family:'Noto Sans KR',sans-serif;font-size:10.5px;font-weight:600;cursor:pointer;transition:all 0.16s;}
+.tag-more:hover{background:rgba(136,137,205,0.20);border-style:solid;}
+.tag-cnt{opacity:0.5;font-size:9px;margin-left:3px;}
 .result-info{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:10px;letter-spacing:0.5px;}
 .sort-toggle.on{border-color:var(--accent);color:var(--accent);background:rgba(136,136,204,0.14);}
 .sort-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px;padding:8px 10px;background:rgba(136,136,204,0.08);border:1px solid rgba(136,136,204,0.35);border-radius:8px;}
@@ -955,7 +958,7 @@ U 표정/침묵=관찰可, 의미확정禁. 접촉/거리=U 입력 범위 內.
     title: "젬플용 문체",
     badge: "emp",
     src: "아카라이브",
-    tags: ["문체", "제미니"],
+    tags: ["문체", "제미나이"],
     desc: "",
     body: `# 본문 작성 규칙
 - 문체:자연스럽고 생동감 있는 한국어로 쓴다.분명한 주어는 생략한다(\`그는 돌아서서 그는 문을 열었다\`→\`돌아서 문을 열었다\`).중심 동작이 선명해지는 어순과 정확한 동사를 고른다(\`그의 손에 들린 잔이 바닥으로 향했다\`→\`잔을 바닥에 내던졌다\`).동작·감각·수식·비유는 초점에 필요한 만큼만 쓰고,인과와 시선을 잇는다(\`문을 열었다. 바람이 불었다\`→\`문을 열자 찬바람이 밀려들었다\`).속도·분위기에 따라 문장 길이·첫머리·어미와 대사·서술 비중을 달리해 같은 리듬을 반복하지 않는다.
@@ -2705,6 +2708,10 @@ function mark(html,q){
 
 /* ───────── 상태 ───────── */
 let activeTag = null;
+let tagsExpanded = false;
+const TAG_MIN_COUNT = 2;   // 이 개수 이상 붙은 태그만 기본 노출
+const TAG_MIN_SHOW  = 12;  // 위 기준 결과가 너무 적을 때의 최소 노출 개수
+const TAG_MAX_SHOW  = 20;  // 기본 노출 상한 (태그가 늘어나도 이 이상은 접어둠)
 let openChapters = CATS.map(c=>c.id);   // 기본 전부 펼침
 
 function matches(ex,q){
@@ -2827,19 +2834,49 @@ function buildCard(ex,q){
   return d;
 }
 
+function tagCounts(){
+  const cnt = {};
+  EXAMPLES.forEach(e => (e.tags||[]).forEach(t => { cnt[t] = (cnt[t]||0)+1; }));
+  return cnt;
+}
+
+function sortedTags(){
+  const cnt = tagCounts();
+  return Object.keys(cnt).sort(function(a,b){
+    if(cnt[b] !== cnt[a]) return cnt[b] - cnt[a];
+    return a.localeCompare(b,'ko');
+  });
+}
+
 function renderTags(){
   const row = $('#tag-row');
-  const seen = [];
-  EXAMPLES.forEach(e => (e.tags||[]).forEach(t => { if(seen.indexOf(t)===-1) seen.push(t); }));
-  seen.sort();
+  const cnt = tagCounts();
+  const all = sortedTags();
+  // 선택된 태그가 숨김 구간에 있으면 자동으로 펼침
+  let baseN = all.filter(function(t){ return cnt[t] >= TAG_MIN_COUNT; }).length;
+  if(baseN < TAG_MIN_SHOW) baseN = TAG_MIN_SHOW;
+  if(baseN > TAG_MAX_SHOW) baseN = TAG_MAX_SHOW;
+  if(baseN > all.length)   baseN = all.length;
+  const activeIdx = activeTag ? all.indexOf(activeTag) : -1;
+  if(activeIdx >= baseN) tagsExpanded = true;
+  const show = tagsExpanded ? all : all.slice(0, baseN);
+  const hidden = all.length - show.length;
+
   row.innerHTML = '';
-  seen.forEach(function(t){
+  show.forEach(function(t){
     const b = document.createElement('button');
     b.className = 'tag-chip' + (activeTag===t?' on':'');
-    b.textContent = '#'+t;
+    b.innerHTML = '#'+esc(t)+'<span class="tag-cnt">'+cnt[t]+'</span>';
     b.onclick = function(){ activeTag = (activeTag===t?null:t); render(); };
     row.appendChild(b);
   });
+  if(hidden > 0 || tagsExpanded){
+    const m = document.createElement('button');
+    m.className = 'tag-more';
+    m.textContent = tagsExpanded ? '\u25B4 \uC811\uAE30' : '\u25BE \uD0DC\uADF8 ' + hidden + '\uAC1C \uB354';
+    m.onclick = function(){ tagsExpanded = !tagsExpanded; renderTags(); };
+    row.appendChild(m);
+  }
 }
 
 function clearAll(){

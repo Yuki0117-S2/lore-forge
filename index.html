@@ -124,6 +124,18 @@
   .trait-move-btn{background:none;border:1px solid var(--border);color:var(--muted);border-radius:5px;width:25px;height:25px;cursor:pointer;font-size:11px;transition:all 0.2s;display:flex;align-items:center;justify-content:center;padding:0;}
   .trait-move-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent);}
   .trait-move-btn:disabled{opacity:0.3;cursor:not-allowed;}
+  .trait-lv-btn{color:var(--muted);background:none;border:1px solid var(--border);border-radius:5px;min-width:38px;height:25px;cursor:pointer;font-size:10px;font-family:'JetBrains Mono',monospace;font-weight:700;padding:0 4px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;}
+  .trait-lv-btn:hover{filter:brightness(1.35);border-color:currentColor;}
+  .trait-item-head.has-lv{grid-template-columns:auto 1fr auto auto auto;}
+  .panel-lv-btn{color:var(--muted);background:var(--bg);border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:10px;font-family:'JetBrains Mono',monospace;font-weight:700;padding:0 7px;height:21px;display:flex;align-items:center;transition:all 0.2s;flex-shrink:0;}
+  .panel-lv-btn:hover{filter:brightness(1.35);border-color:currentColor;}
+  .tab-head-row{display:flex;align-items:center;gap:6px;margin-bottom:10px;}
+  .tab-head-row input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:12px;color:var(--text);font-weight:600;outline:none;}
+  .tab-head-row input:focus{border-color:var(--accent);}
+  /* 레벨 버튼: 현재 레벨 색으로 배경·테두리 틴트 (지원 브라우저 한정, 미지원 시 기존 스타일 유지) */
+  @supports (color: color-mix(in srgb, red 50%, transparent)){
+    .panel-lv-btn,.trait-lv-btn{background:color-mix(in srgb,currentColor 12%,transparent);border-color:color-mix(in srgb,currentColor 45%,transparent);}
+  }
   .trait-count{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
   .trait-limit-msg{font-size:10px;color:var(--accent2);margin-top:4px;text-align:center;}
   .tab-panel{display:none;}
@@ -254,6 +266,8 @@
     .trait-item-head{grid-template-columns:1fr auto;gap:4px;}
     .trait-item-head .trait-move-btn,.trait-item-head .del-btn{width:32px;height:32px;}
     .trait-actions-row{display:flex;gap:4px;justify-content:flex-end;grid-column:1 / -1;margin-top:2px;}
+    .trait-item-head.has-lv{grid-template-columns:auto 1fr;}
+    .trait-lv-btn{height:32px;min-width:42px;}
   }
 </style>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -395,6 +409,10 @@
 
       <!-- 세계관 탭 -->
       <div class="tab-panel" id="panel-world">
+        <div class="tab-head-row">
+          <button class="panel-lv-btn" id="plv-worldTopSec" onclick="cyclePanelLv('worldTopSec',1)" title="섹션 헤더 레벨 변경 (# → ## → ### → - → ∅, ∅=헤더 생략)">#</button>
+          <input type="text" id="sec-title-world" placeholder="세계관 설정 (비우면 기본값)" oninput="saveSectionTitle('world',this.value)">
+        </div>
         <div class="panel" id="p-world-basic">
           <div class="panel-header" onclick="togglePanel('p-world-basic')">
             <div class="panel-icon" style="background:rgba(106,176,255,0.15)">🌍</div>
@@ -411,7 +429,7 @@
               </div>
             </div>
             <div><div class="field-label">시대 / 배경</div><input type="text" id="world-era" placeholder="예: 중세 마법 시대, 근미래 2089년..." oninput="saveAll();updatePreview()"></div>
-            <div><div class="field-label">세계관 개요</div><textarea id="world-desc" style="min-height:100px" placeholder="이 세계가 어떤 곳인지, 어떻게 돌아가는지..." oninput="saveAll();updatePreview()"></textarea></div>
+            <div><div class="field-label">세계관 개요<button class="panel-lv-btn" id="plv-worldDescSec" onclick="cyclePanelLv('worldDescSec',2)" title="헤더 레벨 변경 (# → ## → ### → - → ∅, ∅=헤더 생략)">##</button></div><textarea id="world-desc" style="min-height:100px" placeholder="이 세계가 어떤 곳인지, 어떻게 돌아가는지..." oninput="saveAll();updatePreview()"></textarea></div>
           </div>
         </div>
         <div class="panel" id="p-world-rules-panel">
@@ -421,25 +439,25 @@
             <span class="panel-badge">LORE</span><span class="panel-arrow">▾</span>
           </div>
           <div class="panel-body">
-            <div><div class="field-label">마법 / 기술 체계</div><textarea id="world-magic" placeholder="마법이 있다면 어떻게 작동하는지, 기술 수준은..." oninput="saveAll();updatePreview()"></textarea></div>
-            <div><div class="field-label">사회 구조 / 세력</div><textarea id="world-society" placeholder="국가, 파벌, 계급 구조 등..." oninput="saveAll();updatePreview()"></textarea></div>
+            <div><div class="field-label">마법 / 기술 체계<button class="panel-lv-btn" id="plv-worldMagicSec" onclick="cyclePanelLv('worldMagicSec',2)" title="헤더 레벨 변경 (# → ## → ### → - → ∅, ∅=헤더 생략)">##</button></div><textarea id="world-magic" placeholder="마법이 있다면 어떻게 작동하는지, 기술 수준은..." oninput="saveAll();updatePreview()"></textarea></div>
+            <div><div class="field-label">사회 구조 / 세력<button class="panel-lv-btn" id="plv-worldSocietySec" onclick="cyclePanelLv('worldSocietySec',2)" title="헤더 레벨 변경 (# → ## → ### → - → ∅, ∅=헤더 생략)">##</button></div><textarea id="world-society" placeholder="국가, 파벌, 계급 구조 등..." oninput="saveAll();updatePreview()"></textarea></div>
             <div>
-              <div class="field-label">세계 고유 규칙 <span style="color:var(--muted)">(엔터)</span></div>
+              <div class="field-label">세계 고유 규칙 <span style="color:var(--muted)">(엔터)</span><button class="panel-lv-btn" id="plv-worldRuleSec" onclick="cyclePanelLv('worldRuleSec',2)" title="헤더 레벨 변경 (# → ## → ### → - → ∅, ∅=헤더 생략)">##</button></div>
               <div class="tag-input-container" id="world-rule-tags" onclick="document.getElementById('world-rule-input').focus()">
                 <div style="display:flex;gap:6px;align-items:center;"><input type="text" class="tag-input" id="world-rule-input" placeholder="예: 마나 고갈 시 사망..." onkeydown="handleTagInput(event,'world-rule')" onkeyup="handleTagInput(event,'world-rule')"><button onclick="addTagBtn('world-rule')" class="tag-add-btn">＋</button></div>
               </div>
             </div>
-            <div><div class="field-label">금기 / 터부</div><textarea id="world-taboo" placeholder="이 세계에서 절대 하면 안 되는 것..." oninput="saveAll();updatePreview()"></textarea></div>
           </div>
         </div>
         <div class="panel" id="p-world-traits-panel">
           <div class="panel-header" onclick="togglePanel('p-world-traits-panel')">
             <div class="panel-icon" style="background:rgba(221,170,204,0.15)">🌐</div>
             <div class="panel-title">세계관 추가 설정</div>
+            <button class="panel-lv-btn" id="plv-worldExtraSec" onclick="event.stopPropagation();cyclePanelLv('worldExtraSec',2)" title="섹션 헤더 레벨 변경 (# → ## → ### → - → ∅, ∅=헤더 생략)">##</button>
             <span class="panel-badge">EXTRAS</span><span class="panel-arrow">▾</span>
           </div>
           <div class="panel-body">
-            <div class="hint" style="font-size:10px;color:var(--muted);margin-bottom:8px;">💡 마법·사회·장소·금기 외의 자유 항목을 추가해. 달력 체계, 통화, 종교, 역사적 사건, 세력관계, 언어, 이종족 등. 라벨을 비우면 내용만 출력돼. (최대 15개)</div>
+            <div class="hint" style="font-size:10px;color:var(--muted);margin-bottom:8px;">💡 마법·사회·장소·금기 외의 자유 항목을 추가해. 달력 체계, 통화, 종교, 역사적 사건, 세력관계, 언어, 이종족 등. 라벨을 비우면 내용만 출력돼. 블록 왼쪽 <b>#</b> 버튼으로 헤더 레벨 변경 가능. (최대 15개)</div>
             <div id="world-traits-list"></div>
             <button class="add-btn" id="world-trait-add-btn" onclick="addWorldTrait()">＋ 항목 추가</button>
             <div id="world-trait-limit-msg" class="trait-limit-msg" style="display:none;">최대 15개까지만 추가할 수 있어.</div>
@@ -449,6 +467,7 @@
           <div class="panel-header" onclick="togglePanel('p-world-place')">
             <div class="panel-icon" style="background:rgba(106,255,176,0.15)">📍</div>
             <div class="panel-title">장소 설정</div>
+            <button class="panel-lv-btn" id="plv-worldPlaceSec" onclick="event.stopPropagation();cyclePanelLv('worldPlaceSec',2)" title="헤더 레벨 변경 (# → ## → ### → - → ∅, ∅=헤더 생략)">##</button>
             <span class="panel-badge">PLACES</span><span class="panel-arrow">▾</span>
           </div>
           <div class="panel-body">
@@ -465,6 +484,7 @@
           <div class="panel-header" onclick="togglePanel('p-world-atmo')">
             <div class="panel-icon" style="background:rgba(212,106,255,0.15)">🎨</div>
             <div class="panel-title">분위기 & 톤</div>
+            <button class="panel-lv-btn" id="plv-worldAtmoSec" onclick="event.stopPropagation();cyclePanelLv('worldAtmoSec',2)" title="헤더 레벨 변경 (# → ## → ### → - → ∅, ∅=헤더 생략)">##</button>
             <span class="panel-badge">TONE</span><span class="panel-arrow">▾</span>
           </div>
           <div class="panel-body">
@@ -485,14 +505,30 @@
             </div>
           </div>
         </div>
+        <div class="panel" id="p-world-taboo-panel">
+          <div class="panel-header" onclick="togglePanel('p-world-taboo-panel')">
+            <div class="panel-icon" style="background:rgba(187,102,136,0.15)">🚫</div>
+            <div class="panel-title">금기 & 터부</div>
+            <button class="panel-lv-btn" id="plv-worldTabooSec" onclick="event.stopPropagation();cyclePanelLv('worldTabooSec',2)" title="섹션 헤더 레벨 변경 (# → ## → ### → - → ∅, ∅=헤더 생략)">##</button>
+            <span class="panel-badge">TABOO</span><span class="panel-arrow">▾</span>
+          </div>
+          <div class="panel-body">
+            <div><div class="field-label">금기 / 터부</div><textarea id="world-taboo" placeholder="이 세계에서 절대 하면 안 되는 것..." oninput="saveAll();updatePreview()"></textarea></div>
+          </div>
+        </div>
       </div>
 
       <!-- 출력지침 탭 -->
       <div class="tab-panel" id="panel-output">
+        <div class="tab-head-row">
+          <button class="panel-lv-btn" id="plv-outputTopSec" onclick="cyclePanelLv('outputTopSec',1)" title="섹션 헤더 레벨 변경 (# → ## → ### → - → ∅, ∅=헤더 생략)">#</button>
+          <input type="text" id="sec-title-output" placeholder="출력 지침 (비우면 기본값)" oninput="saveSectionTitle('output',this.value)">
+        </div>
         <div class="panel" id="p-out-narr">
           <div class="panel-header" onclick="togglePanel('p-out-narr')">
             <div class="panel-icon" style="background:rgba(136,137,205,0.15)">✍️</div>
             <div class="panel-title">나레이션 스타일</div>
+            <button class="panel-lv-btn" id="plv-narrSec" onclick="event.stopPropagation();cyclePanelLv('narrSec',2)" title="섹션 헤더 레벨 변경 (# → ## → ### → - → ∅, ∅=헤더 생략)">##</button>
             <span class="panel-badge">NARRATION</span><span class="panel-arrow">▾</span>
           </div>
           <div class="panel-body">
@@ -536,6 +572,7 @@
           <div class="panel-header" onclick="togglePanel('p-out-length')">
             <div class="panel-icon" style="background:rgba(255,176,106,0.15)">✒️</div>
             <div class="panel-title">출력 상세 지침</div>
+            <button class="panel-lv-btn" id="plv-styleSec" onclick="event.stopPropagation();cyclePanelLv('styleSec',2)" title="섹션 헤더 레벨 변경 (# → ## → ### → - → ∅, ∅=헤더 생략)">##</button>
             <span class="panel-badge">STYLE</span><span class="panel-arrow">▾</span>
           </div>
           <div class="panel-body">
@@ -549,7 +586,7 @@
                 <div class="chip chip-add" onclick="addCustomChip('action-chips','action')">＋</div>
               </div>
             </div>
-            <div class="hint">💡 문체 규칙을 [라벨+내용] 블록으로 나눠 담아봐. 블록마다 ### 소제목으로 프롬프트에 들어가.</div>
+            <div class="hint">💡 문체 규칙을 [라벨+내용] 블록으로 나눠 담아봐. 블록 왼쪽 <b>#</b> 버튼으로 헤더 레벨(# → ## → ### → - → ∅)을 바꿀 수 있어.</div>
             <div id="style-traits-list"></div>
             <button class="add-btn" id="style-trait-add-btn" onclick="addStyleTrait()">＋ 항목 추가</button>
             <div id="style-trait-limit-msg" class="trait-limit-msg" style="display:none;">최대 15개까지만 추가할 수 있어.</div>
@@ -559,6 +596,7 @@
           <div class="panel-header" onclick="togglePanel('p-out-status')">
             <div class="panel-icon" style="background:rgba(106,255,212,0.15)">📊</div>
             <div class="panel-title">상태창 설정</div>
+            <button class="panel-lv-btn" id="plv-statusSec" onclick="event.stopPropagation();cyclePanelLv('statusSec',2)" title="섹션 헤더 레벨 변경 (# → ## → ### → - → ∅, ∅=헤더 생략)">##</button>
             <span class="panel-badge">STATUS</span><span class="panel-arrow">▾</span>
           </div>
           <div class="panel-body">
@@ -570,6 +608,7 @@
           <div class="panel-header" onclick="togglePanel('p-out-affection')">
             <div class="panel-icon" style="background:rgba(187,102,136,0.15)">💖</div>
             <div class="panel-title">호감도 시스템</div>
+            <button class="panel-lv-btn" id="plv-affectionSec" onclick="event.stopPropagation();cyclePanelLv('affectionSec',2)" title="섹션 헤더 레벨 변경 (# → ## → ### → - → ∅, ∅=헤더 생략)">##</button>
             <span class="panel-badge">AFFECTION</span><span class="panel-arrow">▾</span>
           </div>
           <div class="panel-body">
@@ -582,10 +621,11 @@
           <div class="panel-header" onclick="togglePanel('p-out-extra')">
             <div class="panel-icon" style="background:rgba(204,170,136,0.15)">⚙️</div>
             <div class="panel-title">기타 출력 설정</div>
+            <button class="panel-lv-btn" id="plv-outExtraSec" onclick="event.stopPropagation();cyclePanelLv('outExtraSec',2)" title="섹션 헤더 레벨 변경 (# → ## → ### → - → ∅, ∅=헤더 생략)">##</button>
             <span class="panel-badge">EXTRA</span><span class="panel-arrow">▾</span>
           </div>
           <div class="panel-body">
-            <div class="hint" style="font-size:10px;color:var(--muted);margin-bottom:8px;">💡 항목별로 라벨을 달아서 자유롭게 추가해. 예: 이미지 출력 규칙, 인코딩 규칙, 좌표계, AI 정체 숨김 등. 라벨을 비우면 내용만 출력돼. (최대 15개)</div>
+            <div class="hint" style="font-size:10px;color:var(--muted);margin-bottom:8px;">💡 항목별로 라벨을 달아서 자유롭게 추가해. 예: 이미지 출력 규칙, 인코딩 규칙, 좌표계, AI 정체 숨김 등. 라벨을 비우면 내용만 출력돼. 블록 왼쪽 <b>#</b> 버튼으로 헤더 레벨 변경 가능. (최대 15개)</div>
             <div id="output-traits-list"></div>
             <button class="add-btn" id="output-trait-add-btn" onclick="addOutputTrait()">＋ 항목 추가</button>
             <div id="output-trait-limit-msg" class="trait-limit-msg" style="display:none;">최대 15개까지만 추가할 수 있어.</div>
@@ -595,6 +635,10 @@
 
       <!-- 행동 규칙 탭 (전체 공통) -->
       <div class="tab-panel" id="panel-rules">
+        <div class="tab-head-row">
+          <button class="panel-lv-btn" id="plv-rulesTopSec" onclick="cyclePanelLv('rulesTopSec',1)" title="섹션 헤더 레벨 변경 (# → ## → ### → - → ∅, ∅=헤더 생략)">#</button>
+          <input type="text" id="sec-title-rules" placeholder="공통 행동 지침 (비우면 기본값)" oninput="saveSectionTitle('rules',this.value)">
+        </div>
         <div style="font-size:10px;color:var(--muted);margin-bottom:12px;padding:7px 10px;background:rgba(136,137,205,0.07);border-radius:6px;border-left:2px solid rgba(136,137,205,0.3);">
           💡 여기는 <b style="color:var(--accent3)">모든 캐릭터에 공통 적용</b>되는 규칙이야. 캐릭터별 개별 규칙은 캐릭터 탭에서 설정해봐.
         </div>
@@ -606,18 +650,18 @@
           </div>
           <div class="panel-body">
             <div>
-              <div class="field-label">전체 반드시 할 것 <span style="color:var(--muted)">(엔터)</span></div>
+              <div class="field-label">전체 반드시 할 것 <span style="color:var(--muted)">(엔터)</span><button class="panel-lv-btn" id="plv-mustSec" onclick="cyclePanelLv('mustSec',2)" title="헤더 레벨 변경 (# → ## → ### → - → ∅, ∅=헤더 생략)">##</button></div>
               <div class="tag-input-container" id="must-tags" onclick="document.getElementById('must-input').focus()">
                 <div style="display:flex;gap:6px;align-items:center;"><input type="text" class="tag-input" id="must-input" placeholder="예: 항상 한국어로 답변, 존댓말 금지..." onkeydown="handleTagInput(event,'must')" onkeyup="handleTagInput(event,'must')"><button onclick="addTagBtn('must')" class="tag-add-btn">＋</button></div>
               </div>
             </div>
             <div>
-              <div class="field-label">전체 절대 하지 말 것 <span style="color:var(--muted)">(엔터)</span></div>
+              <div class="field-label">전체 절대 하지 말 것 <span style="color:var(--muted)">(엔터)</span><button class="panel-lv-btn" id="plv-neverSec" onclick="cyclePanelLv('neverSec',2)" title="헤더 레벨 변경 (# → ## → ### → - → ∅, ∅=헤더 생략)">##</button></div>
               <div class="tag-input-container" id="never-tags" onclick="document.getElementById('never-input').focus()">
                 <div style="display:flex;gap:6px;align-items:center;"><input type="text" class="tag-input" id="never-input" placeholder="예: AI임을 밝히기, 롤플레이 깨기, 설정 외 행동..." onkeydown="handleTagInput(event,'never')" onkeyup="handleTagInput(event,'never')"><button onclick="addTagBtn('never')" class="tag-add-btn">＋</button></div>
               </div>
             </div>
-            <div><div class="field-label">전체 공통 추가 설정</div><textarea id="rules-extra-text" style="min-height:90px" placeholder="모든 캐릭터에 공통으로 적용할 규칙을 자유롭게..." oninput="saveAll();updatePreview()"></textarea></div>
+            <div><div class="field-label">전체 공통 추가 설정<button class="panel-lv-btn" id="plv-rulesExtraSec" onclick="cyclePanelLv('rulesExtraSec',2)" title="헤더 레벨 변경 (# → ## → ### → - → ∅, ∅=헤더 생략)">##</button></div><textarea id="rules-extra-text" style="min-height:90px" placeholder="모든 캐릭터에 공통으로 적용할 규칙을 자유롭게..." oninput="saveAll();updatePreview()"></textarea></div>
           </div>
         </div>
       </div>
@@ -787,7 +831,8 @@ function newProject(){
 
 function switchProject(id){
   if(!id||!projects[id])return;
-  currentProjectId=id;loadProjectUI();
+  // ⚠️ saveAll()은 반드시 loadProjectUI() '뒤'에 (앞이면 이전 프로젝트 DOM 값이 새 프로젝트를 덮어씀)
+  currentProjectId=id;loadProjectUI();saveAll();
 }
 
 function renameProject(){
@@ -805,21 +850,28 @@ function deleteProject(){
     if(!(await showConfirm(`"${proj.name}" 프로젝트를 삭제할까?`,{danger:true,title:'⚠️ 프로젝트 삭제'})))return;
     safetyBackup('프로젝트 삭제: '+proj.name);
     delete projects[currentProjectId];
-    currentProjectId=Object.keys(projects)[0];
-    saveAll();renderProjectDropdown();loadProjectUI();showToast('🗑 삭제됨 (실수면 F12 콘솔에서 loreForgeDebug.listBackups())');
+    // ⚠️ 순서 주의: loadProjectUI()로 새 프로젝트를 화면에 올린 '뒤'에 saveAll().
+    //    반대로 하면 삭제된 프로젝트의 DOM 값이 다음 프로젝트에 덮어써짐.
+    const nextProj=getActiveProjects()[0]||Object.values(projects)[0]||null;
+    currentProjectId=nextProj?nextProj.id:null;
+    renderProjectDropdown();loadProjectUI();saveAll();showToast('🗑 삭제됨 (실수면 F12 콘솔에서 loreForgeDebug.listBackups())');
   })();
 }
 
 function resetProject(){
   const proj=getProject();if(!proj)return;
   (async()=>{
-    if(!(await showConfirm(`"${proj.name}" 세계관/출력지침/행동규칙을 초기화할까?\n캐릭터는 유지돼.`,{danger:true,title:'⚠️ 프로젝트 초기화'})))return;
+    if(!(await showConfirm(`"${proj.name}" 세계관/출력지침/행동규칙을 초기화할까?\n헤더 레벨 · 섹션 제목 · 조립 순서도 기본값으로 돌아가.\n캐릭터는 유지돼.`,{danger:true,title:'⚠️ 프로젝트 초기화'})))return;
     safetyBackup('프로젝트 초기화: '+proj.name);
     proj.world={name:'',era:'',desc:'',magic:'',society:'',taboo:'',places:'',toneVal:'50',ruleTags:[],atmoTags:[],placeTags:[],genreChips:[],worldTraits:[]};
     proj.output={povChips:[],styleChips:[],densityChips:[],actionChips:[],narrDetail:'',status:'',affection:'',affectionFactor:'',extra:'',outputTraits:[],styleTraits:[]};
     proj.rules={extra:'',mustTags:[],neverTags:[]};
     proj.globalTagData={};proj.lorebook=[];
-    saveAll();loadProjectUI();showToast('↺ 초기화 완료! (실수면 F12 콘솔에서 loreForgeDebug.listBackups())');
+    // 프로젝트 단위 헤더 포맷도 공장 초기화 (캐릭터별 레벨·접두사는 '캐릭터 유지' 약속대로 보존)
+    proj.headerLevels={};proj.sectionTitles={};
+    proj.sectionOrder=[...SECTION_ORDER_DEFAULT];
+    // ⚠️ 순서 주의: 비운 데이터를 화면에 먼저 반영해야 saveAll()이 옛 DOM 값을 되살리지 않음.
+    loadProjectUI();saveAll();showToast('↺ 초기화 완료! (실수면 F12 콘솔에서 loreForgeDebug.listBackups())');
   })();
 }
 
@@ -1003,7 +1055,7 @@ function loadProjectUI(){
   const proj=getProject();previewMode='all';
   const globalIds=['world-name','world-era','world-desc','world-magic','world-society','world-taboo','world-places',
     'out-narr-detail','out-status','out-affection','out-affection-factor',
-    'rules-extra-text'];
+    'rules-extra-text','sec-title-world','sec-title-output','sec-title-rules'];
   globalIds.forEach(id=>setVal(id,''));
   document.querySelectorAll('.chip.active').forEach(c=>c.classList.remove('active'));
   // ⚠️ 커스텀칩을 먼저 DOM에 심어야 아래 restoreChips가 커스텀칩 선택까지 복원함 (지연 주입 금지)
@@ -1044,6 +1096,9 @@ function loadProjectUI(){
       delete o.lengthChips;delete o.lengthDetail;
     }
     renderOutputTraits();renderStyleTraits();
+    const secT=proj.sectionTitles||{};
+    setVal('sec-title-world',secT.world||'');setVal('sec-title-output',secT.output||'');setVal('sec-title-rules',secT.rules||'');
+    syncAllPanelLvBtns();
     restoreChips('pov-chips',o.povChips||[]);restoreChips('style-chips',o.styleChips||[]);
     restoreChips('density-chips',o.densityChips||[]);
     restoreChips('action-chips',o.actionChips||[]);
@@ -1127,6 +1182,7 @@ function renderCharEditor(){
     <div class="panel" id="cp-basic">
       <div class="panel-header" onclick="togglePanel('cp-basic')">
         <div class="panel-icon" style="background:${bg}">🎭</div><div class="panel-title">기본 정보</div>
+        ${charLvBtn(char,'charTopSec',1)}
         <span class="panel-badge">BASIC</span>
         <button onclick="event.stopPropagation();duplicateCurrentChar()" style="margin-left:auto;margin-right:6px;font-size:10px;padding:3px 8px;background:rgba(221,170,204,0.15);border:1px solid rgba(221,170,204,0.35);color:#DDAACC;border-radius:6px;cursor:pointer;">⧉ 복제</button>
         <button onclick="event.stopPropagation();openCopyCharModal()" style="margin-right:6px;font-size:10px;padding:3px 8px;background:rgba(136,137,205,0.15);border:1px solid rgba(136,137,205,0.35);color:#8888CC;border-radius:6px;cursor:pointer;">📋 복사</button>
@@ -1140,11 +1196,13 @@ function renderCharEditor(){
         </div>
         <div><div class="field-label">직업 / 역할</div><input type="text" id="c-role" placeholder="예: 마법사, 탐정, 카페 알바생..." value="${esc(d.role)}" oninput="saveField('role',this.value)"></div>
         <div><div class="field-label">한 줄 소개</div><input type="text" id="c-intro" placeholder="캐릭터를 한 문장으로..." value="${esc(d.intro)}" oninput="saveField('intro',this.value)"></div>
+        <div><div class="field-label">헤더 접두사 <span style="color:var(--muted)">(비우면 이름만 출력)</span></div><input type="text" id="c-prefix" placeholder="예: 캐릭터, 주연, 조연..." value="${esc(getCharPrefix(char))}" oninput="saveCharPrefix(this.value)"></div>
       </div>
     </div>
     <div class="panel" id="cp-persona">
       <div class="panel-header" onclick="togglePanel('cp-persona')">
         <div class="panel-icon" style="background:rgba(187,102,136,0.15)">✨</div><div class="panel-title">성격 & 말투</div>
+        ${charLvBtn(char,'personaSec',2)}
         <span class="panel-badge">PERSONA</span><span class="panel-arrow">▾</span>
       </div>
       <div class="panel-body">
@@ -1177,6 +1235,7 @@ function renderCharEditor(){
     <div class="panel" id="cp-appear">
       <div class="panel-header" onclick="togglePanel('cp-appear')">
         <div class="panel-icon" style="background:rgba(106,176,255,0.15)">👁️</div><div class="panel-title">외모 & 특징</div>
+        ${charLvBtn(char,'appearSec',2)}
         <span class="panel-badge">APPEARANCE</span><span class="panel-arrow">▾</span>
       </div>
       <div class="panel-body">
@@ -1200,6 +1259,7 @@ function renderCharEditor(){
     <div class="panel" id="cp-back">
       <div class="panel-header" onclick="togglePanel('cp-back')">
         <div class="panel-icon" style="background:rgba(106,255,212,0.15)">📖</div><div class="panel-title">배경 & 과거</div>
+        ${charLvBtn(char,'backSec',2)}
         <span class="panel-badge">BACKSTORY</span><span class="panel-arrow">▾</span>
       </div>
       <div class="panel-body">
@@ -1222,10 +1282,11 @@ function renderCharEditor(){
     <div class="panel" id="cp-traits">
       <div class="panel-header" onclick="togglePanel('cp-traits')">
         <div class="panel-icon" style="background:rgba(204,170,136,0.15)">🎯</div><div class="panel-title">특징 & 기타</div>
+        ${charLvBtn(char,'traitsSec',2)}
         <span class="panel-badge">TRAITS</span><span class="panel-arrow">▾</span>
       </div>
       <div class="panel-body">
-        <div class="hint" style="font-size:10px;color:var(--muted);margin-bottom:8px;">💡 능력, 특기, 직책, 신앙, 소속 등 외모·성격·배경에 안 들어가는 자유 항목을 추가해. 라벨을 비우면 내용만 출력돼. (최대 10개)</div>
+        <div class="hint" style="font-size:10px;color:var(--muted);margin-bottom:8px;">💡 능력, 특기, 직책, 신앙, 소속 등 외모·성격·배경에 안 들어가는 자유 항목을 추가해. 라벨을 비우면 내용만 출력돼. 블록 왼쪽 <b>#</b> 버튼으로 헤더 레벨 변경 가능. (최대 10개)</div>
         <div id="c-traits-list"></div>
         <button class="add-btn" id="c-trait-add-btn" onclick="addTrait()">＋ 항목 추가</button>
         <div id="c-trait-limit-msg" class="trait-limit-msg" style="display:none;">최대 10개까지만 추가할 수 있어.</div>
@@ -1234,6 +1295,7 @@ function renderCharEditor(){
     <div class="panel" id="cp-rel">
       <div class="panel-header" onclick="togglePanel('cp-rel')">
         <div class="panel-icon" style="background:rgba(255,176,106,0.15)">🔗</div><div class="panel-title">인간관계</div>
+        ${charLvBtn(char,'relSec',2)}
         <span class="panel-badge">RELATIONS</span><span class="panel-arrow">▾</span>
       </div>
       <div class="panel-body">
@@ -1244,6 +1306,7 @@ function renderCharEditor(){
     <div class="panel" id="cp-sexuality">
       <div class="panel-header" onclick="togglePanel('cp-sexuality')">
         <div class="panel-icon" style="background:rgba(187,102,136,0.15)">🔞</div><div class="panel-title">성적 성향</div>
+        ${charLvBtn(char,'sexSec',2)}
         <span class="panel-badge">SEXUALITY</span><span class="panel-arrow">▾</span>
       </div>
       <div class="panel-body">
@@ -1263,6 +1326,7 @@ function renderCharEditor(){
     <div class="panel" id="cp-rules">
       <div class="panel-header" onclick="togglePanel('cp-rules')">
         <div class="panel-icon" style="background:rgba(106,255,176,0.15)">⚙️</div><div class="panel-title">행동 규칙 (이 캐릭터 전용)</div>
+        ${charLvBtn(char,'rulesSec',2)}
         <span class="panel-badge">RULES</span><span class="panel-arrow">▾</span>
       </div>
       <div class="panel-body">
@@ -1590,12 +1654,21 @@ function injectCustomChips(groupId,group){
 function removeCustomChip(e,groupId,group,name){
   e.stopPropagation();
   (async()=>{
-    if(!(await showConfirm(`"${name}" 항목을 삭제할까?`)))return;
+    // 삭제 전 사용처를 먼저 보여주고, 확인 시 전 프로젝트·캐릭터에서 같이 정리 (유령 칩 방지)
+    const hits=findChipUsage(groupId,name);
+    const used=hits.reduce((a,h)=>a+(h.projHit?1:0)+h.chars.length,0);
+    const msg=hits.length
+      ? `"${name}" 항목을 삭제할까?\n\n프로젝트 ${hits.length}개 · ${used}곳에서 쓰이고 있어:\n${formatChipUsage(hits)}\n\n삭제하면 위에서도 전부 같이 지워져.`
+      : `"${name}" 항목을 삭제할까?\n\n아직 어디에도 안 쓰이고 있어.`;
+    const opts=hits.length?{danger:true,title:'⚠️ 사용 중인 항목 삭제'}:{title:'항목 삭제'};
+    if(!(await showConfirm(msg,opts)))return;
+    const removed=purgeChipUsage(groupId,name);
     customChips[groupId]=(customChips[groupId]||[]).filter(n=>n!==name);
     saveCustomChips();
     if(groupId==='c-outfit-chips')injectOutfitChips();
     else injectCustomChips(groupId,group);
     saveAll();updatePreview();
+    showToast(removed?`🗑 삭제 + ${removed}곳에서 정리함`:'🗑 삭제됨');
   })();
 }
 
@@ -1653,7 +1726,8 @@ function renderTraits(){
     if(isMob){
       // 모바일: 라벨 + (이동/삭제 아래줄) + 내용
       div.innerHTML=`
-        <div class="trait-item-head">
+        <div class="trait-item-head has-lv">
+          ${lvBtn(lvOf(t,3),`cycleTraitLv(${i})`)}
           <input type="text" placeholder="라벨 (예: 능력, 직책, 신앙... 비워도 됨)" value="${esc(t.label||'')}" oninput="saveTrait(${i},'label',this.value)">
           <div class="trait-actions-row">
             <button class="trait-move-btn" ${upDisabled} onclick="moveTrait(${i},-1)" title="위로">▲</button>
@@ -1664,7 +1738,8 @@ function renderTraits(){
         <textarea placeholder="내용을 자유롭게 작성해..." oninput="saveTrait(${i},'content',this.value)">${esc(t.content||'')}</textarea>`;
     }else{
       div.innerHTML=`
-        <div class="trait-item-head">
+        <div class="trait-item-head has-lv">
+          ${lvBtn(lvOf(t,3),`cycleTraitLv(${i})`)}
           <input type="text" placeholder="라벨 (예: 능력, 직책, 신앙... 비워도 됨)" value="${esc(t.label||'')}" oninput="saveTrait(${i},'label',this.value)">
           <button class="trait-move-btn" ${upDisabled} onclick="moveTrait(${i},-1)" title="위로">▲</button>
           <button class="trait-move-btn" ${downDisabled} onclick="moveTrait(${i},1)" title="아래로">▼</button>
@@ -1682,6 +1757,7 @@ function renderTraits(){
   }
 }
 function saveTrait(i,f,v){const c=getCurrentChar();if(!c)return;ensureTraits(c);if(!c.traits[i])return;c.traits[i][f]=v;saveAll();updatePreview();}
+function cycleTraitLv(i){const c=getCurrentChar();if(!c)return;ensureTraits(c);if(!c.traits[i])return;c.traits[i].lv=lvNext(lvOf(c.traits[i],3));renderTraits();saveAll();updatePreview();}
 function removeTrait(i){
   const c=getCurrentChar();if(!c)return;ensureTraits(c);
   (async()=>{
@@ -1717,8 +1793,58 @@ window.addEventListener('resize',()=>{
     if(inTraitInput&&!crossedBreakpoint)return;
     if(document.getElementById('c-traits-list'))renderTraits();
     if(document.getElementById('world-traits-list'))renderWorldTraits();
+    if(document.getElementById('style-traits-list'))renderStyleTraits();
+    if(document.getElementById('output-traits-list'))renderOutputTraits();
   },300);
 });
+
+// ===== 헤더 레벨 사이클 (# → ## → ### → - → ∅) =====
+// lv: 1=#, 2=##, 3=###, 4=- (불릿), 0=∅ (라벨 평문 출력 / 섹션은 헤더 생략)
+const LV_GLYPH={1:'#',2:'##',3:'###',4:'-',0:'\u2205'};
+const LV_COLOR={1:'#8888CC',2:'#BB6688',3:'#CCAA88',4:'#DDAACC',0:'var(--muted)'};
+function lvNext(lv){return lv===1?2:lv===2?3:lv===3?4:lv===4?0:1;}
+function lvOf(t,def){const v=t?t.lv:undefined;return(v===0||v===1||v===2||v===3||v===4)?v:def;}
+function hdLine(lv,txt){return lv===0?txt:lv===4?('- '+txt):('#'.repeat(lv)+' '+txt);}
+function lvBtn(lv,handler){return `<button class="trait-lv-btn" style="color:${LV_COLOR[lv]}" onclick="${handler}" title="헤더 레벨 변경 (# → ## → ### → - → ∅)">${LV_GLYPH[lv]}</button>`;}
+// 섹션(패널) 헤더 레벨: proj 최상위 headerLevels에 저장 (proj.output/world는 저장 시 재구성되므로 금지)
+function ensureHeaderLevels(){const p=getProject();if(!p)return null;if(!p.headerLevels||typeof p.headerLevels!=='object'||Array.isArray(p.headerLevels))p.headerLevels={};return p.headerLevels;}
+function panelLv(key,def){const h=ensureHeaderLevels();if(!h)return def;const v=h[key];return(v===0||v===1||v===2||v===3||v===4)?v:def;}
+function cyclePanelLv(key,def){const h=ensureHeaderLevels();if(!h)return;h[key]=lvNext(panelLv(key,def));syncPanelLvBtn(key,def);saveAll();updatePreview();}
+function syncPanelLvBtn(key,def){const b=document.getElementById('plv-'+key);if(!b)return;const lv=panelLv(key,def);b.textContent=LV_GLYPH[lv];b.style.color=LV_COLOR[lv];}
+const PANEL_LV_DEFS={styleSec:2,outExtraSec:2,worldExtraSec:2,narrSec:2,statusSec:2,affectionSec:2,mustSec:2,neverSec:2,rulesExtraSec:2,worldDescSec:2,worldMagicSec:2,worldSocietySec:2,worldRuleSec:2,worldTabooSec:2,worldPlaceSec:2,worldAtmoSec:2,worldTopSec:1,outputTopSec:1,rulesTopSec:1};
+function syncAllPanelLvBtns(){Object.keys(PANEL_LV_DEFS).forEach(k=>syncPanelLvBtn(k,PANEL_LV_DEFS[k]));}
+
+// 탭별 소유 헤더 레벨 키. PANEL_LV_DEFS 19키와 1:1 (탭 복사 시 해당 탭 것만 따라감).
+// ⚠️ 레벨 버튼을 새로 달면 PANEL_LV_DEFS와 여기 둘 다 추가해야 함.
+const TAB_LV_KEYS={
+  world:['worldTopSec','worldDescSec','worldMagicSec','worldSocietySec','worldRuleSec','worldTabooSec','worldPlaceSec','worldAtmoSec','worldExtraSec'],
+  output:['outputTopSec','narrSec','styleSec','statusSec','affectionSec','outExtraSec'],
+  rules:['rulesTopSec','mustSec','neverSec','rulesExtraSec'],
+  lorebook:[]
+};
+// 탭 복사 시 헤더 포맷(레벨·섹션 제목)도 같이 옮김. 원본에 없는 키는 대상에서 제거해 완전 일치시킴.
+function copyTabHeaderFormat(src,tgt,tab){
+  const keys=TAB_LV_KEYS[tab];
+  if(!Array.isArray(keys)||!keys.length)return;
+  const sh=(src&&src.headerLevels)||{};
+  if(!tgt.headerLevels||typeof tgt.headerLevels!=='object'||Array.isArray(tgt.headerLevels))tgt.headerLevels={};
+  keys.forEach(k=>{if(sh[k]===undefined)delete tgt.headerLevels[k];else tgt.headerLevels[k]=sh[k];});
+  const st=(src&&src.sectionTitles)||{};
+  if(!tgt.sectionTitles||typeof tgt.sectionTitles!=='object'||Array.isArray(tgt.sectionTitles))tgt.sectionTitles={};
+  if(st[tab]===undefined)delete tgt.sectionTitles[tab];else tgt.sectionTitles[tab]=st[tab];
+}
+// ── 섹션 제목 편집: proj.sectionTitles (proj 최상위, headerLevels와 동일 안전 경로) ──
+function ensureSectionTitles(){const p=getProject();if(!p)return null;if(!p.sectionTitles||typeof p.sectionTitles!=='object'||Array.isArray(p.sectionTitles))p.sectionTitles={};return p.sectionTitles;}
+function saveSectionTitle(key,v){const st=ensureSectionTitles();if(!st)return;st[key]=v;saveAll();updatePreview();}
+function getSectionTitle(key,def){const p=getProject();const st=(p&&p.sectionTitles)||{};const v=(st[key]||'').trim();return v||def;}
+// ── 캐릭터 헤더 접두사: char.charPrefix (undefined=기본 '캐릭터', 빈 문자열=이름만) ──
+function getCharPrefix(char){return (char.charPrefix===undefined||char.charPrefix===null)?'캐릭터':String(char.charPrefix).trim();}
+function saveCharPrefix(v){const c=getCurrentChar();if(!c)return;c.charPrefix=v;saveAll();updatePreview();}
+// ── 캐릭터별 헤더 레벨: char.headerLevels에 저장 (캐릭터 객체는 in-place 변경·JSON 딥클론 복제라 안전) ──
+function ensureCharLevels(char){if(char&&(!char.headerLevels||typeof char.headerLevels!=='object'||Array.isArray(char.headerLevels)))char.headerLevels={};return char?char.headerLevels:null;}
+function charLv(char,key,def){if(!char||!char.headerLevels)return def;const v=char.headerLevels[key];return(v===0||v===1||v===2||v===3||v===4)?v:def;}
+function charLvBtn(char,key,def){const lv=charLv(char,key,def);return `<button class="panel-lv-btn" style="color:${LV_COLOR[lv]}" id="clv-${key}" onclick="event.stopPropagation();cycleCharLv('${key}',${def})" title="섹션 헤더 레벨 변경 (# → ## → ### → - → ∅, ∅=헤더 생략)">${LV_GLYPH[lv]}</button>`;}
+function cycleCharLv(key,def){const c=getCurrentChar();if(!c)return;const h=ensureCharLevels(c);h[key]=lvNext(charLv(c,key,def));const b=document.getElementById('clv-'+key);if(b){const lv=charLv(c,key,def);b.textContent=LV_GLYPH[lv];b.style.color=LV_COLOR[lv];}saveAll();updatePreview();}
 
 // ===== 세계관 추가 설정 (World Traits) =====
 const WORLD_TRAIT_MAX=15;
@@ -1755,7 +1881,8 @@ function renderWorldTraits(){
     const downDisabled=i===arr.length-1?'disabled':'';
     if(isMob){
       div.innerHTML=`
-        <div class="trait-item-head">
+        <div class="trait-item-head has-lv">
+          ${lvBtn(lvOf(t,3),`cycleWorldTraitLv(${i})`)}
           <input type="text" placeholder="라벨 (예: 달력, 통화, 종교, 역사... 비워도 됨)" value="${esc(t.label||'')}" oninput="saveWorldTrait(${i},'label',this.value)">
           <div class="trait-actions-row">
             <button class="trait-move-btn" ${upDisabled} onclick="moveWorldTrait(${i},-1)" title="위로">▲</button>
@@ -1766,7 +1893,8 @@ function renderWorldTraits(){
         <textarea placeholder="내용을 자유롭게 작성해..." oninput="saveWorldTrait(${i},'content',this.value)">${esc(t.content||'')}</textarea>`;
     }else{
       div.innerHTML=`
-        <div class="trait-item-head">
+        <div class="trait-item-head has-lv">
+          ${lvBtn(lvOf(t,3),`cycleWorldTraitLv(${i})`)}
           <input type="text" placeholder="라벨 (예: 달력, 통화, 종교, 역사... 비워도 됨)" value="${esc(t.label||'')}" oninput="saveWorldTrait(${i},'label',this.value)">
           <button class="trait-move-btn" ${upDisabled} onclick="moveWorldTrait(${i},-1)" title="위로">▲</button>
           <button class="trait-move-btn" ${downDisabled} onclick="moveWorldTrait(${i},1)" title="아래로">▼</button>
@@ -1785,6 +1913,10 @@ function renderWorldTraits(){
 function saveWorldTrait(i,f,v){
   const arr=ensureWorldTraits();if(!arr||!arr[i])return;
   arr[i][f]=v;saveAll();updatePreview();
+}
+function cycleWorldTraitLv(i){
+  const arr=ensureWorldTraits();if(!arr||!arr[i])return;
+  arr[i].lv=lvNext(lvOf(arr[i],3));renderWorldTraits();saveAll();updatePreview();
 }
 function removeWorldTrait(i){
   const arr=ensureWorldTraits();if(!arr)return;
@@ -1836,7 +1968,8 @@ function renderOutputTraits(){
     const downDisabled=i===arr.length-1?'disabled':'';
     if(isMob){
       div.innerHTML=`
-        <div class="trait-item-head">
+        <div class="trait-item-head has-lv">
+          ${lvBtn(lvOf(t,3),`cycleOutputTraitLv(${i})`)}
           <input type="text" placeholder="라벨 (예: 이미지 출력 규칙, 인코딩 규칙... 비워도 됨)" value="${esc(t.label||'')}" oninput="saveOutputTrait(${i},'label',this.value)">
           <div class="trait-actions-row">
             <button class="trait-move-btn" ${upDisabled} onclick="moveOutputTrait(${i},-1)" title="위로">▲</button>
@@ -1847,7 +1980,8 @@ function renderOutputTraits(){
         <textarea placeholder="내용을 자유롭게 작성해..." oninput="saveOutputTrait(${i},'content',this.value)">${esc(t.content||'')}</textarea>`;
     }else{
       div.innerHTML=`
-        <div class="trait-item-head">
+        <div class="trait-item-head has-lv">
+          ${lvBtn(lvOf(t,3),`cycleOutputTraitLv(${i})`)}
           <input type="text" placeholder="라벨 (예: 이미지 출력 규칙, 인코딩 규칙... 비워도 됨)" value="${esc(t.label||'')}" oninput="saveOutputTrait(${i},'label',this.value)">
           <button class="trait-move-btn" ${upDisabled} onclick="moveOutputTrait(${i},-1)" title="위로">▲</button>
           <button class="trait-move-btn" ${downDisabled} onclick="moveOutputTrait(${i},1)" title="아래로">▼</button>
@@ -1866,6 +2000,10 @@ function renderOutputTraits(){
 function saveOutputTrait(i,f,v){
   const arr=ensureOutputTraits();if(!arr||!arr[i])return;
   arr[i][f]=v;saveAll();updatePreview();
+}
+function cycleOutputTraitLv(i){
+  const arr=ensureOutputTraits();if(!arr||!arr[i])return;
+  arr[i].lv=lvNext(lvOf(arr[i],3));renderOutputTraits();saveAll();updatePreview();
 }
 function removeOutputTrait(i){
   const arr=ensureOutputTraits();if(!arr)return;
@@ -1917,7 +2055,8 @@ function renderStyleTraits(){
     const downDisabled=i===arr.length-1?'disabled':'';
     if(isMob){
       div.innerHTML=`
-        <div class="trait-item-head">
+        <div class="trait-item-head has-lv">
+          ${lvBtn(lvOf(t,3),`cycleStyleTraitLv(${i})`)}
           <input type="text" placeholder="라벨 (예: 표현 다양성 규칙, 문체 톤... 비워도 됨)" value="${esc(t.label||'')}" oninput="saveStyleTrait(${i},'label',this.value)">
           <div class="trait-actions-row">
             <button class="trait-move-btn" ${upDisabled} onclick="moveStyleTrait(${i},-1)" title="위로">▲</button>
@@ -1928,7 +2067,8 @@ function renderStyleTraits(){
         <textarea placeholder="내용을 자유롭게 작성해..." oninput="saveStyleTrait(${i},'content',this.value)">${esc(t.content||'')}</textarea>`;
     }else{
       div.innerHTML=`
-        <div class="trait-item-head">
+        <div class="trait-item-head has-lv">
+          ${lvBtn(lvOf(t,3),`cycleStyleTraitLv(${i})`)}
           <input type="text" placeholder="라벨 (예: 표현 다양성 규칙, 문체 톤... 비워도 됨)" value="${esc(t.label||'')}" oninput="saveStyleTrait(${i},'label',this.value)">
           <button class="trait-move-btn" ${upDisabled} onclick="moveStyleTrait(${i},-1)" title="위로">▲</button>
           <button class="trait-move-btn" ${downDisabled} onclick="moveStyleTrait(${i},1)" title="아래로">▼</button>
@@ -1947,6 +2087,10 @@ function renderStyleTraits(){
 function saveStyleTrait(i,f,v){
   const arr=ensureStyleTraits();if(!arr||!arr[i])return;
   arr[i][f]=v;saveAll();updatePreview();
+}
+function cycleStyleTraitLv(i){
+  const arr=ensureStyleTraits();if(!arr||!arr[i])return;
+  arr[i].lv=lvNext(lvOf(arr[i],3));renderStyleTraits();saveAll();updatePreview();
 }
 function removeStyleTrait(i){
   const arr=ensureStyleTraits();if(!arr)return;
@@ -2176,43 +2320,47 @@ function updatePreviewBar(){
 function buildCharPrompt(char){
   const L=[];const p=s=>{if(s!==undefined&&s!==null&&s!=='')L.push(s);};
   const d=char.data;const td=char.tagData;
-  p(`# 캐릭터: ${d.name||'이름 없음'}`);p('');
+  const ctl=charLv(char,'charTopSec',1);
+  const cpfx=getCharPrefix(char);
+  const cname=d.name||'이름 없음';
+  if(ctl!==0)p(hdLine(ctl,cpfx?`${cpfx}: ${cname}`:cname));p('');
   if(d.intro)p(d.intro);
   const bp=[];if(d.name)bp.push(`이름: ${d.name}`);if(d.age)bp.push(`나이: ${d.age}`);if(d.gender)bp.push(`성별: ${d.gender}`);if(d.role)bp.push(`직업/역할: ${d.role}`);
   if(bp.length)p(bp.join(' | '));p('');
   const pt=td.personality||[];const sp=char.speechChips||[];const ev=parseInt(d.emotionVal||50);
   const et=ev<30?'감정 표현이 절제되어 있음':ev>70?'감정 표현이 풍부하고 즉각적임':null;
   if(pt.length||sp.length||d.personality||d.values){
-    p('## 성격 & 말투');if(pt.length)p(`성격 키워드: ${pt.join(', ')}`);if(sp.length)p(`말투: ${sp.join(', ')}`);if(et)p(`감정 표현: ${et}`);if(d.personality)p('\n'+d.personality);if(d.values)p('\n[가치관/행동원리] '+d.values);p('');
+    const l1=charLv(char,'personaSec',2);if(l1!==0)p(hdLine(l1,'성격 & 말투'));if(pt.length)p(`성격 키워드: ${pt.join(', ')}`);if(sp.length)p(`말투: ${sp.join(', ')}`);if(et)p(`감정 표현: ${et}`);if(d.personality)p(d.personality);if(d.values){p('[가치관/행동원리]');p(d.values);}p('');
   }
   const ht=td.habit||[];const oc=char.outfitChips||[];
   if(d.appearance||ht.length||oc.length||d.outfit){
-    p('## 외모 & 특징');if(d.appearance)p(d.appearance);
+    const l2=charLv(char,'appearSec',2);if(l2!==0)p(hdLine(l2,'외모 & 특징'));if(d.appearance)p(d.appearance);
     if(oc.length||d.outfit){p(`의상 스타일: ${[...oc,d.outfit].filter(Boolean).join(', ')}`);}
     if(ht.length)p(`버릇/습관: ${ht.join(', ')}`);p('');
   }
   const lk=td.like||[];const dl=td.dislike||[];
   if(d.backstory||lk.length||dl.length||d.secret){
-    p('## 배경 & 동기');if(d.backstory)p(d.backstory);if(lk.length)p(`좋아하는 것: ${lk.join(', ')}`);if(dl.length)p(`싫어하는 것: ${dl.join(', ')}`);if(d.secret)p(`\n[숨겨진 면] ${d.secret}`);p('');
+    const l3=charLv(char,'backSec',2);if(l3!==0)p(hdLine(l3,'배경 & 동기'));if(d.backstory)p(d.backstory);if(lk.length)p(`좋아하는 것: ${lk.join(', ')}`);if(dl.length)p(`싫어하는 것: ${dl.join(', ')}`);if(d.secret){p('[숨겨진 면]');p(d.secret);}p('');
   }
-  if(char.relations&&char.relations.length){p('## 인간관계');char.relations.forEach(r=>{if(r.name||r.rel)p(`- ${r.name}: ${r.rel}`);});p('');}
+  if(char.relations&&char.relations.length){const l4=charLv(char,'relSec',2);if(l4!==0)p(hdLine(l4,'인간관계'));char.relations.forEach(r=>{if(r.name||r.rel)p(`- ${r.name}: ${r.rel}`);});p('');}
   if(char.traits&&char.traits.length){
     const validTraits=char.traits.filter(t=>(t.label&&t.label.trim())||(t.content&&t.content.trim()));
     if(validTraits.length){
-      p('## 특징 & 기타');
+      const l5=charLv(char,'traitsSec',2);if(l5!==0)p(hdLine(l5,'특징 & 기타'));
       validTraits.forEach(t=>{
         const lbl=(t.label||'').trim();
         const ctn=(t.content||'').trim();
-        if(lbl&&ctn)p(`${lbl}: ${ctn}`);
-        else if(ctn)p(ctn);
-        else if(lbl)p(lbl);
+        const lv=lvOf(t,3);
+        if(lbl&&ctn){p(hdLine(lv,lbl));p(ctn);p('');}
+        else if(ctn){p(ctn);p('');}
+        else if(lbl){p(hdLine(lv,lbl));p('');}
       });
       p('');
     }
   }
   const bdsmC=char.bdsmChips||[];const sexDetail=d.sexualityDetail||'';
   if(bdsmC.length||sexDetail){
-    p('## 성적 성향');
+    const l6=charLv(char,'sexSec',2);if(l6!==0)p(hdLine(l6,'성적 성향'));
     if(bdsmC.length){bdsmC.forEach(t=>p(`- ${t}`));}
     if(sexDetail){p('');p(sexDetail);}
     p('');
@@ -2220,10 +2368,10 @@ function buildCharPrompt(char){
   const cm=char.tagData['must']||[];const cn=char.tagData['never']||[];
   const cspecial=d.special||'';const cuserTitle=d.userTitle||'';const cuserRole=d.userRole||'';const ctalkStyle=d.talkStyle||'';
   if(cm.length||cn.length||cspecial||cuserTitle||cuserRole||ctalkStyle){
-    p('## 행동 규칙');
+    const l7=charLv(char,'rulesSec',2);if(l7!==0)p(hdLine(l7,'행동 규칙'));
     if(cuserTitle)p(`{{user}} 호칭: ${cuserTitle}`);
-    if(cuserRole)p(`{{user}} 역할 인식: ${cuserRole}`);
-    if(ctalkStyle)p(`{{user}}와의 대화 방식: ${ctalkStyle}`);
+    if(cuserRole){if(cuserRole.includes('\n')){p('{{user}} 역할 인식:');p(cuserRole);}else p(`{{user}} 역할 인식: ${cuserRole}`);}
+    if(ctalkStyle){if(ctalkStyle.includes('\n')){p('{{user}}와의 대화 방식:');p(ctalkStyle);}else p(`{{user}}와의 대화 방식: ${ctalkStyle}`);}
     if(cm.length){p('반드시 할 것:');cm.forEach(t=>p(`- ${t}`));}
     if(cn.length){p('절대 하지 말 것:');cn.forEach(t=>p(`- ${t}`));}
     if(cspecial){p('');p('[특수 상황 대응]');p(cspecial);}
@@ -2241,29 +2389,33 @@ function buildWorldPrompt(){
   const tvEl=document.getElementById('tone-slider');const tv=parseInt(tvEl?tvEl.value:50);
   const wt2Check=(proj.world&&Array.isArray(proj.world.worldTraits))?proj.world.worldTraits.filter(t=>(t.label&&t.label.trim())||(t.content&&t.content.trim())):[];
   if(!wn&&!we&&!wd&&!gc.length&&!wm&&!ws&&!wt&&!at.length&&!wr.length&&!wp&&!wt2Check.length)return'';
-  p('# 세계관 설정');p('');
+  {const tl=panelLv('worldTopSec',1);if(tl!==0)p(hdLine(tl,getSectionTitle('world','세계관 설정')));}p('');
   if(wn)p(`세계 이름: ${wn}`);if(gc.length)p(`장르: ${gc.join(', ')}`);if(we)p(`시대: ${we}`);p('');
-  if(wd){p('## 세계 개요');p(wd);p('');}if(wm){p('## 마법/기술 체계');p(wm);p('');}if(ws){p('## 사회 구조');p(ws);p('');}
-  if(wr.length){p('## 세계 법칙');wr.forEach(r=>p(`- ${r}`));p('');}
+  if(wd){const l=panelLv('worldDescSec',2);if(l!==0)p(hdLine(l,'세계 개요'));p(wd);p('');}
+  if(wm){const l=panelLv('worldMagicSec',2);if(l!==0)p(hdLine(l,'마법/기술 체계'));p(wm);p('');}
+  if(ws){const l=panelLv('worldSocietySec',2);if(l!==0)p(hdLine(l,'사회 구조'));p(ws);p('');}
+  if(wr.length){const l=panelLv('worldRuleSec',2);if(l!==0)p(hdLine(l,'세계 법칙'));wr.forEach(r=>p(`- ${r}`));p('');}
   const wt2=(proj.world&&Array.isArray(proj.world.worldTraits))?proj.world.worldTraits:[];
   if(wt2.length){
     const validWT=wt2.filter(t=>(t.label&&t.label.trim())||(t.content&&t.content.trim()));
     if(validWT.length){
-      p('## 세계관 추가 설정');
+      const secLv=panelLv('worldExtraSec',2);
+      if(secLv!==0)p(hdLine(secLv,'세계관 추가 설정'));
       validWT.forEach(t=>{
         const lbl=(t.label||'').trim();
         const ctn=(t.content||'').trim();
-        if(lbl&&ctn)p(`${lbl}: ${ctn}`);
-        else if(ctn)p(ctn);
-        else if(lbl)p(lbl);
+        const lv=lvOf(t,3);
+        if(lbl&&ctn){p(hdLine(lv,lbl));p(ctn);p('');}
+        else if(ctn){p(ctn);p('');}
+        else if(lbl){p(hdLine(lv,lbl));p('');}
       });
       p('');
     }
   }
-  if(wp||pt.length){p('## 주요 장소');if(wp)p(wp);if(pt.length)p(`장소 태그: ${pt.join(', ')}`);p('');}
+  if(wp||pt.length){const l=panelLv('worldPlaceSec',2);if(l!==0)p(hdLine(l,'주요 장소'));if(wp)p(wp);if(pt.length)p(`장소 태그: ${pt.join(', ')}`);p('');}
   const toneDir=tv<30?'전반적으로 어둡고 무거운 분위기':tv>70?'전반적으로 밝고 경쾌한 분위기':null;
-  if(at.length||toneDir){p('## 분위기');if(toneDir)p(toneDir);if(at.length)p(`분위기 키워드: ${at.join(', ')}`);p('');}
-  if(wt){p('## 금기사항');p(wt);p('');}
+  if(at.length||toneDir){const l=panelLv('worldAtmoSec',2);if(l!==0)p(hdLine(l,'분위기'));if(toneDir)p(toneDir);if(at.length)p(`분위기 키워드: ${at.join(', ')}`);p('');}
+  if(wt){const l=panelLv('worldTabooSec',2);if(l!==0)p(hdLine(l,'금기사항'));p(wt);p('');}
   return L.join('\n').trim();
 }
 
@@ -2283,34 +2435,39 @@ function buildOutputPrompt(){
   const stValid=st.filter(t=>(t.label&&t.label.trim())||(t.content&&t.content.trim()));
   const hasContent=pov.length||style.length||density.length||action.length||narrDetail||status||affection||otValid.length||stValid.length;
   if(!hasContent)return'';
-  p('# 출력 지침');p('');
+  {const tl=panelLv('outputTopSec',1);if(tl!==0)p(hdLine(tl,getSectionTitle('output','출력 지침')));}p('');
   if(pov.length||style.length||density.length||narrDetail){
-    p('## 나레이션 스타일');
+    const narrLv=panelLv('narrSec',2);
+    if(narrLv!==0)p(hdLine(narrLv,'나레이션 스타일'));
     if(pov.length)p(`시점: ${pov.join(', ')}`);if(style.length)p(`문체: ${style.join(', ')}`);if(density.length)p(`묘사 밀도: ${density.join(', ')}`);if(narrDetail)p(narrDetail);p('');
   }
   if(action.length||stValid.length){
-    p('## 출력 상세 지침');
+    const secLv=panelLv('styleSec',2);
+    if(secLv!==0)p(hdLine(secLv,'출력 상세 지침'));
     if(action.length)p(`행동 묘사: ${action.join(', ')}`);
     if(action.length&&stValid.length)p('');
     stValid.forEach(t=>{
       const lbl=(t.label||'').trim();
       const ctn=(t.content||'').trim();
-      if(lbl&&ctn){p(`### ${lbl}`);p(ctn);p('');}
+      const lv=lvOf(t,3);
+      if(lbl&&ctn){p(hdLine(lv,lbl));p(ctn);p('');}
       else if(ctn){p(ctn);p('');}
-      else if(lbl){p(`### ${lbl}`);p('');}
+      else if(lbl){p(hdLine(lv,lbl));p('');}
     });
     p('');
   }
-  if(status){p('## 상태창');p(status);p('');}
-  if(affection||affectionFactor){p('## 호감도 시스템');if(affection)p(affection);if(affectionFactor){p('');p('[변화 요인]');p(affectionFactor);}p('');}
+  if(status){const sl=panelLv('statusSec',2);if(sl!==0)p(hdLine(sl,'상태창'));p(status);p('');}
+  if(affection||affectionFactor){const al=panelLv('affectionSec',2);if(al!==0)p(hdLine(al,'호감도 시스템'));if(affection)p(affection);if(affectionFactor){p('');p('[변화 요인]');p(affectionFactor);}p('');}
   if(otValid.length){
-    p('## 기타 출력 설정');
+    const secLv=panelLv('outExtraSec',2);
+    if(secLv!==0)p(hdLine(secLv,'기타 출력 설정'));
     otValid.forEach(t=>{
       const lbl=(t.label||'').trim();
       const ctn=(t.content||'').trim();
-      if(lbl&&ctn){p(`### ${lbl}`);p(ctn);p('');}
+      const lv=lvOf(t,3);
+      if(lbl&&ctn){p(hdLine(lv,lbl));p(ctn);p('');}
       else if(ctn){p(ctn);p('');}
-      else if(lbl){p(`### ${lbl}`);p('');}
+      else if(lbl){p(hdLine(lv,lbl));p('');}
     });
   }
   return L.join('\n').trim();
@@ -2322,10 +2479,10 @@ function buildRulesPrompt(){
   const mt=gd['must']||[];const nt=gd['never']||[];
   const extra=gv('rules-extra-text');
   if(!mt.length&&!nt.length&&!extra)return'';
-  p('# 공통 행동 지침');p('');
-  if(mt.length){p('## 전체 반드시 할 것');mt.forEach(t=>p(`- ${t}`));p('');}
-  if(nt.length){p('## 전체 절대 하지 말 것');nt.forEach(t=>p(`- ${t}`));p('');}
-  if(extra){p('## 추가 설정');p(extra);p('');}
+  {const tl=panelLv('rulesTopSec',1);if(tl!==0)p(hdLine(tl,getSectionTitle('rules','공통 행동 지침')));}p('');
+  if(mt.length){const l=panelLv('mustSec',2);if(l!==0)p(hdLine(l,'전체 반드시 할 것'));mt.forEach(t=>p(`- ${t}`));p('');}
+  if(nt.length){const l=panelLv('neverSec',2);if(l!==0)p(hdLine(l,'전체 절대 하지 말 것'));nt.forEach(t=>p(`- ${t}`));p('');}
+  if(extra){const l=panelLv('rulesExtraSec',2);if(l!==0)p(hdLine(l,'추가 설정'));p(extra);p('');}
   return L.join('\n').trim();
 }
 
@@ -2679,13 +2836,14 @@ function showSlotPicker(slots, token, gistId){
     btn.innerHTML=`<div><div style="font-weight:700;color:var(--accent);margin-bottom:3px;">${i===0?'🟢 최신':'📁 슬롯 '+(i+1)}</div><div style="color:var(--muted);font-size:10px;">${t} · ${slot.device||'알 수 없음'} · 프로젝트 ${projCount}개</div></div><span style="color:var(--muted);font-size:16px;">›</span>`;
     btn.onmouseover=()=>btn.style.borderColor='var(--accent)';
     btn.onmouseout=()=>btn.style.borderColor='var(--border)';
-    btn.onclick=()=>{
+    btn.onclick=async()=>{
+      // Drive 슬롯 불러오기와 동일한 3단 방어: 확인창 → 직전 백업 → 공용 적용 함수
+      overlay.style.display='none';
+      const ok=await showConfirm(`Gist 슬롯 #${i+1}을 불러올까?\n현재 로컬 데이터는 덮어씌워져.`,{danger:true,title:'⚠️ Gist 슬롯 불러오기'});
+      if(!ok){overlay.style.display='flex';return;}
+      safetyBackup('Gist 불러오기 직전');
+      applyStateFromSync(slot);
       overlay.remove();
-      projects=slot.projects;
-      currentProjectId=slot.currentProjectId||Object.keys(slot.projects||{})[0]||null;
-      if(slot.customChips){customChips=slot.customChips;saveCustomChips();}
-      normalizeCustomChips();
-      renderProjectDropdown();loadProjectUI();saveAll();
       localStorage.setItem('loreforge_gist_token',token);
       localStorage.setItem('loreforge_gist_id',gistId);
       setGistStatus('불러오기 완료!','ok');setSyncIndicator('ok');showToast('☁️ Gist 불러오기 완료!');
@@ -2812,6 +2970,7 @@ async function importAllProjects(data){
     currentProjectId=Object.keys(projects)[0];
   }
 
+  normalizeAllData(); // 단일 가져오기(saveAll 경유)와 동일하게 중복 칩·불량 keywords 정리
   renderProjectDropdown();loadProjectUI();
   try{localStorage.setItem('loreforge_v3',JSON.stringify({projects,currentProjectId,customChips}));}catch(e){console.error('[LoreForge] 저장 실패:',e);}
 
@@ -2881,6 +3040,38 @@ const CHIP_CAT_LABELS={
   'genre-chips':'장르','pov-chips':'시점','style-chips':'스타일',
   'density-chips':'밀도','action-chips':'액션'
 };
+
+// ===== 커스텀 칩 사용처 조회 / 일괄 정리 (삭제 시 유령 칩 방지) =====
+// 캐릭터 필드 스캔용. BDSM은 커스텀 추가 UI가 없지만 import로 들어올 수 있어 포함.
+const CHIP_SCAN_CHAR_MAP=Object.assign({},CHIP_APPLY_MAP,{'c-bdsm-chips':'bdsmChips'});
+function findChipUsage(groupId,name){
+  const cf=CHIP_SCAN_CHAR_MAP[groupId], pp=CHIP_PROJ_APPLY_MAP[groupId];
+  const hits=[];
+  Object.values(projects||{}).forEach(p=>{
+    const chars=[];let projHit=false;
+    if(cf)(p.characters||[]).forEach(c=>{if(Array.isArray(c[cf])&&c[cf].includes(name))chars.push((c.data&&c.data.name)||'이름 없음');});
+    if(pp){const box=p[pp[0]];if(box&&Array.isArray(box[pp[1]])&&box[pp[1]].includes(name))projHit=true;}
+    if(chars.length||projHit)hits.push({project:p.name||'(이름 없음)',archived:!!p.archived,chars,projHit});
+  });
+  return hits;
+}
+function purgeChipUsage(groupId,name){
+  const cf=CHIP_SCAN_CHAR_MAP[groupId], pp=CHIP_PROJ_APPLY_MAP[groupId];
+  let n=0;
+  Object.values(projects||{}).forEach(p=>{
+    if(cf)(p.characters||[]).forEach(c=>{if(Array.isArray(c[cf])&&c[cf].includes(name)){c[cf]=c[cf].filter(s=>s!==name);n++;}});
+    if(pp){const box=p[pp[0]];if(box&&Array.isArray(box[pp[1]])&&box[pp[1]].includes(name)){box[pp[1]]=box[pp[1]].filter(s=>s!==name);n++;}}
+  });
+  return n;
+}
+function formatChipUsage(hits){
+  return hits.map(h=>{
+    const where=[];
+    if(h.projHit)where.push('프로젝트 설정');
+    if(h.chars.length)where.push(h.chars.join(', '));
+    return '· '+h.project+(h.archived?' (보관함)':'')+' — '+where.join(' / ');
+  }).join('\n');
+}
 
 // incomingCC: 가져온 파일의 customChips, importedProjects: 이번에 병합되는 project 객체 배열
 // 기본칩 스냅샷 캐시: 페이지 로드 때 한 번 긁어두고, 이후엔 화면 상태와 무관하게 캐시 사용.
@@ -3554,6 +3745,7 @@ function executeCopyTab(targetId){
   }else if(currentCopyTab==='lorebook'){
     tgt.lorebook=JSON.parse(JSON.stringify(src.lorebook||[]));
   }
+  copyTabHeaderFormat(src,tgt,currentCopyTab); // 헤더 레벨·섹션 제목도 해당 탭 것만 동행
   saveAll();
   closeCopyTabModal();
   showToast('✅ '+projects[targetId].name+'에 복사됐어!');
